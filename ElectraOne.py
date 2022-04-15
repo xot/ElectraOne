@@ -15,6 +15,7 @@ import Live
 from .Devices import get_predefined_patch_info
 from .ElectraOneDumper import PatchInfo, construct_json_patchinfo, MIDI_CHANNEL
 
+# from .config import *  ?? WHY DOESN'T THIS WORK
 # MIDI_CHANNEL = 11 : imported from .ElectraOneDumper
 
 DEBUG = True
@@ -28,10 +29,10 @@ class ElectraOne(ControlSurface):
         self.__c_instance = c_instance
         self._appointed_device = None
         self._patch_info = None
-        self.log_message("ElectraOne loaded.")
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
+        self.log_message("ElectraOne loaded.")
 
     def debug(self,m):
         if DEBUG:
@@ -107,7 +108,7 @@ class ElectraOne(ControlSurface):
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, MIDI_CHANNEL-1, cc_no, map_mode, not needs_takeover)
         
     def update_display(self):
-        return
+        pass
 
     def _set_appointed_device(self, device):
         self.debug(f'ElectraOne device appointed { device.class_name }')
