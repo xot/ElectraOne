@@ -1,8 +1,10 @@
 #!/usr/local/bin/python3
 # 
-# ElectrOne - make Devices.py
+# ElectrOne 
 #
 # Ableton Live MIDI Remote Script for the Electra One
+#
+# makedevices: a script to make Devices.py
 #
 # Author: Jaap-henk Hoepman (info@xot.nl)
 #
@@ -43,6 +45,7 @@ def get_predefined_patch_info(device_original_name):
         return None
 """
 
+# Output file
 DEVICES = 'Devices.py'
 
 here = Path('.')
@@ -52,17 +55,24 @@ with open(DEVICES,'w') as outf:
     outf.write('\nDEVICES = {\n')
     flag = False
     for preset in allpresets:
+        json_patch_path = preset
+        ccmap_path = preset.with_suffix('.ccmap')
+        device_name = preset.stem
         if flag:
             outf.write(',')
         flag = True
-        json_patch_path = preset
         with open(json_patch_path,'r') as inf:
             json_patch = inf.read()
-        ccmap_path = preset.with_suffix('.ccmap')
+            # escape single quotes in json_patch; it will be written
+            # as a single-quoted string to Devices.py
+            filter_quotes = str.maketrans({ "'": "\\'"})
+            json_patch = json_patch.translate(filter_quotes)
         with open(ccmap_path,'r') as inf:
             ccmap = inf.read()
-        device = preset.stem
-        outf.write(f"'{ device }': PatchInfo('")
+            # Remove newlines from ccmap
+            filter_newlines = str.maketrans({ '\n': None})
+            ccmap = ccmap.translate(filter_newlines)
+        outf.write(f"'{ device_name }': PatchInfo('")
         outf.write(json_patch)
         outf.write("'\n  ,")
         outf.write(ccmap)
