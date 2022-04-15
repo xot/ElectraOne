@@ -59,7 +59,7 @@ with open(DEVICES,'w') as outf:
         ccmap_path = preset.with_suffix('.ccmap')
         device_name = preset.stem
         if flag:
-            outf.write(',')
+            outf.write(',\n')
         flag = True
         with open(json_patch_path,'r') as inf:
             json_patch = inf.read()
@@ -74,8 +74,8 @@ with open(DEVICES,'w') as outf:
             ccmap = ccmap.translate(filter_newlines)
         outf.write(f"'{ device_name }': PatchInfo('")
         outf.write(json_patch)
-        outf.write("'\n  ,")
+        outf.write("',\n    ")
         outf.write(ccmap)
-        outf.write(')\n')
-    outf.write('}\n\n')
+        outf.write(')')
+    outf.write('\n}\n\n')
     outf.write(POSTSCRIPT)
