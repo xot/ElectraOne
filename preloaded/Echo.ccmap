@@ -1,0 +1,53 @@
+{'Device On': 1
+,'L Sync': 2
+,'L Time': 131
+,'L Division': 131
+,'L 16th': 131
+,'L Sync Mode': 6
+,'L Offset': 135
+,'R Time': 136
+,'R Sync': 9
+,'R Division': 136
+,'R 16th': 136
+,'R Sync Mode': 12
+,'R Offset': 141
+,'Link': 14
+,'Repitch': 15
+,'Feedback': 144
+,'Feedback Inv': 17
+,'Channel Mode': 18
+,'Input Gain': 147
+,'Output Gain': 148
+,'Clip Dry': 21
+,'Gate On': 22
+,'Gate Thr': 151
+,'Gate Release': 152
+,'Duck On': 25
+,'Duck Thr': 154
+,'Duck Release': 155
+,'Filter On': 28
+,'HP Freq': 157
+,'HP Res': 158
+,'LP Freq': 159
+,'LP Res': 160
+,'Mod Wave': 33
+,'Mod Freq': 162
+,'Mod Sync': 55
+,'Mod Rate': 162
+,'Mod Phase': 165
+,'Env Mix': 166
+,'Dly < Mod': 167
+,'Flt < Mod': 168
+,'Mod 4x': 41
+,'Reverb Level': 170
+,'Reverb Decay': 171
+,'Reverb Loc': 44
+,'Noise On': 77
+,'Noise Amt': 206
+,'Noise Mrph': 207
+,'Wobble On': 80
+,'Wobble Amt': 209
+,'Wobble Mrph': 210
+,'Stereo Width': 211
+,'Dry Wet': 212
+}
