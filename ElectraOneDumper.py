@@ -325,27 +325,31 @@ def append_json_fader(s,idx, p, cc_no):
     else:
         min = 0
         max = 127        
-    s.append( ',"type":"fader"' )
+    s.append(    ',"type":"fader"' )
     if is_cc14(cc_no):
-        s.append(',"values":[{"message":{"type":"cc14"'
-                ,                   ',"lsbFirst":false'
+        s.append(',"values":['
+                ,   '{"message":{"type":"cc14"'
+                ,              ',"lsbFirst":false'
                 )
     else:
-        s.append(',"values":[{"message":{"type":"cc7"')
-    s.append(                      f',"parameterNumber":{ check_cc_no(get_cc(cc_no)) }'
-            ,                      f',"deviceId":{ DEVICE_ID }'
-            ,                      f',"min":{ min }'
-            ,                      f',"max":{ max }'
-            ,                      '}'
+        s.append(',"values":['
+                ,   '{"message":{"type":"cc7"'
+                )
+    s.append(                 f',"parameterNumber":{ check_cc_no(get_cc(cc_no)) }'
+            ,                 f',"deviceId":{ DEVICE_ID }'
+            ,                 f',"min":{ min }'
+            ,                 f',"max":{ max }'
+            ,                  '}'
             )
     if is_int_parameter(p):
         vmin = get_par_number_part(p,p.min)
         vmax = get_par_number_part(p,p.max)
-        s.append(         f',"min":{ vmin }'
-                ,         f',"max":{ vmax }'
-                )
-    s.append(              ',"id":"value"'
-            ,              '}]'
+        s.append(  f',"min":{ vmin }'
+                ,  f',"max":{ vmax }'
+                ) 
+    s.append(       ',"id":"value"'
+            ,       '}'
+            ,     ']'
             )
 
 # TODO: FIXME: global parameter   

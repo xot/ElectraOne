@@ -82,7 +82,7 @@ class ElectraOne(ControlSurface):
             self.debug('Constructing preset on the fly...')
             return construct_json_presetinfo( device_name, device.parameters )
 
-    def cc_statusbyte():
+    def cc_statusbyte(self):
         # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
         CC_STATUS = 176
         return CC_STATUS + MIDI_CHANNEL - 1
@@ -92,7 +92,7 @@ class ElectraOne(ControlSurface):
         """
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
-        message = (cc_statusbyte(), cc_no, value )
+        message = (self.cc_statusbyte(), cc_no, value )
         self.__c_instance.send_midi(message)
         
     def send_midi_cc14(self,cc_no,value):
@@ -104,8 +104,8 @@ class ElectraOne(ControlSurface):
         msb = value // 128
         # a 14bit MIDI CC message is actually split into two messages:
         # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (cc_statusbyte(), cc_no, msb)
-        message2 = (cc_statusbyte(), 0x20 + cc_no, lsb)
+        message1 = (self.cc_statusbyte(), cc_no, msb)
+        message2 = (self.cc_statusbyte(), 0x20 + cc_no, lsb)
         self.__c_instance.send_midi(message1)
         self.__c_instance.send_midi(message2)
 
