@@ -64,8 +64,8 @@ class ElectraOne(ControlSurface):
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
-        # TODO: mustb be sent over ElectraOne CTRL MIDI port
-        self.debug(f'Preset = { preset }')
+        if not DUMP: # no need to write this to the log if the same thins is dumped
+            self.debug(f'Preset = { preset }')
         self.__c_instance.send_midi(sysex_header + sysex_preset + sysex_close)
         
     def get_preset(self,device):
@@ -82,17 +82,17 @@ class ElectraOne(ControlSurface):
             self.debug('Constructing preset on the fly...')
             return construct_json_presetinfo( device_name, device.parameters )
 
-    CC_STATUS = 176
-        
+    def cc_statusbyte():
+        # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
+        CC_STATUS = 176
+        return CC_STATUS + MIDI_CHANNEL - 1
+    
     def send_midi_cc7(self,cc_no,value):
         """Send a 7bit MIDI CC
         """
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
-        # FIXME, don't use oxba like this
-        # message = (CC_STATUS + MIDI_CHANNEL-1, cc_no, value )
-        # 0xba = 176 (CC_STATUS) + MIDI_CHANNEL-1 
-        message = (0xba, cc_no, value )
+        message = (cc_statusbyte(), cc_no, value )
         self.__c_instance.send_midi(message)
         
     def send_midi_cc14(self,cc_no,value):
@@ -104,8 +104,8 @@ class ElectraOne(ControlSurface):
         msb = value // 128
         # a 14bit MIDI CC message is actually split into two messages:
         # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (0xba, cc_no, msb)
-        message2 = (0xba, 0x20 + cc_no, lsb)
+        message1 = (cc_statusbyte(), cc_no, msb)
+        message2 = (cc_statusbyte(), 0x20 + cc_no, lsb)
         self.__c_instance.send_midi(message1)
         self.__c_instance.send_midi(message2)
 

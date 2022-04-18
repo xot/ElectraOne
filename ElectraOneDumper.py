@@ -312,6 +312,10 @@ def wants_cc14(p):
 # - parameter.min
 # - parameter.max
 #
+# NOTE
+#
+# Parameters that do not have a CC assigned (ie with None in the ccmap)
+# are given cc=0 when dumped.
 def append_json_fader(s,idx, p, cc_no):
     # TODO: it may happen that an integer parameter has a lot of values
     # but it actually is assigned a 7bit CC
