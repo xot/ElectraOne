@@ -144,7 +144,7 @@ class ElectraOne(ControlSurface):
         self.debug('ElectraOne building map.')
         if self._appointed_device != None:
             parameters = self._appointed_device.parameters
-            # FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
+            # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
             needs_takeover = True
             for p in parameters:                
                 cc_info = self._preset_info.get_cc_for_parameter(p.original_name)

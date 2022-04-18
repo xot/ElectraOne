@@ -1,5 +1,5 @@
 # ElectrOneDumper
-# Code to construct and dump presets.
+# - code to construct and dump presets.
 #
 # Part of ElectraOne.
 #

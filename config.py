@@ -1,4 +1,7 @@
-# ElectrOne
+# config
+# - configuration constants
+#
+# Part of ElectraOne.
 #
 # Ableton Live MIDI Remote Script for the Electra One - user configurations
 #
