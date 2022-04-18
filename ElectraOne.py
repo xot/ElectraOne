@@ -21,6 +21,10 @@ from .ElectraOneDumper import PresetInfo, construct_json_presetinfo, cc_value_fo
 # from .ElecraOneDumper import *
 from .config import *
 
+# TODO: adapt to also get an appropriate name for MaxForLive devices
+def get_device_name(device):
+    return device.class_name
+
 class ElectraOne(ControlSurface):
     """Remote control script for the Electra One
     """
@@ -72,7 +76,7 @@ class ElectraOne(ControlSurface):
         """Get the preset for the specified device, either externally, predefined or
            else construct it on the fly.
         """
-        device_name = device.class_name
+        device_name = get_device_name(device)
         self.debug(f'ElectraOne getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
@@ -165,13 +169,14 @@ class ElectraOne(ControlSurface):
     def dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
-        device_name = device.class_name
+        device_name = get_device_name(device)
         s = preset_info.get_preset()
         home = os.path.expanduser('~')
         path =  f'{ home }/{ LOCALDIR }/dumps'
         if not os.path.exists(path):
             path = home
         self.debug(f'dumping device: { device_name }.')
+        self.debug(f'name {device.name} display name {device.class_display_name}')
         fname = f'{ path }/{ device_name }.json'
         with open(fname,'w') as f:            
             f.write(s)
@@ -190,7 +195,8 @@ class ElectraOne(ControlSurface):
             f.write('}')
                                
     def _set_appointed_device(self, device):
-        self.debug(f'ElectraOne device appointed { device.class_name }')
+        device_name = get_device_name(device)
+        self.debug(f'ElectraOne device appointed { device_name }')
         if device != self._appointed_device:
             self._appointed_device = device
             if device != None:
