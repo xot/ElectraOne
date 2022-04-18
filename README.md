@@ -20,6 +20,18 @@ Constructed presets can be dumped, along with associated CC mapping information 
 
 Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the CC parameter value (between 1 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. An entry with a CC value larger than 127 indicates that the named device parameter is controlled by a 14bit CC fader in the preset. The actual CC parameter used (when cc > 127 in the map) is cc-127 *and* cc-127+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher.
 
+## Preloaded presets
+
+Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded``` (using the ```<devicename>.epr``` and ```<devicename>.cmap``` it finds there).
+
+You can copy a dumped preset in ```./dumps``` to ```./preloaded``` (renaming the ```.json``` extension to ```.epr```). Better still, upload the ```json``` patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). However, if you decide to change the number of bits used for a CC (7 or 14), then also change the corresponding entry in the CC-map: for a 14-bit CC, add 128 to the CC parameter number. I.e. if you assigned a 14-bit control in the patch the CC parameter number 4 then assign it 132 (128+4) in the CC-map. 
+
+The remote script is actually completely oblivious about the actual preset it uploads to the Electra One: it only uses the information in the CC-map to map CC's to Ableton Live parameters, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, and to ensure that the number of bits assigned is consistent.
+Also, the MIDI port and channel in the preset must correspond to what the remote script expects; so leave these values alone.
+
+Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. 
+
+ 
 ## Warning
 
 **This is *alpha* software.**
@@ -41,7 +53,7 @@ Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input 
 
 A patch for any device selected (the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the Electra One
 
-See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages.
+See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS).
 
 ## Configuring
 
