@@ -1,7 +1,9 @@
-# ElectrOneDumper - actual dumping code
+# ElectrOneDumper
+# Code to construct and dump presets.
 #
-# Ableton Live MIDI Remote Script to dump an ElectraOne JSON preset for
-# the currently selected device
+# Part of ElectraOne.
+#
+# Ableton Live MIDI Remote Script for the Electra One
 #
 # Author: Jaap-henk Hoepman (info@xot.nl)
 #
@@ -26,7 +28,9 @@
 # which a separate overlay with all possible values is created.
 
 # TODO/FIXME: None mappings in cc_map
-
+# (Two different goals: in a *dumped* preset, you want to have *all* parameters
+# even those without a CC map; but in a preset you *ulpload* you only want to
+# include parameters that are actually mapped in order not to surprise the users)
 
 # Python imports
 import io, random, string
@@ -84,15 +88,22 @@ class MutableString(io.StringIO):
 # --- PresetInfo ---
 
 # TODO: convert to a proper class
+# TODO: properly deal with None values: in this 'dumper' module, None values
+# are written as '0' to the json preset and as None into the ccmap
 
-def mark_cc14 (cc_no):
+def set_cc14 (cc_no):
     return cc_no + 128
 
 def is_cc14 (cc_no):
-    return cc_no > 127
+    if cc_no == None:
+        return False
+    else:
+        return cc_no > 127
 
 def get_cc (cc_no):
-    if cc_no > 127:
+    if cc_no == None:
+        return 0
+    elif cc_no > 127:
         return cc_no - 128
     else:
         return cc_no
@@ -171,6 +182,7 @@ def check_pot(id):
 # ---
 
 def append_json_pages(s,parameters) :
+    # WARNING: this code assumes all parameters are included in the preset
     s.append(',"pages":[')
     pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
     flag = False
@@ -179,8 +191,9 @@ def append_json_pages(s,parameters) :
         s.append( f'{{"id":{ check_pageid(i) },"name":"Page { i }"}}')
     s.append(']')
 
-# Does the parameter have the values "Off" and "On" only
 def is_on_off_parameter(p):
+    """Return whether the parameter has the values "Off" and "On" only.
+    """
     if not p.is_quantized:
         return False
     values = p.value_items
@@ -189,9 +202,11 @@ def is_on_off_parameter(p):
     else:
         return ( (str(values[0]) == "Off") and (str(values[1]) == "On"))
 
-# Does the parameter need an overlay to be generated (that enumerates all the
-# values in the list)
 def needs_overlay(p):
+    """Return whether the parameter needs an overlay to be generated
+       (that enumerates all the values in the list, and that will be attached
+       to the parameter in the 'controls' section of the same parameter.
+    """
     return p.is_quantized and (not is_on_off_parameter(p))
 
 def append_json_overlay_item(s,label,index,value):
@@ -278,16 +293,21 @@ def is_int_parameter(p):
     min_number_part = get_par_number_part(p,p.min)
     # TODO: uncomment once it is clear how to deal with negative values
     # integer parameters.
-    # if (len(min_number_part) > 0) and (min_number_part[0] == '-'):
-    #     min_number_part = min_number_part[1:] 
+    if (len(min_number_part) > 0) and (min_number_part[0] == '-'):
+        min_number_part = min_number_part[1:] 
     max_number_part = get_par_number_part(p,p.max)
     # in the unlikely event that a maximum value is also negative ;-)
-    # if (len(max_number_part) > 0) and (max_number_part[0] == '-'):
-    #     max_number_part = max_number_part[1:] 
+    if (len(max_number_part) > 0) and (max_number_part[0] == '-'):
+        max_number_part = max_number_part[1:] 
     return min_number_part.isnumeric() and max_number_part.isnumeric() 
 
+def wants_cc14(p):
+    """Return whether a parameter wants a 14bit CC fader or not.
+       (Faders that are not mapped to integer parameters.)
+    """
+    return (not p.is_quantized) and (not is_int_parameter(p))                 # not quantized parameters are always faders
 
-# TODO: add values for float parameters using
+# TODO??: add values for float parameters using
 # - parameter.str_for_value()
 # - parameter.min
 # - parameter.max
@@ -295,11 +315,7 @@ def is_int_parameter(p):
 def append_json_fader(s,idx, p, cc_no):
     # TODO: it may happen that an integer parameter has a lot of values
     # but it actually is assigned a 7bit CC
-    # ALSO: assigning a 14bit CC to a small range int parameter is wasteful
-    if is_int_parameter(p):
-        min = get_par_number_part(p,p.min)
-        max = get_par_number_part(p,p.max)
-    elif is_cc14(cc_no):
+    if is_cc14(cc_no):
         min = 0
         max = 16383
     else:
@@ -307,17 +323,25 @@ def append_json_fader(s,idx, p, cc_no):
         max = 127        
     s.append( ',"type":"fader"' )
     if is_cc14(cc_no):
-        s.append(',"values":[{"message":{"type":"cc14"')
+        s.append(',"values":[{"message":{"type":"cc14"'
+                ,                   ',"lsbFirst":false'
+                )
     else:
         s.append(',"values":[{"message":{"type":"cc7"')
     s.append(                      f',"parameterNumber":{ check_cc_no(get_cc(cc_no)) }'
             ,                      f',"deviceId":{ DEVICE_ID }'
-            ,                       ',"lsbFirst":false'
             ,                      f',"min":{ min }'
             ,                      f',"max":{ max }'
             ,                      '}'
-            ,            ',"id":"value"'
-            ,            '}]'
+            )
+    if is_int_parameter(p):
+        vmin = get_par_number_part(p,p.min)
+        vmax = get_par_number_part(p,p.max)
+        s.append(         f',"min":{ vmin }'
+                ,         f',"max":{ vmax }'
+                )
+    s.append(              ',"id":"value"'
+            ,              '}]'
             )
 
 # TODO: FIXME: global parameter   
@@ -402,9 +426,6 @@ def construct_json_preset(device_name, parameters,cc_map):
     s.append( '}' )
     return s.getvalue()
 
-def is_fader(parameter):
-    return not parameter.is_quantized                                         # not quantized parameters are always faders
-
 def construct_ccmap(parameters):
     """Construct a cc_map for the list of parameters.
     """
@@ -413,14 +434,12 @@ def construct_ccmap(parameters):
     # device parameters as possible
     space_for_cc14 = 127-len(parameters)
     cc_map = {}
-    # Keep track of used CC parameters; this is necessary because a fader
-    # (using a 14bit MIDI CC values used two CC parameters (i AND i+32) to
-    # send both bytes of the value).
+    # Keep track of used CC parameters
     free = [ True for i in range(0,128)] # extra free[0] not used
     i = 1
-    # first assign faders, that use 14bit CC
+    # first assign 14bit CC controllers
     for p in parameters:
-        if is_fader(p):
+        if wants_cc14(p):
             # find a free CC parameter from where we are now
             while (i < 128) and (not free[i]):
                 i = i+1
@@ -428,7 +447,7 @@ def construct_ccmap(parameters):
             if space_for_cc14 > 0:
                 space_for_cc14 = space_for_cc14 - 1
                 assert i+32 < 128, 'There should be space for this 14bit CC'
-                cc_map[p.original_name] = mark_cc14(i)
+                cc_map[p.original_name] = set_cc14(i)
                 free[i] = False
                 free[i+32] = False
             else:
@@ -439,7 +458,7 @@ def construct_ccmap(parameters):
     # now fill the remaining slots with other parameters (that are 7bit)
     i = 1
     for p in parameters:
-        if p.is_quantized: # then this is not a fader
+        if not wants_cc14(p):
             # find a free CC parameter from where we are now
             while (i < 128) and (not free[i]):
                 i = i+1

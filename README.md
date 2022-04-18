@@ -56,7 +56,7 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 
 - Value changes in Abelton (and current values when selecting a device) are not shown in the Electra One preset. (This is due to the fact that presets *need* to be sent to the Electra One over the CTRL port, which ignores incoming CC messages (that encode value changes).
 - User-defined presets not defined yet. (You *can* add them to ```Devices.py```.)
-- Value handling is quite rudimentary at the moment: negative values in integer valued sliders not supported (yet). Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
+- Value handling is quite rudimentary at the moment. Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
 - The 'Blue Hand' is not showing. However, the currently selected device *is* mapped.
 - Uploading large patches is *slow*.
 
