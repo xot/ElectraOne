@@ -173,10 +173,10 @@ class ElectraOne(ControlSurface):
     def update_display(self):
         """ Called every x ms; used to update_values with a delay
         """
-        if self._value_update_timer > 0:
-            self._value_update_timer -= 1
-        elif self._value_update_timer == 0:
+        if self._value_update_timer == 0:
             self.update_values()
+        if self._value_update_timer >= 0:
+            self._value_update_timer -= 1
 
     def dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
@@ -216,7 +216,7 @@ class ElectraOne(ControlSurface):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 self.upload_preset(self._preset_info.get_preset())
-                self._value_update_timer = 6
+                self._value_update_timer = 20
                 # self.update_values()
                 self.__c_instance.request_rebuild_midi_map()                
 
