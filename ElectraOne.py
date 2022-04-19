@@ -21,9 +21,18 @@ from .ElectraOneDumper import PresetInfo, construct_json_presetinfo, cc_value_fo
 # from .ElecraOneDumper import *
 from .config import *
 
+# --- helper functions
+
 # TODO: adapt to also get an appropriate name for MaxForLive devices
 def get_device_name(device):
     return device.class_name
+
+def cc_statusbyte():
+    # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
+    CC_STATUS = 176
+    return CC_STATUS + MIDI_CHANNEL - 1
+    
+# --- helper functions
 
 class ElectraOne(ControlSurface):
     """Remote control script for the Electra One
@@ -35,6 +44,10 @@ class ElectraOne(ControlSurface):
         self.__c_instance = c_instance
         self._appointed_device = None
         self._preset_info = None
+        # timer set when device appointed; countdown through update_display
+        # until 0, in which case update_display calls the update_values function
+        # If -1 no updating needed.
+        self._value_update_timer = -1
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
@@ -73,8 +86,8 @@ class ElectraOne(ControlSurface):
         self.__c_instance.send_midi(sysex_header + sysex_preset + sysex_close)
         
     def get_preset(self,device):
-        """Get the preset for the specified device, either externally, predefined or
-           else construct it on the fly.
+        """Get the preset for the specified device, either externally,
+           predefined or else construct it on the fly.
         """
         device_name = get_device_name(device)
         self.debug(f'ElectraOne getting preset for { device_name }.')
@@ -86,17 +99,12 @@ class ElectraOne(ControlSurface):
             self.debug('Constructing preset on the fly...')
             return construct_json_presetinfo( device_name, device.parameters )
 
-    def cc_statusbyte(self):
-        # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
-        CC_STATUS = 176
-        return CC_STATUS + MIDI_CHANNEL - 1
-    
     def send_midi_cc7(self,cc_no,value):
         """Send a 7bit MIDI CC
         """
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
-        message = (self.cc_statusbyte(), cc_no, value )
+        message = (cc_statusbyte(), cc_no, value )
         self.__c_instance.send_midi(message)
         
     def send_midi_cc14(self,cc_no,value):
@@ -108,8 +116,8 @@ class ElectraOne(ControlSurface):
         msb = value // 128
         # a 14bit MIDI CC message is actually split into two messages:
         # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (self.cc_statusbyte(), cc_no, msb)
-        message2 = (self.cc_statusbyte(), 0x20 + cc_no, lsb)
+        message1 = (cc_statusbyte(), cc_no, msb)
+        message2 = (cc_statusbyte(), 0x20 + cc_no, lsb)
         self.__c_instance.send_midi(message1)
         self.__c_instance.send_midi(message2)
 
@@ -163,8 +171,12 @@ class ElectraOne(ControlSurface):
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, MIDI_CHANNEL-1, cc_no, map_mode, not needs_takeover)
 
     def update_display(self):
-        pass
-
+        """ Called every x ms; used to update_values with a delay
+        """
+        if self._value_update_timer > 0:
+            self._value_update_timer -= 1
+        elif self._value_update_timer == 0:
+            self.update_values()
 
     def dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
@@ -204,7 +216,8 @@ class ElectraOne(ControlSurface):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 self.upload_preset(self._preset_info.get_preset())
-                self.update_values()
+                self._value_update_timer = 6
+                # self.update_values()
                 self.__c_instance.request_rebuild_midi_map()                
 
             

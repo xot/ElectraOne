@@ -246,7 +246,7 @@ def append_json_overlays(s,parameters):
         if needs_overlay(p):
            flag = append_comma(s,flag)
            append_json_overlay(s,overlay_idx,p)
-           overlay_idx = overlay_idx + 1
+           overlay_idx += 1
     s.append(']')
     
 def append_json_bounds(s,idx):
@@ -374,7 +374,7 @@ def append_json_control(s, idx, parameter,cc_no):
     # TODO: overlay_idx implicitly matched to parameter; dangerous
     if needs_overlay(parameter):
         append_json_list(s,idx,overlay_idx,cc_no)
-        overlay_idx = overlay_idx + 1
+        overlay_idx += 1
     elif is_on_off_parameter(parameter):
         append_json_toggle(s,idx,cc_no)
     else:
@@ -450,10 +450,10 @@ def construct_ccmap(parameters):
         if wants_cc14(p):
             # find a free CC parameter from where we are now
             while (i < 128) and (not free[i]):
-                i = i+1
+                i += 1
             # only assign a 14bit CC if there is still space
             if space_for_cc14 > 0:
-                space_for_cc14 = space_for_cc14 - 1
+                space_for_cc14 -= 1
                 assert i+32 < 128, 'There should be space for this 14bit CC'
                 cc_map[p.original_name] = set_cc14(i)
                 free[i] = False
@@ -462,18 +462,18 @@ def construct_ccmap(parameters):
                 if i < 128:
                     cc_map[p.original_name] = i
                     free[i] = False
-            i = i+1
+            i += 1
     # now fill the remaining slots with other parameters (that are 7bit)
     i = 1
     for p in parameters:
         if not wants_cc14(p):
             # find a free CC parameter from where we are now
             while (i < 128) and (not free[i]):
-                i = i+1
+                i += 1
             if i < 128:
                 cc_map[p.original_name] = i
                 free[i] = False
-            i = i+1
+            i += 1 
     return cc_map
 
 def construct_json_presetinfo(device_name, parameters):
