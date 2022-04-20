@@ -37,6 +37,7 @@ import io, random, string
 
 # Ableton Live imports
 from _Framework.ControlSurface import ControlSurface
+from _Generic.Devices import *
 
 # Local imports
 from .config import *
@@ -397,16 +398,29 @@ def append_json_controls(s,parameters,cc_map):
         append_json_control(s,i,p,cc_no)
     s.append(']')
 
+def sortkey(list,p):
+    if p in list:
+        return list.index(p)
+    else:
+        return len(list)+1
+    
+    
 def order_parameters(device_name, parameters):
     """Order the parameters: either original, or sorted by name.
     """
     if (ORDER == ORDER_ORIGINAL):
         return parameters
-    else: # ORDER == ORDER_SORTED
+    else:
         parameters_copy = []
         for p in parameters:
             parameters_copy.append(p)
-        parameters_copy.sort(key=lambda p: p.name)
+        if (ORDER == ORDER_SORTED):
+            parameters_copy.sort(key=lambda p: p.name)
+        else: # ORDER == ORDER_DEVICEDICT
+            if device_name in DEVICE_DICT:
+                banks = DEVICE_DICT[device_name] # tuple of tuples
+                parlist = [p for b in banks for p in b] # turn into a list
+                parameters_copy.sort(key=lambda p: sortkey(parlist,p.name))
         return parameters_copy
 
 def construct_json_preset(device_name, parameters,cc_map):

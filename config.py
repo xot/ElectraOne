@@ -26,7 +26,8 @@ LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
 
 ORDER_ORIGINAL = 0
 ORDER_SORTED = 1
+ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred order
 # specify the order in which parameters shoudl appear in an automatically
 # created preset for the currently selected device
-ORDER = ORDER_ORIGINAL
+ORDER = ORDER_DEVICEDICT
 
