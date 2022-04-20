@@ -191,7 +191,7 @@ class ElectraOne(ControlSurface):
             path = home
         fname = f'{ path }/{ device_name }.json'
         self.debug(f'dumping device: { device_name } in { fname }.')
-        self.debug(f'name {device.name} display name {device.class_display_name}')
+        self.debug(f'name {device.name} class name {device.class_name} display name {device.class_display_name}')
         with open(fname,'w') as f:            
             f.write(s)
         fname = f'{ path }/{ device_name }.ccmap'
