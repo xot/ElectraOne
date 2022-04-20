@@ -20,6 +20,9 @@ Constructed presets can be dumped, along with associated CC mapping information 
 
 Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the CC parameter value (between 1 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. An entry with a CC value larger than 127 indicates that the named device parameter is controlled by a 14bit CC fader in the preset. The actual CC parameter used (when cc > 127 in the map) is cc-127 *and* cc-127+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher.
 
+Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```LOCALDIR``` below).
+
+
 ## Preloaded presets
 
 Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded``` (using the ```<devicename>.epr``` and ```<devicename>.cmap``` it finds there).
@@ -45,7 +48,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 ## Installation
 
 Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
-```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOneDump````.
+```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne````.
 
 Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```Electr Controller (Electra Port 1)``` and the output port to ```Electr Controller (Electra CTRL)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
 
@@ -59,9 +62,9 @@ See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error mes
 
 The behaviour of the remote script can be changed by editing ```config.py ```:
 
-- ```LOCALDIR```determines where external files are read and written
+- ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` controls whether debugging information is written to the log file. Set to ```False``` to speed up the script.
-- ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```)
+- ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```).
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order, or simply in the order given by Ableton.
 
 ## Current limitations

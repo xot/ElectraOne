@@ -17,7 +17,11 @@ DEBUG = True
 DUMP = True
 
 # Local directory where dunps are stored (./dumps) and user defined
-# presets are loaded from (./user-presets)
+# presets are loaded from (./user-presets). This is first tried as a
+# directory relative to the user's home directory; if that doesn't exist,
+# it is interpreted as an absolute path. If that also doesn't exist, then
+# the user home directory is used instead (and ./dumps or ./user-presets
+# are not appended).
 LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
 
 ORDER_ORIGINAL = 0
