@@ -1,53 +1,53 @@
-{'Device On': 1
-,'L Sync': 2
-,'L Time': 131
-,'L Division': 131
-,'L 16th': 131
-,'L Sync Mode': 6
-,'L Offset': 135
-,'R Time': 136
-,'R Sync': 9
-,'R Division': 136
-,'R 16th': 136
-,'R Sync Mode': 12
-,'R Offset': 141
-,'Link': 14
-,'Repitch': 15
-,'Feedback': 144
-,'Feedback Inv': 17
-,'Channel Mode': 18
-,'Input Gain': 147
-,'Output Gain': 148
-,'Clip Dry': 21
-,'Gate On': 22
-,'Gate Thr': 151
-,'Gate Release': 152
-,'Duck On': 25
-,'Duck Thr': 154
-,'Duck Release': 155
-,'Filter On': 28
-,'HP Freq': 157
-,'HP Res': 158
-,'LP Freq': 159
-,'LP Res': 160
-,'Mod Wave': 33
-,'Mod Freq': 162
-,'Mod Sync': 55
-,'Mod Rate': 162
-,'Mod Phase': 165
-,'Env Mix': 166
-,'Dly < Mod': 167
-,'Flt < Mod': 168
-,'Mod 4x': 41
-,'Reverb Level': 170
-,'Reverb Decay': 171
-,'Reverb Loc': 44
-,'Noise On': 77
-,'Noise Amt': 206
-,'Noise Mrph': 207
-,'Wobble On': 80
-,'Wobble Amt': 209
-,'Wobble Mrph': 210
-,'Stereo Width': 211
-,'Dry Wet': 212
+{'Device On': (11,0,1)
+,'L Sync': (11,0,2)
+,'L Time': (11,1,3)
+,'L Division': (11,1,3)
+,'L 16th': (11,1,3)
+,'L Sync Mode': (11,0,6)
+,'L Offset': (11,1,7)
+,'R Time': (11,1,8)
+,'R Sync': (11,0,9)
+,'R Division': (11,1,8)
+,'R 16th': (11,1,8)
+,'R Sync Mode': (11,0,12)
+,'R Offset': (11,1,13)
+,'Link': (11,0,14)
+,'Repitch': (11,0,15)
+,'Feedback': (11,1,16)
+,'Feedback Inv': (11,0,17)
+,'Channel Mode': (11,0,18)
+,'Input Gain': (11,1,19)
+,'Output Gain': (11,1,20)
+,'Clip Dry': (11,0,21)
+,'Gate On': (11,0,22)
+,'Gate Thr': (11,1,23)
+,'Gate Release': (11,1,24)
+,'Duck On': (11,0,25)
+,'Duck Thr': (11,1,26)
+,'Duck Release': (11,1,27)
+,'Filter On': (11,0,28)
+,'HP Freq': (11,1,29)
+,'HP Res': (11,1,30)
+,'LP Freq': (11,1,31)
+,'LP Res': (11,1,32)
+,'Mod Wave': (11,0,33)
+,'Mod Freq': (11,1,34)
+,'Mod Sync': (11,0,55)
+,'Mod Rate': (11,1,34)
+,'Mod Phase': (11,1,37)
+,'Env Mix': (11,1,38)
+,'Dly < Mod': (11,1,39)
+,'Flt < Mod': (11,1,40)
+,'Mod 4x': (11,0,41)
+,'Reverb Level': (11,1,42)
+,'Reverb Decay': (11,1,43)
+,'Reverb Loc': (11,0,44)
+,'Noise On': (11,0,77)
+,'Noise Amt': (11,1,78)
+,'Noise Mrph': (11,1,79)
+,'Wobble On': (11,0,80)
+,'Wobble Amt': (11,1,81)
+,'Wobble Mrph': (11,1,82)
+,'Stereo Width': (11,1,83)
+,'Dry Wet': (11,1,84)
 }

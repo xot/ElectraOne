@@ -18,7 +18,13 @@ When constructing presets:
 
 Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assingment over pages, colours, groups). The  updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
-Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the CC parameter value (between 1 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. An entry with a CC value larger than 127 indicates that the named device parameter is controlled by a 14bit CC fader in the preset. The actual CC parameter used (when cc > 127 in the map) is cc-127 *and* cc-127+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher.
+Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple
+
+- the MIDI channel,
+- whether it is a 14bit controler (1: yes, 0: no), and
+- the CC parameter number (between 1 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
+
+Note that the actual CC parameter used for a 14bit control is cc_np *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher.
 
 Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```LOCALDIR``` below).
 
@@ -27,10 +33,9 @@ Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```
 
 Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded``` (using the ```<devicename>.epr``` and ```<devicename>.cmap``` it finds there).
 
-You can copy a dumped preset in ```./dumps``` to ```./preloaded``` (renaming the ```.json``` extension to ```.epr```). Better still, upload the ```json``` patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). However, if you decide to change the number of bits used for a CC (7 or 14), then also change the corresponding entry in the CC-map: for a 14-bit CC, add 128 to the CC parameter number. I.e. if you assigned a 14-bit control in the patch the CC parameter number 4 then assign it 132 (128+4) in the CC-map. 
+You can copy a dumped preset in ```./dumps``` to ```./preloaded``` (renaming the ```.json``` extension to ```.epr```). Better still, upload the ```json``` patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). 
 
-The remote script is actually completely oblivious about the actual preset it uploads to the Electra One: it only uses the information in the CC-map to map CC's to Ableton Live parameters, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, and to ensure that the number of bits assigned is consistent.
-Also, the MIDI port and channel in the preset must correspond to what the remote script expects; so leave these values alone.
+The remote script is actually completely oblivious about the actual preset it uploads to the Electra One: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
 
 Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. 
 
@@ -80,7 +85,7 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1 (code relies Abelton Live supporting Python 3.6).
-- Electra One firmware version XXX (to allow sending of both SysEx preset uploads and MIDI CC changes over *one* MIDI port). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Electra One firmware version 2.1.8a (to allow sending of both SysEx preset uploads and MIDI CC changes over *one* MIDI port). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 
 ## Recovering from errors
 

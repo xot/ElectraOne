@@ -29,8 +29,8 @@ PREAMBLE = """
 #   are 7-bit absolute CC values while all non quantized parameters are
 #   14-bit absolute values)
 # - The MIDI cc mapping data is a dictionary of Ableton Live original parameter
-#   names with their corresponding MIDI CC values in the preset.
-#
+#   names with their corresponding MIDI CCInfo values (as ordinary tuples)
+#   in the preset.
 
 from .ElectraOneDumper import PresetInfo
 """

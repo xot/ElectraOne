@@ -17,7 +17,7 @@ import Live
 
 # Local imports
 from .Devices import get_predefined_preset_info
-from .ElectraOneDumper import PresetInfo, cc_value_for_item_idx, MIDI_CHANNEL, is_cc14, get_cc, ElectraOneDumper
+from .ElectraOneDumper import PresetInfo, CCInfo, cc_value_for_item_idx, ElectraOneDumper
 # from .ElecraOneDumper import *
 from .config import *
 
@@ -26,11 +26,6 @@ from .config import *
 # TODO: adapt to also get an appropriate name for MaxForLive devices
 def get_device_name(device):
     return device.class_name
-
-def cc_statusbyte():
-    # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
-    CC_STATUS = 176
-    return CC_STATUS + MIDI_CHANNEL - 1
 
 # --- ElectraOne class
 
@@ -81,7 +76,7 @@ class ElectraOne(ControlSurface):
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
-        if not DUMP: # no need to write this to the log if the same thins is dumped
+        if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(f'Preset = { preset }')
         self.__c_instance.send_midi(sysex_header + sysex_preset + sysex_close)
         
@@ -100,34 +95,38 @@ class ElectraOne(ControlSurface):
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
 
-    def send_midi_cc7(self,cc_no,value):
+    def send_midi_cc7(self,cc_info,value):
         """Send a 7bit MIDI CC
         """
+        cc_no = cc_info.get_cc_no()
+        cc_statusbyte = cc_info.get_statusbyte()
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
-        message = (cc_statusbyte(), cc_no, value )
+        message = (cc_statusbyte, cc_no, value )
         self.__c_instance.send_midi(message)
         
-    def send_midi_cc14(self,cc_no,value):
+    def send_midi_cc14(self,cc_info,value):
         """Send a 14bit MIDI CC
-        """        
+        """
+        cc_no = cc_info.get_cc_no()
+        cc_statusbyte = cc_info.get_statusbyte()
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(16384), f'CC value { value } out of range'
         lsb = value % 128
         msb = value // 128
         # a 14bit MIDI CC message is actually split into two messages:
         # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (cc_statusbyte(), cc_no, msb)
-        message2 = (cc_statusbyte(), 0x20 + cc_no, lsb)
+        message1 = (cc_statusbyte, cc_no, msb)
+        message2 = (cc_statusbyte, 0x20 + cc_no, lsb)
         self.__c_instance.send_midi(message1)
         self.__c_instance.send_midi(message2)
 
     def send_value_as_cc(self,p,cc_info):
-        """Send the value of a parameter using as a MIDI CC message
+        """Send the value of a parameter as a MIDI CC message
         """
-        if is_cc14(cc_info):
+        if cc_info.is_cc14():
             value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc14(get_cc(cc_info),value)
+            self.send_midi_cc14(cc_info,value)
         else:
             # for quantized parameters (always cc7) convert the index
             # value into the corresponding CC value
@@ -136,7 +135,7 @@ class ElectraOne(ControlSurface):
                 value = cc_value_for_item_idx(idx,p.value_items)
             else:
                 value = int(127 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc7(get_cc(cc_info),value)
+            self.send_midi_cc7(cc_info,value)
 
     def update_values(self):
         """Update the displayed values of the parameters in the
@@ -146,9 +145,8 @@ class ElectraOne(ControlSurface):
         if self._appointed_device != None:
             parameters = self._appointed_device.parameters
             for p in parameters:
-                # the index of the parameter in the list as returned by the device is the default cc if no map specified for it
-                cc_info = self._preset_info.get_cc_for_parameter(p.original_name)
-                if cc_info:
+                cc_info = self._preset_info.get_ccinfo_for_parameter(p.original_name)
+                if cc_info.is_mapped:
                     self.send_value_as_cc(p,cc_info)
                 
     def build_midi_map(self, midi_map_handle):
@@ -160,16 +158,17 @@ class ElectraOne(ControlSurface):
             # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
             needs_takeover = True
             for p in parameters:                
-                cc_info = self._preset_info.get_cc_for_parameter(p.original_name)
-                if cc_info:
-                    if is_cc14(cc_info):
+                cc_info = self._preset_info.get_ccinfo_for_parameter(p.original_name)
+                if cc_info.is_mapped:
+                    if cc_info.is_cc14():
                         map_mode = Live.MidiMap.MapMode.absolute_14_bit
                     else:
                         map_mode = Live.MidiMap.MapMode.absolute
-                    cc_no = get_cc(cc_info)
+                    cc_no = cc_info.get_cc_no()
+                    midi_channel = cc_info.get_midi_channel()
                     # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                    self.debug(f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { MIDI_CHANNEL }')
-                    Live.MidiMap.map_midi_cc(midi_map_handle, p, MIDI_CHANNEL-1, cc_no, map_mode, not needs_takeover)
+                    self.debug(f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                    Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
     def update_display(self):
         """ Called every x ms; used to call update_values with a delay
@@ -193,7 +192,6 @@ class ElectraOne(ControlSurface):
         fname = f'{ path }/{ device_name }.json'
         # dump the preset JSON string
         self.debug(f'dumping device: { device_name } in { fname }.')
-        self.debug(f'name {device.name} class name {device.class_name} display name {device.class_display_name}')
         s = preset_info.get_preset()
         with open(fname,'w') as f:            
             f.write(s)
@@ -207,9 +205,11 @@ class ElectraOne(ControlSurface):
                     f.write(',')
                 comma = True
                 name = p.original_name
-                cc = preset_info.get_cc_for_parameter(name)
-                # also dump unassigned parameters (with value None)
-                f.write(f"'{ name }': { cc }\n")
+                ccinfo = preset_info.get_ccinfo_for_parameter(name)
+                if ccinfo.is_mapped():
+                    f.write(f"'{ name }': { ccinfo }\n")
+                else:
+                    f.write(f"'{ name }': None\n")
             f.write('}')
                                
     def _set_appointed_device(self, device):

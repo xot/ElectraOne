@@ -16,10 +16,7 @@
 # 14-bit absolute values. This is the way presets are dumped.
 #
 # However, when loading user-cureated presets (eg the ones stored in
-# Devices.py), this assignment can be overridden using the cc-map. Parameters
-# with a 7-bit CC get a CC parameter number in the range 1-127 (0 is reserved)
-# while parameters with a 14-bit CC are given a CC parameter number in the
-# range (129-255); the actual CC is obtained by subtracting 128.
+# Devices.py), this assignment can be overridden using the cc-map. 
 #
 # Parameters with only on or off values do not get an overlay and are
 # represented on the ElectraOne as (toggle) pads.
@@ -29,7 +26,7 @@
 
 # TODO/FIXME: None mappings in cc_map
 # (Two different goals: in a *dumped* preset, you want to have *all* parameters
-# even those without a CC map; but in a preset you *ulpload* you only want to
+# even those without a CC map; but in a preset you *upload* you only want to
 # include parameters that are actually mapped in order not to surprise the users)
 
 # Python imports
@@ -67,55 +64,88 @@ YCOORDS = [40,128,216,304,392,480]
 
 # maximum values in a preset
 MAX_NAME_LEN = 14
+MAX_DEVICE_ID = 16
 MAX_ID = 432
 MAX_PAGE_ID = 12
 MAX_OVERLAY_ID = 51
 MAX_CONTROLSET_ID = CONTROLSETS_PER_PAGE
 MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
+# --- CCinfo ---
+
+def device_idx_for_midi_channel(midi_channel):
+    return DEVICE_ID + midi_channel - MIDI_CHANNEL
+
+
+class CCInfo:
+    """
+    """
+
+    def __init__(self, v):
+        assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
+        (self._midi_channel,self._is_cc14, self._cc_no) = v
+        assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
+        assert self._cc_no in range(0,128), f'MIDI channel {self._cc_no} out of range.'
+        
+    def __repr__(self):
+        if self._is_cc14:
+            return f'({self._midi_channel},1,{self._cc_no})'
+        else:
+            return f'({self._midi_channel},0,{self._cc_no})'
+        
+    def is_mapped(self):
+        return self._cc_no != 0
+    
+    def is_cc14(self):
+        return self._is_cc14
+
+    def get_cc_no(self):
+        return self._cc_no
+
+    def get_midi_channel(self):
+        return self._midi_channel
+
+    def get_device_idx(self):
+        return device_idx_for_midi_channel(self._midi_channel)
+
+    def get_statusbyte(self):
+        # status byte encodes midi channel (-1!) in the least significant nibble
+        CC_STATUS = 176
+        return CC_STATUS + self.get_midi_channel() - 1
+
+
 # --- PresetInfo ---
 
-# TODO: convert to a proper class
 # TODO: properly deal with None values: in this 'dumper' module, None values
-# are written as '0' to the json preset and as None into the ccmap
+# are written with cc_no '0' to the json preset and as None into the ccmap
 
-def set_cc14 (cc_no):
-    return cc_no + 128
-
-def is_cc14 (cc_no):
-    if cc_no == None:
-        return False
-    else:
-        return cc_no > 127
-
-def get_cc (cc_no):
-    if cc_no == None:
-        return 0
-    elif cc_no > 127:
-        return cc_no - 128
-    else:
-        return cc_no
+UNASSIGNED_CC = CCInfo((MIDI_CHANNEL,False,0))
 
 class PresetInfo ():
     # - The preset is a JSON string in Electra One format.
     # - The MIDI cc mapping data is a dictionary of Ableton Live original
-    #   parameter names with their corresponding MIDI CC values in the preset.
-    #   For parameters with a 14bit CC assigned, cc_no+128 is stored
+    #   parameter names with their corresponding CCInfo (either as an untyped
+    #   tuple when preloaded from from Devices.py, or a CCInfo object when
+    #   constructed on the fly
 
     def __init__(self,json_preset,cc_map):
         self._json_preset = json_preset
         self._cc_map = cc_map
 
-    def get_cc_for_parameter(self,parameter_original_name):
+    def get_ccinfo_for_parameter(self,parameter_original_name):
         """Return the MIDI CC parameter info assigned to the device parameter.
-           Return None if not mapped.
+           Return default CCInfo if not mapped.
         """
         assert self._cc_map != None, 'Empty cc-map'
         if parameter_original_name in self._cc_map:
-            return self._cc_map[parameter_original_name]
+            v = self._cc_map[parameter_original_name]
+            if type(v) is tuple:
+                return CCInfo(v)
+            else:
+                return v  
         else:
-            return None
-
+            return UNASSIGNED_CC
+        
     def get_preset(self):
         """Retrun the JSON preset as a string
         """
@@ -133,6 +163,14 @@ def check_id(id):
     assert (1 <= id) and (id <= MAX_ID), f'{ id } exceeds max number of IDs ({ MAX_ID }).'
     return id
 
+def check_deviceid(id):
+    assert (1 <= id) and (id <= MAX_DEVICE_ID), f'{ id } exceeds max number of device IDs ({ MAX_DEVICE_ID }).'
+    return id
+
+def check_midichannel(channel):
+    assert channel in range(1,17), f'MIDI channel { channel } not in range.'
+    return channel
+
 def check_pageid(id):
     assert (1 <= id) and (id <= MAX_PAGE_ID), f'{ id } exceeds max number of pages ({ MAX_PAGE_ID }).'
     return id
@@ -141,20 +179,13 @@ def check_overlayid(id):
     assert (1 <= id) and (id <= MAX_OVERLAY_ID), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
     return id
 
-def check_cc_no(cc_no):
-    # TODO FIXME
-    if cc_no == None:
-        return 0
-    assert cc_no in range(128), f'CC no ({ cc_no }) out of range.'
-    return cc_no
-
 # This is more strict than the Electra One documentation requires
 def check_controlset(id):
     assert (1 <= id) and (id <= MAX_CONTROLSET_ID), f'{ id } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).'
     return id
 
 def check_pot(id):
-    assert (1 <= id) and (id <= MAX_POT_ID), f'{ id } exceeds max number of pots ({ MAX_POT_ID }).'
+    assert id in range(1,MAX_POT_ID+1), f'{ id } exceeds max number of pots ({ MAX_POT_ID }).'
     return id
     
 
@@ -255,6 +286,21 @@ class ElectraOneDumper(io.StringIO):
             self.append( f'{{"id":{ check_pageid(i) },"name":"Page { i }"}}')
         self.append(']')
 
+    def append_json_devices(self, cc_map):
+        self.append(',"devices":[')
+        channels = { c.get_midi_channel() for c in cc_map.values() }
+        flag = False
+        for channel in channels:
+            flag = self.append_comma(flag)
+            device_id = device_idx_for_midi_channel(channel)
+            self.append( f'{{"id":{ check_deviceid(device_id) }'
+                       ,   ',"name":"Generic MIDI"'
+                       ,  f',"port":{ MIDI_PORT }'
+                       ,  f',"channel":{ check_midichannel(channel) }'
+                       ,   '}'
+                       )
+        self.append(']')
+        
     def append_json_overlay_item(self,label,index,value):
         """Append an overlay item.
         """
@@ -304,47 +350,50 @@ class ElectraOneDumper(io.StringIO):
         y = idx // SLOTS_PER_ROW
         self.append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
 
-    def append_json_toggle(self, idx, cc_no):
+    def append_json_toggle(self, idx, cc_info):
         """Append a toggle pad for an on/off valued list.
         """
+        device_id = cc_info.get_device_idx()
         self.append( ',"type":"pad"'
                    , ',"mode":"toggle"'
                    , ',"values":[{"message":{"type":"cc7"'
                    ,                       ',"offValue": 0'
                    ,                       ',"onValue": 127'
-                   ,                      f',"parameterNumber":{ check_cc_no(cc_no) }'
-                   ,                      f',"deviceId":{ DEVICE_ID }'
+                   ,                      f',"parameterNumber":{ cc_info.get_cc_no() }'
+                   ,                      f',"deviceId":{ device_id }'
                    ,                       '}' 
                    ,            ',"id":"value"'
                    ,            '}]'
                    )
 
-    def append_json_list(self,idx, overlay_idx,cc_no):
+    def append_json_list(self,idx, overlay_idx,cc_info):
         """Append a list, with values as specified in the overlay.
         """
+        device_id = cc_info.get_device_idx()
         self.append( ',"type":"list"'
                    ,  ',"values":[{"message":{"type":"cc7"' 
-                   ,                       f',"parameterNumber":{ check_cc_no(cc_no) } '
-                   ,                       f',"deviceId":{ DEVICE_ID }'
+                   ,                       f',"parameterNumber":{ cc_info.get_cc_no() } '
+                   ,                       f',"deviceId":{ device_id }'
                    ,                        '}' 
                    ,            f',"overlayId":{ check_overlayid(overlay_idx) }'
                    ,             ',"id":"value"'
                    ,             '}]'
                    )
         
-    def append_json_fader(self, idx, p, cc_no):
+    def append_json_fader(self, idx, p, cc_info):
         """Append a fader.
         """
+        device_id = cc_info.get_device_idx()
         # TODO: it may happen that an integer parameter has a lot of values
         # but it actually is assigned a 7bit CC
-        if is_cc14(cc_no):
+        if cc_info.is_cc14():
             min = 0
             max = 16383
         else:
             min = 0
             max = 127        
         self.append(    ',"type":"fader"' )
-        if is_cc14(cc_no):
+        if cc_info.is_cc14():
             self.append(',"values":['
                        ,   '{"message":{"type":"cc14"'
                        ,              ',"lsbFirst":false'
@@ -353,8 +402,8 @@ class ElectraOneDumper(io.StringIO):
             self.append(',"values":['
                        ,   '{"message":{"type":"cc7"'
                        )
-        self.append(                 f',"parameterNumber":{ check_cc_no(get_cc(cc_no)) }'
-                   ,                 f',"deviceId":{ DEVICE_ID }'
+        self.append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+                   ,                 f',"deviceId":{ device_id }'
                    ,                 f',"min":{ min }'
                    ,                 f',"max":{ max }'
                    ,                  '}'
@@ -371,7 +420,7 @@ class ElectraOneDumper(io.StringIO):
                    )
         
     # idx (for the parameter): starts at 0!
-    def append_json_control(self, idx, parameter, cc_no):
+    def append_json_control(self, idx, parameter, cc_info):
         """Append a control (depending on the parameter type): a fader, list or
            on/off toggle pad).
         """
@@ -391,12 +440,12 @@ class ElectraOneDumper(io.StringIO):
         self.append_json_bounds(idx)
         # TODO: overlay_idx implicitly matched to parameter; dangerous
         if needs_overlay(parameter):
-            self.append_json_list(idx,overlay_idx,cc_no)
+            self.append_json_list(idx,overlay_idx,cc_info)
             overlay_idx += 1
         elif is_on_off_parameter(parameter):
-            self.append_json_toggle(idx,cc_no)
+            self.append_json_toggle(idx,cc_info)
         else:
-            self.append_json_fader(idx,parameter,cc_no)
+            self.append_json_fader(idx,parameter,cc_info)
         self.append('}')
 
     def append_json_controls(self, parameters, cc_map):
@@ -412,16 +461,17 @@ class ElectraOneDumper(io.StringIO):
             # TODO FIXME
             # assert p.original_name in cc_map, 'Parameter expected in CC map'
             if p.original_name not in cc_map:
-                cc_no = None
+                cc_info = UNASSIGNED_CC
             else:
-                cc_no = cc_map[p.original_name]
-            self.append_json_control(i,p,cc_no)
+                cc_info = cc_map[p.original_name]
+            self.append_json_control(i,p,cc_info)
         self.append(']')
 
     def construct_json_preset(self, device_name, parameters, cc_map):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
+        self.debug('Construct JSON')
         # create a random project id
         PROJECT_ID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to a mutable string for efficiency
@@ -430,12 +480,7 @@ class ElectraOneDumper(io.StringIO):
                    , f',"projectId":"{ PROJECT_ID }"'
                    )
         self.append_json_pages(parameters)
-        self.append( f',"devices":[{{"id":{ DEVICE_ID }'
-                   ,                ',"name":"Generic MIDI"'
-                   ,               f',"port":{ MIDI_PORT }'
-                   ,               f',"channel":{ MIDI_CHANNEL }'
-                   ,                '}]'
-                   )
+        self.append_json_devices(cc_map)        
         self.append_json_overlays (parameters)
         self.append( ',"groups":[]')
         self.append_json_controls(parameters,cc_map)
@@ -445,48 +490,43 @@ class ElectraOneDumper(io.StringIO):
     def construct_ccmap(self,parameters):
         """Construct a cc_map for the list of parameters.
         """
-        # first compute how many faders we can assign to 14bit CCs (because
+        self.debug('Construct CC map')
+        # - 14bit CC controls are mapped to MIDI_CHANNEL (device 1)
         # they consume two CC parameters (i AND i+32) and we want to map as many
         # device parameters as possible
-        space_for_cc14 = 127-len(parameters)
+        # - 7 bit CC controls are mapped to MIDI_CHANNEL+1 (device 2)
         cc_map = {}
-        # Keep track of used CC parameters
-        free = [ True for i in range(0,128)] # extra free[0] not used
-        i = 1
+        channel = MIDI_CHANNEL
+        cc_no = 1 # CC0 not used
         # first assign 14bit CC controllers
         for p in parameters:
             if wants_cc14(p):
-                # find a free CC parameter from where we are now
-                while (i < 128) and (not free[i]):
-                    i += 1
-                # only assign a 14bit CC if there is still space
-                if space_for_cc14 > 0:
-                    space_for_cc14 -= 1
-                    assert i+32 < 128, 'There should be space for this 14bit CC'
-                    cc_map[p.original_name] = set_cc14(i)
-                    free[i] = False
-                    free[i+32] = False
-                else:
-                    if i < 128:
-                        cc_map[p.original_name] = i
-                        free[i] = False
-                i += 1
+                if cc_no == 32:      # skip 32 slots that have already  been assigned
+                    cc_no = 64
+                if cc_no == 96:      # all CC's assigned, jump to next MIDI channel
+                    cc_no = 1
+                    channel += 1
+                if channel == 17:
+                    break
+                cc_map[p.original_name] = CCInfo((channel,True,cc_no))                    
+                cc_no += 1
         # now fill the remaining slots with other parameters (that are 7bit)
-        i = 1
         for p in parameters:
             if not wants_cc14(p):
-                # find a free CC parameter from where we are now
-                while (i < 128) and (not free[i]):
-                    i += 1
-                if i < 128:
-                    cc_map[p.original_name] = i
-                    free[i] = False
-                i += 1 
+                if cc_no == 128:     # all CC's assigned, jump to next MIDI channel
+                    cc_no = 1
+                    channel += 1
+                if channel == 17:
+                    break
+                cc_map[p.original_name] = CCInfo((channel,False,cc_no))
+                cc_no +=1 
+        self.debug(f'CC map constructed: { cc_map }')
         return cc_map
 
     def order_parameters(self,device_name, parameters):
-        """Order the parameters: either original, or sorted by name.
+        """Order the parameters: either original, device-dict based, or sorted by name.
         """
+        self.debug('Order parameters')
         if (ORDER == ORDER_ORIGINAL):
             return parameters
         else:
@@ -512,12 +552,9 @@ class ElectraOneDumper(io.StringIO):
         # e1_instance used to have access to the log file for debugging.
         self._e1_instance = e1_instance
         self.debug('ElectraOneDumper loaded.')
-        self.debug('Order parameters')
         parameters = self.order_parameters(device_name,parameters)
-        self.debug('Construct CC map')
         self._cc_map = self.construct_ccmap(parameters)
-        self.debug('Construct JSON')
-        self._preset_json = self.construct_json_preset(device_name, parameters,self._cc_map)
+        self._preset_json = self.construct_json_preset(device_name,parameters,self._cc_map)
 
 
     def get_preset(self):
