@@ -17,7 +17,7 @@ import Live
 
 # Local imports
 from .Devices import get_predefined_preset_info
-from .ElectraOneDumper import PresetInfo, construct_json_presetinfo, cc_value_for_item_idx, MIDI_CHANNEL, is_cc14, get_cc
+from .ElectraOneDumper import PresetInfo, cc_value_for_item_idx, MIDI_CHANNEL, is_cc14, get_cc, ElectraOneDumper
 # from .ElecraOneDumper import *
 from .config import *
 
@@ -31,8 +31,8 @@ def cc_statusbyte():
     # status byte encodes MIDI_CHANNEL (-1!) in the least significant nibble
     CC_STATUS = 176
     return CC_STATUS + MIDI_CHANNEL - 1
-    
-# --- helper functions
+
+# --- ElectraOne class
 
 class ElectraOne(ControlSurface):
     """Remote control script for the Electra One
@@ -52,7 +52,8 @@ class ElectraOne(ControlSurface):
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
         self.log_message('ElectraOne loaded.')
-
+        
+        
     def debug(self,m):
         """Write a debug message to the log, if debugging is enabled
         """
@@ -62,7 +63,6 @@ class ElectraOne(ControlSurface):
     # for debugging
     def receive_midi(self, midi_bytes):
         self.debug(f'ElectraOne receiving MIDI { midi_bytes }')
-
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     # Upload the preset (a json string) to the Electro One
@@ -97,7 +97,8 @@ class ElectraOne(ControlSurface):
             return preset_info
         else:
             self.debug('Constructing preset on the fly...')
-            return construct_json_presetinfo( device_name, device.parameters )
+            dumper = ElectraOneDumper(self)
+            return dumper.construct_json_presetinfo(device_name, device.parameters )
 
     def send_midi_cc7(self,cc_no,value):
         """Send a 7bit MIDI CC
@@ -171,7 +172,7 @@ class ElectraOne(ControlSurface):
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, MIDI_CHANNEL-1, cc_no, map_mode, not needs_takeover)
 
     def update_display(self):
-        """ Called every x ms; used to update_values with a delay
+        """ Called every x ms; used to call update_values with a delay
         """
         if self._value_update_timer == 0:
             self.update_values()
@@ -181,30 +182,33 @@ class ElectraOne(ControlSurface):
     def dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
-        device_name = get_device_name(device)
-        s = preset_info.get_preset()
+        # construct the folder to save in
         home = os.path.expanduser('~')
         path =  f'{ home }/{ LOCALDIR }/dumps'
-        if not os.path.exists(path):
+        if not os.path.exists(path):                                        # try LOCALDIR as absolute directory
             path =  f'{ LOCALDIR }/dumps'
-        if not os.path.exists(path):
+        if not os.path.exists(path):                                        # defaukt is HOME
             path = home
+        device_name = get_device_name(device)
         fname = f'{ path }/{ device_name }.json'
+        # dump the preset JSON string
         self.debug(f'dumping device: { device_name } in { fname }.')
         self.debug(f'name {device.name} class name {device.class_name} display name {device.class_display_name}')
+        s = preset_info.get_preset()
         with open(fname,'w') as f:            
             f.write(s)
+        # dump the cc-map
         fname = f'{ path }/{ device_name }.ccmap'
         with open(fname,'w') as f:
-            comma = False
             f.write('{')
+            comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
             for p in device.parameters:
-                name = p.original_name
-                cc = preset_info.get_cc_for_parameter(name)
-                # also dump unassigned parameters (with value None)
                 if comma:
                     f.write(',')
                 comma = True
+                name = p.original_name
+                cc = preset_info.get_cc_for_parameter(name)
+                # also dump unassigned parameters (with value None)
                 f.write(f"'{ name }': { cc }\n")
             f.write('}')
                                
