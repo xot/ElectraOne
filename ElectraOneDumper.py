@@ -122,7 +122,7 @@ class PresetInfo ():
         assert self._json_preset != None, 'Empty JSON preset'
         return self._json_preset
      
-# ---
+# --- output sanity checks
 
 # check/truncate name
 def check_name(name):
@@ -158,7 +158,7 @@ def check_pot(id):
     return id
     
 
-# ---
+# --- utility
 
 def is_on_off_parameter(p):
     """Return whether the parameter has the values "Off" and "On" only.
@@ -207,16 +207,13 @@ def is_int_parameter(p):
 
 def wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
-       (Faders that are not mapped to integer parameters.)
+       (Faders that are not mapped to integer parameters want CC14.)
     """
     return (not p.is_quantized) and (not is_int_parameter(p))                 # not quantized parameters are always faders
 
 
 # TODO: FIXME: global parameter   
 overlay_idx = 0
-
-
-# idx (for the parameter): starts at 0!
 
 def sortkey(list,p):
     if p in list:
@@ -230,13 +227,14 @@ class ElectraOneDumper(io.StringIO):
     """
 
     def append(self,*elements):
+        """Append the (string representation) of the elements to the output
+        """
         for e in elements:
             self.write(str(e))
 
-    # append a comma if flag; return true; use-case
+    # append a comma if flag; return true; us as:
     # flag = false
     # flag = append_comma(flag)
-    # to append comma's to a list
     def append_comma(self,flag):
         if flag:
             self.append(',')
@@ -245,32 +243,9 @@ class ElectraOneDumper(io.StringIO):
     def debug(self,m):
         self._e1_instance.debug(m)
         
-    def __init__(self,e1_instance):
-        """ Create an empty JSON preset string
-        """
-        super(ElectraOneDumper, self).__init__()
-        self._e1_instance = e1_instance
-        self.debug('ElectraOneDumper loaded.')
-
-    def order_parameters(self,device_name, parameters):
-        """Order the parameters: either original, or sorted by name.
-        """
-        if (ORDER == ORDER_ORIGINAL):
-            return parameters
-        else:
-            parameters_copy = []
-            for p in parameters:
-                parameters_copy.append(p)
-            if (ORDER == ORDER_SORTED):
-                parameters_copy.sort(key=lambda p: p.name)
-            else: # ORDER == ORDER_DEVICEDICT
-                if device_name in DEVICE_DICT:
-                    banks = DEVICE_DICT[device_name] # tuple of tuples
-                    parlist = [p for b in banks for p in b] # turn into a list
-                    parameters_copy.sort(key=lambda p: sortkey(parlist,p.name))
-            return parameters_copy
-
     def append_json_pages(self,parameters) :
+        """Append the necessary number of pages (and their names)
+        """
         # WARNING: this code assumes all parameters are included in the preset
         self.append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
@@ -281,6 +256,8 @@ class ElectraOneDumper(io.StringIO):
         self.append(']')
 
     def append_json_overlay_item(self,label,index,value):
+        """Append an overlay item.
+        """
         self.append( f'{{"label":"{ label }"' 
                    , f',"index":{ index }'
                    , f',"value":{ value }'
@@ -288,6 +265,8 @@ class ElectraOneDumper(io.StringIO):
                    )
 
     def append_json_overlay_items(self,value_items):
+        """Append the overlay items.
+        """
         self.append(',"items":[')
         flag = False
         for (idx,item) in enumerate(value_items):
@@ -299,11 +278,15 @@ class ElectraOneDumper(io.StringIO):
         self.append(']')
 
     def append_json_overlay(self,idx,parameter):
+        """Append an overlay.
+        """
         self.append(f'{{"id":{ check_overlayid(idx) }')
         self.append_json_overlay_items(parameter.value_items)
         self.append('}')
 
     def append_json_overlays(self,parameters):
+        """Append the necessary overlays (for list valued parameters).
+        """
         self.append(',"overlays":[')
         overlay_idx = 1
         flag = False
@@ -316,13 +299,14 @@ class ElectraOneDumper(io.StringIO):
 
     def append_json_bounds(self,idx):
         idx = idx % PARAMETERS_PER_PAGE
-        # (0,0) is top left slot
+        # (0,0) is top left slot; layout controls left -> right, top -> bottom
         x = idx % SLOTS_PER_ROW
         y = idx // SLOTS_PER_ROW
         self.append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
 
-    # construct a toggle pad for an on/off valued list
-    def append_json_toggle(self,idx,cc_no):
+    def append_json_toggle(self, idx, cc_no):
+        """Append a toggle pad for an on/off valued list.
+        """
         self.append( ',"type":"pad"'
                    , ',"mode":"toggle"'
                    , ',"values":[{"message":{"type":"cc7"'
@@ -336,6 +320,8 @@ class ElectraOneDumper(io.StringIO):
                    )
 
     def append_json_list(self,idx, overlay_idx,cc_no):
+        """Append a list, with values as specified in the overlay.
+        """
         self.append( ',"type":"list"'
                    ,  ',"values":[{"message":{"type":"cc7"' 
                    ,                       f',"parameterNumber":{ check_cc_no(cc_no) } '
@@ -346,9 +332,9 @@ class ElectraOneDumper(io.StringIO):
                    ,             '}]'
                    )
         
-    # Parameters that do not have a CC assigned (ie with None in the ccmap)
-    # are given cc=0 when dumped.
-    def append_json_fader(self,idx, p, cc_no):
+    def append_json_fader(self, idx, p, cc_no):
+        """Append a fader.
+        """
         # TODO: it may happen that an integer parameter has a lot of values
         # but it actually is assigned a 7bit CC
         if is_cc14(cc_no):
@@ -384,8 +370,13 @@ class ElectraOneDumper(io.StringIO):
                    ,     ']'
                    )
         
-    def append_json_control(self, idx, parameter,cc_no):
+    # idx (for the parameter): starts at 0!
+    def append_json_control(self, idx, parameter, cc_no):
+        """Append a control (depending on the parameter type): a fader, list or
+           on/off toggle pad).
+        """
         global overlay_idx
+        overlay_idx = 1
         page = 1 + (idx // PARAMETERS_PER_PAGE)
         controlset = 1 + ((idx % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         pot = 1 + (idx % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
@@ -408,7 +399,10 @@ class ElectraOneDumper(io.StringIO):
             self.append_json_fader(idx,parameter,cc_no)
         self.append('}')
 
-    def append_json_controls(self,parameters,cc_map):
+    def append_json_controls(self, parameters, cc_map):
+        """Append the controls. Parameters that do not have a CC assigned
+           (ie with None in the cc_map) are given cc=0 in the output.
+        """
         global overlay_idx
         self.append(',"controls":[')
         overlay_idx = 1
@@ -424,7 +418,7 @@ class ElectraOneDumper(io.StringIO):
             self.append_json_control(i,p,cc_no)
         self.append(']')
 
-    def construct_json_preset(self,device_name, parameters,cc_map):
+    def construct_json_preset(self, device_name, parameters, cc_map):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
@@ -490,16 +484,44 @@ class ElectraOneDumper(io.StringIO):
                 i += 1 
         return cc_map
 
-    def construct_json_presetinfo(self, device_name, parameters):
-        """Construct a Electra One JSON preset and a corresponding
-           dictionary for the mapping to MIDI CC values for the given list of
-           Ableton Live Device/Instrument parameters. Return as PresetInfo.
+    def order_parameters(self,device_name, parameters):
+        """Order the parameters: either original, or sorted by name.
         """
+        if (ORDER == ORDER_ORIGINAL):
+            return parameters
+        else:
+            parameters_copy = []
+            for p in parameters:
+                parameters_copy.append(p)
+            if (ORDER == ORDER_SORTED):
+                parameters_copy.sort(key=lambda p: p.name)
+            else: # ORDER == ORDER_DEVICEDICT
+                if device_name in DEVICE_DICT:
+                    banks = DEVICE_DICT[device_name] # tuple of tuples
+                    parlist = [p for b in banks for p in b] # turn into a list
+                    parameters_copy.sort(key=lambda p: sortkey(parlist,p.name))
+            return parameters_copy
+
+    def __init__(self, e1_instance, device_name, parameters):
+        """Construct an Electra One JSON preset and a corresponding
+           dictionary for the mapping to MIDI CC values, for the given
+           device with the given list of Ableton Live Device/Instrument
+           parameters. 
+        """
+        super(ElectraOneDumper, self).__init__()
+        # e1_instance used to have access to the log file for debugging.
+        self._e1_instance = e1_instance
+        self.debug('ElectraOneDumper loaded.')
         self.debug('Order parameters')
         parameters = self.order_parameters(device_name,parameters)
         self.debug('Construct CC map')
-        cc_map = self.construct_ccmap(parameters)
+        self._cc_map = self.construct_ccmap(parameters)
         self.debug('Construct JSON')
-        preset_json = self.construct_json_preset(device_name, parameters,cc_map)
-        return PresetInfo(preset_json,cc_map)
+        self._preset_json = self.construct_json_preset(device_name, parameters,self._cc_map)
 
+
+    def get_preset(self):
+        """Return the constructed preset and ccmap as PresetInfo.
+        """
+        return PresetInfo(self._preset_json,self._cc_map)
+        

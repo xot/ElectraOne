@@ -97,8 +97,8 @@ class ElectraOne(ControlSurface):
             return preset_info
         else:
             self.debug('Constructing preset on the fly...')
-            dumper = ElectraOneDumper(self)
-            return dumper.construct_json_presetinfo(device_name, device.parameters )
+            dumper = ElectraOneDumper(self, device_name, device.parameters)
+            return dumper.get_preset()
 
     def send_midi_cc7(self,cc_no,value):
         """Send a 7bit MIDI CC
