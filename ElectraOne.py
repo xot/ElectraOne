@@ -95,21 +95,21 @@ class ElectraOne(ControlSurface):
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
 
-    def send_midi_cc7(self,cc_info,value):
+    def send_midi_cc7(self,ccinfo,value):
         """Send a 7bit MIDI CC
         """
-        cc_no = cc_info.get_cc_no()
-        cc_statusbyte = cc_info.get_statusbyte()
+        cc_no = ccinfo.get_cc_no()
+        cc_statusbyte = ccinfo.get_statusbyte()
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
         message = (cc_statusbyte, cc_no, value )
         self.__c_instance.send_midi(message)
         
-    def send_midi_cc14(self,cc_info,value):
+    def send_midi_cc14(self,ccinfo,value):
         """Send a 14bit MIDI CC
         """
-        cc_no = cc_info.get_cc_no()
-        cc_statusbyte = cc_info.get_statusbyte()
+        cc_no = ccinfo.get_cc_no()
+        cc_statusbyte = ccinfo.get_statusbyte()
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(16384), f'CC value { value } out of range'
         lsb = value % 128
@@ -121,12 +121,12 @@ class ElectraOne(ControlSurface):
         self.__c_instance.send_midi(message1)
         self.__c_instance.send_midi(message2)
 
-    def send_value_as_cc(self,p,cc_info):
+    def send_value_as_cc(self,p,ccinfo):
         """Send the value of a parameter as a MIDI CC message
         """
-        if cc_info.is_cc14():
+        if ccinfo.is_cc14():
             value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc14(cc_info,value)
+            self.send_midi_cc14(ccinfo,value)
         else:
             # for quantized parameters (always cc7) convert the index
             # value into the corresponding CC value
@@ -135,7 +135,7 @@ class ElectraOne(ControlSurface):
                 value = cc_value_for_item_idx(idx,p.value_items)
             else:
                 value = int(127 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc7(cc_info,value)
+            self.send_midi_cc7(ccinfo,value)
 
     def update_values(self):
         """Update the displayed values of the parameters in the
@@ -145,9 +145,9 @@ class ElectraOne(ControlSurface):
         if self._appointed_device != None:
             parameters = self._appointed_device.parameters
             for p in parameters:
-                cc_info = self._preset_info.get_ccinfo_for_parameter(p.original_name)
-                if cc_info.is_mapped:
-                    self.send_value_as_cc(p,cc_info)
+                ccinfo = self._preset_info.get_ccinfo_for_parameter(p.original_name)
+                if ccinfo.is_mapped():
+                    self.send_value_as_cc(p,ccinfo)
                 
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
@@ -158,14 +158,14 @@ class ElectraOne(ControlSurface):
             # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
             needs_takeover = True
             for p in parameters:                
-                cc_info = self._preset_info.get_ccinfo_for_parameter(p.original_name)
-                if cc_info.is_mapped:
-                    if cc_info.is_cc14():
+                ccinfo = self._preset_info.get_ccinfo_for_parameter(p.original_name)
+                if ccinfo.is_mapped():
+                    if ccinfo.is_cc14():
                         map_mode = Live.MidiMap.MapMode.absolute_14_bit
                     else:
                         map_mode = Live.MidiMap.MapMode.absolute
-                    cc_no = cc_info.get_cc_no()
-                    midi_channel = cc_info.get_midi_channel()
+                    cc_no = ccinfo.get_cc_no()
+                    midi_channel = ccinfo.get_midi_channel()
                     # BUG: this call internally adds 1 to the specified MIDI channel!!!
                     self.debug(f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)

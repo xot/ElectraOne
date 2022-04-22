@@ -31,3 +31,12 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # created preset for the currently selected device
 ORDER = ORDER_DEVICEDICT
 
+# Limit the number of parameters assigned to 7bit and 14bit CC controllers
+# included in a preset constructed on the fly;
+# -1 means all parameters are included
+MAX_CC7_PARAMETERS = 2
+MAX_CC14_PARAMETERS = 2
+
+# Limit the number of MIDI channeld used in a preset constructed on the fly;
+# -1 means all MIDI channels are used
+MAX_MIDI_CHANNELS = 2

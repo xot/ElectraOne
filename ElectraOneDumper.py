@@ -45,6 +45,9 @@ MIDI_PORT = 1
 MIDI_CHANNEL = 11
 DEVICE_ID = 1
 
+# dymmy CC parameter value to indicate an unmapped CC
+UNMAPPED_CC = -1
+
 # Electra One JSON file format version constructed 
 VERSION = 2
 
@@ -85,7 +88,7 @@ class CCInfo:
         assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
         (self._midi_channel,self._is_cc14, self._cc_no) = v
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
-        assert self._cc_no in range(0,128), f'MIDI channel {self._cc_no} out of range.'
+        assert self._cc_no in range(-1,128), f'MIDI channel {self._cc_no} out of range.'
         
     def __repr__(self):
         if self._is_cc14:
@@ -94,7 +97,7 @@ class CCInfo:
             return f'({self._midi_channel},0,{self._cc_no})'
         
     def is_mapped(self):
-        return self._cc_no != 0
+        return self._cc_no != UNMAPPED_CC
     
     def is_cc14(self):
         return self._is_cc14
@@ -119,7 +122,7 @@ class CCInfo:
 # TODO: properly deal with None values: in this 'dumper' module, None values
 # are written with cc_no '0' to the json preset and as None into the ccmap
 
-UNASSIGNED_CC = CCInfo((MIDI_CHANNEL,False,0))
+UNMAPPED_CCINFO = CCInfo((MIDI_CHANNEL,False,UNMAPPED_CC))
 
 class PresetInfo ():
     # - The preset is a JSON string in Electra One format.
@@ -144,7 +147,7 @@ class PresetInfo ():
             else:
                 return v  
         else:
-            return UNASSIGNED_CC
+            return UNMAPPED_CCINFO
         
     def get_preset(self):
         """Retrun the JSON preset as a string
@@ -450,21 +453,22 @@ class ElectraOneDumper(io.StringIO):
 
     def append_json_controls(self, parameters, cc_map):
         """Append the controls. Parameters that do not have a CC assigned
-           (ie with None in the cc_map) are given cc=0 in the output.
+           (i.e. not in cc_map, or with UNMAPPED_CCINFO in the ccmap)
+           are skipped. (To create a full dump, set MAX_CC7_PARAMETERS,
+           MAX_CC14_PARAMETERS and MAX_MIDI_CHANNELS generously).
         """
         global overlay_idx
         self.append(',"controls":[')
         overlay_idx = 1
+        id = 0  # control identifier
         flag = False
-        for (i,p) in enumerate(parameters):
-            flag = self.append_comma(flag)
-            # TODO FIXME
-            # assert p.original_name in cc_map, 'Parameter expected in CC map'
-            if p.original_name not in cc_map:
-                cc_info = UNASSIGNED_CC
-            else:
+        for p in parameters:
+            if p.original_name in cc_map:
                 cc_info = cc_map[p.original_name]
-            self.append_json_control(i,p,cc_info)
+                if cc_info.is_mapped():
+                    flag = self.append_comma(flag)
+                    self.append_json_control(id,p,cc_info)
+                    id += 1
         self.append(']')
 
     def construct_json_preset(self, device_name, parameters, cc_map):
@@ -488,39 +492,61 @@ class ElectraOneDumper(io.StringIO):
         return self.getvalue()
 
     def construct_ccmap(self,parameters):
-        """Construct a cc_map for the list of parameters.
+        """Construct a cc_map for the list of parameters. Map no more parameters
+           then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
+           no more MIDI channels than specified by MAX_MIDI_CHANNELS
         """
         self.debug('Construct CC map')
-        # - 14bit CC controls are mapped to MIDI_CHANNEL (device 1)
+        # - 14bit CC controls are mapped first
         # they consume two CC parameters (i AND i+32) and we want to map as many
         # device parameters as possible
-        # - 7 bit CC controls are mapped to MIDI_CHANNEL+1 (device 2)
+        # - 7 bit CC controls are mapped next
+        # whenever a MIDI channel is full, we move to the nexy
         cc_map = {}
         channel = MIDI_CHANNEL
-        cc_no = 1 # CC0 not used
+        cc_no = 0
+        # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
+        free = [ True for i in range(0,128)] 
         # first assign 14bit CC controllers
-        for p in parameters:
-            if wants_cc14(p):
-                if cc_no == 32:      # skip 32 slots that have already  been assigned
-                    cc_no = 64
-                if cc_no == 96:      # all CC's assigned, jump to next MIDI channel
-                    cc_no = 1
-                    channel += 1
-                if channel == 17:
-                    break
-                cc_map[p.original_name] = CCInfo((channel,True,cc_no))                    
+        cc14pars = [p for p in parameters if wants_cc14(p)]
+        if MAX_CC14_PARAMETERS != -1:
+            cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
+        for p in cc14pars:
+            # find a free CC parameter from where we are now
+            while (cc_no < 128) and (not free[cc_no]):
                 cc_no += 1
+            if cc_no == 128:
+                channel += 1
+                cc_no = 0
+                free = [ True for i in range(0,128)] 
+            if channel >=  MIDI_CHANNEL + MAX_MIDI_CHANNELS:
+                self.debug('Maximum of mappable MIDI channels reached.')
+                break # if e beak here, we also break at the same spot in the next loop
+            if cc_no < 128:
+                assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
+            cc_map[p.original_name] = CCInfo((channel,True,cc_no))
+            free[cc_no+32] = False                
+            cc_no += 1
         # now fill the remaining slots with other parameters (that are 7bit)
-        for p in parameters:
-            if not wants_cc14(p):
-                if cc_no == 128:     # all CC's assigned, jump to next MIDI channel
-                    cc_no = 1
-                    channel += 1
-                if channel == 17:
-                    break
-                cc_map[p.original_name] = CCInfo((channel,False,cc_no))
-                cc_no +=1 
-        self.debug(f'CC map constructed: { cc_map }')
+        cc7pars = [p for p in parameters if not wants_cc14(p)]
+        if MAX_CC7_PARAMETERS != -1:
+            cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
+        for p in cc7pars:
+            # find a free CC parameter from where we are now;
+            # we may still be in an area where 14bit parameters claimed a 'future' CC
+            while (cc_no < 128) and (not free[cc_no]):
+                cc_no += 1
+            if cc_no == 128:
+                channel += 1
+                cc_no = 0
+                free = [ True for i in range(0,128)]                          # from now on all slots are free
+            if channel >=  MIDI_CHANNEL + MAX_MIDI_CHANNELS:
+                self.debug('Maximum of mappable MIDI channels reached.')
+                break 
+            cc_map[p.original_name] = CCInfo((channel,False,cc_no))
+            cc_no +=1
+        if not DUMP: # no need to write this to the log if the same thing is dumped
+            self.debug(f'CC map constructed: { cc_map }')
         return cc_map
 
     def order_parameters(self,device_name, parameters):
