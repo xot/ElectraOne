@@ -24,19 +24,22 @@ DUMP = True
 # are not appended).
 LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
 
-ORDER_ORIGINAL = 0
-ORDER_SORTED = 1
-ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred order
-# specify the order in which parameters shoudl appear in an automatically
-# created preset for the currently selected device
+ORDER_ORIGINAL = 0   # order as reported by Live
+ORDER_SORTED = 1     # sort by parameter name
+ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred order as defined by DEVICE_DICT in the Ableton Live rmeote script framework
+
+# Specify the order in which parameters shoudl appear in an automatically
+# created preset for the currently selected device. If order is
+# ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
 ORDER = ORDER_DEVICEDICT
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
-# -1 means all parameters are included
-MAX_CC7_PARAMETERS = 2
-MAX_CC14_PARAMETERS = 2
+# -1 means all parameters are included: this is a good setting when
+# ORDER = ORDER_DEVICEDICT
+MAX_CC7_PARAMETERS = -1
+MAX_CC14_PARAMETERS = -1
 
-# Limit the number of MIDI channeld used in a preset constructed on the fly;
+# Limit the number of MIDI channels used in a preset constructed on the fly;
 # -1 means all MIDI channels are used
 MAX_MIDI_CHANNELS = 2

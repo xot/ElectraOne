@@ -6,25 +6,30 @@ Ableton Live MIDI Remote Script for the Electra One.
 
 This Ableton Live MIDI Remote script allows you to control the parameters of the currently selected device in Ableton Live using the [Electra One](https://electra.one). 
 
+It can also be used to dump Electra One presets for Ableton Live devices with sensible default control assignments.
+
 It looks for a preloaded preset in ```Devices.py``` and uses that if it exists. If not, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device.
 
 When constructing presets:
 - on/off parameters are shown as toggles on the Electra One. 
 - other 'quantised' parameters are shown as lists on the Electra One, using the possible values reported by Ableton. (In Electra One terms, these are turned into 'overlays' added to the preset.)
 - non-quantised parameters are shown as faders on the Electra One. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.)
-- Integer values, non-quantised, parameters are shown as integer-values faders on the Electra One. Other faders simply show a value within the minimum - maximum CC value range.
+- Integer valued, non-quantised, parameters are shown as integer-valued faders on the Electra One. Other faders simply show a value within the minimum - maximum CC value range.
 
 ## Preset dumps
 
 Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assingment over pages, colours, groups). The  updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
-Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple
+Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
 - the MIDI channel,
 - whether it is a 14bit controler (1: yes, 0: no), and
-- the CC parameter number (between 1 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
+- the CC parameter number (between 0 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
 
-Note that the actual CC parameter used for a 14bit control is cc_np *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher.
+Note that the actual CC parameter used for a 14bit control is cc_np *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher. (This means the constructed map may appear to have holes in the 32-63 and 96-127 range.)
+
+The construction of presets is controlled by several constants defined in ```config.py`
+
 
 Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```LOCALDIR``` below).
 
@@ -70,15 +75,19 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 - ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` controls whether debugging information is written to the log file. Set to ```False``` to speed up the script.
 - ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```).
-- ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order, or simply in the order given by Ableton.
+
+The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
+
+- ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They 'are' included in the CC map for reference, with a mapping of ```None```.)
+- ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters.
+- ```MAX_MIDI_CHANNELS``` limits the number of MIDI channels used in a preset constructed on the fly; -1 means all MIDI channels are used. If this means that there are more parameters then available CC numbers, those parameters are not assigned.
 
 ## Current limitations
 
-- Value changes in Abelton (and current values when selecting a device) are not shown in the Electra One preset. (This is due to the fact that presets *need* to be sent to the Electra One over the CTRL port, which ignores incoming CC messages (that encode value changes).
 - User-defined presets not defined yet. (You *can* add them to ```Devices.py```.)
 - Value handling is quite rudimentary at the moment. Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
 - The 'Blue Hand' is not showing. However, the currently selected device *is* mapped.
-- Uploading large patches is *slow*.
+- Uploading large patches is *slow*. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
 
 ## Dependencies
 

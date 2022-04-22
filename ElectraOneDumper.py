@@ -246,9 +246,6 @@ def wants_cc14(p):
     return (not p.is_quantized) and (not is_int_parameter(p))                 # not quantized parameters are always faders
 
 
-# TODO: FIXME: global parameter   
-overlay_idx = 0
-
 class ElectraOneDumper(io.StringIO):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
@@ -323,21 +320,24 @@ class ElectraOneDumper(io.StringIO):
     def append_json_overlay(self,idx,parameter):
         """Append an overlay.
         """
+        self._overlay_map[parameter.original_name] = idx
         self.append(f'{{"id":{ check_overlayid(idx) }')
         self.append_json_overlay_items(parameter.value_items)
         self.append('}')
 
-    def append_json_overlays(self,parameters):
+    def append_json_overlays(self,parameters,cc_map):
         """Append the necessary overlays (for list valued parameters).
         """
         self.append(',"overlays":[')
         overlay_idx = 1
         flag = False
         for p in parameters:
-            if needs_overlay(p):
-               flag = self.append_comma(flag)
-               self.append_json_overlay(overlay_idx,p)
-               overlay_idx += 1
+            if p.original_name in cc_map:
+                cc_info = cc_map[p.original_name]
+                if cc_info.is_mapped() and needs_overlay(p):
+                    flag = self.append_comma(flag)
+                    self.append_json_overlay(overlay_idx,p)
+                    overlay_idx += 1
         self.append(']')
 
     def append_json_bounds(self,idx):
@@ -421,8 +421,6 @@ class ElectraOneDumper(io.StringIO):
         """Append a control (depending on the parameter type): a fader, list or
            on/off toggle pad).
         """
-        global overlay_idx
-        overlay_idx = 1
         page = 1 + (idx // PARAMETERS_PER_PAGE)
         controlset = 1 + ((idx % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         pot = 1 + (idx % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
@@ -435,10 +433,9 @@ class ElectraOneDumper(io.StringIO):
                   , f',"inputs":[{{"potId":{ check_pot(pot) },"valueId":"value"}}]'
                   )
         self.append_json_bounds(idx)
-        # TODO: overlay_idx implicitly matched to parameter; dangerous
         if needs_overlay(parameter):
+            overlay_idx = self_overlay_map[parameter.original_name]
             self.append_json_list(idx,overlay_idx,cc_info)
-            overlay_idx += 1
         elif is_on_off_parameter(parameter):
             self.append_json_toggle(idx,cc_info)
         else:
@@ -479,7 +476,8 @@ class ElectraOneDumper(io.StringIO):
                    )
         self.append_json_pages(parameters)
         self.append_json_devices(cc_map)        
-        self.append_json_overlays (parameters)
+        self._overlay_map = {}
+        self.append_json_overlays (parameters,cc_map)
         self.append( ',"groups":[]')
         self.append_json_controls(parameters,cc_map)
         self.append( '}' )
@@ -491,11 +489,10 @@ class ElectraOneDumper(io.StringIO):
            no more MIDI channels than specified by MAX_MIDI_CHANNELS
         """
         self.debug('Construct CC map')
-        # - 14bit CC controls are mapped first
-        # they consume two CC parameters (i AND i+32) and we want to map as many
-        # device parameters as possible
-        # - 7 bit CC controls are mapped next
-        # whenever a MIDI channel is full, we move to the nexy
+        # 14bit CC controls are mapped first; they consume two CC parameters
+        # (i AND i+32). 7 bit CC controls are mapped next filling any empty
+        # slots. Whenever a MIDI channel is full, we move to the next (limited
+        # by MAX_MIDI_CHANNELS
         cc_map = {}
         channel = MIDI_CHANNEL
         cc_no = 0
@@ -516,8 +513,7 @@ class ElectraOneDumper(io.StringIO):
             if channel >=  MIDI_CHANNEL + MAX_MIDI_CHANNELS:
                 self.debug('Maximum of mappable MIDI channels reached.')
                 break # if e beak here, we also break at the same spot in the next loop
-            if cc_no < 128:
-                assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
+            assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
             cc_map[p.original_name] = CCInfo((channel,True,cc_no))
             free[cc_no+32] = False                
             cc_no += 1
@@ -559,7 +555,10 @@ class ElectraOneDumper(io.StringIO):
                 if device_name in DEVICE_DICT:
                     banks = DEVICE_DICT[device_name] # tuple of tuples
                     parlist = [p for b in banks for p in b] # turn into a list
+                    # TODO: this could be simplified by extracing parameters in the order specified in parlist
+                    # filter out any parameters NOT in banks/parlist
                     parameters_copy = [p for p in parameters_copy if p.name in parlist]
+                    # sort by name in parlist 
                     parameters_copy.sort(key=lambda p: parlist.index(p.name))
             return parameters_copy
 
