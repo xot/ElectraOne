@@ -434,7 +434,7 @@ class ElectraOneDumper(io.StringIO):
                   )
         self.append_json_bounds(idx)
         if needs_overlay(parameter):
-            overlay_idx = self_overlay_map[parameter.original_name]
+            overlay_idx = self._overlay_map[parameter.original_name]
             self.append_json_list(idx,overlay_idx,cc_info)
         elif is_on_off_parameter(parameter):
             self.append_json_toggle(idx,cc_info)
