@@ -249,12 +249,6 @@ def wants_cc14(p):
 # TODO: FIXME: global parameter   
 overlay_idx = 0
 
-def sortkey(list,p):
-    if p in list:
-        return list.index(p)
-    else:
-        return len(list)+1
-        
 class ElectraOneDumper(io.StringIO):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
@@ -565,7 +559,8 @@ class ElectraOneDumper(io.StringIO):
                 if device_name in DEVICE_DICT:
                     banks = DEVICE_DICT[device_name] # tuple of tuples
                     parlist = [p for b in banks for p in b] # turn into a list
-                    parameters_copy.sort(key=lambda p: sortkey(parlist,p.name))
+                    parameters_copy = [p for p in parameters_copy if p.name in parlist]
+                    parameters_copy.sort(key=lambda p: parlist.index(p.name))
             return parameters_copy
 
     def __init__(self, e1_instance, device_name, parameters):
