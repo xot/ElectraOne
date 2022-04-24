@@ -48,7 +48,7 @@ class EffectController(ControlSurface):
         self._value_update_timer = -1
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
-        # self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
+        self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
         self.log_message('EffectController loaded.')
         
         
