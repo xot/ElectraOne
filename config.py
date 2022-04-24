@@ -31,7 +31,7 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # Specify the order in which parameters shoudl appear in an automatically
 # created preset for the currently selected device. If order is
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
-ORDER = ORDER_DEVICEDICT
+ORDER = ORDER_SORTED
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
