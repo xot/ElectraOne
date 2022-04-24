@@ -40,7 +40,8 @@ class EffectController(ControlSurface):
         ControlSurface.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
         self.__c_instance = c_instance
-        self._appointed_device = None
+        self._assigned_device = None
+        self._assigned_device_locked = False
         self._preset_info = None
         # timer set when device appointed; countdown through update_display
         # until 0, in which case update_display calls the update_values function
@@ -56,11 +57,9 @@ class EffectController(ControlSurface):
         """Write a debug message to the log, if debugging is enabled
         """
         if DEBUG:
-            self.log_message(m)
-        
-    # for debugging
-    def receive_midi(self, midi_bytes):
-        self.debug(f'ElectraOne receiving MIDI { midi_bytes }')
+            self.log_message(f'E1: {m}')
+
+    # === presets ===
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     # Upload the preset (a json string) to the Electro One
@@ -98,6 +97,15 @@ class EffectController(ControlSurface):
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
 
+    # === deal with midi
+    
+    # for debugging
+    def receive_midi(self, midi_bytes):
+        self.debug(f'ElectraOne receiving MIDI { midi_bytes }')
+
+
+    # === updating values ===
+    
     def send_midi_cc7(self,ccinfo,value):
         """Send a 7bit MIDI CC
         """
@@ -106,6 +114,7 @@ class EffectController(ControlSurface):
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
         message = (cc_statusbyte, cc_no, value )
+        self.debug(f'MIDI message {message}.')
         self.__c_instance.send_midi(message)
         
     def send_midi_cc14(self,ccinfo,value):
@@ -121,12 +130,15 @@ class EffectController(ControlSurface):
         # one for the MSB and another for the LSB; the second uses cc_no+32
         message1 = (cc_statusbyte, cc_no, msb)
         message2 = (cc_statusbyte, 0x20 + cc_no, lsb)
+        self.debug(f'MIDI message {message1}.')
         self.__c_instance.send_midi(message1)
+        self.debug(f'MIDI message {message2}.')
         self.__c_instance.send_midi(message2)
 
     def send_value_as_cc(self,p,ccinfo):
         """Send the value of a parameter as a MIDI CC message
         """
+        self.debug(f'Sending value {ccinfo} for {p.original_name}.')
         if ccinfo.is_cc14():
             value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
             self.send_midi_cc14(ccinfo,value)
@@ -145,19 +157,19 @@ class EffectController(ControlSurface):
            (just uploaded) preset
         """
         self.debug('ElectraOne updating values.')
-        if self._appointed_device != None:
-            parameters = self._appointed_device.parameters
+        if self._assigned_device != None:
+            parameters = self._assigned_device.parameters
             for p in parameters:
                 ccinfo = self._preset_info.get_ccinfo_for_parameter(p.original_name)
                 if ccinfo.is_mapped():
                     self.send_value_as_cc(p,ccinfo)
-                
+
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
         self.debug('ElectraOne building map.')
-        if self._appointed_device != None:
-            parameters = self._appointed_device.parameters
+        if self._assigned_device != None:
+            parameters = self._assigned_device.parameters
             # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
             needs_takeover = True
             for p in parameters:                
@@ -173,6 +185,8 @@ class EffectController(ControlSurface):
                     self.debug(f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
+    # === Others ===
+    
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
@@ -214,12 +228,25 @@ class EffectController(ControlSurface):
                 else:
                     f.write(f"'{ name }': None\n")
             f.write('}')
-                               
-    def _set_appointed_device(self, device):
+
+    # === handle device selection
+    
+    def lock_to_device(self, device):
+        if device:
+            self._assigned_device_locked = True
+            self._assign_device(device)
+            
+    def unlock_from_device(self, device):
+        if device and device == self._assigned_device:
+            self._assigned_device_locked = False
+            self._assign_device(self.__c_instance.song().appointed_device)
+
+
+    def _assign_device(self, device):
         device_name = get_device_name(device)
-        self.debug(f'ElectraOne device appointed { device_name }')
-        if device != self._appointed_device:
-            self._appointed_device = device
+        self.debug(f'Assigning device { device_name }')
+        if device != self._assigned_device:
+            self._assigned_device = device
             if device != None:
                 self._preset_info = self.get_preset(device)
                 if DUMP:
@@ -230,7 +257,10 @@ class EffectController(ControlSurface):
                 self._value_update_timer = int(len(preset)/200)
                 self.__c_instance.request_rebuild_midi_map()                
 
-            
+    def _set_appointed_device(self, device):
+        if not self._assigned_device_locked:
+            self._assign_device(device)
+        
     def disconnect(self):
         """Called right before we get disconnected from Live
         """

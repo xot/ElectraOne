@@ -44,7 +44,25 @@ class ElectraOne(ControlSurface):
         """Live can ask the script whether it can be locked to devices
         """
         return True
-        
+
+    def lock_to_device(self, device):
+        """ Live can tell the script to lock to a given device
+        """
+        self._effect_controller.lock_to_device(device)
+
+    def unlock_from_device(self, device):
+        """Live can tell the script to unlock from a given device
+        """
+        self._effect_controller.unlock_from_device(device)
+
+    def toggle_lock(self):
+        """Script -> Live
+        Use this function to toggle the script's lock on devices
+        """
+        # Weird; why is Ableton relegating this to the script?
+        self.__c_instance.toggle_lock()
+
+    
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map'.
@@ -68,4 +86,3 @@ class ElectraOne(ControlSurface):
         """Called right before we get disconnected from Live
         """
         self._effect_controller.disconnect()
-        self._device_appointer.disconnect()                
