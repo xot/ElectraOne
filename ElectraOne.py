@@ -30,6 +30,16 @@ class ElectraOne(ControlSurface):
         self._effect_controller = EffectController(c_instance)
         self.log_message('ElectraOne loaded.')
         
+    def suggest_input_port(self):
+        """Tell Live the name of the preferred input port name.
+        """
+        return 'Electra Controller (Electra Port 1)'
+
+    def suggest_output_port(self):
+        """Tell Live the name of the preferred output port name.
+        """
+        return 'Electra Controller (Electra CTRL)'
+
     def can_lock_to_devices(self):
         """Live can ask the script whether it can be locked to devices
         """
