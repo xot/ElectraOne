@@ -40,6 +40,12 @@ ORDER = ORDER_SORTED
 MAX_CC7_PARAMETERS = -1
 MAX_CC14_PARAMETERS = -1
 
+# First MIDI channel used when creating effect/device presets on the fly;
+# range of MIDI channels used is
+# [MIDI_EFFECT_CHANNEL, .. , MIDI_EFFECT_CHANNEL + MAX_MIDI_CHANNELS-1]
+MIDI_EFFECT_CHANNEL = 11
+
 # Limit the number of MIDI channels used in a preset constructed on the fly;
-# -1 means all MIDI channels are used
+# -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
+# all the way up to and including channel 16)
 MAX_MIDI_CHANNELS = 2

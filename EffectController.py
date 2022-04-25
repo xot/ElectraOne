@@ -21,7 +21,6 @@ import Live
 # Local imports
 from .Devices import get_predefined_preset_info
 from .ElectraOneDumper import PresetInfo, CCInfo, cc_value_for_item_idx, ElectraOneDumper
-# from .ElecraOneDumper import *
 from .config import *
 
 # --- helper functions

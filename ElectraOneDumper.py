@@ -29,6 +29,11 @@
 # even those without a CC map; but in a preset you *upload* you only want to
 # include parameters that are actually mapped in order not to surprise the users)
 
+# Note: parameter.name used as the visible name for a parameter, and
+# parameter.original_name used to index cc_map (because .original_name
+# is guaranteed not to change so mappings remain consistent).
+
+
 # Python imports
 import io, random, string
 
@@ -39,13 +44,10 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 
-# TODO: use p.name or p.original_name??
-#
+# MIDI Port to use
 MIDI_PORT = 1
-MIDI_CHANNEL = 11
-DEVICE_ID = 1
 
-# dymmy CC parameter value to indicate an unmapped CC
+# dummy CC parameter value to indicate an unmapped CC
 UNMAPPED_CC = -1
 
 # Electra One JSON file format version constructed 
@@ -76,8 +78,9 @@ MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
 # --- CCinfo ---
 
+# return the device id to use in the preset for the specified MIDI channel
 def device_idx_for_midi_channel(midi_channel):
-    return DEVICE_ID + midi_channel - MIDI_CHANNEL
+    return 1 + midi_channel - MIDI_EFFECT_CHANNEL
 
 
 class CCInfo:
@@ -122,7 +125,7 @@ class CCInfo:
 # TODO: properly deal with None values: in this 'dumper' module, None values
 # are written with cc_no '0' to the json preset and as None into the ccmap
 
-UNMAPPED_CCINFO = CCInfo((MIDI_CHANNEL,False,UNMAPPED_CC))
+UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,False,UNMAPPED_CC))
 
 class PresetInfo ():
     # - The preset is a JSON string in Electra One format.
@@ -446,7 +449,7 @@ class ElectraOneDumper(io.StringIO):
         """Append the controls. Parameters that do not have a CC assigned
            (i.e. not in cc_map, or with UNMAPPED_CCINFO in the ccmap)
            are skipped. (To create a full dump, set MAX_CC7_PARAMETERS,
-           MAX_CC14_PARAMETERS and MAX_MIDI_CHANNELS generously).
+           MAX_CC14_PARAMETERS and MAX_MIDI_EFFECT_CHANNELS generously).
         """
         global overlay_idx
         self.append(',"controls":[')
@@ -486,15 +489,22 @@ class ElectraOneDumper(io.StringIO):
     def construct_ccmap(self,parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
-           no more MIDI channels than specified by MAX_MIDI_CHANNELS
+           no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
         """
         self.debug('Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots. Whenever a MIDI channel is full, we move to the next (limited
-        # by MAX_MIDI_CHANNELS
+        # by MAX_MIDI_EFFECT_CHANNELS
         cc_map = {}
-        channel = MIDI_CHANNEL
+        channel = MIDI_EFFECT_CHANNEL
+        assert MIDI_EFFECT_CHANNEL in range(1,17), f'Bad configuration of MIDI_EFFECT_CHANNEL set to { MIDI_EFFECT_CHANNEL}.'
+        if MAX_MIDI_EFFECT_CHANNELS == -1:
+            max_channel = 16
+        else:
+            assert (MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNEL) in range(1,17)
+               , f'Bad configuration of MIDI_MAX_EFFECT_CHANNEL set to { MIDI_MAX_EFFECT_CHANNEL}.' 
+            max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         cc_no = 0
         # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
         free = [ True for i in range(0,128)] 
@@ -510,7 +520,7 @@ class ElectraOneDumper(io.StringIO):
                 channel += 1
                 cc_no = 0
                 free = [ True for i in range(0,128)] 
-            if channel >=  MIDI_CHANNEL + MAX_MIDI_CHANNELS:
+            if channel >  max_channel:
                 self.debug('Maximum of mappable MIDI channels reached.')
                 break # if e beak here, we also break at the same spot in the next loop
             assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
@@ -530,7 +540,7 @@ class ElectraOneDumper(io.StringIO):
                 channel += 1
                 cc_no = 0
                 free = [ True for i in range(0,128)]                          # from now on all slots are free
-            if channel >=  MIDI_CHANNEL + MAX_MIDI_CHANNELS:
+            if channel >  max_channel
                 self.debug('Maximum of mappable MIDI channels reached.')
                 break 
             cc_map[p.original_name] = CCInfo((channel,False,cc_no))
