@@ -268,8 +268,8 @@ class ElectraOneDumper(io.StringIO):
             self.append(',')
         return True
                         
-    def debug(self,m):
-        self._e1_instance.debug(m)
+    def debug(self,level,m):
+        self._e1_instance.debug(level,m)
         
     def append_json_pages(self,parameters) :
         """Append the necessary number of pages (and their names)
