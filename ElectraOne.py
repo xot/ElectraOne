@@ -72,6 +72,7 @@ class ElectraOne(ControlSurface):
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
+        # Only MixerController needs to receive these
         self._mixer_controller.receive_midi(midi_bytes)
 
 
@@ -82,10 +83,10 @@ class ElectraOne(ControlSurface):
         self._mixer_controller.build_midi_map(self.__c_instance.handle(),midi_map_handle)
         
     def update_display(self):
-        """ Called every 100 ms
+        """ Called every 100 ms. Used to execute scheduled tasks
         """
         self._effect_controller.update_display()
-
+        self._mixer_controller.update_display()
                                
     def disconnect(self):
         """Called right before we get disconnected from Live
