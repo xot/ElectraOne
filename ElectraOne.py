@@ -12,6 +12,8 @@ from _Framework.ControlSurface import ControlSurface
 
 # Local imports
 from .EffectController import EffectController
+from .MixerController import MixerController
+from .config import check_configuration
 
 # --- ElectraOne class
 
@@ -24,11 +26,13 @@ class ElectraOne(ControlSurface):
     """
 
     def __init__(self, c_instance):
+        check_configuration()
         ControlSurface.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
         self.__c_instance = c_instance
         self._effect_controller = EffectController(c_instance)
-        self.log_message('ElectraOne loaded.')
+        self._mixer_controller = MixerController(c_instance)
+        self.log_message('Remote script loaded.')
         
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
@@ -38,7 +42,7 @@ class ElectraOne(ControlSurface):
     def suggest_output_port(self):
         """Tell Live the name of the preferred output port name.
         """
-        return 'Electra Controller (Electra CTRL)'
+        return 'Electra Controller (Electra Port 1)'
 
     def can_lock_to_devices(self):
         """Live can ask the script whether it can be locked to devices
@@ -65,16 +69,17 @@ class ElectraOne(ControlSurface):
     
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
-           explicitly forwarded in 'build_midi_map'.
+           explicitly forwarded in 'build_midi_map' using
+           Live.MidiMap.forward_midi_cc().
         """
-        self._effect_controller.receive_midi(midi_bytes)
+        self._mixer_controller.receive_midi(midi_bytes)
 
 
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
         """
         self._effect_controller.build_midi_map(midi_map_handle)
-
+        self._mixer_controller.build_midi_map(self.__c_instance.handle(),midi_map_handle)
         
     def update_display(self):
         """ Called every 100 ms

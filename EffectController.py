@@ -73,7 +73,7 @@ class EffectController(ControlSurface):
     def upload_preset(self,preset):
         """Upload an Electra One preset (given as a JSON string)
         """
-        self.debug('ElectraOne uploading preset.')
+        self.debug('Uploading preset.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
@@ -86,7 +86,7 @@ class EffectController(ControlSurface):
            predefined or else construct it on the fly.
         """
         device_name = get_device_name(device)
-        self.debug(f'ElectraOne getting preset for { device_name }.')
+        self.debug(f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
             self.debug('Predefined preset found')
@@ -95,13 +95,6 @@ class EffectController(ControlSurface):
             self.debug('Constructing preset on the fly...')
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
-
-    # === deal with midi
-    
-    # for debugging
-    def receive_midi(self, midi_bytes):
-        self.debug(f'ElectraOne receiving MIDI { midi_bytes }')
-
 
     # === updating values ===
     
@@ -155,7 +148,7 @@ class EffectController(ControlSurface):
         """Update the displayed values of the parameters in the
            (just uploaded) preset
         """
-        self.debug('ElectraOne updating values.')
+        self.debug('Updating values.')
         if self._assigned_device != None:
             parameters = self._assigned_device.parameters
             for p in parameters:
@@ -166,7 +159,7 @@ class EffectController(ControlSurface):
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
-        self.debug('ElectraOne building map.')
+        self.debug('Building effect MIDI map.')
         if self._assigned_device != None:
             parameters = self._assigned_device.parameters
             # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call

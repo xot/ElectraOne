@@ -40,6 +40,10 @@ ORDER = ORDER_SORTED
 MAX_CC7_PARAMETERS = -1
 MAX_CC14_PARAMETERS = -1
 
+# The MIXER uses MIDI channel MIDI_MIXER_CHANNEL and MIDI_MIXER_CHANNEL+1
+# Must be smaller than MIDI_EFFECT_CHANNEL-1
+MIDI_MIXER_CHANNEL = 7
+
 # First MIDI channel used when creating effect/device presets on the fly;
 # range of MIDI channels used is
 # [MIDI_EFFECT_CHANNEL, .. , MIDI_EFFECT_CHANNEL + MAX_MIDI_CHANNELS-1]
@@ -48,4 +52,19 @@ MIDI_EFFECT_CHANNEL = 11
 # Limit the number of MIDI channels used in a preset constructed on the fly;
 # -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
 # all the way up to and including channel 16)
-MAX_MIDI_CHANNELS = 2
+MAX_MIDI_EFFECT_CHANNELS = 2
+
+# Amount to rewind or forward by
+FORW_REW_JUMP_BY_AMOUNT = 1
+
+# sanity check on configuration values 
+def check_configuration():
+    assert MIDI_EFFECT_CHANNEL in range(1,17), f'Onfiguration error: MIDI_EFFECT_CHANNEL set to { MIDI_EFFECT_CHANNEL}.'
+    assert MIDI_MIXER_CHANNEL in range(1,MIDI_EFFECT_CHANNEL-1) \
+        , f'Configuration error: MIDI_MIXER_CHANNEL set to { MIDI_MIXER_CHANNEL}.'
+    assert (MAX_MIDI_EFFECT_CHANNELS == -1) or \
+           (MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS) in range(1,17) \
+        , f'Configuration error: MIDI_MAX_EFFECT_CHANNELS set to { MIDI_MAX_EFFECT_CHANNELS}.' 
+    assert ORDER in [ORDER_ORIGINAL, ORDER_SORTED, ORDER_DEVICEDICT] \
+               , f'Configuration error: ORDER set to { ORDER }.'
+    

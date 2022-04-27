@@ -498,12 +498,9 @@ class ElectraOneDumper(io.StringIO):
         # by MAX_MIDI_EFFECT_CHANNELS
         cc_map = {}
         channel = MIDI_EFFECT_CHANNEL
-        assert MIDI_EFFECT_CHANNEL in range(1,17), f'Bad configuration of MIDI_EFFECT_CHANNEL set to { MIDI_EFFECT_CHANNEL}.'
         if MAX_MIDI_EFFECT_CHANNELS == -1:
             max_channel = 16
         else:
-            assert (MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNEL) in range(1,17)
-               , f'Bad configuration of MIDI_MAX_EFFECT_CHANNEL set to { MIDI_MAX_EFFECT_CHANNEL}.' 
             max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         cc_no = 0
         # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
@@ -540,7 +537,7 @@ class ElectraOneDumper(io.StringIO):
                 channel += 1
                 cc_no = 0
                 free = [ True for i in range(0,128)]                          # from now on all slots are free
-            if channel >  max_channel
+            if channel >  max_channel:
                 self.debug('Maximum of mappable MIDI channels reached.')
                 break 
             cc_map[p.original_name] = CCInfo((channel,False,cc_no))
@@ -581,7 +578,7 @@ class ElectraOneDumper(io.StringIO):
         super(ElectraOneDumper, self).__init__()
         # e1_instance used to have access to the log file for debugging.
         self._e1_instance = e1_instance
-        self.debug('ElectraOneDumper loaded.')
+        self.debug('Dumper loaded.')
         parameters = self.order_parameters(device_name,parameters)
         self._cc_map = self.construct_ccmap(parameters)
         self._preset_json = self.construct_json_preset(device_name,parameters,self._cc_map)
