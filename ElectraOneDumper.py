@@ -469,7 +469,7 @@ class ElectraOneDumper(io.StringIO):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
-        self.debug('Construct JSON')
+        self.debug(1,'Construct JSON')
         # create a random project id
         PROJECT_ID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to a mutable string for efficiency
@@ -491,7 +491,7 @@ class ElectraOneDumper(io.StringIO):
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
         """
-        self.debug('Construct CC map')
+        self.debug(1,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots. Whenever a MIDI channel is full, we move to the next (limited
@@ -518,7 +518,7 @@ class ElectraOneDumper(io.StringIO):
                 cc_no = 0
                 free = [ True for i in range(0,128)] 
             if channel >  max_channel:
-                self.debug('Maximum of mappable MIDI channels reached.')
+                self.debug(1,'Maximum of mappable MIDI channels reached.')
                 break # if e beak here, we also break at the same spot in the next loop
             assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
             cc_map[p.original_name] = CCInfo((channel,True,cc_no))
@@ -538,18 +538,18 @@ class ElectraOneDumper(io.StringIO):
                 cc_no = 0
                 free = [ True for i in range(0,128)]                          # from now on all slots are free
             if channel >  max_channel:
-                self.debug('Maximum of mappable MIDI channels reached.')
+                self.debug(1,'Maximum of mappable MIDI channels reached.')
                 break 
             cc_map[p.original_name] = CCInfo((channel,False,cc_no))
             cc_no +=1
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(f'CC map constructed: { cc_map }')
+            self.debug(4,f'CC map constructed: { cc_map }')
         return cc_map
 
     def order_parameters(self,device_name, parameters):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
-        self.debug('Order parameters')
+        self.debug(2,'Order parameters')
         if (ORDER == ORDER_ORIGINAL):
             return parameters
         else:
@@ -578,7 +578,7 @@ class ElectraOneDumper(io.StringIO):
         super(ElectraOneDumper, self).__init__()
         # e1_instance used to have access to the log file for debugging.
         self._e1_instance = e1_instance
-        self.debug('Dumper loaded.')
+        self.debug(0,'Dumper loaded.')
         parameters = self.order_parameters(device_name,parameters)
         self._cc_map = self.construct_ccmap(parameters)
         self._preset_json = self.construct_json_preset(device_name,parameters,self._cc_map)

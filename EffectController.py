@@ -49,13 +49,13 @@ class EffectController(ControlSurface):
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
-        self.log_message('EffectController loaded.')
+        self.debug(0,'EffectController loaded.')
         
         
-    def debug(self,m):
+    def debug(self,level,m):
         """Write a debug message to the log, if debugging is enabled
         """
-        if DEBUG:
+        if level < DEBUG:
             self.log_message(f'E1: {m}')
 
     # === presets ===
@@ -73,12 +73,12 @@ class EffectController(ControlSurface):
     def upload_preset(self,preset):
         """Upload an Electra One preset (given as a JSON string)
         """
-        self.debug('Uploading preset.')
+        self.debug(1,'Uploading preset.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(f'Preset = { preset }')
+            self.debug(4,f'Preset = { preset }')
         self.__c_instance.send_midi(sysex_header + sysex_preset + sysex_close)
         
     def get_preset(self,device):
@@ -86,13 +86,13 @@ class EffectController(ControlSurface):
            predefined or else construct it on the fly.
         """
         device_name = get_device_name(device)
-        self.debug(f'Getting preset for { device_name }.')
+        self.debug(1,f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
-            self.debug('Predefined preset found')
+            self.debug(1,'Predefined preset found')
             return preset_info
         else:
-            self.debug('Constructing preset on the fly...')
+            self.debug(1,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
 
@@ -106,7 +106,7 @@ class EffectController(ControlSurface):
         assert cc_no in range(128), f'CC no { cc_no } out of range'
         assert value in range(128), f'CC value { value } out of range'
         message = (cc_statusbyte, cc_no, value )
-        self.debug(f'MIDI message {message}.')
+        self.debug(4,f'MIDI message {message}.')
         self.__c_instance.send_midi(message)
         
     def send_midi_cc14(self,ccinfo,value):
@@ -122,15 +122,15 @@ class EffectController(ControlSurface):
         # one for the MSB and another for the LSB; the second uses cc_no+32
         message1 = (cc_statusbyte, cc_no, msb)
         message2 = (cc_statusbyte, 0x20 + cc_no, lsb)
-        self.debug(f'MIDI message {message1}.')
+        self.debug(4,f'MIDI message {message1}.')
         self.__c_instance.send_midi(message1)
-        self.debug(f'MIDI message {message2}.')
+        self.debug(4,f'MIDI message {message2}.')
         self.__c_instance.send_midi(message2)
 
     def send_value_as_cc(self,p,ccinfo):
         """Send the value of a parameter as a MIDI CC message
         """
-        self.debug(f'Sending value {ccinfo} for {p.original_name}.')
+        self.debug(3,f'Sending value {ccinfo} for {p.original_name}.')
         if ccinfo.is_cc14():
             value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
             self.send_midi_cc14(ccinfo,value)
@@ -148,7 +148,7 @@ class EffectController(ControlSurface):
         """Update the displayed values of the parameters in the
            (just uploaded) preset
         """
-        self.debug('Updating values.')
+        self.debug(1,'Updating values.')
         if self._assigned_device != None:
             parameters = self._assigned_device.parameters
             for p in parameters:
@@ -159,7 +159,7 @@ class EffectController(ControlSurface):
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
-        self.debug('Building effect MIDI map.')
+        self.debug(1,'Building effect MIDI map.')
         if self._assigned_device != None:
             parameters = self._assigned_device.parameters
             # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
@@ -174,7 +174,7 @@ class EffectController(ControlSurface):
                     cc_no = ccinfo.get_cc_no()
                     midi_channel = ccinfo.get_midi_channel()
                     # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                    self.debug(f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                    self.debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                     Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
     # === Others ===
@@ -200,7 +200,7 @@ class EffectController(ControlSurface):
         device_name = get_device_name(device)
         fname = f'{ path }/{ device_name }.json'
         # dump the preset JSON string
-        self.debug(f'dumping device: { device_name } in { fname }.')
+        self.debug(1,f'dumping device: { device_name } in { fname }.')
         s = preset_info.get_preset()
         with open(fname,'w') as f:            
             f.write(s)
@@ -236,7 +236,7 @@ class EffectController(ControlSurface):
 
     def _assign_device(self, device):
         device_name = get_device_name(device)
-        self.debug(f'Assigning device { device_name }')
+        self.debug(1,f'Assigning device { device_name }')
         if device != self._assigned_device:
             self._assigned_device = device
             if device != None:

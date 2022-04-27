@@ -10,8 +10,9 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# Whether debugging information should be written to the log
-DEBUG = True
+# How much debugging information should be logged; higher values
+# imply more information. 0 means no logging at all.
+DEBUG = 3
 
 # Whether creates patch info should be dumped
 DUMP = True

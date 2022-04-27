@@ -10,7 +10,7 @@
 from .ElectraOne import ElectraOne
 
 def create_instance(c_instance):
-    u""" Creates and returns the ElectraOne script """
+    """ Creates and returns the ElectraOne script """
     return ElectraOne(c_instance)
 
 # FIXME: copied from RemoteSL; not sure what this is needed for

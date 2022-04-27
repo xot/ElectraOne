@@ -92,3 +92,4 @@ class ElectraOne(ControlSurface):
         """Called right before we get disconnected from Live
         """
         self._effect_controller.disconnect()
+        self._mixer_controller.disconnect()
