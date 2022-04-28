@@ -44,7 +44,7 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 
-# MIDI Port to use
+# Electra One MIDI Port to use
 MIDI_PORT = 1
 
 # dummy CC parameter value to indicate an unmapped CC
@@ -61,7 +61,7 @@ SLOTS_PER_ROW = 6
 # Default color
 COLOR = 'FFFFFF'
 
-# Bounds constants: the width and height of  a control on the ElectraOne display
+# Bounds constants: the width and height of a control on the ElectraOne display
 WIDTH = 146
 HEIGHT = 56
 XCOORDS = [0,170,340,510,680,850]
@@ -76,34 +76,41 @@ MAX_OVERLAY_ID = 51
 MAX_CONTROLSET_ID = CONTROLSETS_PER_PAGE
 MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
-# --- CCinfo ---
+# --- CCInfo ---
 
 # return the device id to use in the preset for the specified MIDI channel
+# (deviceId 1 contains the first (lowest) MIDI channel)
 def device_idx_for_midi_channel(midi_channel):
     return 1 + midi_channel - MIDI_EFFECT_CHANNEL
 
+IS_CC7 = 0
+IS_CC14 = 1
 
 class CCInfo:
     """
     """
 
     def __init__(self, v):
+        """Initialise with a tuple (MIDI_channel, is_cc14?, CC_parameter_no).
+           Where is_cc14? is IS_CC7 when the parameter is 7bit, IS_CC14 if 14bit.
+        """
         assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
         (self._midi_channel,self._is_cc14, self._cc_no) = v
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
+        assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'
         assert self._cc_no in range(-1,128), f'MIDI channel {self._cc_no} out of range.'
         
     def __repr__(self):
-        if self._is_cc14:
-            return f'({self._midi_channel},1,{self._cc_no})'
+        if self.is_cc14():
+            return f'({self._midi_channel},{IS_CC14},{self._cc_no})'
         else:
-            return f'({self._midi_channel},0,{self._cc_no})'
+            return f'({self._midi_channel},{IS_CC7},{self._cc_no})'
         
     def is_mapped(self):
         return self._cc_no != UNMAPPED_CC
     
     def is_cc14(self):
-        return self._is_cc14
+        return (self._is_cc14 == IS_CC14)
 
     def get_cc_no(self):
         return self._cc_no
@@ -125,7 +132,7 @@ class CCInfo:
 # TODO: properly deal with None values: in this 'dumper' module, None values
 # are written with cc_no '0' to the json preset and as None into the ccmap
 
-UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,False,UNMAPPED_CC))
+UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
 
 class PresetInfo ():
     # - The preset is a JSON string in Electra One format.
@@ -275,6 +282,7 @@ class ElectraOneDumper(io.StringIO):
         """Append the necessary number of pages (and their names)
         """
         # WARNING: this code assumes all parameters are included in the preset
+        # (Also wrong once we start auto-detecting ADSRs)
         self.append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
         flag = False
@@ -521,7 +529,7 @@ class ElectraOneDumper(io.StringIO):
                 self.debug(1,'Maximum of mappable MIDI channels reached.')
                 break # if e beak here, we also break at the same spot in the next loop
             assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
-            cc_map[p.original_name] = CCInfo((channel,True,cc_no))
+            cc_map[p.original_name] = CCInfo((channel,IS_CC14,cc_no))
             free[cc_no+32] = False                
             cc_no += 1
         # now fill the remaining slots with other parameters (that are 7bit)
@@ -540,7 +548,7 @@ class ElectraOneDumper(io.StringIO):
             if channel >  max_channel:
                 self.debug(1,'Maximum of mappable MIDI channels reached.')
                 break 
-            cc_map[p.original_name] = CCInfo((channel,False,cc_no))
+            cc_map[p.original_name] = CCInfo((channel,IS_CC7,cc_no))
             cc_no +=1
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(4,f'CC map constructed: { cc_map }')

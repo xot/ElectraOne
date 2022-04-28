@@ -12,7 +12,7 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 6
+DEBUG = 2
 
 # Whether creates patch info should be dumped
 DUMP = True
