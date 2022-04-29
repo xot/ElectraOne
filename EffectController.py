@@ -244,7 +244,7 @@ class EffectController(ControlSurface):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                self.upload_preset(preset)
+                # TODO: UNCOMMENT self.upload_preset(preset)
                 # set a delay depending on the length (~complexity) of the preset
                 self._value_update_timer = int(len(preset)/200)
                 self.__c_instance.request_rebuild_midi_map()                

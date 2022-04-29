@@ -12,7 +12,7 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 2
+DEBUG = 6
 
 # Whether creates patch info should be dumped
 DUMP = True
@@ -57,6 +57,9 @@ MAX_MIDI_EFFECT_CHANNELS = 2
 
 # Amount to rewind or forward by
 FORW_REW_JUMP_BY_AMOUNT = 1
+
+# Number of mappable tracks on the E1
+NO_OF_TRACKS = 5
 
 # sanity check on configuration values 
 def check_configuration():
