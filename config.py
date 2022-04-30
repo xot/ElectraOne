@@ -41,10 +41,15 @@ ORDER = ORDER_SORTED
 MAX_CC7_PARAMETERS = -1
 MAX_CC14_PARAMETERS = -1
 
-# The MIXER uses two MIDI channels MIDI_MASTER_CHANNEL and MIDI_TRACKS_CHANNEL
+# The MIXER uses three MIDI channels: MIDI_MASTER_CHANNEL, MIDI_TRACKS_CHANNEL
+# and MIDI_SENDS_CHANNEL.
 # Must be smaller than MIDI_EFFECT_CHANNEL
 MIDI_MASTER_CHANNEL = 7
 MIDI_TRACKS_CHANNEL = 8
+MIDI_SENDS_CHANNEL = 9
+
+# Max nr of SENDS
+MAX_NO_OF_SENDS = 6
 
 # First MIDI channel used when creating effect/device presets on the fly;
 # range of MIDI channels used is
@@ -69,6 +74,8 @@ def check_configuration():
         , f'Configuration error: MIDI_MASTER_CHANNEL set to { MIDI_MASTER_CHANNEL}.'
     assert MIDI_TRACKS_CHANNEL < MIDI_EFFECT_CHANNEL \
         , f'Configuration error: MIDI_TRACKS_CHANNEL set to { MIDI_TRACKS_CHANNEL}.'
+    assert MIDI_SENDS_CHANNEL < MIDI_EFFECT_CHANNEL \
+        , f'Configuration error: MIDI_SENDS_CHANNEL set to { MIDI_SENDS_CHANNEL}.'
     assert (MAX_MIDI_EFFECT_CHANNELS == -1) or \
            (MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS) in range(1,17) \
         , f'Configuration error: MIDI_MAX_EFFECT_CHANNELS set to { MIDI_MAX_EFFECT_CHANNELS}.' 

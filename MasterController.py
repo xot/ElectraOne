@@ -50,8 +50,9 @@ from .ElectraOneBase import ElectraOneBase
 MASTER_PAN_CC = 0
 MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2
+MASTER_SOLO_CC = 9
 
-# TODO: map master SOLO button
+# TODO: map master SOLO button; map EQ
 
 class MasterController(ElectraOneBase):
     """Manage the master track.

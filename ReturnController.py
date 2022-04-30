@@ -18,12 +18,11 @@ from .config import *
 from .ElectraOneBase import ElectraOneBase
 
 # CCs (see MixerController.py)
-# These are base values, to which RETURNS_FACTOR is added for each next return track
-RETURNS_PAN_CC = 8
-RETURNS_VOLUME_CC = 9
-RETURNS_MUTE_CC = 10
+# These are base values, to which the returun index is added for each next return track
+RETURNS_PAN_CC = 64 # TODO CHANGED
+RETURNS_VOLUME_CC = 70
+RETURNS_MUTE_CC = 76 
 #
-RETURNS_FACTOR = 3
 
 class ReturnController(ElectraOneBase):
     """Manage a return track.
@@ -44,6 +43,10 @@ class ReturnController(ElectraOneBase):
     def _track(self):
         # retrun a reference to the track managed
         return self.song().return_tracks[self._idx]
+
+    def _my_cc(self,base_cc):
+        # derive the actual cc_no from the assigned base CC and my index
+        return base_cc + self._idx
 
     def update_display(self):
         # handle events asynchronously
@@ -86,10 +89,6 @@ class ReturnController(ElectraOneBase):
         self.send_parameter_as_cc14(retrn.mixer_device.volume, MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_VOLUME_CC))
 
     # --- Handlers ---
-    
-    def _my_cc(self,base_cc):
-        # derive the actual cc_no from the assigned base CC and my index
-        return base_cc + RETURNS_FACTOR * self._idx
     
     def _init_cc_handlers(self):
         # define handlers for incpming midi events

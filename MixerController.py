@@ -37,8 +37,16 @@
 # - 111 + x Rumble (On/Off)
 # - 64 + x (96 + x) Output
 #
-# - 69 + x (101 + x) Send A
-# - 74 + x (106 + x) Send B
+#
+# The sends for rack x+1 (for x in [0..4]) all assigned to MIDI_SENDS_CHANNEL
+#
+# - 0 + x (32 + x) Send A
+# - 5 + x (37 + x) Send B
+# - 10 + x (42 + x) Send C
+# - 15 + x (47 + x) Send D
+# - 20 + x (52 + x) Send E
+# - 25 + x (57 + x) Send F
+
 #
 # Transport all assigned to MIDI_MASTER_CHANNEL
 #
@@ -49,34 +57,30 @@
 # - 17 rewind (trigger)
 # - 49 forward (Trigger)
 
-PREV_TRACKS_CC = 15
-NEXT_TRACKS_CC = 47
+PREV_TRACKS_CC = 30
+NEXT_TRACKS_CC = 31
 
 # Master all assigned to MIDI_MASTER_CHANNEL
 #
 # - 0 (32) Pan
 # - 1 (33) Volume
 # - 2 (34) Cue volume
-# - 14 Solo (On/Off)
+# - 9 Solo (On/Off)
 #
 # - 3 (35) High
 # - 4 (36) Mid Freq
 # - 5 (37) Mid
 # - 6 (38) Low
-# - 36 Rumble (On/Off)
 # - 7 (39) Output
+# - 8 Rumble (On/Off)
 #
-# - 8 (40) SEND A Pan
-# - 9 (41) SEND A Volume
-# - 10 SEND A Active (On/Off)
+# - 64-79 (96-101) SEND A-E Pan
+# - 70-75 (102-107) SEND A-E Volume
+# - 76-81 (108-113) SEND A_E Mute
 #
-# - 11 (43) SEND B Pan
-# - 12 (44) SEND B Volume
-# - 13 SEND B Active (On/Off)
 
 # TODO
-# - monitor track insertions, deletions
-# ? monitor selected track changes
+# ? should we deal with selected track changes
 
 
 # Ableton Live imports
@@ -91,11 +95,8 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
-
-
 # TODO: somehow, when loading a new song, the display is automatically updated
 # check what happens to understand why!!
-
 
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
@@ -108,7 +109,7 @@ class MixerController(ElectraOneBase):
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
         # allocate return track controllers (at most two, but take existence into account)
-        returns = min(2,len(self.song().return_tracks))
+        returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(c_instance,i) for i in range(returns)]
         # TODO: upload mixer preset to E1 to Ableton bank (if not already present)
         # index of the first mapped track in the list of visible tracks
@@ -181,6 +182,10 @@ class MixerController(ElectraOneBase):
         self._first_track_index = self._validate_track_index(self._first_track_index)
         self._handle_selection_change()
         # TODO: deal with return track changes
+        for rtrn in self._return_controllers:
+            rtrn.disconnect()
+        returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
+        self._return_controllers = [ReturnController(c_instance,i) for i in range(returns)]
 
     # --- initialise values ---
     
