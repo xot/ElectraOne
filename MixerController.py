@@ -57,8 +57,8 @@
 # - 17 rewind (trigger)
 # - 49 forward (Trigger)
 
-PREV_TRACKS_CC = 30
-NEXT_TRACKS_CC = 31
+PREV_TRACKS_CC = 68
+NEXT_TRACKS_CC = 69
 
 # Master all assigned to MIDI_MASTER_CHANNEL
 #

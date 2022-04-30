@@ -150,7 +150,7 @@ class EffectController(ControlSurface):
     def send_value_as_cc(self,p,ccinfo):
         """Send the value of a parameter as a MIDI CC message
         """
-        self.debug(3,f'Sending value {ccinfo} for {p.original_name}.')
+        self.debug(3,f'Sending value for {p.original_name} over {ccinfo}.')
         if ccinfo.is_cc14():
             value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
             self.send_midi_cc14(ccinfo,value)

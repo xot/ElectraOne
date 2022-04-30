@@ -26,13 +26,6 @@ MUTE_CC = 116
 SOLO_CUE_CC = 84
 ARM_CC = 89
 #
-# ChannelEq (on MIDI_TRACKS_CHANNEL)
-EQ_HI_CC = 10
-EQ_MID_F_CC = 15
-EQ_MID_CC = 20
-EQ_LOW_CC = 25
-EQ_OUT_CC = 64
-EQ_RUMBLE_CC = 121
 
 # Sends (on MIDI_SENDS_CHANNEL)
 SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie with increments of NO_OF_TRACKS=5
@@ -40,6 +33,25 @@ SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie wit
 # TODO: Handle tracks that cannot be armed
 # TODO: Handle track names
 # TODO: hide/gray out unmapped sends
+
+# Change this to managa a different EQ like device on every track
+# TODO: move this to devices
+#
+# Specify the device.class_name here
+TRACK_EQ_DEVICE_NAME = 'ChannelEq'
+#
+# Specify the CC-map here (like in Devices.py)
+# The only rule is that the actual cc_no for a parameter is obtained
+# by adding the offset to the base defined here
+TRACK_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
+              'Highpass On': (MIDI_TRACKS_CHANNEL, 0, 121)
+            , 'Low Gain': (MIDI_TRACKS_CHANNEL, 1, 25)
+            , 'Mid Gain': (MIDI_TRACKS_CHANNEL, 1, 20)
+            , 'Mid Freq': (MIDI_TRACKS_CHANNEL, 1, 15)
+            , 'High Gain': (MIDI_TRACKS_CHANNEL, 1, 10)
+            , 'Gain': (MIDI_TRACKS_CHANNEL, 0, 64)
+            }
+
 
 class TrackController(ElectraOneBase):
     """Manage an audio or midi track.
@@ -73,20 +85,17 @@ class TrackController(ElectraOneBase):
         # None if not
         devices = self._track().devices
         for d in devices:
-            if d.class_name == 'ChannelEq':
-                self.debug(4,'ChannelEq device founbd')
+            if d.class_name == TRACK_EQ_DEVICE_NAME:
+                self.debug(4,'ChannelEq (or similar) device found')
                 return d
         return None
 
     def _my_channel_eq_preset_info(self):
-        cc_map = { 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
-                 , 'Highpass On': (MIDI_TRACKS_CHANNEL,0,self._my_cc(EQ_RUMBLE_CC))
-                 , 'Low Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_LOW_CC))
-                 , 'Mid Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_MID_CC))
-                 , 'Mid Freq': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_MID_F_CC))
-                 , 'High Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_HI_CC))
-                 , 'Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_OUT_CC))
-                 }
+        # add the offset to the cc_no present in TRACK_EQ_CC_MAP
+        cc_map = {}
+        for p in TRACK_EQ_CC_MAP:
+            (channel, is_cc14, cc_no) = TRACK_EQ_CC_MAP[p]
+            cc_map[p] = (channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('',cc_map)
 
     def update_display(self):

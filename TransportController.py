@@ -17,10 +17,10 @@ from .config import *
 from .ElectraOneBase import ElectraOneBase
 
 # CCs (see MixerController.py)
-PLAY_STOP_CC = 60
-RECORD_CC = 61
-REWIND_CC = 62
-FORWARD_CC = 63
+PLAY_STOP_CC = 64
+RECORD_CC = 65
+REWIND_CC = 66
+FORWARD_CC = 67
 
 
 class TransportController(ElectraOneBase):

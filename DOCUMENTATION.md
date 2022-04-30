@@ -28,6 +28,8 @@ Not all controls need to be in the preset -> simplify
 
 Sliders are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values.
 
+Only the first 32 CC parameters can be assigned to be 14bit controllers (even though there would be space for more starting at slot 64, but unfortunately neither Ableton nor the E1 fully support that).
+
 ### Master, return tracks and the transport.
 
 The master track, return tracks and the transport are controlled through MIDI channel ```MIDI_MASTER_CHANNEL``` with the following CC parameter assignments. 
@@ -36,34 +38,33 @@ The master track, return tracks and the transport are controlled through MIDI ch
 |----:|:-----------|:-----------|:-----------|:-----------|
 |   0 | Pan        | Volume     | Cue Volume | EQ High    |
 |   4 | EQ Mid F   | EQ Mid     | EQ Low     | EQ Out     |
-|   8 | EQ Rumble  | Solo       | -          | -          |
-|  12 | -          | -          | -          | -          | 
-|  16 | -          | -          | -          | -          | 
-|  20 | -          | -          | -          | -          | 
+|   8 | EQ Rumble  | Solo       | RTRN Pan A | RTRN Pan B |
+|  12 | RTRN Pan C | RTRN Pan D | RTRN Pan E | RTRN Pan F |
+|  16 | RTRN Vol A | RTRN Vol B | RTRN Vol C | RTRN Vol D |
+|  20 | RTRN Vol E | RTRN Vol E | -          | -          |
 |  24 | -          | -          | -          | -          | 
-|  28 | -          | -          | Prev Trcks | Next Trcks | 
+|  28 | -          | -          | -          | -          |
 |  32 | X          | X          | X          | X          | 
 |  36 | X          | X          | X          | X          | 
-|  40 | -          | -          | -          | -          | 
-|  44 | -          | -          | -          | -          | 
-|  48 | -          | -          | -          | -          | 
-|  52 | -          | -          | -          | -          | 
+|  40 | X          | -          | X          | X          | 
+|  44 | X          | X          | X          | X          | 
+|  48 | X          | X          | X          | X          | 
+|  52 | X          | X          | -          | -          |
 |  56 | -          | -          | -          | -          | 
-|  60 | Play/Stop  | Record     | Rewind     | Forward    | 
-|  64 | RTRN Pan A | RTRN Pan B | RTRN Pan C | RTRN Pan D |
-|  68 | RTRN Pan E | RTRN Pan F | 
-|  70 | RTRN Vol A | RTRN Vol B | RTRN Vol C | RTRN Vol D |
-|  74 | RTRN Vol E | RTRN Vol E | 
-|  76 | RTRN Mut A | RTRN Mut B | RTRN Mut C | RTRN Mut D |
-|  80 | RTRN Mut E | RTRN Mut F | -          | -          |
+|  60 | -          | -          | -          | -          | 
+|  64 | Play/Stop  | Record     | Rewind     | Forward    | 
+|  68 | Prev Trcks | Next Trcks | RTRN Mut A | RTRN Mut B |
+|  72 | RTRN Mut C | RTRN Mut D | RTRN Mut E | RTRN Mut F |
+|  76 | -          | -          | -          | -          | 
+|  80 | -          | -          | -          | -          | 
 |  84 | -          | -          | -          | -          | 
 |  88 | -          | -          | -          | -          | 
 |  92 | -          | -          | -          | -          | 
-|  96 | X          | X          | X          | X          | 
-| 100 | X          | X          | X          | X          | 
-| 104 | X          | X          | X          | X          | 
-| 108 | X          | X          | X          | X          | 
-| 112 | X          | X          | -          | -          | 
+|  96 | -          | -          | -          | -          | 
+| 100 | -          | -          | -          | -          | 
+| 104 | -          | -          | -          | -          | 
+| 108 | -          | -          | -          | -          | 
+| 112 | -          | -          | -          | -          | 
 | 116 | -          | -          | -          | -          | 
 | 120 | -          | -          | -          | -          | 
 | 124 | -          | -          | -          | -          | 
@@ -111,6 +112,7 @@ Tracks are controlled through two MIDI channels. The first MIDI channel, ```MIDI
 | 126 | -
 | 127 | -
 
+Note that EQ Out i is mapped as a 7bit controller due to space constraints.
 
 Legend:
 - The number after a parameter name is the track  offset (relative to the first track being controlled).

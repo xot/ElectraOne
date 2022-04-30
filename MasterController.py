@@ -45,6 +45,8 @@ import Live
 # Local imports
 from .config import *
 from .ElectraOneBase import ElectraOneBase
+from .ElectraOneDumper import PresetInfo
+from .EffectController import build_midi_map_for_device
 
 # CCs (see MixerController.py)
 MASTER_PAN_CC = 0
@@ -52,7 +54,24 @@ MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
 
-# TODO: map master SOLO button; map EQ
+# TODO: map master SOLO button;
+# TODO: map EQ
+
+# Change this to managa a different EQ like device on the master track
+# TODO: move this to devices
+#
+# Specify the device.class_name here
+MASTER_EQ_DEVICE_NAME = 'ChannelEq'
+#
+# Specify the CC-map here (like in Devices.py)
+MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
+              'Highpass On': (MIDI_MASTER_CHANNEL, 0, 8)
+            , 'Low Gain': (MIDI_MASTER_CHANNEL, 1, 6)
+            , 'Mid Gain': (MIDI_MASTER_CHANNEL, 1, 5)
+            , 'Mid Freq': (MIDI_MASTER_CHANNEL, 1, 4)
+            , 'High Gain': (MIDI_MASTER_CHANNEL, 1, 3)
+            , 'Gain': (MIDI_MASTER_CHANNEL, 1, 7)
+            }
 
 class MasterController(ElectraOneBase):
     """Manage the master track.
@@ -67,6 +86,20 @@ class MasterController(ElectraOneBase):
 
     # --- helper functions ---
     
+    def _my_channel_eq(self):
+        # Return a reference to the Channel EQ device on my track, if present.
+        # None if not
+        devices = self.song().master_track.devices
+        for d in devices:
+            if d.class_name == MASTER_EQ_DEVICE_NAME:
+                self.debug(4,'ChannelEq (or similar) device found')
+                return d
+        return None
+
+    def _my_channel_eq_preset_info(self):
+        # add the offset to the cc_no present in TRACK_EQ_CC_MAP
+        return PresetInfo('',MASTER_EQ_CC_MAP)
+
     def update_display(self):
         # handle events asynchronously
         if self._value_update_timer == 0:
@@ -96,6 +129,19 @@ class MasterController(ElectraOneBase):
         self.send_parameter_as_cc14(track.mixer_device.panning,MIDI_MASTER_CHANNEL, MASTER_PAN_CC)
         self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_MASTER_CHANNEL, MASTER_VOLUME_CC)
         self.send_parameter_as_cc14(track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL, MASTER_CUE_VOLUME_CC)
+        # send channel eq
+        # TODO: Once EffectController is refactored, use code that is already present there
+        channel_eq = self._my_channel_eq()
+        if channel_eq:
+            parameters = channel_eq.parameters
+            for p in parameters:
+                preset_info = self._my_channel_eq_preset_info()
+                ccinfo = preset_info.get_ccinfo_for_parameter(p.original_name)
+                if ccinfo.is_mapped():
+                    if ccinfo.is_cc14():
+                        self.send_parameter_as_cc14(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
+                    else:
+                        self.send_parameter_as_cc7(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
                                   
     # --- Handlers ---
     
@@ -120,4 +166,6 @@ class MasterController(ElectraOneBase):
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_MASTER_CHANNEL-1, MASTER_PAN_CC, map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_MASTER_CHANNEL-1, MASTER_VOLUME_CC, map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL-1, MASTER_CUE_VOLUME_CC, map_mode, not needs_takeover)
+        # build ChannelEq 
+        build_midi_map_for_device(midi_map_handle, self._my_channel_eq(), self._my_channel_eq_preset_info(), self.debug)
     
