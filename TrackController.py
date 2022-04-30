@@ -30,6 +30,7 @@ SENDS_CC = 69  # code below assumes all sends are mapped after each other, ie wi
 
 # TODO: Map equaliser controls
 # TODO: Handle tracks that cannot be armed
+# TODO: Handle track names
 
 class TrackController(ElectraOneBase):
     """Manage an audio or midi track.
@@ -91,7 +92,7 @@ class TrackController(ElectraOneBase):
             value = 0
         else:
             value = 127
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL+1, self._my_cc(MUTE_CC), value)
+        self.send_midi_cc7(MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC), value)
 
     def _on_arm_changed(self):
         track = self._track()
@@ -99,7 +100,7 @@ class TrackController(ElectraOneBase):
             value = 127
         else:
             value = 0
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL+1, self._my_cc(ARM_CC), value)
+        self.send_midi_cc7(MIDI_TRACKS_CHANNEL, self._my_cc(ARM_CC), value)
     
     def _on_solo_cue_changed(self):
         # TODO not entirely clear whether this is what we want
@@ -108,7 +109,7 @@ class TrackController(ElectraOneBase):
             value = 127
         else:
             value = 0
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL+1, self._my_cc(SOLO_CUE_CC), value)
+        self.send_midi_cc7(MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC), value)
 
 
     # --- initialise values ---
@@ -119,13 +120,13 @@ class TrackController(ElectraOneBase):
         self._on_arm_changed()         
         self._on_solo_cue_changed()
         track = self._track()
-        self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_MIXER_CHANNEL+1, self._my_cc(PAN_CC))
-        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_MIXER_CHANNEL+1, self._my_cc(VOLUME_CC))
+        self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
+        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
         # TODO: remove assumption/restriction of 2 sends
         sends = track.mixer_device.sends[:2]
         cc_no = self._my_cc(SENDS_CC)
         for send in sends:
-            self.send_parameter_as_cc14(send,MIDI_MIXER_CHANNEL+1,cc_no)
+            self.send_parameter_as_cc14(send,MIDI_TRACKS_CHANNEL,cc_no)
             cc_no += NO_OF_TRACKS
                 
     # --- Handlers ---
@@ -133,9 +134,9 @@ class TrackController(ElectraOneBase):
     def _init_cc_handlers(self):
         # define handlers for incpming midi events
         self._CC_HANDLERS = {
-                (MIDI_MIXER_CHANNEL+1, self._my_cc(MUTE_CC) ) : self._handle_mute_button
-              , (MIDI_MIXER_CHANNEL+1, self._my_cc(SOLO_CUE_CC) ) : self._handle_solo_cue_button
-              , (MIDI_MIXER_CHANNEL+1, self._my_cc(ARM_CC) ) : self._handle_arm_button            
+                (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) ) : self._handle_mute_button
+              , (MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC) ) : self._handle_solo_cue_button
+              , (MIDI_TRACKS_CHANNEL, self._my_cc(ARM_CC) ) : self._handle_arm_button            
         }
 
     def _handle_mute_button(self,value):
@@ -173,15 +174,15 @@ class TrackController(ElectraOneBase):
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
         track = self._track()
-        self.debug(3,f'Mapping track { self._idx } pan to CC { self._my_cc(PAN_CC) } on MIDI channel { MIDI_MIXER_CHANNEL+1 }')
-        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_MIXER_CHANNEL+1-1, self._my_cc(PAN_CC), map_mode, not needs_takeover)
-        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_MIXER_CHANNEL+1-1, self._my_cc(VOLUME_CC), map_mode, not needs_takeover)
+        self.debug(3,f'Mapping track { self._idx } pan to CC { self._my_cc(PAN_CC) } on MIDI channel { MIDI_TRACKS_CHANNEL }')
+        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_TRACKS_CHANNEL-1, self._my_cc(PAN_CC), map_mode, not needs_takeover)
+        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_TRACKS_CHANNEL-1, self._my_cc(VOLUME_CC), map_mode, not needs_takeover)
         # TODO: remove assumption/restriction of 2 sends
         sends = track.mixer_device.sends[:2]
         cc_no = self._my_cc(SENDS_CC)
         for send in sends:
-            self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_MIXER_CHANNEL+1 }')
-            Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_MIXER_CHANNEL+1-1, cc_no, map_mode, not needs_takeover)
+            self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_TRACKS_CHANNEL }')
+            Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_TRACKS_CHANNEL-1, cc_no, map_mode, not needs_takeover)
             cc_no += NO_OF_TRACKS
     
 

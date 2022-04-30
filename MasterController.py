@@ -92,9 +92,9 @@ class MasterController(ElectraOneBase):
     def _init_controller_values(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         track = self.song().master_track
-        self.send_parameter_as_cc14(track.mixer_device.panning,MIDI_MIXER_CHANNEL, MASTER_PAN_CC)
-        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_MIXER_CHANNEL, MASTER_VOLUME_CC)
-        self.send_parameter_as_cc14(track.mixer_device.cue_volume, MIDI_MIXER_CHANNEL, MASTER_CUE_VOLUME_CC)
+        self.send_parameter_as_cc14(track.mixer_device.panning,MIDI_MASTER_CHANNEL, MASTER_PAN_CC)
+        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_MASTER_CHANNEL, MASTER_VOLUME_CC)
+        self.send_parameter_as_cc14(track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL, MASTER_CUE_VOLUME_CC)
                                   
     # --- Handlers ---
     
@@ -114,9 +114,9 @@ class MasterController(ElectraOneBase):
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
-        self.debug(3,f'Mapping master pan to CC { MASTER_PAN_CC } on MIDI channel { MIDI_MIXER_CHANNEL }')
+        self.debug(3,f'Mapping master pan to CC { MASTER_PAN_CC } on MIDI channel { MIDI_MASTER_CHANNEL }')
         # Note: this function expects MIDI_CHANNEL -1
-        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_MIXER_CHANNEL-1, MASTER_PAN_CC, map_mode, not needs_takeover)
-        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_MIXER_CHANNEL-1, MASTER_VOLUME_CC, map_mode, not needs_takeover)
-        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, MIDI_MIXER_CHANNEL-1, MASTER_CUE_VOLUME_CC, map_mode, not needs_takeover)
+        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_MASTER_CHANNEL-1, MASTER_PAN_CC, map_mode, not needs_takeover)
+        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_MASTER_CHANNEL-1, MASTER_VOLUME_CC, map_mode, not needs_takeover)
+        Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL-1, MASTER_CUE_VOLUME_CC, map_mode, not needs_takeover)
     

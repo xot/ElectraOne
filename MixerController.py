@@ -18,11 +18,11 @@
 # (through the GUI or the another remote controller) are synced automatically :-( 
 #
 # This assumes a mixer preset with controls assigned to channel
-# MIDI_MIXER_CHANNEL and MIDI_MIXER_CHANNEL+1 with the following assignment
+# MIDI_MASTER_CHANNEL and MIDI_TRACKS_CHANNEL with the following assignment
 # of CC parameters (where it is assumed each channel runs a Channel-EQ device).
 # All faders are CC14 MSB first mapped to the specified cc-no (and cc-no+32)
 #
-# Track x+1 (for x in [0..4]) all assigned to MIDI_MIXER_CHANNEL+1
+# Track x+1 (for x in [0..4]) all assigned to MIDI_TRACKS_CHANNEL
 #
 # - 0 + x (32 + x) Pan
 # - 5 + x (37 + x) Volume
@@ -40,7 +40,7 @@
 # - 69 + x (101 + x) Send A
 # - 74 + x (106 + x) Send B
 #
-# Transport all assigned to MIDI_MIXER_CHANNEL
+# Transport all assigned to MIDI_MASTER_CHANNEL
 #
 # - 15 prev tracks (Trigger)
 # - 47 next tracks (Trigger)
@@ -52,7 +52,7 @@
 PREV_TRACKS_CC = 15
 NEXT_TRACKS_CC = 47
 
-# Master all assigned to MIDI_MIXER_CHANNEL
+# Master all assigned to MIDI_MASTER_CHANNEL
 #
 # - 0 (32) Pan
 # - 1 (33) Volume
@@ -86,10 +86,10 @@ import Live
 # Local imports
 from .config import *
 from .ElectraOneBase import ElectraOneBase
-from .TransportController import *
-from .MasterController import *
-from .ReturnController import *
-from .TrackController import *
+from .TransportController import TransportController
+from .MasterController import MasterController
+from .ReturnController import ReturnController
+from .TrackController import TrackController
 
 
 
@@ -124,12 +124,16 @@ class MixerController(ElectraOneBase):
     # --- helper functions ---
 
     def _validate_track_index(self,idx):
+        # Adjust the newly selected track to never go too far left or right.
         idx = min(idx, len(self.song().visible_tracks) - NO_OF_TRACKS)
         idx = max(idx, 0)            
         self.show_message(f'Mixer managing tracks { idx+1 } - { idx + NO_OF_TRACKS }.')
         return idx
         
     def update_display(self):
+        """Update the dispay (called every 100ms).
+           Forwarded to the transport, master, return and track controllers.
+        """
         self._transport_controller.update_display()
         self._master_controller.update_display()
         for retrn in self._return_controllers:
@@ -139,6 +143,7 @@ class MixerController(ElectraOneBase):
         
     def disconnect(self):
         """Called right before we get disconnected from Live; cleanup
+           Forwarded to the transport, master, return and track controllers.
         """
         self._remove_global_listeners()
         self._transport_controller.disconnect()        
@@ -163,8 +168,6 @@ class MixerController(ElectraOneBase):
            (e.g. when adding or deleting tracks, or when shifting the focus
            left or right.
         """
-        # TODO: upload track info (eg track names
-        # TODO: upload values
         for tc in self._track_controllers:
             tc.disconnect()
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.song().visible_tracks))
@@ -184,14 +187,9 @@ class MixerController(ElectraOneBase):
     # --- Handlers ---
         
     def _init_handlers(self):
-        # Handle E1 controler buttons that need special treatment 
-        # Keys are tuples of MIDI channels (range [1-16]) and CC_NO's,
-        # their value is a handler h, called with the received value V
-        # when the MIDI event specified by the key happens.
-        # see build_midi_map and receive_midi
         self._CC_HANDLERS = {
-               (MIDI_MIXER_CHANNEL, PREV_TRACKS_CC) : self._do_prev_tracks
-            ,  (MIDI_MIXER_CHANNEL, NEXT_TRACKS_CC) : self._do_next_tracks
+               (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._do_prev_tracks
+            ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._do_next_tracks
             }
         
     def _do_prev_tracks(self,value):
@@ -213,6 +211,9 @@ class MixerController(ElectraOneBase):
     # --- MIDI mapping ---
         
     def receive_midi(self, midi_bytes):
+        """Receive incoming MIDI messages, and distribute them to the
+           transport, master, return and track controllers.
+        """
         self.debug(4,f'Receiving MIDI { midi_bytes }')
         # only handle 7bit CC events that are three bytes long
         if len(midi_bytes) != 3:

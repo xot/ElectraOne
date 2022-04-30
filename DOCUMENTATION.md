@@ -1,3 +1,20 @@
+---
+title: Technical Documentation Aleton Live Remote Script for the Electra One 
+author: Jaap-Henk Hoepman (info@xot.nl)
+date: 
+---
+
+# Introduction 
+
+This is the *technical* documentation describing the internals of the Aleton Live Remote Script for the Electra One.
+
+Two parts
+- a mixer
+- current device
+
+# The mixer
+
+
 
 
 # Basic architecture

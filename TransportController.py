@@ -76,7 +76,7 @@ class TransportController(ElectraOneBase):
             value = 127
         else:
             value = 0
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL, RECORD_CC, value)
+        self.send_midi_cc7(MIDI_MASTER_CHANNEL, RECORD_CC, value)
     
     def _on_is_playing_changed(self):
         self.debug(2,'Stop/play change.')
@@ -84,7 +84,7 @@ class TransportController(ElectraOneBase):
             value = 127
         else:
             value = 0
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL, PLAY_STOP_CC, value)
+        self.send_midi_cc7(MIDI_MASTER_CHANNEL, PLAY_STOP_CC, value)
 
     # --- initialise values ---
     
@@ -98,10 +98,10 @@ class TransportController(ElectraOneBase):
     def _init_cc_handlers(self):
         # define handlers for incpming midi events
         self._CC_HANDLERS = {
-               (MIDI_MIXER_CHANNEL, REWIND_CC) : self._do_rewind
-            ,  (MIDI_MIXER_CHANNEL, FORWARD_CC) : self._do_forward
-            ,  (MIDI_MIXER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
-            ,  (MIDI_MIXER_CHANNEL, RECORD_CC) : self._do_record
+               (MIDI_MASTER_CHANNEL, REWIND_CC) : self._do_rewind
+            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._do_forward
+            ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
+            ,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
             }
         pass
 

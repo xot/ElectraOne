@@ -74,7 +74,7 @@ class ReturnController(ElectraOneBase):
             value = 0
         else:
             value = 127
-        self.send_midi_cc7(MIDI_MIXER_CHANNEL, self._my_cc(RETURNS_MUTE_CC), value)
+        self.send_midi_cc7(MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_MUTE_CC), value)
 
     # --- initialise values ---
     
@@ -82,8 +82,8 @@ class ReturnController(ElectraOneBase):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         self._on_mute_changed()
         retrn = self._track()
-        self.send_parameter_as_cc14(retrn.mixer_device.panning, MIDI_MIXER_CHANNEL, self._my_cc(RETURNS_PAN_CC))
-        self.send_parameter_as_cc14(retrn.mixer_device.volume, MIDI_MIXER_CHANNEL, self._my_cc(RETURNS_VOLUME_CC))
+        self.send_parameter_as_cc14(retrn.mixer_device.panning, MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_PAN_CC))
+        self.send_parameter_as_cc14(retrn.mixer_device.volume, MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_VOLUME_CC))
 
     # --- Handlers ---
     
@@ -94,7 +94,7 @@ class ReturnController(ElectraOneBase):
     def _init_cc_handlers(self):
         # define handlers for incpming midi events
         self._CC_HANDLERS = {
-                (MIDI_MIXER_CHANNEL, self._my_cc(RETURNS_MUTE_CC) ) : self._handle_mute_button
+                (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_MUTE_CC) ) : self._handle_mute_button
             }
 
     def _handle_mute_button(self,value):
@@ -122,9 +122,9 @@ class ReturnController(ElectraOneBase):
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
         retrn = self._track()
-        self.debug(3,f'Mapping send { self._idx } pan to CC { self._my_cc(RETURNS_PAN_CC) } on MIDI channel { MIDI_MIXER_CHANNEL }')
-        Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.panning, MIDI_MIXER_CHANNEL-1, self._my_cc(RETURNS_PAN_CC), map_mode, not needs_takeover)
-        Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.volume, MIDI_MIXER_CHANNEL-1, self._my_cc(RETURNS_VOLUME_CC), map_mode, not needs_takeover)
+        self.debug(3,f'Mapping send { self._idx } pan to CC { self._my_cc(RETURNS_PAN_CC) } on MIDI channel { MIDI_MASTER_CHANNEL }')
+        Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.panning, MIDI_MASTER_CHANNEL-1, self._my_cc(RETURNS_PAN_CC), map_mode, not needs_takeover)
+        Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.volume, MIDI_MASTER_CHANNEL-1, self._my_cc(RETURNS_VOLUME_CC), map_mode, not needs_takeover)
     
 
    
