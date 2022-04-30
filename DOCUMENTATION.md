@@ -17,6 +17,13 @@ Two parts
 Layout arbitary; also internal value repr.
 Not all controls need to be in the preset -> simplify
 
+## Value mapping
+
+- Pan
+: mapped to 50L - C - 50L
+- Volume
+: Live considers 13926 to be 0dB. The minimum value is 0, corresponding to -\infty. The maximum equals 16383, corresponding to 6.0 db. So the function to map (MIDI) values to real values is 6* (value-13926) / 2458)
+
 ## MIDI MAP
 
 Sliders are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values.

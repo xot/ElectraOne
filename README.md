@@ -2,13 +2,17 @@
 
 Ableton Live MIDI Remote Script for the Electra One.
 
-## How it works
+## What it does
 
 This Ableton Live MIDI Remote script allows you to control the parameters of the currently selected device in Ableton Live using the [Electra One](https://electra.one). 
 
 It can also be used to dump Electra One presets for Ableton Live devices with sensible default control assignments.
 
-It looks for a preloaded preset in ```Devices.py``` and uses that if it exists. If not, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device.
+## How it works
+
+It looks for a preloaded preset for the selected device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
+
+If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device.
 
 When constructing presets:
 - on/off parameters are shown as toggles on the Electra One. 
@@ -16,9 +20,11 @@ When constructing presets:
 - non-quantised parameters are shown as faders on the Electra One. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.)
 - Integer valued, non-quantised, parameters are shown as integer-valued faders on the Electra One. Other faders simply show a value within the minimum - maximum CC value range.
 
+Note that large devices with many parameters may create a preset with more than one page.
+
 ## Preset dumps
 
-Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assingment over pages, colours, groups). The  updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
+Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assignment over pages, colours, groups). The  updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
 Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
@@ -28,8 +34,7 @@ Such a dump constructs a file ```<devicename>.json``` with the JSON preset (whic
 
 Note that the actual CC parameter used for a 14bit control is cc_np *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher. (This means the constructed map may appear to have holes in the 32-63 and 96-127 range.)
 
-The construction of presets is controlled by several constants defined in ```config.py`
-
+The construction of presets is controlled by several constants defined in ```config.py```
 
 Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```LOCALDIR``` below).
 
@@ -42,7 +47,7 @@ You can copy a dumped preset in ```./dumps``` to ```./preloaded``` (renaming the
 
 The remote script is actually completely oblivious about the actual preset it uploads to the Electra One: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
 
-Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. 
+Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
  
 ## Warning
@@ -60,7 +65,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
 ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne````.
 
-Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```Electr Controller (Electra Port 1)``` and the output port to ```Electr Controller (Electra CTRL)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```Electr Controller (Electra Port 1)``` and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
 
 [img]
 
@@ -73,20 +78,26 @@ See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error mes
 The behaviour of the remote script can be changed by editing ```config.py ```:
 
 - ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
-- ```DEBUG``` controls whether debugging information is written to the log file. Set to ```False``` to speed up the script.
+- ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```).
 
 The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
 
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They 'are' included in the CC map for reference, with a mapping of ```None```.)
-- ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters.
-- ```MAX_MIDI_CHANNELS``` limits the number of MIDI channels used in a preset constructed on the fly; -1 means all MIDI channels are used. If this means that there are more parameters then available CC numbers, those parameters are not assigned.
+- ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters. If ```-1``` all parameters are included (limited by the number of available MIDI channels and CC parameter slots): this is a good setting when dumping devices and/or when setting ```ORDER = ORDER_DEVICEDICT```
+- ```MIDI_EFFECT_CHANNEL``` is the first MIDI channel to use to assign device parameters controls to.
+- ```MAX_MIDI_EFFECT_CHANNELS``` limits the number of MIDI channels used in a preset constructed on the fly; -1 means all MIDI channels are used. If this means that there are more parameters then available CC numbers, those parameters are not assigned.
+
+The following constants deal with the mixer preset.
+- ```MIDI_MASTER_CHANNEL```,  ```MIDI_TRACKS_CHANNEL``` and ```MIDI_SENDS_CHANNEL``` set the distinct MIDI channels to map the master, track, and sends controls to. See the [technical documentation](./DOCUMENTATION.md) for details.
+- ```MAX_NO_OF_SENDS``` sets the maximum number of sends (and return tracks) present on the controller (currently 6).
+- ```NO_OF_TRACKS``` sets the number of tracks present on the controller (currently 5).
+- ```FORW_REW_JUMP_BY_AMOUNT```the number of beats to jump ahead or back when rewinding or moving forward.
 
 ## Current limitations
 
 - User-defined presets not defined yet. (You *can* add them to ```Devices.py```.)
 - Value handling is quite rudimentary at the moment. Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
-- The 'Blue Hand' is not showing. However, the currently selected device *is* mapped.
 - Uploading large patches is *slow*. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
 
 ## Dependencies
@@ -107,4 +118,4 @@ Should the Electra get bogged with presets or freeze, use this procedure for a '
 
 This procedure will remove all presets, Lua scripts, config files.
 
-See [##Dependencies] on how to update the firmware.
+See the [section on dependencies](##dependencies) on how to update the firmware.

@@ -20,18 +20,17 @@ from .ElectraOneBase import ElectraOneBase
 # These are base values, to which TRACKS_FACTOR is added for each next return track
 PAN_CC = 0
 VOLUME_CC = 5
-MUTE_CC = 116   # TODO: update preset: changed
+MUTE_CC = 116   
 SOLO_CUE_CC = 84
 ARM_CC = 89
 #
 
-
-# TODO: update preset: changed : also EQ RUmble: 121-125
 SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie with increments of NO_OF_TRACKS=5
 
 # TODO: Map equaliser controls
 # TODO: Handle tracks that cannot be armed
 # TODO: Handle track names
+# TODO: hide/gray out unmapped sends
 
 class TrackController(ElectraOneBase):
     """Manage an audio or midi track.
@@ -123,6 +122,7 @@ class TrackController(ElectraOneBase):
         track = self._track()
         self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
         self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
+        # note: if list is shorter, less sends included
         sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
         cc_no = self._my_cc(SENDS_CC)
         for send in sends:

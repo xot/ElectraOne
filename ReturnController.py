@@ -19,10 +19,11 @@ from .ElectraOneBase import ElectraOneBase
 
 # CCs (see MixerController.py)
 # These are base values, to which the returun index is added for each next return track
-RETURNS_PAN_CC = 64 # TODO CHANGED
+RETURNS_PAN_CC = 64 
 RETURNS_VOLUME_CC = 70
 RETURNS_MUTE_CC = 76 
 #
+# TODO: hide/gray out unmapped returns
 
 class ReturnController(ElectraOneBase):
     """Manage a return track.
