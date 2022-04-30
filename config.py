@@ -59,7 +59,7 @@ MIDI_EFFECT_CHANNEL = 11
 # Limit the number of MIDI channels used in a preset constructed on the fly;
 # -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
 # all the way up to and including channel 16)
-MAX_MIDI_EFFECT_CHANNELS = 2
+MAX_MIDI_EFFECT_CHANNELS = 3
 
 # Amount to rewind or forward by
 FORW_REW_JUMP_BY_AMOUNT = 1

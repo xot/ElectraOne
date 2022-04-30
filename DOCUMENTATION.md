@@ -46,7 +46,7 @@ The master track, return tracks and the transport are controlled through MIDI ch
 |  28 | -          | -          | -          | -          |
 |  32 | X          | X          | X          | X          | 
 |  36 | X          | X          | X          | X          | 
-|  40 | X          | -          | X          | X          | 
+|  40 | -          | -          | X          | X          | 
 |  44 | X          | X          | X          | X          | 
 |  48 | X          | X          | X          | X          | 
 |  52 | X          | X          | -          | -          |

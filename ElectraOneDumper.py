@@ -488,7 +488,7 @@ class ElectraOneDumper(io.StringIO):
         self.append( '}' )
         return self.getvalue()
 
-    def construct_ccmap(self,parameters):
+    def construct_ccmap_orig(self,parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
@@ -521,7 +521,7 @@ class ElectraOneDumper(io.StringIO):
                 free = [ True for i in range(0,128)] 
             if channel >  max_channel:
                 self.debug(1,'Maximum of mappable MIDI channels reached.')
-                break # if e beak here, we also break at the same spot in the next loop
+                break # if we break here, we also break at the same spot in the next loop
             assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
             cc_map[p.original_name] = CCInfo((channel,IS_CC14,cc_no))
             free[cc_no+32] = False                
@@ -548,6 +548,59 @@ class ElectraOneDumper(io.StringIO):
             self.debug(4,f'CC map constructed: { cc_map }')
         return cc_map
 
+    def construct_ccmap(self,parameters):
+        """Construct a cc_map for the list of parameters. Map no more parameters
+           then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
+           no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
+        """
+        self.debug(1,'Construct CC map')
+        # 14bit CC controls are mapped first; they consume two CC parameters
+        # (i AND i+32). 7 bit CC controls are mapped next filling any empty
+        # slots.
+        # For some reason, only the first 32 CC parameters can be mapped to
+        # 14bit CC controls. Therefore construct_ccmap_orig constructs a bad map
+        cc_map = {}
+        if MAX_MIDI_EFFECT_CHANNELS == -1:
+            max_channel = 16
+        else:
+            # config checks that this is always <= 16
+            max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
+        # get the list of parameters to be assigned to 14bit controllers
+        cc14pars = [p for p in parameters if wants_cc14(p)]
+        if MAX_CC14_PARAMETERS != -1:
+            cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
+        # TODO: consider also including skipped cc14 parameters
+        # get the list of parameters to be assigned to 7bit controllers        
+        cc7pars = [p for p in parameters if not wants_cc14(p)]
+        if MAX_CC7_PARAMETERS != -1:
+            cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
+        # add parameters per channel; break if all are assigned
+        for channel in range(MIDI_EFFECT_CHANNEL,max_channel+1):
+            # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
+            free = [ True for i in range(0,128)] 
+            # first assign cc14 parameters to the range 0..31
+            for (i,p) in enumerate(cc14pars[:32]):
+                cc_map[p.original_name] = CCInfo((channel,IS_CC14,i))
+                free[i] = False
+                free[i+32] = False
+            cc14pars = cc14pars[32:] # chop of the assigned parameters
+            # now assign cc7 parameters in any free slots
+            cc_no = 0
+            while (cc_no < 128) and (len(cc7pars) > 0):
+                while (not free[cc_no]) and (cc_no < 128):
+                    cc_no += 1
+                if cc_no < 128:
+                    p = cc7pars[0]
+                    cc_map[p.original_name] = CCInfo((channel,IS_CC7,cc_no))
+                    # TODO: this is inefficient
+                    cc7pars = cc7pars[1:]
+                    cc_no += 1
+        if (len(cc14pars) > 0) or (len(cc7pars) > 0):
+            self.debug(1,'Not all parameters could be mapped.')
+        if not DUMP: # no need to write this to the log if the same thing is dumped
+            self.debug(4,f'CC map constructed: { cc_map }')
+        return cc_map
+        
     def order_parameters(self,device_name, parameters):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
