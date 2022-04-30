@@ -18,6 +18,12 @@ def get_cc_statusbyte(channel):
     CC_STATUS = 176
     return CC_STATUS + channel - 1
 
+# quantized parameters have a list of values. For such a list with
+# n items, item i (staring at 0) has MIDI CC control value
+# round(i * 127/(n-1)) 
+def cc_value_for_item_idx(idx,items):
+    return round( idx * (127 / (len(items)-1) ) )
+
 class ElectraOneBase:
     """E1 base class with common functions
        (interfacing with Live through c_instance).
@@ -67,11 +73,21 @@ class ElectraOneBase:
     def send_parameter_as_cc14(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 14bit MIDI CC message.
         """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no}.')
+        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
         value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc14(channel, cc_no, value)
 
-    
+    def send_parameter_as_cc7(self, p, channel, cc_no):
+        """Send the value of a Live parameter as a 7bit MIDI CC message.
+        """
+        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
+        if p.is_quantized:
+            idx = int(p.value)
+            value = cc_value_for_item_idx(idx,p.value_items)
+        else:
+            value = int(127 * ((p.value - p.min) / (p.max - p.min)))
+        self.send_midi_cc7(channel, cc_no, value)
+
     def song(self):
         """Return a reference to the current song.
         """

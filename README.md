@@ -8,11 +8,39 @@ This Ableton Live MIDI Remote script allows you to control the parameters of the
 
 It can also be used to dump Electra One presets for Ableton Live devices with sensible default control assignments.
 
-## How it works
+Finally, it also contains a mixer preset to control the track mixers, returns, master mixer and transport.
+
+## The mixer
+
+The mixer controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. 
+
+The 'Main' mixer page also contains control the master pan, volume, cue volume, and solo switch. And it contains transport controls: play/stop, record, rewind, and forward.
+
+<img main>
+
+For each track, the level of at most six sends can be controlled (see the 'Sends' page). 
+
+<img sends>
+
+The return track corresponding to each send can be managed using the controls on the 'Returns' page: pan, volume, and mute.
+
+Finally a separate 'Channel EQs' page contains controls to control the parameters of a Channel EQ device, when present *as the last device* on an audio/midi track or the master track.
+
+All controls on all pages are synced with the values of the parameters in Live they control as soon as a selection changes, or when parameters in Live are changed through the UI or using a different controller.
+
+## Alternative mixer designs
+
+There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are layed out horizontally instead of vertically (such that all track controls are active at the same time).
+
+The Remote Script uploads a default mixer defined in ```Devices.py```. This can be changed to suit your needs.
+
+## How it controls the currently selected device
 
 It looks for a preloaded preset for the selected device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
 
 If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device.
+
+<img>
 
 When constructing presets:
 - on/off parameters are shown as toggles on the Electra One. 
@@ -22,7 +50,7 @@ When constructing presets:
 
 Note that large devices with many parameters may create a preset with more than one page.
 
-## Preset dumps
+## Device preset dumps
 
 Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assignment over pages, colours, groups). The  updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
@@ -99,6 +127,7 @@ The following constants deal with the mixer preset.
 - User-defined presets not defined yet. (You *can* add them to ```Devices.py```.)
 - Value handling is quite rudimentary at the moment. Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
 - Uploading large patches is *slow*. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
+- The track and master equalisers in the mixer preset are not supported yet.
 
 ## Dependencies
 
@@ -119,3 +148,17 @@ Should the Electra get bogged with presets or freeze, use this procedure for a '
 This procedure will remove all presets, Lua scripts, config files.
 
 See the [section on dependencies](##dependencies) on how to update the firmware.
+
+## Bug reports
+
+If you encounter something you believe is a bug, please report it to me by email: [info@xot.nl](mailto:info@xot.nl). 
+
+In the bug report please include:
+
+- a concise description of the bug as subject,
+- the firmware version your Electra One runs,
+- the version of Ableton Live you are running,
+- the operating system (and version) Live runs on, and 
+- a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see above). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again.
+
+Before submitting a bug report, please have a look at the [current issues](https://github.com/xot/ElectraOne/issues) to see whether your bug has already been reported on earlier. You can also monitor this page to keep track of how your bug is being resolved.

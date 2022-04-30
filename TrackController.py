@@ -14,7 +14,9 @@ import Live
 
 # Local imports
 from .config import *
-from .ElectraOneBase import ElectraOneBase
+from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
+from .ElectraOneDumper import PresetInfo
+from .EffectController import build_midi_map_for_device
 
 # CCs (see MixerController.py)
 # These are base values, to which TRACKS_FACTOR is added for each next return track
@@ -24,10 +26,17 @@ MUTE_CC = 116
 SOLO_CUE_CC = 84
 ARM_CC = 89
 #
+# ChannelEq (on MIDI_TRACKS_CHANNEL)
+EQ_HI_CC = 10
+EQ_MID_F_CC = 15
+EQ_MID_CC = 20
+EQ_LOW_CC = 25
+EQ_OUT_CC = 64
+EQ_RUMBLE_CC = 121
 
+# Sends (on MIDI_SENDS_CHANNEL)
 SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie with increments of NO_OF_TRACKS=5
 
-# TODO: Map equaliser controls
 # TODO: Handle tracks that cannot be armed
 # TODO: Handle track names
 # TODO: hide/gray out unmapped sends
@@ -58,7 +67,28 @@ class TrackController(ElectraOneBase):
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
         return base_cc + self._offset
-    
+
+    def _my_channel_eq(self):
+        # Return a reference to the Channel EQ device on my track, if present.
+        # None if not
+        devices = self._track().devices
+        for d in devices:
+            if d.class_name == 'ChannelEq':
+                self.debug(4,'ChannelEq device founbd')
+                return d
+        return None
+
+    def _my_channel_eq_preset_info(self):
+        cc_map = { 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
+                 , 'Highpass On': (MIDI_TRACKS_CHANNEL,0,self._my_cc(EQ_RUMBLE_CC))
+                 , 'Low Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_LOW_CC))
+                 , 'Mid Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_MID_CC))
+                 , 'Mid Freq': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_MID_F_CC))
+                 , 'High Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_HI_CC))
+                 , 'Gain': (MIDI_TRACKS_CHANNEL,1,self._my_cc(EQ_OUT_CC))
+                 }
+        return PresetInfo('',cc_map)
+
     def update_display(self):
         # handle events asynchronously
         if self._value_update_timer == 0:
@@ -122,13 +152,27 @@ class TrackController(ElectraOneBase):
         track = self._track()
         self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
         self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
+        # send sends
         # note: if list is shorter, less sends included
         sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
         cc_no = self._my_cc(SENDS_CC)
         for send in sends:
             self.send_parameter_as_cc14(send,MIDI_SENDS_CHANNEL,cc_no)
             cc_no += NO_OF_TRACKS
-                
+        # send channel eq
+        # TODO: Once EffectController is refactored, use code that is already present there
+        channel_eq = self._my_channel_eq()
+        if channel_eq:
+            parameters = channel_eq.parameters
+            for p in parameters:
+                preset_info = self._my_channel_eq_preset_info()
+                ccinfo = preset_info.get_ccinfo_for_parameter(p.original_name)
+                if ccinfo.is_mapped():
+                    if ccinfo.is_cc14():
+                        self.send_parameter_as_cc14(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
+                    else:
+                        self.send_parameter_as_cc7(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
+
     # --- Handlers ---
     
     def _init_cc_handlers(self):
@@ -183,8 +227,8 @@ class TrackController(ElectraOneBase):
             self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
             Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_SENDS_CHANNEL-1, cc_no, map_mode, not needs_takeover)
             cc_no += NO_OF_TRACKS
-    
-
+        # build ChannelEq 
+        build_midi_map_for_device(midi_map_handle, self._my_channel_eq(), self._my_channel_eq_preset_info(), self.debug)
    
         
    

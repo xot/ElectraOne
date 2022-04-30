@@ -29,6 +29,26 @@ from .config import *
 def get_device_name(device):
     return device.class_name
 
+def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
+    # Internal function to build the MIDI map for a dvice, also
+    # used by TrackController to map the ChannelEq device
+    if device != None:
+        parameters = device.parameters
+        # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
+        needs_takeover = True
+        for p in parameters:                
+            ccinfo = preset_info.get_ccinfo_for_parameter(p.original_name)
+            if ccinfo.is_mapped():
+                if ccinfo.is_cc14():
+                    map_mode = Live.MidiMap.MapMode.absolute_14_bit
+                else:
+                    map_mode = Live.MidiMap.MapMode.absolute
+                cc_no = ccinfo.get_cc_no()
+                midi_channel = ccinfo.get_midi_channel()
+                # BUG: this call internally adds 1 to the specified MIDI channel!!!
+                debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
+
 # --- ElectraOne class
 
 class EffectController(ControlSurface):
@@ -160,22 +180,7 @@ class EffectController(ControlSurface):
         """Build a MIDI map for the currently selected device    
         """
         self.debug(1,'Building effect MIDI map.')
-        if self._assigned_device != None:
-            parameters = self._assigned_device.parameters
-            # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
-            needs_takeover = True
-            for p in parameters:                
-                ccinfo = self._preset_info.get_ccinfo_for_parameter(p.original_name)
-                if ccinfo.is_mapped():
-                    if ccinfo.is_cc14():
-                        map_mode = Live.MidiMap.MapMode.absolute_14_bit
-                    else:
-                        map_mode = Live.MidiMap.MapMode.absolute
-                    cc_no = ccinfo.get_cc_no()
-                    midi_channel = ccinfo.get_midi_channel()
-                    # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                    self.debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
-                    Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
+        build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
 
     # === Others ===
     

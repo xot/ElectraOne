@@ -43,6 +43,7 @@ from _Generic.Devices import *
 
 # Local imports
 from .config import *
+from .ElectraOneBase import cc_value_for_item_idx
 
 # Electra One MIDI Port to use
 MIDI_PORT = 1
@@ -221,13 +222,6 @@ def needs_overlay(p):
        to the parameter in the 'controls' section of the same parameter.
     """
     return p.is_quantized and (not is_on_off_parameter(p))
-
-# quantized parameters have a list of values. For such a list with
-# n items, item i (staring at 0) has MIDI CC control value
-# round(i * 127/(n-1)) 
-def cc_value_for_item_idx(idx,items):
-    return round( idx * (127 / (len(items)-1) ) )
-
 
 # Return the number part in the string representation of the value of a parameter
 def get_par_number_part(p,v):
