@@ -84,7 +84,6 @@ NEXT_TRACKS_CC = 69
 
 
 # Ableton Live imports
-from _Framework.ControlSurface import ControlSurface
 import Live
 
 # Local imports

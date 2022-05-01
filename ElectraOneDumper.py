@@ -41,7 +41,6 @@
 import io, random, string
 
 # Ableton Live imports
-from _Framework.ControlSurface import ControlSurface
 from _Generic.Devices import *
 
 # Local imports

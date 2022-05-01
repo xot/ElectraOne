@@ -14,7 +14,6 @@
 import os
 
 # Ableton Live imports
-from _Framework.ControlSurface import ControlSurface
 from _Generic.util import DeviceAppointer
 import Live
 
@@ -53,6 +52,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
+# TODO: bit of a hack to pass ElectraOneBase as sender_object
 def update_values_for_device(device, preset_info,sender_object):
     # Internal function to update the displayed values for a device, also
     # used by TrackController and MasterController too to map the
