@@ -30,6 +30,10 @@ class ElectraOneBase:
     """
 
     def __init__(self, c_instance):
+        # c_instance is/should be the object passed by Live when
+        # initialising the remote script (see __init.py__). Through
+        # c_instance we have access to Live: the log file, the midi map
+        # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
 
     def debug(self,level,m):

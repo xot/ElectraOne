@@ -28,6 +28,9 @@
 # (Two different goals: in a *dumped* preset, you want to have *all* parameters
 # even those without a CC map; but in a preset you *upload* you only want to
 # include parameters that are actually mapped in order not to surprise the users)
+# Currently, the CC-map contains *all* parameters (also unmapped onse,
+# indicated ny None) while the on-the-fly constructed preset does not contain
+# them. 
 
 # Note: parameter.name used as the visible name for a parameter, and
 # parameter.original_name used to index cc_map (because .original_name
@@ -44,12 +47,10 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 from .ElectraOneBase import cc_value_for_item_idx
+from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC_14
 
 # Electra One MIDI Port to use
 MIDI_PORT = 1
-
-# dummy CC parameter value to indicate an unmapped CC
-UNMAPPED_CC = -1
 
 # Electra One JSON file format version constructed 
 VERSION = 2
@@ -77,61 +78,13 @@ MAX_OVERLAY_ID = 51
 MAX_CONTROLSET_ID = CONTROLSETS_PER_PAGE
 MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
-# --- CCInfo ---
 
 # return the device id to use in the preset for the specified MIDI channel
 # (deviceId 1 contains the first (lowest) MIDI channel)
 def device_idx_for_midi_channel(midi_channel):
     return 1 + midi_channel - MIDI_EFFECT_CHANNEL
 
-IS_CC7 = 0
-IS_CC14 = 1
-
-class CCInfo:
-    """
-    """
-
-    def __init__(self, v):
-        """Initialise with a tuple (MIDI_channel, is_cc14?, CC_parameter_no).
-           Where is_cc14? is IS_CC7 when the parameter is 7bit, IS_CC14 if 14bit.
-        """
-        assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
-        (self._midi_channel,self._is_cc14, self._cc_no) = v
-        assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
-        assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'
-        assert self._cc_no in range(-1,128), f'MIDI channel {self._cc_no} out of range.'
-        
-    def __repr__(self):
-        if self.is_cc14():
-            return f'({self._midi_channel},{IS_CC14},{self._cc_no})'
-        else:
-            return f'({self._midi_channel},{IS_CC7},{self._cc_no})'
-        
-    def is_mapped(self):
-        return self._cc_no != UNMAPPED_CC
-    
-    def is_cc14(self):
-        return (self._is_cc14 == IS_CC14)
-
-    def get_cc_no(self):
-        return self._cc_no
-
-    def get_midi_channel(self):
-        return self._midi_channel
-
-    def get_device_idx(self):
-        return device_idx_for_midi_channel(self._midi_channel)
-
-    def get_statusbyte(self):
-        # status byte encodes midi channel (-1!) in the least significant nibble
-        CC_STATUS = 176
-        return CC_STATUS + self.get_midi_channel() - 1
-
-
 # --- PresetInfo ---
-
-# TODO: properly deal with None values: in this 'dumper' module, None values
-# are written with cc_no '0' to the json preset and as None into the ccmap
 
 UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
 
@@ -355,7 +308,7 @@ class ElectraOneDumper(io.StringIO):
     def append_json_toggle(self, idx, cc_info):
         """Append a toggle pad for an on/off valued list.
         """
-        device_id = cc_info.get_device_idx()
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self.append( ',"type":"pad"'
                    , ',"mode":"toggle"'
                    , ',"values":[{"message":{"type":"cc7"'
@@ -371,7 +324,7 @@ class ElectraOneDumper(io.StringIO):
     def append_json_list(self,idx, overlay_idx,cc_info):
         """Append a list, with values as specified in the overlay.
         """
-        device_id = cc_info.get_device_idx()
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self.append( ',"type":"list"'
                    ,  ',"values":[{"message":{"type":"cc7"' 
                    ,                       f',"parameterNumber":{ cc_info.get_cc_no() } '
@@ -385,7 +338,7 @@ class ElectraOneDumper(io.StringIO):
     def append_json_fader(self, idx, p, cc_info):
         """Append a fader.
         """
-        device_id = cc_info.get_device_idx()
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         # TODO: it may happen that an integer parameter has a lot of values
         # but it actually is assigned a 7bit CC
         if cc_info.is_cc14():

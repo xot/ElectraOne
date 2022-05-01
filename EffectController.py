@@ -19,9 +19,10 @@ from _Generic.util import DeviceAppointer
 import Live
 
 # Local imports
-from .Devices import get_predefined_preset_info
-from .ElectraOneDumper import PresetInfo, CCInfo, cc_value_for_item_idx, ElectraOneDumper
 from .config import *
+from .Devices import get_predefined_preset_info
+from .ElectraOneBase import CCInfo, cc_value_for_item_idx
+from .ElectraOneDumper import PresetInfo, ElectraOneDumper
 
 # --- helper functions
 
