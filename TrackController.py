@@ -169,7 +169,6 @@ class TrackController(ElectraOneBase):
             self.send_parameter_as_cc14(send,MIDI_SENDS_CHANNEL,cc_no)
             cc_no += NO_OF_TRACKS
         # send channel eq
-        # TODO: Once EffectController is refactored, use code that is already present there
         channel_eq = self._my_channel_eq()
         preset_info = self._my_channel_eq_preset_info()
         update_values_for_device(channel_eq, preset_info,self)

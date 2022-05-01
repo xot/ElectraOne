@@ -33,7 +33,7 @@ _DEVICES = {
 
 # Return the predefined preset information for a device, None if it doesn't exist
 def get_predefined_preset_info(device_original_name):
-    # FIXME: try to read from file
+    # TODO: also try to read from external file if possible
     if device_original_name in _DEVICES:
         return _DEVICES[device_original_name]
     else:

@@ -150,9 +150,11 @@ def get_par_number_part(p,v):
 
 
 # Determine whether the parameter is integer
+# This code is still unreliable: some Live parameters report integer
+# minimum and maximum values while they are in fact continuous, e.g. gain
+# and filter parameters
 def is_int_parameter(p):
     min_number_part = get_par_number_part(p,p.min)
-    # TODO: uncomment once it is clear how to deal with negative values
     # integer parameters.
     if (len(min_number_part) > 0) and (min_number_part[0] == '-'):
         min_number_part = min_number_part[1:] 
@@ -468,24 +470,25 @@ class ElectraOneDumper(io.StringIO):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
         self.debug(2,'Order parameters')
-        if (ORDER == ORDER_ORIGINAL):
-            return parameters
-        else:
+        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT):
+            banks = DEVICE_DICT[device_name] # tuple of tuples
+            parlist = [p for b in banks for p in b] # turn into a list
+            # order parameters as in parlist, skip parameters that are not listed there
+            parameters_copy = []
+            parameters_dict = { p.name: p for p in parameters }
+            # copy in the order in which parameters appear in parlist
+            for name in parlist:
+                if name in parameters_dict:
+                    parameters_copy.append(parameters_dict[name])
+            return parameters_copy
+        elif (ORDER == ORDER_SORTED):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
-            if (ORDER == ORDER_SORTED):
-                parameters_copy.sort(key=lambda p: p.name)
-            else: # ORDER == ORDER_DEVICEDICT
-                if device_name in DEVICE_DICT:
-                    banks = DEVICE_DICT[device_name] # tuple of tuples
-                    parlist = [p for b in banks for p in b] # turn into a list
-                    # TODO: this could be simplified by extracing parameters in the order specified in parlist
-                    # filter out any parameters NOT in banks/parlist
-                    parameters_copy = [p for p in parameters_copy if p.name in parlist]
-                    # sort by name in parlist 
-                    parameters_copy.sort(key=lambda p: parlist.index(p.name))
+            parameters_copy.sort(key=lambda p: p.name)
             return parameters_copy
+        else: # ORDER == ORDER_ORIGINAL or (ORDER == ORDER_DEVICEDICT) and (device_name not in DEVICE_DICT)
+            return parameters
 
     def __init__(self, e1_instance, device_name, parameters):
         """Construct an Electra One JSON preset and a corresponding
