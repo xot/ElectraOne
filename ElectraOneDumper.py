@@ -47,7 +47,7 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 from .ElectraOneBase import cc_value_for_item_idx
-from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC_14
+from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC14
 
 # Electra One MIDI Port to use
 MIDI_PORT = 1
