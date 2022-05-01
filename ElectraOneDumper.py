@@ -142,27 +142,40 @@ def needs_overlay(p):
     """
     return p.is_quantized and (not is_on_off_parameter(p))
 
-# Return the number part in the string representation of the value of a parameter
-def get_par_number_part(p,v):
-    value_as_str = p.str_for_value(v)                                         # get value as a string
-    (number_part,sep,rest) = value_as_str.partition(' ')                      # split at the first space
-    return number_part
 
+# Ableyon's str_for_value function for a parameter returns a string with the
+# following structure <valuestring><space><valuetype>. Untyped values
+# only return <valuestring>.
+# 100 %
+# -4.00
+# 5 ms
+# On
+# -inf dB
+# 3.7 Hz
+
+# Return the number part and its type in the string representation of
+# the value of a parameter, as reported by Ableton
+def get_par_value_info(p,v):
+    value_as_str = p.str_for_value(v)                                         # get value as a string
+    (number_part,sep,type) = value_as_str.partition(' ')                      # split at the first space
+    return (number_part,type)
+
+def strip_minus(v):
+    if (len(v) > 0) and (v[0] == '-'):
+        return v[1:]
+    else:
+        return v
+
+NON_INT_TYPES = ['dB', '%', 'Hz', 's', 'ms']
 
 # Determine whether the parameter is integer
-# This code is still unreliable: some Live parameters report integer
-# minimum and maximum values while they are in fact continuous, e.g. gain
-# and filter parameters
 def is_int_parameter(p):
-    min_number_part = get_par_number_part(p,p.min)
-    # integer parameters.
-    if (len(min_number_part) > 0) and (min_number_part[0] == '-'):
-        min_number_part = min_number_part[1:] 
-    max_number_part = get_par_number_part(p,p.max)
-    # in the unlikely event that a maximum value is also negative ;-)
-    if (len(max_number_part) > 0) and (max_number_part[0] == '-'):
-        max_number_part = max_number_part[1:] 
-    return min_number_part.isnumeric() and max_number_part.isnumeric() 
+    (min_number_part, min_type) = get_par_value_info(p,p.min)
+    min_number_part = strip_minus(min_number_part)
+    (max_number_part, max_type) = get_par_value_info(p,p.max)
+    max_number_part = strip_minus(max_number_part)
+    return min_number_part.isnumeric() and max_number_part.isnumeric() and \
+       (min_type not in NON_INT_TYPES) and (max_type not in NON_INT_TYPES)
 
 def wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
@@ -332,8 +345,8 @@ class ElectraOneDumper(io.StringIO):
                    ,                  '}'
                    )
         if is_int_parameter(p):
-            vmin = get_par_number_part(p,p.min)
-            vmax = get_par_number_part(p,p.max)
+            (vmin,mintype) = get_par_value_info(p,p.min)
+            (vmax,maxtype) = get_par_value_info(p,p.max)
             self.append(  f',"min":{ vmin }'
                        ,  f',"max":{ vmax }'
                        ) 
