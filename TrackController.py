@@ -16,7 +16,7 @@ import Live
 from .config import *
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
-from .EffectController import build_midi_map_for_device
+from .EffectController import build_midi_map_for_device, update_values_for_device
 
 # CCs (see MixerController.py)
 # These are base values, to which TRACKS_FACTOR is added for each next return track
@@ -171,16 +171,8 @@ class TrackController(ElectraOneBase):
         # send channel eq
         # TODO: Once EffectController is refactored, use code that is already present there
         channel_eq = self._my_channel_eq()
-        if channel_eq:
-            parameters = channel_eq.parameters
-            for p in parameters:
-                preset_info = self._my_channel_eq_preset_info()
-                ccinfo = preset_info.get_ccinfo_for_parameter(p)
-                if ccinfo.is_mapped():
-                    if ccinfo.is_cc14():
-                        self.send_parameter_as_cc14(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
-                    else:
-                        self.send_parameter_as_cc7(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
+        preset_info = self._my_channel_eq_preset_info()
+        update_values_for_device(channel_eq, preset_info,self)
 
     # --- Handlers ---
     

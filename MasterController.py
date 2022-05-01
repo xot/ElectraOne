@@ -46,7 +46,7 @@ import Live
 from .config import *
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase
-from .EffectController import build_midi_map_for_device
+from .EffectController import build_midi_map_for_device, update_values_for_device
 
 # CCs (see MixerController.py)
 MASTER_PAN_CC = 0
@@ -55,9 +55,8 @@ MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
 
 # TODO: map master SOLO button;
-# TODO: map EQ
 
-# Change this to managa a different EQ like device on the master track
+# Change this to manage a different EQ like device on the master track
 # TODO: move this to devices
 #
 # Specify the device.class_name here
@@ -132,16 +131,8 @@ class MasterController(ElectraOneBase):
         # send channel eq
         # TODO: Once EffectController is refactored, use code that is already present there
         channel_eq = self._my_channel_eq()
-        if channel_eq:
-            parameters = channel_eq.parameters
-            for p in parameters:
-                preset_info = self._my_channel_eq_preset_info()
-                ccinfo = preset_info.get_ccinfo_for_parameter(p)
-                if ccinfo.is_mapped():
-                    if ccinfo.is_cc14():
-                        self.send_parameter_as_cc14(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
-                    else:
-                        self.send_parameter_as_cc7(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())
+        preset_info = self._my_channel_eq_preset_info()
+        update_values_for_device(channel_eq, preset_info,self)
                                   
     # --- Handlers ---
     

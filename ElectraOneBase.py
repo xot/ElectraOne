@@ -40,12 +40,18 @@ class ElectraOneBase:
         """Write a debug message to the log, if level < DEBUG.
         """
         if level < DEBUG:
-            self._c_instance.log_message(f'E1: {m}')
+            self._c_instance.log_message(f'E1 (debug): {m}')
+
+    def log_message(self,m):
+        self._c_instance.log_message(f'E1 (log): {m}')
 
     def show_message(self,m):
         """Show a message in the Live message line (lower left corner).
         """
         self._c_instance.show_message(m)
+
+    def send_midi(self,message):
+        self._c_instance.send_midi(message)
 
     def send_midi_cc7(self, channel, cc_no, value):
         """Send a 7bit MIDI CC message.
@@ -55,7 +61,7 @@ class ElectraOneBase:
         assert value in range(128), f'CC value { value } out of range.'
         message = (get_cc_statusbyte(channel), cc_no, value )
         self.debug(4,f'MIDI message {message}.')
-        self._c_instance.send_midi(message)
+        self.send_midi(message)
 
     def send_midi_cc14(self, channel, cc_no, value):
         """Send a 14bit MIDI CC message.
@@ -70,21 +76,21 @@ class ElectraOneBase:
         message1 = (get_cc_statusbyte(channel), cc_no, msb)
         message2 = (get_cc_statusbyte(channel), 0x20 + cc_no, lsb)
         self.debug(4,f'MIDI message {message1}.')
-        self._c_instance.send_midi(message1)
+        self.send_midi(message1)
         self.debug(4,f'MIDI message {message2}.')
-        self._c_instance.send_midi(message2)
+        self.send_midi(message2)
 
     def send_parameter_as_cc14(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 14bit MIDI CC message.
         """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
+        self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
         value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc14(channel, cc_no, value)
 
     def send_parameter_as_cc7(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 7bit MIDI CC message.
         """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
+        self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
@@ -92,6 +98,18 @@ class ElectraOneBase:
             value = int(127 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc7(channel, cc_no, value)
 
+    def send_parameter_using_ccinfo(self, p, ccinfo):
+        """Send the value of Live a parameter as a MIDI CC message
+           (using CC info to determine where and how).
+        """
+        self.debug(3,f'Sending value for {p.original_name} over {ccinfo}.')
+        channel = ccinfo.get_midi_channel()
+        cc_no = ccinfo.get_cc_no()
+        if ccinfo.is_cc14():
+            self.send_parameter_as_cc14(p, channel, cc_no)
+        else:
+            self.send_parameter_as_cc7(p, channel, cc_no)                
+        
     def song(self):
         """Return a reference to the current song.
         """

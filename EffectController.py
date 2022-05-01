@@ -23,7 +23,7 @@ from .config import *
 from .CCInfo import CCInfo
 from .PresetInfo import PresetInfo
 from .Devices import get_predefined_preset_info
-from .ElectraOneBase import cc_value_for_item_idx
+from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
 # --- helper functions
 
@@ -32,8 +32,10 @@ def get_device_name(device):
     return device.class_name
 
 def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
-    # Internal function to build the MIDI map for a dvice, also
-    # used by TrackController to map the ChannelEq device
+    # Internal function to build the MIDI map for a device, also
+    # used by TrackController and MasterController too to map the
+    # ChannelEq device. Uses preset_info to get the CCInfo for device
+    # parameters.
     if device != None:
         parameters = device.parameters
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
@@ -51,16 +53,27 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
+def update_values_for_device(device, preset_info,sender_object):
+    # Internal function to update the displayed values for a device, also
+    # used by TrackController and MasterController too to map the
+    # ChannelEq device. Uses preset_info to get the CCInfo for device
+    # parameters.
+    if device:
+        for p in device.parameters:
+            ccinfo = preset_info.get_ccinfo_for_parameter(p)
+            if ccinfo.is_mapped():
+                sender_object.send_parameter_using_ccinfo(p,ccinfo)
+
+                
 # --- ElectraOne class
 
-class EffectController(ControlSurface):
+class EffectController(ElectraOneBase):
     """Remote control script for the Electra One
     """
 
     def __init__(self, c_instance):
-        ControlSurface.__init__(self, c_instance)
+        ElectraOneBase.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
-        self.__c_instance = c_instance
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
@@ -70,7 +83,7 @@ class EffectController(ControlSurface):
         self._value_update_timer = -1
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
-        self._device_appointer = DeviceAppointer(song=self.__c_instance.song(), appointed_device_setter=self._set_appointed_device)
+        self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
         self.debug(0,'EffectController loaded.')
         
         
@@ -101,7 +114,7 @@ class EffectController(ControlSurface):
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(4,f'Preset = { preset }')
-        self.__c_instance.send_midi(sysex_header + sysex_preset + sysex_close)
+        self.send_midi(sysex_header + sysex_preset + sysex_close)
         
     def get_preset(self,device):
         """Get the preset for the specified device, either externally,
@@ -119,64 +132,13 @@ class EffectController(ControlSurface):
             return dumper.get_preset()
 
     # === updating values ===
-    
-    def send_midi_cc7(self,ccinfo,value):
-        """Send a 7bit MIDI CC
-        """
-        cc_no = ccinfo.get_cc_no()
-        cc_statusbyte = ccinfo.get_statusbyte()
-        assert cc_no in range(128), f'CC no { cc_no } out of range'
-        assert value in range(128), f'CC value { value } out of range'
-        message = (cc_statusbyte, cc_no, value )
-        self.debug(4,f'MIDI message {message}.')
-        self.__c_instance.send_midi(message)
-        
-    def send_midi_cc14(self,ccinfo,value):
-        """Send a 14bit MIDI CC
-        """
-        cc_no = ccinfo.get_cc_no()
-        cc_statusbyte = ccinfo.get_statusbyte()
-        assert cc_no in range(128), f'CC no { cc_no } out of range'
-        assert value in range(16384), f'CC value { value } out of range'
-        lsb = value % 128
-        msb = value // 128
-        # a 14bit MIDI CC message is actually split into two messages:
-        # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (cc_statusbyte, cc_no, msb)
-        message2 = (cc_statusbyte, 0x20 + cc_no, lsb)
-        self.debug(4,f'MIDI message {message1}.')
-        self.__c_instance.send_midi(message1)
-        self.debug(4,f'MIDI message {message2}.')
-        self.__c_instance.send_midi(message2)
-
-    def send_value_as_cc(self,p,ccinfo):
-        """Send the value of a parameter as a MIDI CC message
-        """
-        self.debug(3,f'Sending value for {p.original_name} over {ccinfo}.')
-        if ccinfo.is_cc14():
-            value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc14(ccinfo,value)
-        else:
-            # for quantized parameters (always cc7) convert the index
-            # value into the corresponding CC value
-            if p.is_quantized:
-                idx = int(p.value)
-                value = cc_value_for_item_idx(idx,p.value_items)
-            else:
-                value = int(127 * ((p.value - p.min) / (p.max - p.min)))
-            self.send_midi_cc7(ccinfo,value)
 
     def update_values(self):
         """Update the displayed values of the parameters in the
            (just uploaded) preset
         """
         self.debug(1,'Updating values.')
-        if self._assigned_device != None:
-            parameters = self._assigned_device.parameters
-            for p in parameters:
-                ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
-                if ccinfo.is_mapped():
-                    self.send_value_as_cc(p,ccinfo)
+        update_values_for_device(self._assigned_device,self._preset_info,self)
 
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
@@ -237,7 +199,7 @@ class EffectController(ControlSurface):
     def unlock_from_device(self, device):
         if device and device == self._assigned_device:
             self._assigned_device_locked = False
-            self._assign_device(self.__c_instance.song().appointed_device)
+            self._assign_device(self.song().appointed_device)
 
 
     def _assign_device(self, device):
@@ -250,10 +212,10 @@ class EffectController(ControlSurface):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                # TODO: UNCOMMENT self.upload_preset(preset)
+                self.upload_preset(preset)
                 # set a delay depending on the length (~complexity) of the preset
                 self._value_update_timer = int(len(preset)/200)
-                self.__c_instance.request_rebuild_midi_map()                
+                self.request_rebuild_midi_map()                
 
     def _set_appointed_device(self, device):
         if not self._assigned_device_locked:
