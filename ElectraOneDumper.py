@@ -488,66 +488,6 @@ class ElectraOneDumper(io.StringIO):
         self.append( '}' )
         return self.getvalue()
 
-    def construct_ccmap_orig(self,parameters):
-        """Construct a cc_map for the list of parameters. Map no more parameters
-           then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
-           no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
-        """
-        self.debug(1,'Construct CC map')
-        # 14bit CC controls are mapped first; they consume two CC parameters
-        # (i AND i+32). 7 bit CC controls are mapped next filling any empty
-        # slots. Whenever a MIDI channel is full, we move to the next (limited
-        # by MAX_MIDI_EFFECT_CHANNELS
-        cc_map = {}
-        channel = MIDI_EFFECT_CHANNEL
-        if MAX_MIDI_EFFECT_CHANNELS == -1:
-            max_channel = 16
-        else:
-            max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
-        cc_no = 0
-        # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
-        free = [ True for i in range(0,128)] 
-        # first assign 14bit CC controllers
-        cc14pars = [p for p in parameters if wants_cc14(p)]
-        if MAX_CC14_PARAMETERS != -1:
-            cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
-        for p in cc14pars:
-            # find a free CC parameter from where we are now
-            while (cc_no < 128) and (not free[cc_no]):
-                cc_no += 1
-            if cc_no == 128:
-                channel += 1
-                cc_no = 0
-                free = [ True for i in range(0,128)] 
-            if channel >  max_channel:
-                self.debug(1,'Maximum of mappable MIDI channels reached.')
-                break # if we break here, we also break at the same spot in the next loop
-            assert cc_no + 32 < 128, 'There should be space for this 14bit CC'
-            cc_map[p.original_name] = CCInfo((channel,IS_CC14,cc_no))
-            free[cc_no+32] = False                
-            cc_no += 1
-        # now fill the remaining slots with other parameters (that are 7bit)
-        cc7pars = [p for p in parameters if not wants_cc14(p)]
-        if MAX_CC7_PARAMETERS != -1:
-            cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
-        for p in cc7pars:
-            # find a free CC parameter from where we are now;
-            # we may still be in an area where 14bit parameters claimed a 'future' CC
-            while (cc_no < 128) and (not free[cc_no]):
-                cc_no += 1
-            if cc_no == 128:
-                channel += 1
-                cc_no = 0
-                free = [ True for i in range(0,128)]                          # from now on all slots are free
-            if channel >  max_channel:
-                self.debug(1,'Maximum of mappable MIDI channels reached.')
-                break 
-            cc_map[p.original_name] = CCInfo((channel,IS_CC7,cc_no))
-            cc_no +=1
-        if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'CC map constructed: { cc_map }')
-        return cc_map
-
     def construct_ccmap(self,parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
@@ -558,7 +498,7 @@ class ElectraOneDumper(io.StringIO):
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots.
         # For some reason, only the first 32 CC parameters can be mapped to
-        # 14bit CC controls. Therefore construct_ccmap_orig constructs a bad map
+        # 14bit CC controls. 
         cc_map = {}
         if MAX_MIDI_EFFECT_CHANNELS == -1:
             max_channel = 16
@@ -569,33 +509,37 @@ class ElectraOneDumper(io.StringIO):
         cc14pars = [p for p in parameters if wants_cc14(p)]
         if MAX_CC14_PARAMETERS != -1:
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
-        # TODO: consider also including skipped cc14 parameters
+        cur_cc14par_idx = 0
+        # TODO: consider also including skipped cc14 parameters?
         # get the list of parameters to be assigned to 7bit controllers        
         cc7pars = [p for p in parameters if not wants_cc14(p)]
         if MAX_CC7_PARAMETERS != -1:
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
-        # add parameters per channel; break if all are assigned
+        cur_cc7par_idx = 0
+        # add parameters per channel; break if all parameters are assigned
         for channel in range(MIDI_EFFECT_CHANNEL,max_channel+1):
             # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
             free = [ True for i in range(0,128)] 
-            # first assign cc14 parameters to the range 0..31
-            for (i,p) in enumerate(cc14pars[:32]):
+            # first assign any remaining cc14 parameters to the range 0..31
+            for i in range(0,32):
+                if cur_cc14par_idx >= len(cc14pars):
+                    break
+                p = cc14pars[cur_cc14par_idx]
                 cc_map[p.original_name] = CCInfo((channel,IS_CC14,i))
+                cur_cc14par_idx += 1
                 free[i] = False
                 free[i+32] = False
-            cc14pars = cc14pars[32:] # chop of the assigned parameters
             # now assign cc7 parameters in any free slots
             cc_no = 0
-            while (cc_no < 128) and (len(cc7pars) > 0):
+            while (cc_no < 128) and (cur_cc7par_idx < len(cc7pars)):
                 while (not free[cc_no]) and (cc_no < 128):
                     cc_no += 1
-                if cc_no < 128:
-                    p = cc7pars[0]
+                if cc_no < 128: # free slot in current channel found
+                    p = cc7pars[cur_cc7par_idx]
                     cc_map[p.original_name] = CCInfo((channel,IS_CC7,cc_no))
-                    # TODO: this is inefficient
-                    cc7pars = cc7pars[1:]
+                    cur_cc7par_idx += 1
                     cc_no += 1
-        if (len(cc14pars) > 0) or (len(cc7pars) > 0):
+        if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
             self.debug(1,'Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(4,f'CC map constructed: { cc_map }')
