@@ -8,8 +8,6 @@
 # Author: Jaap-henk Hoepman (info@xot.nl)
 #
 # Distributed under the MIT License, see LICENSE
-#
-# DOCUMENTATION:
 
 # dummy CC parameter value to indicate an unmapped CC
 UNMAPPED_CC = -1
@@ -20,7 +18,7 @@ IS_CC14 = True
 class CCInfo:
     """Class storing the channel and parameter number of CC mapping, and
        whether the associated controller on the E1 is 14bit (or not, in
-       which case it is 7bit.
+       which case it is 7bit).
     """
 
     def __init__(self, v):

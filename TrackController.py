@@ -14,8 +14,8 @@ import Live
 
 # Local imports
 from .config import *
+from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
-from .ElectraOneDumper import PresetInfo
 from .EffectController import build_midi_map_for_device
 
 # CCs (see MixerController.py)
@@ -175,7 +175,7 @@ class TrackController(ElectraOneBase):
             parameters = channel_eq.parameters
             for p in parameters:
                 preset_info = self._my_channel_eq_preset_info()
-                ccinfo = preset_info.get_ccinfo_for_parameter(p.original_name)
+                ccinfo = preset_info.get_ccinfo_for_parameter(p)
                 if ccinfo.is_mapped():
                     if ccinfo.is_cc14():
                         self.send_parameter_as_cc14(p,ccinfo.get_midi_channel(),ccinfo.get_cc_no())

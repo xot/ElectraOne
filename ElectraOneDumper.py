@@ -48,6 +48,7 @@ from _Generic.Devices import *
 from .config import *
 from .ElectraOneBase import cc_value_for_item_idx
 from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC14
+from .PresetInfo import PresetInfo
 
 # Electra One MIDI Port to use
 MIDI_PORT = 1
@@ -84,40 +85,6 @@ MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 def device_idx_for_midi_channel(midi_channel):
     return 1 + midi_channel - MIDI_EFFECT_CHANNEL
 
-# --- PresetInfo ---
-
-UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
-
-class PresetInfo ():
-    # - The preset is a JSON string in Electra One format.
-    # - The MIDI cc mapping data is a dictionary of Ableton Live original
-    #   parameter names with their corresponding CCInfo (either as an untyped
-    #   tuple when preloaded from from Devices.py, or a CCInfo object when
-    #   constructed on the fly
-
-    def __init__(self,json_preset,cc_map):
-        self._json_preset = json_preset
-        self._cc_map = cc_map
-
-    def get_ccinfo_for_parameter(self,parameter_original_name):
-        """Return the MIDI CC parameter info assigned to the device parameter.
-           Return default CCInfo if not mapped.
-        """
-        assert self._cc_map != None, 'Empty cc-map'
-        if parameter_original_name in self._cc_map:
-            v = self._cc_map[parameter_original_name]
-            if type(v) is tuple:
-                return CCInfo(v)
-            else:
-                return v  
-        else:
-            return UNMAPPED_CCINFO
-        
-    def get_preset(self):
-        """Retrun the JSON preset as a string
-        """
-        assert self._json_preset != None, 'Empty JSON preset'
-        return self._json_preset
      
 # --- output sanity checks
 

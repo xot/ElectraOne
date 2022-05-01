@@ -20,11 +20,11 @@ import Live
 
 # Local imports
 from .config import *
-from .Devices import get_predefined_preset_info
 from .CCInfo import CCInfo
+from .PresetInfo import PresetInfo
+from .Devices import get_predefined_preset_info
 from .ElectraOneBase import cc_value_for_item_idx
-from .ElectraOneDumper import PresetInfo, ElectraOneDumper
-
+from .ElectraOneDumper import ElectraOneDumper
 # --- helper functions
 
 # TODO: adapt to also get an appropriate name for MaxForLive devices
@@ -39,7 +39,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
         for p in parameters:                
-            ccinfo = preset_info.get_ccinfo_for_parameter(p.original_name)
+            ccinfo = preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
                 if ccinfo.is_cc14():
                     map_mode = Live.MidiMap.MapMode.absolute_14_bit
@@ -174,7 +174,7 @@ class EffectController(ControlSurface):
         if self._assigned_device != None:
             parameters = self._assigned_device.parameters
             for p in parameters:
-                ccinfo = self._preset_info.get_ccinfo_for_parameter(p.original_name)
+                ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
                 if ccinfo.is_mapped():
                     self.send_value_as_cc(p,ccinfo)
 
@@ -220,12 +220,11 @@ class EffectController(ControlSurface):
                 if comma:
                     f.write(',')
                 comma = True
-                name = p.original_name
-                ccinfo = preset_info.get_ccinfo_for_parameter(name)
+                ccinfo = preset_info.get_ccinfo_for_parameter(p)
                 if ccinfo.is_mapped():
-                    f.write(f"'{ name }': { ccinfo }\n")
+                    f.write(f"'{ p.original_name }': { ccinfo }\n")
                 else:
-                    f.write(f"'{ name }': None\n")
+                    f.write(f"'{ p.original_name }': None\n")
             f.write('}')
 
     # === handle device selection
