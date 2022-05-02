@@ -14,10 +14,10 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 6
+DEBUG = 0
 
 # Whether creates patch info should be dumped
-DUMP = True
+DUMP = False
 
 # Local directory where dunps are stored (./dumps) and user defined
 # presets are loaded from (./user-presets). This is first tried as a
@@ -40,7 +40,7 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # Specify the order in which parameters shoudl appear in an automatically
 # created preset for the currently selected device. If order is
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
-ORDER = ORDER_DEVICEDICT
+ORDER = ORDER_SORTED
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
@@ -76,7 +76,7 @@ MIDI_EFFECT_CHANNEL = 11
 # Limit the number of MIDI channels used in a preset constructed on the fly;
 # -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
 # all the way up to and including channel 16)
-MAX_MIDI_EFFECT_CHANNELS = 3
+MAX_MIDI_EFFECT_CHANNELS = 4
 
 # Amount to rewind or forward by
 FORW_REW_JUMP_BY_AMOUNT = 1

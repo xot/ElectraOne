@@ -15,6 +15,15 @@ Two parts
 
 [Live 11.0 API](https://structure-void.com/PythonLiveAPI_documentation/Live11.0.xml)
 
+
+Ableton officially only supports the Live API through [Max for Live](https://docs.cycling74.com/max8/vignettes/live_object_model). However, that information is mostly valid for Remote Scripts too, except that 
+the paths in a MIDI Remote Script are slightly different than the paths mentioned in the documentation:
+
+- the root path for most of the API is listed as ```live_set```, but in a MIDI Remote Script, this is ```self.song()```
+- also, paths in MIDI Remote Scripts don't use spaces but use dots, e.g. ```self.song().view.selected_track```.
+- the symbol N in a path means that the part before it returns a list. So ```live_set tracks N ``` should be translated to ```self.song().tracks[i]``` to return the i-th track.
+
+
 ## Remote scripts
 
 ```c_instance```

@@ -129,6 +129,10 @@ class ElectraOneBase:
 
     # === presets ===
 
+    # - Bank select, ie. CC 00 <bank id> selects the bank to work with, where:
+    # - <bank id> 0 is the presets, the subsequent program change message
+    # switches between the presets (0 .. 71)
+    # Program change message: C6 00 <preset id>
     def select_preset (self, idx):
         """Select a preset (idx in 0..71)
         """
