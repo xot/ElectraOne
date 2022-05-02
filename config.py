@@ -10,6 +10,8 @@
 # Distributed under the MIT License, see LICENSE
 #
 
+# --- general configuration constants ---
+
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
 DEBUG = 6
@@ -24,6 +26,12 @@ DUMP = True
 # the user home directory is used instead (and ./dumps or ./user-presets
 # are not appended).
 LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
+
+# --- Effect/device configuration constants
+
+# E1 preset index where the preset controlling the currently selected device
+# is stored
+EFFECT_PRESET_IDX = 61
 
 ORDER_ORIGINAL = 0   # order as reported by Live
 ORDER_SORTED = 1     # sort by parameter name
@@ -40,6 +48,15 @@ ORDER = ORDER_DEVICEDICT
 # ORDER = ORDER_DEVICEDICT
 MAX_CC7_PARAMETERS = -1
 MAX_CC14_PARAMETERS = -1
+
+# --- mixer configuration constants ---
+
+# E1 preset index where the preset controlling the currently selected device
+# is stored
+MIXER_PRESET_IDX = 61
+
+# E1 preset for the mixer (encoded as a JSON string)
+MIXER_PRESET = ""
 
 # The MIXER uses three MIDI channels: MIDI_MASTER_CHANNEL, MIDI_TRACKS_CHANNEL
 # and MIDI_SENDS_CHANNEL.
@@ -66,6 +83,8 @@ FORW_REW_JUMP_BY_AMOUNT = 1
 
 # Number of mappable tracks on the E1
 NO_OF_TRACKS = 5
+
+# --- checking ---
 
 # sanity check on configuration values 
 def check_configuration():

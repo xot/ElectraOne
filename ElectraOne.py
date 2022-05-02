@@ -66,6 +66,8 @@ class ElectraOne(ControlSurface):
         # Weird; why is Ableton relegating this to the script?
         self.__c_instance.toggle_lock()
 
+    def handle_sysex(self, midi_bytes):
+        self.log_message(f'E1 SysEx received: { midi_bytes }.')
     
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when

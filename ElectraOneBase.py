@@ -36,6 +36,21 @@ class ElectraOneBase:
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
 
+    # --- helper functions
+    
+    def song(self):
+        """Return a reference to the current song.
+        """
+        return self._c_instance.song()
+
+    def request_rebuild_midi_map(self):
+        """Request that the MIDI map is rebuilt.
+           (The old mapping is (apparently) destroyed.)
+        """
+        self._c_instance.request_rebuild_midi_map()
+        
+    # --- Sending/writing debug/log messages ---
+        
     def debug(self,level,m):
         """Write a debug message to the log, if level < DEBUG.
         """
@@ -50,6 +65,8 @@ class ElectraOneBase:
         """
         self._c_instance.show_message(m)
 
+    # --- MIDI handling ---
+    
     def send_midi(self,message):
         self._c_instance.send_midi(message)
 
@@ -109,15 +126,33 @@ class ElectraOneBase:
             self.send_parameter_as_cc14(p, channel, cc_no)
         else:
             self.send_parameter_as_cc7(p, channel, cc_no)                
+
+    # === presets ===
+
+    def select_preset (self, idx):
+        """Select a preset (idx in 0..71)
+        """
+        # TODO use a program change
+        pass
+    
+    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
+    # Upload the preset (a json string) to the Electro One
+    # 0xF0 SysEx header byte
+    # 0x00 0x21 0x45 Electra One MIDI manufacturer Id
+    # 0x01 Upload data
+    # 0x01 Preset file
+    # preset-json-data bytes representing ascii bytes of the preset file
+    # 0xF7 SysEx closing byte
+    #
+    # preset is the json preset as a string
+    def upload_preset(self,preset):
+        """Upload an Electra One preset (given as a JSON string)
+        """
+        self.debug(1,'Uploading preset.')
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
+        sysex_preset = tuple([ ord(c) for c in preset ])
+        sysex_close = (0xF7, )
+        if not DUMP: # no need to write this to the log if the same thing is dumped
+            self.debug(4,f'Preset = { preset }')
+        self.send_midi(sysex_header + sysex_preset + sysex_close)
         
-    def song(self):
-        """Return a reference to the current song.
-        """
-        return self._c_instance.song()
-
-    def request_rebuild_midi_map(self):
-        """Request that the MIDI map is rebuilt.
-           (The old mapping is (apparently) destroyed.)
-        """
-        self._c_instance.request_rebuild_midi_map()
-

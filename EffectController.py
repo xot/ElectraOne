@@ -24,6 +24,7 @@ from .PresetInfo import PresetInfo
 from .Devices import get_predefined_preset_info
 from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
+
 # --- helper functions
 
 # TODO: adapt to also get an appropriate name for MaxForLive devices
@@ -65,8 +66,6 @@ def update_values_for_device(device, preset_info,sender_object):
                 sender_object.send_parameter_using_ccinfo(p,ccinfo)
 
                 
-# --- ElectraOne class
-
 class EffectController(ElectraOneBase):
     """Remote control script for the Electra One
     """
@@ -85,37 +84,7 @@ class EffectController(ElectraOneBase):
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
         self.debug(0,'EffectController loaded.')
-        
-        
-    def debug(self,level,m):
-        """Write a debug message to the log, if debugging is enabled
-        """
-        if level < DEBUG:
-            self.log_message(f'E1: {m}')
 
-    # === presets ===
-
-    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
-    # Upload the preset (a json string) to the Electro One
-    # 0xF0 SysEx header byte
-    # 0x00 0x21 0x45 Electra One MIDI manufacturer Id
-    # 0x01 Upload data
-    # 0x01 Preset file
-    # preset-json-data bytes representing ascii bytes of the preset file
-    # 0xF7 SysEx closing byte
-    #
-    # preset is the json preset as a string
-    def upload_preset(self,preset):
-        """Upload an Electra One preset (given as a JSON string)
-        """
-        self.debug(1,'Uploading preset.')
-        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
-        sysex_preset = tuple([ ord(c) for c in preset ])
-        sysex_close = (0xF7, )
-        if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'Preset = { preset }')
-        self.send_midi(sysex_header + sysex_preset + sysex_close)
-        
     def get_preset(self,device):
         """Get the preset for the specified device, either externally,
            predefined or else construct it on the fly.
@@ -212,6 +181,7 @@ class EffectController(ElectraOneBase):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
+                self.select_preset(EFFECT_PRESET_IDX)
                 self.upload_preset(preset)
                 # set a delay depending on the length (~complexity) of the preset
                 self._value_update_timer = int(len(preset)/200)
