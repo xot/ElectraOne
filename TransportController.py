@@ -103,7 +103,6 @@ class TransportController(ElectraOneBase):
             ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
             ,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
             }
-        pass
 
     def _do_rewind(self,value):        
         self.debug(2,'Rewind button action.')

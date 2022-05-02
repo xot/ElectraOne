@@ -127,7 +127,6 @@ class MixerController(ElectraOneBase):
         # Adjust the newly selected track to never go too far left or right.
         idx = min(idx, len(self.song().visible_tracks) - NO_OF_TRACKS)
         idx = max(idx, 0)            
-        self.show_message(f'Mixer managing tracks { idx+1 } - { idx + NO_OF_TRACKS }.')
         return idx
         
     def update_display(self):
@@ -174,6 +173,7 @@ class MixerController(ElectraOneBase):
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.__c_instance,i,i-self._first_track_index)
                                     for i in track_range ]
+        self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.request_rebuild_midi_map()
 
     def _on_tracks_added_or_deleted(self):

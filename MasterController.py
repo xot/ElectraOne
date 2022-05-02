@@ -125,11 +125,10 @@ class MasterController(ElectraOneBase):
     def _init_controller_values(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         track = self.song().master_track
-        self.send_parameter_as_cc14(track.mixer_device.panning,MIDI_MASTER_CHANNEL, MASTER_PAN_CC)
+        self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_MASTER_CHANNEL, MASTER_PAN_CC)
         self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_MASTER_CHANNEL, MASTER_VOLUME_CC)
         self.send_parameter_as_cc14(track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL, MASTER_CUE_VOLUME_CC)
         # send channel eq
-        # TODO: Once EffectController is refactored, use code that is already present there
         channel_eq = self._my_channel_eq()
         preset_info = self._my_channel_eq_preset_info()
         update_values_for_device(channel_eq, preset_info,self)
