@@ -35,9 +35,9 @@ DEVICES = {
 
 
 # Return the predefined preset information for a device, None if it doesn't exist
-def get_predefined_preset_info(device_original_name):
+def get_predefined_preset_info(device_class_name):
     # FIXME: try to read from file
-    if device_original_name in DEVICES:
-        return DEVICES[device_original_name]
+    if device_class_name in DEVICES:
+        return DEVICES[device_class_name]
     else:
         return None

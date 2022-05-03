@@ -127,18 +127,6 @@ class ElectraOneBase:
         else:
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
-    # === presets ===
-
-    # - Bank select, ie. CC 00 <bank id> selects the bank to work with, where:
-    # - <bank id> 0 is the presets, the subsequent program change message
-    # switches between the presets (0 .. 71)
-    # Program change message: C6 00 <preset id>
-    def select_preset (self, idx):
-        """Select a preset (idx in 0..71)
-        """
-        # TODO use a program change
-        pass
-    
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     # Upload the preset (a json string) to the Electro One
     # 0xF0 SysEx header byte
@@ -149,9 +137,20 @@ class ElectraOneBase:
     # 0xF7 SysEx closing byte
     #
     # preset is the json preset as a string
-    def upload_preset(self,preset):
+    def upload_preset(self,slot,preset):
         """Upload an Electra One preset (given as a JSON string)
+           to the specified slot (bank,preset) where bank:0..5 and
+           preset: 0..11.
         """
+        self.debug(1,f'Selecting slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), 'Bank index out of range.'
+        assert presetidx in range(12), 'Preset index out of range.'
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x08)
+        sysex_select = (bankidx, presetidx)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_select + sysex_close)
+        
         self.debug(1,'Uploading preset.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])

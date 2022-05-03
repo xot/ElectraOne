@@ -29,9 +29,9 @@ LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
 
 # --- Effect/device configuration constants
 
-# E1 preset index where the preset controlling the currently selected device
-# is stored
-EFFECT_PRESET_IDX = 61
+# E1 preset slot where the preset controlling the currently selected device
+# is stored. Specified by bank index (0..5) followed by preset index (0.11)
+EFFECT_PRESET_SLOT = (5,1)
 
 ORDER_ORIGINAL = 0   # order as reported by Live
 ORDER_SORTED = 1     # sort by parameter name
@@ -51,12 +51,13 @@ MAX_CC14_PARAMETERS = -1
 
 # --- mixer configuration constants ---
 
-# E1 preset index where the preset controlling the currently selected device
-# is stored
-MIXER_PRESET_IDX = 61
+# E1 preset slot where the master is stored. Specified by bank index (0..5)
+# followed by preset index (0.11)
+MIXER_PRESET_IDX = (5,0)
 
-# E1 preset for the mixer (encoded as a JSON string)
-MIXER_PRESET = ""
+# E1 preset for the mixer (encoded as a JSON string); if None no mixer preset
+# is uploaded (and it is as assumed a mixer preset is already present)
+MIXER_PRESET = None
 
 # The MIXER uses three MIDI channels: MIDI_MASTER_CHANNEL, MIDI_TRACKS_CHANNEL
 # and MIDI_SENDS_CHANNEL.

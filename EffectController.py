@@ -85,6 +85,35 @@ class EffectController(ElectraOneBase):
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
         self.debug(0,'EffectController loaded.')
 
+    def update_display(self):
+        """ Called every 100 ms; used to call update_values with a delay
+        """
+        if self._value_update_timer == 0:
+            self._init_controller_values()
+        if self._value_update_timer >= 0:
+            self._value_update_timer -= 1
+
+    def disconnect(self):
+        """Called right before we get disconnected from Live
+        """
+        self._device_appointer.disconnect()                
+
+    # --- initialise values ---
+    
+    def _init_controller_values(self):
+         # send the values of the controlled elements to the E1 (to bring them in sync)
+       update_values_for_device(self._assigned_device,self._preset_info,self)
+
+    # --- MIDI ---
+
+    def build_midi_map(self, midi_map_handle):
+        """Build a MIDI map for the currently selected device    
+        """
+        self.debug(1,'Building effect MIDI map.')
+        build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
+
+    # === Others ===
+    
     def get_preset(self,device):
         """Get the preset for the specified device, either externally,
            predefined or else construct it on the fly.
@@ -100,31 +129,8 @@ class EffectController(ElectraOneBase):
             dumper = ElectraOneDumper(self, device_name, device.parameters)
             return dumper.get_preset()
 
-    # === updating values ===
-
-    def update_values(self):
-        """Update the displayed values of the parameters in the
-           (just uploaded) preset
-        """
-        self.debug(1,'Updating values.')
-        update_values_for_device(self._assigned_device,self._preset_info,self)
-
-    def build_midi_map(self, midi_map_handle):
-        """Build a MIDI map for the currently selected device    
-        """
-        self.debug(1,'Building effect MIDI map.')
-        build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
-
-    # === Others ===
+    # --- handling presets  ----
     
-    def update_display(self):
-        """ Called every 100 ms; used to call update_values with a delay
-        """
-        if self._value_update_timer == 0:
-            self.update_values()
-        if self._value_update_timer >= 0:
-            self._value_update_timer -= 1
-
     def dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
@@ -158,7 +164,7 @@ class EffectController(ElectraOneBase):
                     f.write(f"'{ p.original_name }': None\n")
             f.write('}')
 
-    # === handle device selection
+    # --- handle device selection ---
     
     def lock_to_device(self, device):
         if device:
@@ -181,8 +187,7 @@ class EffectController(ElectraOneBase):
                 if DUMP:
                     self.dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                self.select_preset(EFFECT_PRESET_IDX)
-                self.upload_preset(preset)
+                self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 # set a delay depending on the length (~complexity) of the preset
                 self._value_update_timer = int(len(preset)/200)
                 self.request_rebuild_midi_map()                
@@ -191,7 +196,3 @@ class EffectController(ElectraOneBase):
         if not self._assigned_device_locked:
             self._assign_device(device)
         
-    def disconnect(self):
-        """Called right before we get disconnected from Live
-        """
-        self._device_appointer.disconnect()                

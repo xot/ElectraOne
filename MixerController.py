@@ -105,6 +105,8 @@ class MixerController(ElectraOneBase):
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
         self.__c_instance = c_instance
+        if MIXER_PRESET:
+            self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
         # allocate return track controllers (at most two, but take existence into account)

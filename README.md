@@ -111,12 +111,16 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 
 The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
 
+- ```EFFECT_PRESET_SLOT``` E1 preset slot where the preset controlling the currently selected device is stored. Specified by bank index (0..5) followed by preset index (0.11)
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They 'are' included in the CC map for reference, with a mapping of ```None```, but *not* in the dumped preset; you may therefore want to use ```ORDER_SORTED``` when dumping presets.)
 - ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters. If ```-1``` all parameters are included (limited by the number of available MIDI channels and CC parameter slots): this is a good setting when dumping devices and/or when setting ```ORDER = ORDER_DEVICEDICT```
 - ```MIDI_EFFECT_CHANNEL``` is the first MIDI channel to use to assign device parameters controls to.
 - ```MAX_MIDI_EFFECT_CHANNELS``` limits the number of MIDI channels used in a preset constructed on the fly; -1 means all MIDI channels are used. If this means that there are more parameters then available CC numbers, those parameters are not assigned.
 
 The following constants deal with the mixer preset.
+
+- ```MIXER_PRESET_SLOT``` E1 preset slot where the master preset is stored. Specified by bank index (0..5) followed by preset index (0.11)
+- ```MIXER_PRESET``` E1 preset for the mixer (encoded as a JSON string); if ```None``` no mixer prese is uploaded (and it is as assumed a mixer preset is already present).
 - ```MIDI_MASTER_CHANNEL```,  ```MIDI_TRACKS_CHANNEL``` and ```MIDI_SENDS_CHANNEL``` set the distinct MIDI channels to map the master, track, and sends controls to. See the [technical documentation](./DOCUMENTATION.md) for details.
 - ```MAX_NO_OF_SENDS``` sets the maximum number of sends (and return tracks) present on the controller (currently 6).
 - ```NO_OF_TRACKS``` sets the number of tracks present on the controller (currently 5).
