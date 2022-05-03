@@ -17,7 +17,7 @@
 DEBUG = 0
 
 # Whether creates patch info should be dumped
-DUMP = False
+DUMP = True
 
 # Local directory where dunps are stored (./dumps) and user defined
 # presets are loaded from (./user-presets). This is first tried as a
@@ -40,7 +40,7 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # Specify the order in which parameters shoudl appear in an automatically
 # created preset for the currently selected device. If order is
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
-ORDER = ORDER_SORTED
+ORDER = ORDER_DEVICEDICT
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
@@ -53,7 +53,7 @@ MAX_CC14_PARAMETERS = -1
 
 # E1 preset slot where the master is stored. Specified by bank index (0..5)
 # followed by preset index (0.11)
-MIXER_PRESET_IDX = (5,0)
+MIXER_PRESET_SLOT = (5,0)
 
 # E1 preset for the mixer (encoded as a JSON string); if None no mixer preset
 # is uploaded (and it is as assumed a mixer preset is already present)

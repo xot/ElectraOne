@@ -10,21 +10,28 @@ It can also be used to dump Electra One presets for Ableton Live devices with se
 
 Finally, it also contains a mixer preset to control the track mixers, returns, master mixer and transport.
 
+The mixer preset is by default stored in bank 6, first slot. The active device preset is by default stored in bank 6 second slot.
+
 ## The mixer
 
 The mixer controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. 
 
 The 'Main' mixer page also contains control the master pan, volume, cue volume, and solo switch. And it contains transport controls: play/stop, record, rewind, and forward.
 
-<img main>
+![Main](./images/main.png "Main")
+
 
 For each track, the level of at most six sends can be controlled (see the 'Sends' page). 
 
-<img sends>
+![Sends](./images/sends.png "Sends")
 
 The return track corresponding to each send can be managed using the controls on the 'Returns' page: pan, volume, and mute.
 
+![Returns](./images/returns.png "Returns")
+
 Finally a separate 'Channel EQs' page contains controls to control the parameters of a Channel EQ device, when present *as the last device* on an audio/midi track or the master track.
+
+![Channel EQs](./images/channeleqs.png "Channel EQs")
 
 All controls on all pages are synced with the values of the parameters in Live they control as soon as a selection changes, or when parameters in Live are changed through the UI or using a different controller.
 
@@ -38,7 +45,11 @@ The Remote Script uploads a default mixer defined in ```Devices.py```. This can 
 
 It looks for a preloaded preset for the selected device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
 
-If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device.
+![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
+
+If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the Electra One to the currently selected preset slot (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+
+![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
 <img>
 
@@ -109,9 +120,12 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```).
 
-The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
+The following constant deals with the slot where device presets are loaded.
 
 - ```EFFECT_PRESET_SLOT``` E1 preset slot where the preset controlling the currently selected device is stored. Specified by bank index (0..5) followed by preset index (0.11)
+
+The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
+
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They 'are' included in the CC map for reference, with a mapping of ```None```, but *not* in the dumped preset; you may therefore want to use ```ORDER_SORTED``` when dumping presets.)
 - ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters. If ```-1``` all parameters are included (limited by the number of available MIDI channels and CC parameter slots): this is a good setting when dumping devices and/or when setting ```ORDER = ORDER_DEVICEDICT```
 - ```MIDI_EFFECT_CHANNEL``` is the first MIDI channel to use to assign device parameters controls to.
