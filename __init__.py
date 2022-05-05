@@ -14,7 +14,6 @@ def create_instance(c_instance):
     return ElectraOne(c_instance)
 
 # FIXME: copied from RemoteSL; not sure what this is needed for
-# ALso: does this influence MIDI channel bug in Live.MidiMap.map_midi_cc ?
 def get_capabilities():
     return {
      CONTROLLER_ID_KEY: controller_id(vendor_id=4661, product_ids=[11], model_name=u'ElectraOne XOT'),

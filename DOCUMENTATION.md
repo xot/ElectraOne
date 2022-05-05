@@ -5,22 +5,20 @@ author: Jaap-Henk Hoepman (info@xot.nl)
 
 # Introduction 
 
-This is the *technical* documentation describing the internals of the Aleton Live Remote Script for the Electra One (aka E1). For the user guide, see the [Read Me](README). 
+This is the *technical* documentation describing the internals of the Ableton Live Remote Script for the Electra One (aka E1). For the user guide, see the [Read Me](README). 
 
-Two parts
-- a [mixer](#the-mixer) 
-- [current device](#device-control)
+The remote script essentially supports two control surfaces
+- a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1, and
+- a [current device](#device-control) with a E1 preset in bank slot 2.
 
-specific slots on the E1.
-- mixer: bank 6, preset 1
-- effectst: bank 6, preset 2 
+Their implementation is described further below, after a brief introduction on 
+remote scripts and MIDI.
 
 # Some background
 
 ## Ableton Live API
 
-[Live 11.0 API](https://structure-void.com/PythonLiveAPI_documentation/Live11.0.xml)
-
+Ableton Live exposes a lot of its functionality for remotely controlling it through the so-called Live API. In essence any part of the interface, or most of the contents of a song all the way to the individual clip level can be accessed, not only for reading but also for writing!
 
 Ableton officially only supports the Live API through [Max for Live](https://docs.cycling74.com/max8/vignettes/live_object_model). However, that information is mostly valid for Remote Scripts too, except that 
 the paths in a MIDI Remote Script are slightly different than the paths mentioned in the documentation:
@@ -31,22 +29,74 @@ the paths in a MIDI Remote Script are slightly different than the paths mentione
 
 Note that (that version of) the Live API itself does not contain all the necessary information to write Remote Scripts: it does not offer any information in MIDI mapping, or the interface between Live and the remote script (i.e the ```c_instance``` object passed to the Remote Script by Live), which is necessary to understand how to send and receive MIDI messages, how to detect device selection changes, or how to indeed map MIDI (and how that works, exactly).
 
+Because no official documentation existed, in the past people have reverse engineered the [Live API reference documentation](https://structure-void.com/PythonLiveAPI_documentation/Live11.0.xml) which shows the Python interface of most of Live's externally callable functions (most of the time without any documentation, however).
+
 
 ## Remote scripts
 
-```
-c_instance
-```
+Remote scripts are the interface between the *controls* on an external MIDI controller and the device *parameters* and other Live UI interface elements. It ensures that Live responds to a user interacting with the controller, and ensures that information displayed by the controller is in sync with Live.
+
+Communication between Live and the MIDI controller takes place using MIDI, and a remote scripts is assigned a specific input port (to listen for MIDI events from the controller) and output port (to send MIDI events to the controller). MIDI events on other ports are invisible to the remote script.
+
+A remote script is written for a specific remote controller. As such the remote script knows the specific assignment of MIDI *events* (MIDI channel, event type and event number) to controls on the external controller. I.e. it knows what MIDI events will be generated when a dial on the controller is turned, a button is pushed or a key is pressed. The remote script Python program uses this information to make Ableton Live respond appropriately to a controller change (for example by calling the appropriate function in the Live API), and also to send status information back to the controller.
+
+A typical use case (and what makes them so useful and important to have for an external controller) is to map the controls on the external controller automatically to the currently selected device in Live. 
+
+This is the general idea. Unfortunately, no official information on how to implement a remote script is available. Luckily, twelve years ago already Hanz Petrov wrote an excellent [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html), and others made the effort of decompiling all officially supported [remote scripts in a Live distribution](https://github.com/gluon/AbletonLive11_MIDIRemoteScripts). Especially the latter resource proved to be invaluable to figure out exactly how to program a remote script.
+
+### Python package
+
+Every remote script is a separate [Python package](https://docs.python.org/3/tutorial/modules.html) contained in a separate directory in the remote scripts folder. User defined remote scripts are stored in ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows. The name of the directory determines the name Live uses for the remote script. In our case, the ElectraOne remote script is therefore stored in the directory ```ElectraOne```. 
+
+Every remote script Python package must contain a file ```__init.py__``` that should define two functions
+
+- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below).
+- ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information what this should contain and how it is used.
+
+Essentially, the object returned by ```create_instance``` allow Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
+
+The parameter ```c_instance``` on the other hand allows the remote script to send instructions to (i.e. call methods on) Live. It is the interface from the remote script back to Live. It is used, for example, to tell Live to add a MIDI mapping, or to send MIDI events to the external controller.
+
+### The remote script object
+
+The remote script object should define the following methods (although if a method is missing, it is simply ignored):
+
+- ```suggest_input_port(self)``` to tell Live the name of the preferred input port name (returned as string)
+- ```suggest_output_port(self)``` to tell Live the name of the preferred output port name (returned as string)
+- ```can_lock_to_devices(self)``` to tell Live whether the remote script can be locked to devices (returned as a boolean).
+- ```lock_to_device(self, device)``` tells the remote script to lock to a given device (passed as a reference of type ```Live.Device.Device```).
+- ```unlock_from_device(self, device)``` tells the remote script to unlock from the given device (passed as a reference of type ```Live.Device.Device```).
+- ```toggle_lock(self)``` tell the script to toggle whether it will lock to devices or not; this is a bit weird because you would expect Live itself to handle this (and there is corresponding ```toggle_lock``` in ```c_instance``` to tell Live to toggle the lock...).
+- ```handle_sysex(self,midi_bytes)``` not sure how this works; even though a controller sends SysEx messages, these are not forwarded though this call to the remote script.
+- ```receive_midi(self,midi_bytes)``` is called to pass a single MIDI event (encoded in the *sequence* of bytes midi_bytes) to the remote script, but this is *only* called when the specific MIDI event was registered by the remote script using ```Live.MidiMap.forward_midi_cc()```. Other incoming MIDI events are ignored and not forwarded to the remote script.
+- ```build_midi_map(self, midi_map_handle)``` asks the remote script to fill the MIDI map in ```midi_map_handle``` (empty when called).
+- ```update_display(self)``` is called by Live every 100 ms. Can be used to execute scheduled tasks, like updating the remote controller display (but other uses are of course also possible).
+- ```disconnect(self)``` is called right before the remote script gets disconnected from Live, and should be used to perform any cleanup actions.
+
+        
+
+
+### The ```c_instance``` object
+
+The ```c_instance``` object defines the following methods (among others, presumably: it's interface is not documented anywhere):
+
+- ```song(self)``` a reference to the current song and hence essentially to all things accessible through the Live API.
+- ```log_message(self,m)``` log a message to the log file.
+- ```show_message(self,m)``` show a message in Live's message area in the lower left corner of the Live window.
+- ```send_midi(self,m)``` send the MIDI message m, defined as a *sequence* of bytes over the output port assigned to the remote script.
+- ```request_rebuild_midi_map(self)``` instructs Live to destroy *all* current MIDI mappings and to ask the remote script to construct a fresh map (by calling ```build_midi_map```, see above).
+
+It's use can be seen when looking at the ```ElectraOneBase.py``` module.
+
+
+_Framework (not used!)
 
 ## MIDI / Ableton
 
 
 Only the first 32 CC parameters can be assigned to be 14bit controllers (even though there would be space for more starting at slot 64, but unfortunately neither Ableton nor the E1 fully support that).
 
-*control* a thing on the E1
-*parameter* the Live thing controlled
-
-
+*(More info to be added)*
 
 
 ### MIDI mapping
