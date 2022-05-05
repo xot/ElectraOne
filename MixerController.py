@@ -94,6 +94,8 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
+from .Devices import MIXER_PRESET
+
 # TODO: somehow, when loading a new song, the display is automatically updated
 # check what happens to understand why!!
 

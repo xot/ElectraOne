@@ -142,7 +142,7 @@ class EffectController(ElectraOneBase):
         if not os.path.exists(path):                                        # defaukt is HOME
             path = home
         device_name = get_device_name(device)
-        fname = f'{ path }/{ device_name }.json'
+        fname = f'{ path }/{ device_name }.epr'
         # dump the preset JSON string
         self.debug(1,f'dumping device: { device_name } in { fname }.')
         s = preset_info.get_preset()
