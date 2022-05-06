@@ -105,6 +105,8 @@ class MixerController(ElectraOneBase):
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
         self.__c_instance = c_instance
+        self._refresh_state_timer = -1 # prevent refresh at the moment
+        # Upload mixer preset if defined
         if MIXER_PRESET:
             pass
             #TODO: uncomment
@@ -194,7 +196,7 @@ class MixerController(ElectraOneBase):
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.request_rebuild_midi_map()
-        self._refresh_state_timer = 5 # delay value updates until MIDI map ready
+        self._refresh_state_timer = 1 # delay value updates until MIDI map ready
 
     def _on_tracks_added_or_deleted(self):
         self.debug(2,'Tracks added or deleted.')

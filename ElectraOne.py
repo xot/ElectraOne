@@ -20,7 +20,7 @@ from .config import *
 
 CC_STATUS = 0xB0
 E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45) 
-E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
+E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number and terminated by 0xF7
 SYSEX_TERMINATE = 0xF7
 
 class ElectraOne(ElectraOneBase):

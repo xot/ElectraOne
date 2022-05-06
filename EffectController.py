@@ -72,13 +72,13 @@ class EffectController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
+        self._refresh_state_timer = -1 # prevent refresh at the moment
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
         # timer set when device appointed; countdown through update_display
         # until 0, in which case update_display calls the update_values function
         # If -1 no updating needed.
-        self._value_update_timer = -1
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
@@ -93,10 +93,10 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
-        if self._value_update_timer == 0:
+        if self._refresh_state_timer == 0:
             self.refresh_state()
-        if self._value_update_timer >= 0:
-            self._value_update_timer -= 1
+        if self._refresh_state_timer >= 0:
+            self._refresh_state_timer -= 1
 
     def disconnect(self):
         """Called right before we get disconnected from Live
@@ -188,7 +188,7 @@ class EffectController(ElectraOneBase):
                 preset = self._preset_info.get_preset()
                 self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 # set a delay depending on the length (~complexity) of the preset
-                self._value_update_timer = int(len(preset)/200)
+                self._refresh_state_timer = int(len(preset)/200)
                 self.request_rebuild_midi_map()                
 
     def _set_appointed_device(self, device):
