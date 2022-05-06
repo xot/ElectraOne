@@ -30,12 +30,11 @@ ARM_CC = 89
 # Sends (on MIDI_SENDS_CHANNEL)
 SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie with increments of NO_OF_TRACKS=5
 
-# TODO: Handle tracks that cannot be armed
 # TODO: Handle track names
 # TODO: hide/gray out unmapped sends
 
 # Change this to managa a different EQ like device on every track
-# TODO: move this to devices
+# TODO: move this to Devices (but this modifying the ./makedevices script)
 #
 # Specify the device.class_name here
 TRACK_EQ_DEVICE_NAME = 'ChannelEq'

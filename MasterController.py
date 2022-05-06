@@ -54,8 +54,6 @@ MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
 
-# TODO: map master SOLO button;
-
 # Change this to manage a different EQ like device on the master track
 # TODO: move this to devices
 #
@@ -132,7 +130,7 @@ class MasterController(ElectraOneBase):
     def _init_cc_handlers(self):
         # define handlers for incpming midi events
         pass
-
+    
     # --- MIDI ---
     
     def process_midi(self, midi_channel, cc_no, value):

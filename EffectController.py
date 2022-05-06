@@ -54,12 +54,12 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
 # TODO: bit of a hack to pass ElectraOneBase as sender_object
-def update_values_for_device(device, preset_info,sender_object):
+def update_values_for_device(device, preset_info, sender_object):
     # Internal function to update the displayed values for a device, also
     # used by TrackController and MasterController too to map the
     # ChannelEq device. Uses preset_info to get the CCInfo for device
     # parameters.
-    if device:
+    if device and preset_info:
         for p in device.parameters:
             ccinfo = preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
@@ -188,6 +188,7 @@ class EffectController(ElectraOneBase):
                 preset = self._preset_info.get_preset()
                 self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 # set a delay depending on the length (~complexity) of the preset
+                # to ensure it is loaded before doing anything else
                 self._refresh_state_timer = int(len(preset)/200)
                 self.request_rebuild_midi_map()                
 

@@ -50,7 +50,7 @@ Every remote script is a separate [Python package](https://docs.python.org/3/tut
 
 Every remote script Python package must contain a file ```__init.py__``` that should define two functions
 
-- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live through the UI.
+- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live through the UI. 
 - ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information what this should contain and how it is used.
 
 Essentially, the object returned by ```create_instance``` allow Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.

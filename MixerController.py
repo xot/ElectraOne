@@ -94,6 +94,7 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
+
 # TODO: somehow, when loading a new song, the display is automatically updated
 # check what happens to understand why!!
 
@@ -104,14 +105,11 @@ class MixerController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
-        self.__c_instance = c_instance
         self._refresh_state_timer = -1 # prevent refresh at the moment
-        # Upload mixer preset if defined
-        if MIXER_PRESET:
-            pass
-            #TODO: uncomment
-            #self.debug(1,'Uploading mixer preset.')
-            #self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
+        # TODO: Upload mixer preset if defined
+        #if MIXER_PRESET:
+        #    self.debug(1,'Uploading mixer preset.')
+        #    self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
         # allocate return track controllers (at most two, but take existence into account)
@@ -147,6 +145,8 @@ class MixerController(ElectraOneBase):
     def update_display(self):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.
+           Used to effectuate a state refresh (after some delay) called for
+           by _handle_selection_change
         """
         # handle a refresh state after some delay
         if self._refresh_state_timer == 0:
@@ -192,21 +192,23 @@ class MixerController(ElectraOneBase):
             tc.disconnect()
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.song().visible_tracks))
         track_range = range(self._first_track_index, last_track_index)
-        self._track_controllers = [ TrackController(self.__c_instance,i,i-self._first_track_index)
+        self._track_controllers = [ TrackController(self.get_c_instance(),i,i-self._first_track_index)
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.request_rebuild_midi_map()
-        self._refresh_state_timer = 1 # delay value updates until MIDI map ready
+        self._refresh_state_timer = 100 # delay value updates until MIDI map ready
 
     def _on_tracks_added_or_deleted(self):
         self.debug(2,'Tracks added or deleted.')
+        # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
+        # reconnect the tracks
         self._handle_selection_change()
         # TODO: deal with return track changes
         for rtrn in self._return_controllers:
             rtrn.disconnect()
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
-        self._return_controllers = [ReturnController(c_instance,i) for i in range(returns)]
+        self._return_controllers = [ReturnController(self.get_c_instance(),i) for i in range(returns)]
 
     # --- initialise values ---
     

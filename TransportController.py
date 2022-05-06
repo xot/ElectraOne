@@ -72,7 +72,6 @@ class TransportController(ElectraOneBase):
 
     def _on_record_mode_changed(self):
         self.debug(2,'Record mode changed.')
-        # TODO: send value update
         if self.song().record_mode:
             value = 127
         else:

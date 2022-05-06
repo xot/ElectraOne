@@ -34,7 +34,6 @@ class ElectraOne(ElectraOneBase):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
-        self.__c_instance = c_instance
         self._effect_controller = EffectController(c_instance)
         self._mixer_controller = MixerController(c_instance)
         self.log_message('ElectraOne remote script loaded.')
@@ -72,7 +71,7 @@ class ElectraOne(ElectraOneBase):
         """
         # Weird; why is Ableton relegating this to the script?
         self.debug(1,'Main toggle lock called.') 
-        self.__c_instance.toggle_lock()
+        self.get_c_instance().toggle_lock()
 
     def receive_midi_cc(self, midi_bytes):
         (status,cc_no,value) = midi_bytes
@@ -101,7 +100,7 @@ class ElectraOne(ElectraOneBase):
         self.debug(1,'Main receive MIDI called.')
         self.debug(2,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
         if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
-            receive_midi_cc(midi_bytes)
+            self.receive_midi_cc(midi_bytes)
         elif midi_bytes[0:4] == E1_SYSEX_PREFIX:
             self.receive_midi_sysex(midi_bytes)
         else:
@@ -112,7 +111,7 @@ class ElectraOne(ElectraOneBase):
         """
         self.debug(1,'Main build midi map called.') 
         self._effect_controller.build_midi_map(midi_map_handle)
-        self._mixer_controller.build_midi_map(self.__c_instance.handle(),midi_map_handle)
+        self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
         
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the

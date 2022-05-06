@@ -37,6 +37,12 @@ class ElectraOneBase:
         self._c_instance = c_instance
 
     # --- helper functions
+
+    def get_c_instance(self):
+        """Return a reference to the c_instance passed by Live to
+           the remote script.
+        """
+        return self._c_instance
     
     def song(self):
         """Return a reference to the current song.
