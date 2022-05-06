@@ -67,7 +67,6 @@ class TrackController(ElectraOneBase):
         self._offset = offset
         self._add_listeners()
         self._init_cc_handlers()
-        self._value_update_timer = 5 # delay value updates until MIDI map ready
         self.debug(0,'TrackController loaded.')
 
     # --- helper functions ---
@@ -100,11 +99,12 @@ class TrackController(ElectraOneBase):
 
     def refresh_state(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
+        # called and initiated by MixerController
+        track = self._track()
         self._on_mute_changed()
         if track.can_be_armed: # group track cannot!
             self._on_arm_changed()         
         self._on_solo_cue_changed()
-        track = self._track()
         self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
         self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
         # send sends
@@ -120,11 +120,7 @@ class TrackController(ElectraOneBase):
         update_values_for_device(channel_eq, preset_info,self)
 
     def update_display(self):
-        # handle events asynchronously
-        if self._value_update_timer == 0:
-            self.refresh_state()
-        if self._value_update_timer >= 0:
-            self._value_update_timer -= 1
+        pass
     
     def disconnect(self):
         # cleanup

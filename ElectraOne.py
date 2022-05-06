@@ -14,9 +14,14 @@
 from .ElectraOneBase import ElectraOneBase 
 from .EffectController import EffectController
 from .MixerController import MixerController
-from .config import check_configuration
+from .config import *
 
 # --- ElectraOne class
+
+CC_STATUS = 0xB0
+E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45) 
+E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
+SYSEX_TERMINATE = 0xF7
 
 class ElectraOne(ElectraOneBase):
     """Remote control script for the Electra One. Initialises an
@@ -69,6 +74,25 @@ class ElectraOne(ElectraOneBase):
         self.debug(1,'Main toggle lock called.') 
         self.__c_instance.toggle_lock()
 
+    def receive_midi_cc(self, midi_bytes):
+        (status,cc_no,value) = midi_bytes
+        midi_channel = status - CC_STATUS + 1
+        self._mixer_controller.process_midi(midi_channel,cc_no,value)
+
+
+    def receive_midi_sysex(self, midi_bytes):
+        self.debug(4,f'Handling SysEx { midi_bytes }.')
+        if (len(midi_bytes) == 9) and \
+           (midi_bytes[4:6] == E1_SYSEX_PRESET_CHANGED) and \
+           (midi_bytes[8] == SYSEX_TERMINATE):
+            self.debug(3,'Preset selected')
+            if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
+                self.debug(3,'Mixer preset selected')
+                self._mixer_controller.refresh_state()
+            elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
+                self.debug(3,'Effect preset selected')
+                self._effect_controller.refresh_state()
+                
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map' using
@@ -76,9 +100,12 @@ class ElectraOne(ElectraOneBase):
         """
         self.debug(1,'Main receive MIDI called.')
         self.debug(2,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
-        # Only MixerController needs to receive these
-        self._mixer_controller.receive_midi(midi_bytes)
-
+        if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
+            receive_midi_cc(midi_bytes)
+        elif midi_bytes[0:4] == E1_SYSEX_PREFIX:
+            self.receive_midi_sysex(midi_bytes)
+        else:
+            self.debug(2,'Unexpected MIDI bytes not processed.')
 
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
@@ -98,7 +125,7 @@ class ElectraOne(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms. Used to execute scheduled tasks
         """
-        self.debug(1,'Main update display called.') 
+        #self.debug(1,'Main update display called.') 
         self._effect_controller.update_display()
         self._mixer_controller.update_display()
                                

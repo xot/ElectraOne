@@ -141,12 +141,17 @@ class MixerController(ElectraOneBase):
             retrn.refresh_state()    
         for track in self._track_controllers:
             track.refresh_state()    
-        pass
     
     def update_display(self):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.
         """
+        # handle a refresh state after some delay
+        if self._refresh_state_timer == 0:
+            self.refresh_state()
+        if self._refresh_state_timer >= 0:
+            self._refresh_state_timer -= 1
+        # forward update request to children
         self._transport_controller.update_display()
         self._master_controller.update_display()
         for retrn in self._return_controllers:
@@ -189,6 +194,7 @@ class MixerController(ElectraOneBase):
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.request_rebuild_midi_map()
+        self._refresh_state_timer = 5 # delay value updates until MIDI map ready
 
     def _on_tracks_added_or_deleted(self):
         self.debug(2,'Tracks added or deleted.')
@@ -228,17 +234,10 @@ class MixerController(ElectraOneBase):
 
     # --- MIDI mapping ---
         
-    def receive_midi(self, midi_bytes):
-        """Receive incoming MIDI messages, and distribute them to the
+    def process_midi(self, midi_channel, cc_no, value):
+        """Receive incoming MIDI CC messages, and distribute them to the
            transport, master, return and track controllers.
         """
-        self.debug(4,f'Receiving MIDI { midi_bytes }')
-        # only handle 7bit CC events that are three bytes long
-        if len(midi_bytes) != 3:
-            self.debug(4,f'Unexpected MIDI received { midi_bytes }')
-            return
-        (status,cc_no,value) = midi_bytes
-        midi_channel = status - 176 + 1
         self.debug(4,f'Handling ({midi_channel},{cc_no}) with value {value}.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]

@@ -35,7 +35,6 @@ class TransportController(ElectraOneBase):
         self._forward_pressed = False
         self._add_listeners()
         self._init_cc_handlers()
-        self._value_update_timer = 5 # delay value updates until MIDI map ready
         self.debug(0,'TransportController loaded.')
 
     # --- helper functions ---
@@ -48,11 +47,6 @@ class TransportController(ElectraOneBase):
         self._on_is_playing_changed()
 
     def update_display(self):
-        # handle events asynchronously
-        if self._value_update_timer == 0:
-            self.refresh_state()
-        if self._value_update_timer >= 0:
-            self._value_update_timer -= 1
         # Move backword or forward in a sing while rewind or forward button pressed
         if self._rewind_pressed:
             self.song().jump_by(-FORW_REW_JUMP_BY_AMOUNT)
