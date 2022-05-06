@@ -50,12 +50,18 @@ Every remote script is a separate [Python package](https://docs.python.org/3/tut
 
 Every remote script Python package must contain a file ```__init.py__``` that should define two functions
 
-- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below).
+- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live through the UI.
 - ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information what this should contain and how it is used.
 
 Essentially, the object returned by ```create_instance``` allow Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
 
 The parameter ```c_instance``` on the other hand allows the remote script to send instructions to (i.e. call methods on) Live. It is the interface from the remote script back to Live. It is used, for example, to tell Live to add a MIDI mapping, or to send MIDI events to the external controller.
+
+### Threading, asynchrony.
+
+The remote script is put on a separate thread (apparently(: even if certain actions take seconds to complete they do not interfere with audio processing.
+
+FIXME : More info needed.
 
 ### The remote script object
 
@@ -67,12 +73,12 @@ The remote script object should define the following methods (although if a meth
 - ```lock_to_device(self, device)``` tells the remote script to lock to a given device (passed as a reference of type ```Live.Device.Device```).
 - ```unlock_from_device(self, device)``` tells the remote script to unlock from the given device (passed as a reference of type ```Live.Device.Device```).
 - ```toggle_lock(self)``` tell the script to toggle whether it will lock to devices or not; this is a bit weird because you would expect Live itself to handle this (and there is corresponding ```toggle_lock``` in ```c_instance``` to tell Live to toggle the lock...).
-- ```handle_sysex(self,midi_bytes)``` not sure how this works; even though a controller sends SysEx messages, these are not forwarded though this call to the remote script.
-- ```receive_midi(self,midi_bytes)``` is called to pass a single MIDI event (encoded in the *sequence* of bytes midi_bytes) to the remote script, but this is *only* called when the specific MIDI event was registered by the remote script using ```Live.MidiMap.forward_midi_cc()```. Other incoming MIDI events are ignored and not forwarded to the remote script.
+- ```receive_midi(self,midi_bytes)``` is called to pass a single MIDI event (encoded in the *sequence* of bytes midi_bytes) to the remote script. For CC like events this is *only* called when the specific MIDI event was registered by the remote script using ```Live.MidiMap.forward_midi_cc()```. Other incoming MIDI CC like events are ignored and not forwarded to the remote script. SysEx messages are *always* passed to this function.
 - ```build_midi_map(self, midi_map_handle)``` asks the remote script to fill the MIDI map in ```midi_map_handle``` (empty when called).
 - ```update_display(self)``` is called by Live every 100 ms. Can be used to execute scheduled tasks, like updating the remote controller display (but other uses are of course also possible).
 - ```disconnect(self)``` is called right before the remote script gets disconnected from Live, and should be used to perform any cleanup actions.
-
+- ```refresh_state(self)```: FIXME, expected to be present.
+- ```connect_script_instances```: FIXME, expected to be present.
         
 
 
@@ -84,12 +90,65 @@ The ```c_instance``` object defines the following methods (among others, presuma
 - ```log_message(self,m)``` log a message to the log file.
 - ```show_message(self,m)``` show a message in Live's message area in the lower left corner of the Live window.
 - ```send_midi(self,m)``` send the MIDI message m, defined as a *sequence* of bytes over the output port assigned to the remote script.
-- ```request_rebuild_midi_map(self)``` instructs Live to destroy *all* current MIDI mappings and to ask the remote script to construct a fresh map (by calling ```build_midi_map```, see above).
+- ```request_rebuild_midi_map(self)``` instructs Live to destroy *all* current MIDI mappings and to ask the remote script to construct a fresh map (by calling ```build_midi_map```, see above). Note that this is *not* an asynchronous message but calls the ```build_midi_map``` directly.
 
 It's use can be seen when looking at the ```ElectraOneBase.py``` module.
 
+Using Python's ```dir()``` function we can obtain its signature:
 
-_Framework (not used!)
+```
+['__bool__', 
+'__class__', 
+'__delattr__', 
+'__dict__', 
+'__dir__', 
+'__doc__', 
+'__eq__', 
+'__format__', 
+'__ge__', 
+'__getattribute__', 
+'__gt__', 
+'__hash__', 
+'__init__', 
+'__init_subclass__', 
+'__le__', 
+'__lt__', 
+'__module__', 
+'__ne__', 
+'__new__', 
+'__reduce__', 
+'__reduce_ex__', 
+'__repr__', 
+'__setattr__', 
+'__sizeof__', 
+'__str__', 
+'__subclasshook__', 
+'__weakref__', 
+'full_velocity', 
+'handle', 
+'instance_identifier', 
+'log_message', 
+'note_repeat', 
+'playhead', 
+'preferences', 
+'release_controlled_track', 
+'request_rebuild_midi_map', 
+'send_midi', 
+'set_cc_translation', 
+'set_controlled_track', 
+'set_feedback_channels', 
+'set_feedback_velocity', 
+'set_note_translation', 
+'set_pad_translation', 
+'set_session_highlight', 
+'show_message', 
+'song', 
+'toggle_lock', 
+'update_locks', 
+'velocity_levels']
+```
+
+FIXME _Framework (not used!)
 
 ## MIDI / Ableton
 

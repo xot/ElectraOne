@@ -94,8 +94,6 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
-from .Devices import MIXER_PRESET
-
 # TODO: somehow, when loading a new song, the display is automatically updated
 # check what happens to understand why!!
 
@@ -108,7 +106,10 @@ class MixerController(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         self.__c_instance = c_instance
         if MIXER_PRESET:
-            self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
+            pass
+            #TODO: uncomment
+            #self.debug(1,'Uploading mixer preset.')
+            #self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
         # allocate return track controllers (at most two, but take existence into account)
@@ -132,7 +133,11 @@ class MixerController(ElectraOneBase):
         idx = min(idx, len(self.song().visible_tracks) - NO_OF_TRACKS)
         idx = max(idx, 0)            
         return idx
-        
+    
+    def refresh_state(self):
+        # TODO (maybe take over from update_display?)
+        pass
+    
     def update_display(self):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.
@@ -225,6 +230,7 @@ class MixerController(ElectraOneBase):
         self.debug(4,f'Receiving MIDI { midi_bytes }')
         # only handle 7bit CC events that are three bytes long
         if len(midi_bytes) != 3:
+            self.debug(4,f'Unexpected MIDI received { midi_bytes }')
             return
         (status,cc_no,value) = midi_bytes
         midi_channel = status - 176 + 1

@@ -72,7 +72,6 @@ class EffectController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
-        # TODO: check that indeed an Electra One is connected
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
@@ -85,11 +84,18 @@ class EffectController(ElectraOneBase):
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
         self.debug(0,'EffectController loaded.')
 
+    def refresh_state(self):
+        # send the values of the controlled elements to the E1 (to bring them in sync)
+        update_values_for_device(self._assigned_device,self._preset_info,self)
+
+    # --- initialise values ---
+    
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
+        # TODO: is this even necessary???
         if self._value_update_timer == 0:
-            self._init_controller_values()
+            self.refresh_state()   # TODO: global or local call?
         if self._value_update_timer >= 0:
             self._value_update_timer -= 1
 
@@ -97,12 +103,6 @@ class EffectController(ElectraOneBase):
         """Called right before we get disconnected from Live
         """
         self._device_appointer.disconnect()                
-
-    # --- initialise values ---
-    
-    def _init_controller_values(self):
-         # send the values of the controlled elements to the E1 (to bring them in sync)
-       update_values_for_device(self._assigned_device,self._preset_info,self)
 
     # --- MIDI ---
 

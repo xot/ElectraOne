@@ -68,6 +68,7 @@ class ElectraOneBase:
     # --- MIDI handling ---
     
     def send_midi(self,message):
+        self.debug(5,f'Sending MIDI {message}.') 
         self._c_instance.send_midi(message)
 
     def send_midi_cc7(self, channel, cc_no, value):
@@ -77,7 +78,6 @@ class ElectraOneBase:
         assert cc_no in range(128), f'CC no { cc_no } out of range.'
         assert value in range(128), f'CC value { value } out of range.'
         message = (get_cc_statusbyte(channel), cc_no, value )
-        self.debug(4,f'MIDI message {message}.')
         self.send_midi(message)
 
     def send_midi_cc14(self, channel, cc_no, value):
@@ -92,9 +92,7 @@ class ElectraOneBase:
         # one for the MSB and another for the LSB; the second uses cc_no+32
         message1 = (get_cc_statusbyte(channel), cc_no, msb)
         message2 = (get_cc_statusbyte(channel), 0x20 + cc_no, lsb)
-        self.debug(4,f'MIDI message {message1}.')
         self.send_midi(message1)
-        self.debug(4,f'MIDI message {message2}.')
         self.send_midi(message2)
 
     def send_parameter_as_cc14(self, p, channel, cc_no):
@@ -146,11 +144,11 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
-        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x08)
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x09, 0x08)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
-        
+        # 
         self.debug(1,'Uploading preset.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
