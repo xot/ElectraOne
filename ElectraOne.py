@@ -74,7 +74,8 @@ class ElectraOne(ElectraOneBase):
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
-        self.debug(1,'Main receive MIDI called.') 
+        self.debug(1,'Main receive MIDI called.')
+        self.debug(2,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
         # Only MixerController needs to receive these
         self._mixer_controller.receive_midi(midi_bytes)
 
