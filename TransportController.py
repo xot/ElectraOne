@@ -40,10 +40,17 @@ class TransportController(ElectraOneBase):
 
     # --- helper functions ---
     
+    # --- initialise values ---
+    
+    def refresh_state(self):
+        # send the values of the controlled elements to the E1 (to bring them in sync)
+        self._on_record_mode_changed()
+        self._on_is_playing_changed()
+
     def update_display(self):
         # handle events asynchronously
         if self._value_update_timer == 0:
-            self._init_controller_values()
+            self.refresh_state()
         if self._value_update_timer >= 0:
             self._value_update_timer -= 1
         # Move backword or forward in a sing while rewind or forward button pressed
@@ -85,13 +92,6 @@ class TransportController(ElectraOneBase):
         else:
             value = 0
         self.send_midi_cc7(MIDI_MASTER_CHANNEL, PLAY_STOP_CC, value)
-
-    # --- initialise values ---
-    
-    def _init_controller_values(self):
-        # send the values of the controlled elements to the E1 (to bring them in sync)
-        self._on_record_mode_changed()
-        self._on_is_playing_changed()
         
     # --- Handlers ---
     

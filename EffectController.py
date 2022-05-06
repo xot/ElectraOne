@@ -93,9 +93,8 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
-        # TODO: is this even necessary???
         if self._value_update_timer == 0:
-            self.refresh_state()   # TODO: global or local call?
+            self.refresh_state()
         if self._value_update_timer >= 0:
             self._value_update_timer -= 1
 

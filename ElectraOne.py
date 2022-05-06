@@ -18,8 +18,6 @@ from .config import check_configuration
 
 # --- ElectraOne class
 
-# TODO: not sure whether extending ControlSurface is needed...
-#class ElectraOne(ControlSurface):
 class ElectraOne(ElectraOneBase):
     """Remote control script for the Electra One. Initialises an
        EffectController that handles the currently selected Effect/Instrument
@@ -29,8 +27,6 @@ class ElectraOne(ElectraOneBase):
 
     def __init__(self, c_instance):
         check_configuration()
-        # TODO: remove this
-        #ControlSurface.__init__(self, c_instance)
         ElectraOneBase.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
         self.__c_instance = c_instance

@@ -135,7 +135,12 @@ class MixerController(ElectraOneBase):
         return idx
     
     def refresh_state(self):
-        # TODO (maybe take over from update_display?)
+        self._transport_controller.refresh_state()
+        self._master_controller.refresh_state()
+        for retrn in self._return_controllers:
+            retrn.refresh_state()    
+        for track in self._track_controllers:
+            track.refresh_state()    
         pass
     
     def update_display(self):

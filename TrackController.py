@@ -98,10 +98,30 @@ class TrackController(ElectraOneBase):
             cc_map[p] = (channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('',cc_map)
 
+    def refresh_state(self):
+        # send the values of the controlled elements to the E1 (to bring them in sync)
+        self._on_mute_changed()
+        self._on_arm_changed()         
+        self._on_solo_cue_changed()
+        track = self._track()
+        self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
+        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
+        # send sends
+        # note: if list is shorter, less sends included
+        sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
+        cc_no = self._my_cc(SENDS_CC)
+        for send in sends:
+            self.send_parameter_as_cc14(send,MIDI_SENDS_CHANNEL,cc_no)
+            cc_no += NO_OF_TRACKS
+        # send channel eq
+        channel_eq = self._my_channel_eq()
+        preset_info = self._my_channel_eq_preset_info()
+        update_values_for_device(channel_eq, preset_info,self)
+
     def update_display(self):
         # handle events asynchronously
         if self._value_update_timer == 0:
-            self._init_controller_values()
+            self.refresh_state()
         if self._value_update_timer >= 0:
             self._value_update_timer -= 1
     
@@ -151,27 +171,6 @@ class TrackController(ElectraOneBase):
         self.send_midi_cc7(MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC), value)
 
 
-    # --- initialise values ---
-    
-    def _init_controller_values(self):
-        # send the values of the controlled elements to the E1 (to bring them in sync)
-        self._on_mute_changed()
-        self._on_arm_changed()         
-        self._on_solo_cue_changed()
-        track = self._track()
-        self.send_parameter_as_cc14(track.mixer_device.panning, MIDI_TRACKS_CHANNEL, self._my_cc(PAN_CC))
-        self.send_parameter_as_cc14(track.mixer_device.volume, MIDI_TRACKS_CHANNEL, self._my_cc(VOLUME_CC))
-        # send sends
-        # note: if list is shorter, less sends included
-        sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
-        cc_no = self._my_cc(SENDS_CC)
-        for send in sends:
-            self.send_parameter_as_cc14(send,MIDI_SENDS_CHANNEL,cc_no)
-            cc_no += NO_OF_TRACKS
-        # send channel eq
-        channel_eq = self._my_channel_eq()
-        preset_info = self._my_channel_eq_preset_info()
-        update_values_for_device(channel_eq, preset_info,self)
 
     # --- Handlers ---
     
