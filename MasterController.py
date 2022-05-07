@@ -45,19 +45,19 @@ class MasterController(GenericTrackController):
         self._track = self.song().master_track
         self._name = f'Master track'
         # EQ device info
-        self._eq_device_name = MASTER_EQ_DEVICE_NAME # if None not present (ie all returns)
+        self._eq_device_name = MASTER_EQ_DEVICE_NAME 
         self._eq_cc_map = MASTER_EQ_CC_MAP
         # midi info
         self._midichannel = MIDI_MASTER_CHANNEL
         # sliders
         self._base_pan_cc = MASTER_PAN_CC
         self._base_volume_cc = MASTER_VOLUME_CC
-        self._base_cue_volume_cc = MASTER_CUE_VOLUME_CC  # if None, not present (ie all non master tracks)
-        self._sends_cc = None # if None, not present (ie all non audio/midi tracks)
+        self._base_cue_volume_cc = MASTER_CUE_VOLUME_CC 
+        self._sends_cc = None # not present on a master track
         # buttons
-        self._base_mute_cc = None # if None, not present (i.e. master track)
-        self._base_arm_cc = None # if None, not present (i.e. groups and returns)
-        self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
+        self._base_mute_cc = None # not present on a master track
+        self._base_arm_cc = None # not present on a master track
+        self._base_solo_cue_cc = None # present, but somehow not mappable
         #
         self._add_listeners()
         self._init_cc_handlers()

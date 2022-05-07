@@ -55,6 +55,9 @@
 # because these handlers may depend on the particular instance of the track
 # they manage and therefore need to call _my_cc() to obtain the correct CC
 # parameter number.
+#
+# Send controllers on audio/midi tracks, i.e those for which _sends_cc != None
+# are assumed to listen to MIDI_SENDS_CHANNEL
 
 
 # Ableton Live imports

@@ -64,19 +64,19 @@ class TrackController(GenericTrackController):
         self._name = f'Track {idx}'
         # offset of this track relative to the first mapped track
         self._offset = offset
-        self._eq_device_name = TRACK_EQ_DEVICE_NAME # if None not present (ie all returns)
+        self._eq_device_name = TRACK_EQ_DEVICE_NAME 
         self._eq_cc_map = TRACK_EQ_CC_MAP
         # midi info
         self._midichannel = MIDI_TRACKS_CHANNEL
         # sliders
         self._base_pan_cc = PAN_CC
         self._base_volume_cc = VOLUME_CC
-        self._base_cue_volume_cc = None  # if None, not present (ie all non master tracks)
-        self._sends_cc = 0 # if None, not present (ie all non audio/midi tracks)
+        self._base_cue_volume_cc = None  # not present on a normal track
+        self._sends_cc = 0 
         # buttons
-        self._base_mute_cc = MUTE_CC # if None, not present (i.e. master track)
-        self._base_arm_cc = ARM_CC # if None, not present (i.e. groups and returns)
-        self._base_solo_cue_cc = SOLO_CUE_CC # if None, not present (i.e. all non audio/midi tracks)
+        self._base_mute_cc = MUTE_CC 
+        self._base_arm_cc = ARM_CC 
+        self._base_solo_cue_cc = SOLO_CUE_CC 
         #
         self._add_listeners()
         self._init_cc_handlers()

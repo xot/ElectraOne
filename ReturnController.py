@@ -36,19 +36,19 @@ class ReturnController(GenericTrackController):
         self._track = self.song().return_tracks[idx]
         self._name = f'Return track {idx}'
         # EQ device info
-        self._eq_device_name = None # if None not present (ie all returns)
+        self._eq_device_name = None # not present on a return track
         self._eq_cc_map = None
         # midi info
         self._midichannel = MIDI_MASTER_CHANNEL
         # sliders
         self._base_pan_cc = RETURNS_PAN_CC
         self._base_volume_cc = RETURNS_VOLUME_CC
-        self._base_cue_volume_cc = None  # if None, not present (ie all non master tracks)
-        self._sends_cc = None # if None, not present (ie all non audio/midi tracks)
+        self._base_cue_volume_cc = None  # not present on a return track
+        self._sends_cc = None # not present on a return track
         # buttons
-        self._base_mute_cc = RETURNS_MUTE_CC = 70 # if None, not present (i.e. master track)
-        self._base_arm_cc = None # if None, not present (i.e. groups and returns)
-        self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
+        self._base_mute_cc = RETURNS_MUTE_CC = 70  
+        self._base_arm_cc = None # not present on a return track
+        self._base_solo_cue_cc = None # not present on a return track
         #
         self._add_listeners()
         self._init_cc_handlers()
