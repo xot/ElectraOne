@@ -64,10 +64,10 @@ class ElectraOneBase:
         """Write a debug message to the log, if level < DEBUG.
         """
         if level < DEBUG:
-            self._c_instance.log_message(f'\nE1 (debug): {m}')
+            self._c_instance.log_message(f'E1 (debug): {m}')
 
     def log_message(self,m):
-        self._c_instance.log_message(f'\nE1 (log): {m}')
+        self._c_instance.log_message(f'E1 (log): {m}')
 
     def show_message(self,m):
         """Show a message in the Live message line (lower left corner).

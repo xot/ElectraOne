@@ -102,8 +102,8 @@ class ElectraOne(ElectraOneBase):
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
-        self.debug(2,'Main receive MIDI called.')
-        self.debug(3,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
+        self.debug(3,'Main receive MIDI called.')
+        self.debug(4,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
         if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)

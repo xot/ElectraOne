@@ -71,7 +71,7 @@ class TransportController(ElectraOneBase):
         self.song().remove_is_playing_listener(self._on_is_playing_changed)
 
     def _on_record_mode_changed(self):
-        self.debug(2,'Record mode changed.')
+        self.debug(3,'Record mode changed.')
         if self.song().record_mode:
             value = 127
         else:
@@ -79,7 +79,7 @@ class TransportController(ElectraOneBase):
         self.send_midi_cc7(MIDI_MASTER_CHANNEL, RECORD_CC, value)
     
     def _on_is_playing_changed(self):
-        self.debug(2,'Stop/play change.')
+        self.debug(3,'Stop/play change.')
         if self.song().is_playing:
             value = 127
         else:
@@ -98,22 +98,22 @@ class TransportController(ElectraOneBase):
             }
 
     def _do_rewind(self,value):        
-        self.debug(2,'Rewind button action.')
+        self.debug(3,'Rewind button action.')
         self._rewind_pressed = (value > 63)
 
     def _do_forward(self,value):        
-        self.debug(2,'Forward button action.')
+        self.debug(3,'Forward button action.')
         self._forward_pressed = (value > 63)
 
     def _do_play_stop(self,value):        
-        self.debug(2,'Play/stop button action.')
+        self.debug(3,'Play/stop button action.')
         if (value > 63):
             self.song().start_playing()
         else:
             self.song().stop_playing()
 
     def _do_record(self,value):        
-        self.debug(2,'Record button action.')
+        self.debug(3,'Record button action.')
         self.song().record_mode = (value > 63)
 
     # --- MIDI ---
