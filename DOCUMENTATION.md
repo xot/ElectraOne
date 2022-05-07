@@ -59,9 +59,11 @@ The parameter ```c_instance``` on the other hand allows the remote script to sen
 
 ### Threading, asynchrony.
 
-The remote script is put on a separate thread (apparently(: even if certain actions take seconds to complete they do not interfere with audio processing.
+The remote script is put on a separate thread (apparently): even if certain actions take seconds to complete they do not interfere with audio processing.
 
-FIXME : More info needed.
+But within a remote script no threading appears to take place. However, sending MIDI appears to be asynchronous. That is to say: a call to ```send_midi``` (through the ```c_instance``` object) stores the MIDI bytes in a buffer within Live (who will then send them at its own pace) and immediately returns. Other sources of MIDI may also emit messages and these are interspersed with MIDI sent by the remote script. For longer messages (i.e. SysEx), if that happens, Live appears to cut the message into 256 byte chunks. It also appears that later (shorter) MIDI messages sent by the remote script may overtake earlier (longer) MIDI messages sent. *If both are SysEx messages, this means the second may corrupt the first.*
+
+
 
 ### The remote script object
 

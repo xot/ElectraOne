@@ -34,16 +34,15 @@ class ReturnController(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         self._idx = idx
+        # keep reference of track because if returns added/deleted, idx
+        # points to a different track, which breaks _remove_listeners()
+        self._track = self.song().return_tracks[idx]
         self._add_listeners()
         self._init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
 
     # --- helper functions ---
     
-    def _track(self):
-        # retrun a reference to the track managed
-        return self.song().return_tracks[self._idx]
-
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
         return base_cc + self._idx
@@ -54,7 +53,7 @@ class ReturnController(ElectraOneBase):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         # called (and initiated by MixerController)
         self._on_mute_changed()
-        retrn = self._track()
+        retrn = self._track
         self.send_parameter_as_cc14(retrn.mixer_device.panning, MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_PAN_CC))
         self.send_parameter_as_cc14(retrn.mixer_device.volume, MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_VOLUME_CC))
 
@@ -69,16 +68,18 @@ class ReturnController(ElectraOneBase):
     
     def _add_listeners(self):
         # add listeners for changes to Live elements
-        retrn = self._track()
+        retrn = self._track
         retrn.add_mute_listener(self._on_mute_changed)
 
     def _remove_listeners(self):
         # remove all listeners added
-        retrn = self._track()
-        retrn.remove_mute_listener(self._on_mute_changed)
-
+        retrn = self._track
+        # track may already have been deleted
+        if retrn:
+            retrn.remove_mute_listener(self._on_mute_changed)
+            
     def _on_mute_changed(self):
-        retrn = self._track()
+        retrn = self._track
         if retrn.mute:
             value = 0
         else:
@@ -96,7 +97,7 @@ class ReturnController(ElectraOneBase):
 
     def _handle_mute_button(self,value):
         self.debug(2,'Return track { self._idx } activation button action.')
-        retrn = self._track()
+        retrn = self._track
         retrn.mute = (value < 64)
 
     # --- MIDI ---
@@ -118,7 +119,7 @@ class ReturnController(ElectraOneBase):
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
-        retrn = self._track()
+        retrn = self._track
         self.debug(3,f'Mapping send { self._idx } pan to CC { self._my_cc(RETURNS_PAN_CC) } on MIDI channel { MIDI_MASTER_CHANNEL }')
         Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.panning, MIDI_MASTER_CHANNEL-1, self._my_cc(RETURNS_PAN_CC), map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, retrn.mixer_device.volume, MIDI_MASTER_CHANNEL-1, self._my_cc(RETURNS_VOLUME_CC), map_mode, not needs_takeover)

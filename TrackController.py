@@ -62,6 +62,9 @@ class TrackController(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # index of this track in self.song().visible_tracks
         self._idx = idx
+        # keep reference of track because if tracks added/deleted, idx
+        # points to a different track, which breaks _remove_listeners()
+        self._track = self.song().visible_tracks[idx]
         # offset of this track relative to the first mapped track
         self._offset = offset
         self._add_listeners()
@@ -70,10 +73,6 @@ class TrackController(ElectraOneBase):
 
     # --- helper functions ---
     
-    def _track(self):
-        # retrun a reference to the track managed
-        return self.song().visible_tracks[self._idx]
-
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
         return base_cc + self._offset
@@ -81,7 +80,7 @@ class TrackController(ElectraOneBase):
     def _my_channel_eq(self):
         # Return a reference to the Channel EQ device on my track, if present.
         # None if not
-        devices = self._track().devices
+        devices = self._track.devices
         for d in devices:
             if d.class_name == TRACK_EQ_DEVICE_NAME:
                 self.debug(4,'ChannelEq (or similar) device found')
@@ -99,7 +98,7 @@ class TrackController(ElectraOneBase):
     def refresh_state(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         # called and initiated by MixerController
-        track = self._track()
+        track = self._track
         self._on_mute_changed()
         if track.can_be_armed: # group track cannot!
             self._on_arm_changed()         
@@ -129,7 +128,7 @@ class TrackController(ElectraOneBase):
     
     def _add_listeners(self):
         # add listeners for changes to Live elements
-        track = self._track()
+        track = self._track
         track.add_mute_listener(self._on_mute_changed)
         if track.can_be_armed: # group track cannot!
             track.add_arm_listener(self._on_arm_changed)
@@ -137,14 +136,16 @@ class TrackController(ElectraOneBase):
 
     def _remove_listeners(self):
         # remove all listeners added
-        track = self._track()
-        track.remove_mute_listener(self._on_mute_changed)
-        if track.can_be_armed: # group track cannot!
-            track.remove_arm_listener(self._on_arm_changed)
-        track.remove_solo_listener(self._on_solo_cue_changed)
+        track = self._track
+        # track may already have been deleted
+        if track:
+            track.remove_mute_listener(self._on_mute_changed)
+            if track.can_be_armed: # group track cannot!
+                track.remove_arm_listener(self._on_arm_changed)
+            track.remove_solo_listener(self._on_solo_cue_changed)
         
     def _on_mute_changed(self):
-        track = self._track()
+        track = self._track
         if track.mute:
             value = 0
         else:
@@ -152,7 +153,7 @@ class TrackController(ElectraOneBase):
         self.send_midi_cc7(MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC), value)
 
     def _on_arm_changed(self):
-        track = self._track()
+        track = self._track
         if track.arm:
             value = 127
         else:
@@ -161,7 +162,7 @@ class TrackController(ElectraOneBase):
     
     def _on_solo_cue_changed(self):
         # TODO not entirely clear whether this is what we want
-        track = self._track()
+        track = self._track
         if track.solo:
             value = 127
         else:
@@ -182,17 +183,17 @@ class TrackController(ElectraOneBase):
 
     def _handle_mute_button(self,value):
         self.debug(2,'Return track { self._idx } activation button action.')
-        track = self._track()
+        track = self._track
         track.mute = (value < 64)
 
     def _handle_solo_cue_button(self,value):
         self.debug(2,'Return track { self._idx } solo/cue button action.')
-        track = self._track()
+        track = self._track
         track.solo = (value > 63)
 
     def _handle_arm_button(self,value):
         self.debug(2,'Return track { self._idx } arm button action.')
-        track = self._track()
+        track = self._track
         if track.can_be_armed: # group track cannot!
             track.arm = (value > 63)
         
@@ -215,7 +216,7 @@ class TrackController(ElectraOneBase):
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
-        track = self._track()
+        track = self._track
         self.debug(3,f'Mapping track { self._idx } pan to CC { self._my_cc(PAN_CC) } on MIDI channel { MIDI_TRACKS_CHANNEL }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_TRACKS_CHANNEL-1, self._my_cc(PAN_CC), map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_TRACKS_CHANNEL-1, self._my_cc(VOLUME_CC), map_mode, not needs_takeover)

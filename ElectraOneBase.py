@@ -10,6 +10,9 @@
 # Distributed under the MIT License, see LICENSE
 #
 
+# TODO: remove
+import threading
+
 # Local imports
 from .config import *
 
