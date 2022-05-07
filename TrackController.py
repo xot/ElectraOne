@@ -228,7 +228,9 @@ class TrackController(ElectraOneBase):
             Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_SENDS_CHANNEL-1, cc_no, map_mode, not needs_takeover)
             cc_no += NO_OF_TRACKS
         # build ChannelEq 
-        build_midi_map_for_device(midi_map_handle, self._my_channel_eq(), self._my_channel_eq_preset_info(), self.debug)
+        channel_eq = self._my_channel_eq()
+        if channel_eq:
+            build_midi_map_for_device(midi_map_handle, channel_eq, self._my_channel_eq_preset_info(), self.debug)
    
         
    

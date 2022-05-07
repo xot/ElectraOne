@@ -148,6 +148,8 @@ class MasterController(ElectraOneBase):
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, MIDI_MASTER_CHANNEL-1, MASTER_PAN_CC, map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, MIDI_MASTER_CHANNEL-1, MASTER_VOLUME_CC, map_mode, not needs_takeover)
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL-1, MASTER_CUE_VOLUME_CC, map_mode, not needs_takeover)
-        # build ChannelEq 
-        build_midi_map_for_device(midi_map_handle, self._my_channel_eq(), self._my_channel_eq_preset_info(), self.debug)
+        # build ChannelEq
+        channel_eq = self._my_channel_eq()
+        if channel_eq:
+            build_midi_map_for_device(midi_map_handle, channel_eq, self._my_channel_eq_preset_info(), self.debug)
     
