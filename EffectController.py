@@ -190,6 +190,7 @@ class EffectController(ElectraOneBase):
                 # set a delay depending on the length (~complexity) of the preset
                 # to ensure it is loaded before doing anything else
                 self._refresh_state_timer = int(len(preset)/200)
+                self.debug(2,'EffCont requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
 
     def _set_appointed_device(self, device):

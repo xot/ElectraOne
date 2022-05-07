@@ -195,6 +195,7 @@ class MixerController(ElectraOneBase):
         self._track_controllers = [ TrackController(self.get_c_instance(),i,i-self._first_track_index)
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
+        self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map()
         self._refresh_state_timer = 100 # delay value updates until MIDI map ready
 
