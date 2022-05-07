@@ -114,8 +114,9 @@ class TrackController(ElectraOneBase):
             cc_no += NO_OF_TRACKS
         # send channel eq
         channel_eq = self._my_channel_eq()
-        preset_info = self._my_channel_eq_preset_info()
-        update_values_for_device(channel_eq, preset_info,self)
+        if channel_eq:
+            preset_info = self._my_channel_eq_preset_info()
+            update_values_for_device(channel_eq, preset_info,self)
 
     def update_display(self):
         pass
@@ -182,7 +183,7 @@ class TrackController(ElectraOneBase):
         }
 
     def _handle_mute_button(self,value):
-        self.debug(2,'Return track { self._idx } activation button action.')
+        self.debug(2,'Track { self._idx } activation button action.')
         track = self._track
         track.mute = (value < 64)
 

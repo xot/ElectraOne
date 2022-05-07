@@ -93,7 +93,6 @@ class MasterController(ElectraOneBase):
         return None
 
     def _my_channel_eq_preset_info(self):
-        # add the offset to the cc_no present in TRACK_EQ_CC_MAP
         return PresetInfo('',MASTER_EQ_CC_MAP)
 
     def refresh_state(self):
@@ -105,8 +104,9 @@ class MasterController(ElectraOneBase):
         self.send_parameter_as_cc14(track.mixer_device.cue_volume, MIDI_MASTER_CHANNEL, MASTER_CUE_VOLUME_CC)
         # send channel eq
         channel_eq = self._my_channel_eq()
-        preset_info = self._my_channel_eq_preset_info()
-        update_values_for_device(channel_eq, preset_info,self)
+        if channel_eq:
+            preset_info = self._my_channel_eq_preset_info()
+            update_values_for_device(channel_eq, preset_info,self)
                                   
     def update_display(self):
         pass
