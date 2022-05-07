@@ -31,12 +31,31 @@
 # Uses Live.MidiMap.forward_midi_cc (see build_midi_map)
 # which causes the specified MIDI message to be received through Receive_midi.
 # The handler is then called with the received value. 
-
+#
 # - Listeners (see: _add/remove_listeners):
 # Register a function to call whenever a Live element that is controlled
 # changes state. Used for Live elements that cannot be mapped to Midi directly
 # using Live.MidiMap.map_midi_cc (because Ableton doesn't model them as true
 # device parameters.
+#
+# This class is the base class for TrackController, MasterController and
+# ReturnController. The idea being that all three share a similar structure
+# (they are all 'tracks') except that each of them has slightly different
+# features. Which features are present is indicated through the definition of
+# the corresponding CC parameter value in the __init__ constructor of the
+# subclass (where the value ```None``` indicates a feature is missing).
+#
+# The GenericTrackController expects the subclass to define a method
+# _my_cc that derives the actual CC parameter number to use for a particular
+# instance of an audio/midi track (TrackController) or a return track
+# (ReturnController).
+#
+# It also expects the subclasses to define _init_cc_handlers to set
+# self._CC_HANDLERS to the required handlers. (This roundabout way is necessary
+# because these handlers may depend on the particular instance of the track
+# they manage and therefore need to call _my_cc() to obtain the correct CC
+# parameter number.
+
 
 # Ableton Live imports
 import Live

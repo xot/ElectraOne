@@ -397,7 +397,10 @@ The code to handle the mixer is distributed over the following modules (with the
 5 ```TrackController.py```
 : Handles one audio or MIDI track, as specified by the ```idc``` (0 for the first track in the song) when created by ```MixerController```. ```MixerController``` will create five instances of this controller (passing an additonal ```offset``` value, in the range 0..4, to tell this controller which of the five tracks it is controlling and hence allowing it to compute the correct CC parameter numbers to map to the parameters in the track assigned to it. Each ```TrackController``` manages the pan, volume, mute, solo and arm button of the assigned track. Also sets up control of a Channel EQ device, when present on this track.
 
-All these modules essentially map/manage controls and parameters using the strategy outlined above. A few more details follow.
+All these modules essentially map/manage controls and parameters using the strategy outlined above. In fact almost all code for this is in ```GenericTrackController```, of which ```TrackController```, ```MasterController``` and ```ReturnController``` are simple subclasses. The idea being that all three share a similar structure (they are all 'tracks') except that each of them has slightly different features. Which features are present is indicated through the definition of the corresponding CC parameter value in the ```__init__``` constructor of the subclass (where the value ```None``` indicates a feature is missing).
+
+The ```GenericTrackController``` expects the subclass to define a method ```_my_cc``` that derives the actual CC parameter number to use for a particular instance of an audio/midi track (```TrackController```) or a return track (```ReturnController```).
+
 
 ### The EQ device
 
