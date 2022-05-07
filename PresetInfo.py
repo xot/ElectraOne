@@ -49,3 +49,24 @@ class PresetInfo:
         """
         assert self._json_preset != None, 'Empty JSON preset'
         return self._json_preset
+
+    def validate(self):
+        """ Check for internal consistency; return first found error as string.
+        """
+        seen = []
+        for cc_info in self._cc_map.values():
+            # remember, for preloaded presets the cc_map actually contains tuples...
+            if type(cc_info) is tuple:
+                cc_info = CCInfo(cc_info)
+            channel = cc_info.get_midi_channel()
+            if channel not in range(1,17):
+                return f'Bad MIDI channel {channel} in CC map.'
+            cc_no = cc_info.get_cc_no()
+            if cc_no not in range(0,128):
+                return f'Bad MIDI CC parameter {cc_no} in CC map.'
+            seeing = (channel, cc_no)
+            if seeing in seen:
+                return f'Duplicate { seeing } in CC map.'
+            else:
+                seen.append(seeing)
+        return None

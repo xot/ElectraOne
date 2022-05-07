@@ -135,6 +135,7 @@ class MixerController(ElectraOneBase):
         return idx
     
     def refresh_state(self):
+        self.debug(2,'MixCont refreshing state.')
         self._transport_controller.refresh_state()
         self._master_controller.refresh_state()
         for retrn in self._return_controllers:
@@ -148,6 +149,7 @@ class MixerController(ElectraOneBase):
            Used to effectuate a state refresh (after some delay) called for
            by _handle_selection_change
         """
+        self.debug(4,'MixCont update display.')
         # handle a refresh state after some delay
         if self._refresh_state_timer == 0:
             self.refresh_state()
@@ -200,19 +202,20 @@ class MixerController(ElectraOneBase):
         self._refresh_state_timer = 2 # delay value updates until MIDI map ready
 
     def _on_tracks_added_or_deleted(self):
+        """ Call this whenever tracks are added or deleted; this includes
+            the Return tracks.
+        """
         self.debug(2,'Tracks added or deleted.')
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
-        # reconnect the tracks
-        self._handle_selection_change()
-        # TODO: deal with return track changes
+        # reconnect the return tracks
         for rtrn in self._return_controllers:
             rtrn.disconnect()
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(self.get_c_instance(),i) for i in range(returns)]
+        # reconnect the tracks, this also requests value update (incl. the return tracks)
+        self._handle_selection_change() 
 
-    # --- initialise values ---
-    
     # --- Handlers ---
         
     def _init_handlers(self):
@@ -225,7 +228,7 @@ class MixerController(ElectraOneBase):
         """Shift left NO_OF_TRACKS; don't move before first track.
         """
         if value == 127:
-            self.debug(2,'Prev tracks pressed.')
+            self.debug(3,'Prev tracks pressed.')
             self._first_track_index = self._validate_track_index(self._first_track_index - NO_OF_TRACKS)
             self._handle_selection_change()
             
@@ -233,7 +236,7 @@ class MixerController(ElectraOneBase):
         """Shift right NO_OF_TRACKS; don't move beyond last track.
         """
         if value == 127:
-            self.debug(2,'Next tracks pressed.')
+            self.debug(3,'Next tracks pressed.')
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
             self._handle_selection_change()
 
@@ -259,7 +262,7 @@ class MixerController(ElectraOneBase):
     def build_midi_map(self, script_handle, midi_map_handle):
         """Build a MIDI map for the full mixer.
         """
-        self.debug(1,'Building mixer MIDI map.')
+        self.debug(1,'MixCont building mixer MIDI map.')
         # Map CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)

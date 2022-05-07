@@ -50,7 +50,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
                 # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
 # TODO: bit of a hack to pass ElectraOneBase as sender_object
@@ -86,6 +86,7 @@ class EffectController(ElectraOneBase):
 
     def refresh_state(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
+        self.debug(2,'EffCont refreshing state.')
         update_values_for_device(self._assigned_device,self._preset_info,self)
 
     # --- initialise values ---
@@ -93,6 +94,7 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
+        self.debug(4,'EffCont update display.')
         if self._refresh_state_timer == 0:
             self.refresh_state()
         if self._refresh_state_timer >= 0:
@@ -108,26 +110,30 @@ class EffectController(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
-        self.debug(1,'Building effect MIDI map.')
+        self.debug(1,'EffCont building effect MIDI map.')
         build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
 
     # === Others ===
-    
+
     def get_preset(self,device):
         """Get the preset for the specified device, either externally,
            predefined or else construct it on the fly.
         """
         device_name = get_device_name(device)
-        self.debug(1,f'Getting preset for { device_name }.')
+        self.debug(2,f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
-            self.debug(1,'Predefined preset found')
-            return preset_info
+            self.debug(2,'Predefined preset found')
         else:
-            self.debug(1,'Constructing preset on the fly...')
+            self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self, device_name, device.parameters)
-            return dumper.get_preset()
-
+            preset_info = dumper.get_preset()
+        # check preset integrity; ny errors will be reported in the log
+        error = preset_info.validate()
+        if error:
+            self.debug(2,f'Invalid preset found: {error}.')
+        return preset_info
+    
     # --- handling presets  ----
     
     def dump_presetinfo(self,device,preset_info):
@@ -143,7 +149,7 @@ class EffectController(ElectraOneBase):
         device_name = get_device_name(device)
         fname = f'{ path }/{ device_name }.epr'
         # dump the preset JSON string
-        self.debug(1,f'dumping device: { device_name } in { fname }.')
+        self.debug(2,f'dumping device: { device_name } in { fname }.')
         s = preset_info.get_preset()
         with open(fname,'w') as f:            
             f.write(s)
@@ -189,7 +195,8 @@ class EffectController(ElectraOneBase):
                 self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 # set a delay depending on the length (~complexity) of the preset
                 # to ensure it is loaded before doing anything else
-                self._refresh_state_timer = int(len(preset)/200)
+                # TODO: how to ensure this delay is long enough
+                self._refresh_state_timer = int(len(preset)/100)
                 self.debug(2,'EffCont requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
 
