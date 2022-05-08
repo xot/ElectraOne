@@ -60,12 +60,24 @@ class ElectraOne(ElectraOneBase):
     def __init__(self, c_instance):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
-        # TODO: check that indeed an Electra One is connected
+        # Check connection status and 'close' the interface until detected
+        # (detection is handled asynchronously through update_display and
+        #  receive_midi)
+        self._E1_connected = False
         self.send_midi(E1_SYSEX_REQUEST)
+        self._resend_request_timer = 10 # in calls to update_display
+        self.debug(1,'ElectraOne remote script waiting for connection...')
+
+    def _complete_init(self):
+        """Complete the object initialisiation once the E1 is detected.
+           'Open' the interface by setting its state to connected.
+        """
+        c_instance = self.get_c_instance()
         self._effect_controller = EffectController(c_instance)
         self._mixer_controller = MixerController(c_instance)
+        self._E1_connected = True
         self.log_message('ElectraOne remote script loaded.')
-        
+    
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
         """
@@ -84,52 +96,61 @@ class ElectraOne(ElectraOneBase):
     def lock_to_device(self, device):
         """ Live can tell the script to lock to a given device
         """
-        self.debug(1,'Main lock to device called.') 
-        self._effect_controller.lock_to_device(device)
+        if self._E1_connected:
+            self.debug(1,'Main lock to device called.')
+            self._effect_controller.lock_to_device(device)
 
     def unlock_from_device(self, device):
         """Live can tell the script to unlock from a given device
         """
-        self.debug(1,'Main unlock called.') 
-        self._effect_controller.unlock_from_device(device)
+        if self._E1_connected:
+            self.debug(1,'Main unlock called.') 
+            self._effect_controller.unlock_from_device(device)
 
     def toggle_lock(self):
         """Script -> Live
         Use this function to toggle the script's lock on devices
         """
         # Weird; why is Ableton relegating this to the script?
-        self.debug(1,'Main toggle lock called.') 
-        self.get_c_instance().toggle_lock()
+        if self._E1_connected:
+            self.debug(1,'Main toggle lock called.') 
+            self.get_c_instance().toggle_lock()
 
     def _process_midi_cc(self, midi_bytes):
         """Process incoming MIDI CC message.
         """
-        (status,cc_no,value) = midi_bytes
-        midi_channel = status - CC_STATUS + 1
-        self._mixer_controller.process_midi(midi_channel,cc_no,value)
+        if self._E1_connected:
+            (status,cc_no,value) = midi_bytes
+            midi_channel = status - CC_STATUS + 1
+            self._mixer_controller.process_midi(midi_channel,cc_no,value)
 
     def _do_preset_changed(self, midi_bytes):
-        self.debug(3,'Preset selected on the E1')
-        if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
-            self.debug(3,'Mixer preset selected')
-            self._mixer_controller.refresh_state()
-        elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
-            self.debug(3,'Effect preset selected')
-            self._effect_controller.refresh_state()
-        else:
-            self.debug(3,'Other preset selected (ignoring)')                
+        if self._E1_connected:
+            self.debug(3,'Preset selected on the E1')
+            if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
+                self.debug(3,'Mixer preset selected')
+                self._mixer_controller.refresh_state()
+            elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
+                self.debug(3,'Effect preset selected')
+                self._effect_controller.refresh_state()
+            else:
+                self.debug(3,'Other preset selected (ignoring)')                
 
     def _do_ack(self, midi_bytes):
-        self.debug(3,'ACK received.')
+        if self._E1_connected:
+            self.debug(3,'ACK received.')
         
     def _do_nack(self, midi_bytes):
-        self.debug(3,'NACK received.')
+        if self._E1_connected:
+            self.debug(3,'NACK received.')
 
     def _do_request_response(self, midi_bytes):
         json_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
         json_str = ''.join(chr(c) for c in json_bytes)
         self.debug(3,f'Request response received: {json_str}' )
         # json_dict = json.loads(json_str)
+        self._complete_init()
+        #self._E1_connected = True
 
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message. Expected SysEx:
@@ -150,8 +171,7 @@ class ElectraOne(ElectraOneBase):
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
-        self.debug(3,'Main receive MIDI called.')
-        self.debug(3,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
+        self.debug(3,f'Main receive MIDI called. Incoming bytes (first 10): { midi_bytes[:10] }')
         if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)
@@ -164,25 +184,36 @@ class ElectraOne(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
         """
-        self.debug(1,'Main build midi map called.') 
-        self._effect_controller.build_midi_map(midi_map_handle)
-        self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
+        if self._E1_connected:
+            self.debug(1,'Main build midi map called.') 
+            self._effect_controller.build_midi_map(midi_map_handle)
+            self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
         
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the
            remote controller needs to be updated.
         """
-        self.debug(1,'Main refresh state called.') 
-        self._effect_controller.refresh_state()
-        self._mixer_controller.refresh_state()
-    
+        if self._E1_connected:
+            self.debug(1,'Main refresh state called.') 
+            self._effect_controller.refresh_state()
+            self._mixer_controller.refresh_state()
+
     def update_display(self):
         """ Called every 100 ms. Used to execute scheduled tasks
         """
-        self.debug(3,'Main update display called.') 
-        self._effect_controller.update_display()
-        self._mixer_controller.update_display()
-                               
+        self.debug(6,'Main update display called.') 
+        if self._E1_connected:
+            self._effect_controller.update_display()
+            self._mixer_controller.update_display()
+        else:
+            # resend the request for information after a delay
+            if self._resend_request_timer == 0:
+                self.debug(3,'Resending connection request...')
+                self.send_midi(E1_SYSEX_REQUEST)
+                self._resend_request_timer = 10
+            if self._resend_request_timer >= 0:
+                self._resend_request_timer -= 1
+
     def connect_script_instances(self,instanciated_scripts):
         """ Called by the Application as soon as all scripts are initialized.
             You can connect yourself to other running scripts here.
@@ -193,8 +224,9 @@ class ElectraOne(ElectraOneBase):
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
-        self.debug(1,'Main disconnect called.') 
-        self._effect_controller.disconnect()
-        self._mixer_controller.disconnect()
+        if self._E1_connected:
+            self.debug(1,'Main disconnect called.') 
+            self._effect_controller.disconnect()
+            self._mixer_controller.disconnect()
 
 
