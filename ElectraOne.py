@@ -7,8 +7,8 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# Ableton Live imports
-#from _Framework.ControlSurface import ControlSurface
+# Python imports
+import json
 
 # Local imports
 from .ElectraOneBase import ElectraOneBase 
@@ -16,12 +16,39 @@ from .EffectController import EffectController
 from .MixerController import MixerController
 from .config import *
 
-# --- ElectraOne class
+# SysEx defines and helpers
 
 CC_STATUS = 0xB0
 E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45) 
 E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number and terminated by 0xF7
+E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) and terminated by 0xF7
+E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated by 0xF7
+E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data and terminated by 0xF7
 SYSEX_TERMINATE = 0xF7
+
+E1_SYSEX_REQUEST = (0xF0, 0x00, 0x21, 0x45, 0x02, 0x7F, 0xF7)
+
+def is_sysex_preset_changed(midi_bytes):
+    return (len(midi_bytes) == 9) and \
+           (midi_bytes[4:6] == E1_SYSEX_PRESET_CHANGED) and \
+           (midi_bytes[8] == SYSEX_TERMINATE)
+
+def is_sysex_ack(midi_bytes):
+    return (len(midi_bytes) == 9) and \
+           (midi_bytes[4:6] == E1_SYSEX_ACK) and \
+           (midi_bytes[8] == SYSEX_TERMINATE)
+
+def is_sysex_nack(midi_bytes):
+    return (len(midi_bytes) == 9) and \
+           (midi_bytes[4:6] == E1_SYSEX_NACK) and \
+           (midi_bytes[8] == SYSEX_TERMINATE)
+
+def is_sysex_request_response(midi_bytes):
+    return (midi_bytes[4:6] == E1_SYSEX_REQUEST_RESPONSE) and \
+           (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
+
+# --- ElectraOne class
+
 
 class ElectraOne(ElectraOneBase):
     """Remote control script for the Electra One. Initialises an
@@ -34,6 +61,7 @@ class ElectraOne(ElectraOneBase):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
         # TODO: check that indeed an Electra One is connected
+        self.send_midi(E1_SYSEX_REQUEST)
         self._effect_controller = EffectController(c_instance)
         self._mixer_controller = MixerController(c_instance)
         self.log_message('ElectraOne remote script loaded.')
@@ -80,22 +108,42 @@ class ElectraOne(ElectraOneBase):
         midi_channel = status - CC_STATUS + 1
         self._mixer_controller.process_midi(midi_channel,cc_no,value)
 
+    def _do_preset_changed(self, midi_bytes):
+        self.debug(3,'Preset selected on the E1')
+        if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
+            self.debug(3,'Mixer preset selected')
+            self._mixer_controller.refresh_state()
+        elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
+            self.debug(3,'Effect preset selected')
+            self._effect_controller.refresh_state()
+        else:
+            self.debug(3,'Other preset selected (ignoring)')                
+
+    def _do_ack(self, midi_bytes):
+        self.debug(3,'ACK received.')
+        
+    def _do_nack(self, midi_bytes):
+        self.debug(3,'NACK received.')
+
+    def _do_request_response(self, midi_bytes):
+        json_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
+        json_str = ''.join(chr(c) for c in json_bytes)
+        self.debug(3,f'Request response received: {json_str}' )
+        # json_dict = json.loads(json_str)
 
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message. Expected SysEx:
            - message informing script of preset selection change on E1
         """
         self.debug(5,f'Handling SysEx { midi_bytes }.')
-        if (len(midi_bytes) == 9) and \
-           (midi_bytes[4:6] == E1_SYSEX_PRESET_CHANGED) and \
-           (midi_bytes[8] == SYSEX_TERMINATE):
-            self.debug(3,'Preset selected')
-            if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
-                self.debug(3,'Mixer preset selected')
-                self._mixer_controller.refresh_state()
-            elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
-                self.debug(3,'Effect preset selected')
-                self._effect_controller.refresh_state()
+        if is_sysex_preset_changed(midi_bytes):
+            self._do_preset_changed(midi_bytes)
+        elif is_sysex_nack(midi_bytes):
+            self._do_nack(midi_bytes)
+        elif is_sysex_ack(midi_bytes):
+            self._do_ack(midi_bytes)
+        elif is_sysex_request_response(midi_bytes):
+            self._do_request_response(midi_bytes)
                 
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
@@ -103,7 +151,7 @@ class ElectraOne(ElectraOneBase):
            Live.MidiMap.forward_midi_cc().
         """
         self.debug(3,'Main receive MIDI called.')
-        self.debug(4,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
+        self.debug(3,f'MIDI bytes received (first 10) { midi_bytes[:10] }')
         if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)

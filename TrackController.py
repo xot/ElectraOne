@@ -23,13 +23,11 @@ VOLUME_CC = 5
 MUTE_CC = 116   
 SOLO_CUE_CC = 84
 ARM_CC = 89
-#
 
 # Sends (on MIDI_SENDS_CHANNEL)
-SENDS_CC = 0  # code below assumes all sends are mapped after each other, ie with increments of NO_OF_TRACKS=5
-
-# TODO: Handle track names
-# TODO: hide/gray out unmapped sends
+# The code in GenericTrackController assumes all sends are mapped after each
+# other, ie with increments of NO_OF_TRACKS=5
+SENDS_CC = 0  
 
 # Change this to managa a different EQ like device on every track
 # TODO: move this to Devices (but this modifying the ./makedevices script)
@@ -48,7 +46,6 @@ TRACK_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
             , 'High Gain': (MIDI_TRACKS_CHANNEL, 1, 10)
             , 'Gain': (MIDI_TRACKS_CHANNEL, 0, 64)
             }
-
 
 class TrackController(GenericTrackController):
     """Manage an audio or midi track.
@@ -85,7 +82,6 @@ class TrackController(GenericTrackController):
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
         return base_cc + self._offset
-
     
     def _init_cc_handlers(self):
         # define handlers for incpming midi events
