@@ -96,6 +96,7 @@ class ElectraOne(ElectraOneBase):
             upload is in progress.
         """
         ready = self._E1_connected and (not ElectraOneBase.preset_uploading)
+        self.debug(2,f'Is ready? {ready}, pu: {ElectraOneBase.preset_uploading} ac: {ElectraOneBase.ack_countdown} upt: {ElectraOneBase.upload_preset_timeout}')
         return ready
         
     def suggest_input_port(self):
@@ -238,7 +239,7 @@ class ElectraOne(ElectraOneBase):
                 self._resend_request_timer = 10
             else:
                 self._resend_request_timer -= 1
-        else: # self.preset_uploading
+        else: # ElectraOneBase.preset_uploading
             # decrement the upload preset timer, and reset preset_uploading
             # to False after the timeout (i.e. ACK not received in time)
             if ElectraOneBase.upload_preset_timeout == 0:

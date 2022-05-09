@@ -72,9 +72,9 @@ class EffectController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
-        self._refresh_state_timer = -1 # prevent refresh at the moment
+        #self._refresh_state_timer = -1 # prevent refresh at the moment
         # TODO preparing for whan ACK sent after preset constructed on the E1
-        # self._request_refresh = False
+        self._request_refresh = False
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
@@ -97,13 +97,13 @@ class EffectController(ElectraOneBase):
         """ Called every 100 ms; used to call update_values with a delay
         """
         self.debug(6,'EffCont update display.')
-        if self._refresh_state_timer == 0:
-            self.refresh_state()
-        if self._refresh_state_timer >= 0:
-            self._refresh_state_timer -= 1
-        #if self._request_refresh:
+        #if self._refresh_state_timer == 0:
         #    self.refresh_state()
-        #self._request_refresh = False
+        #if self._refresh_state_timer >= 0:
+        #    self._refresh_state_timer -= 1
+        if self._request_refresh:
+            self.refresh_state()
+        self._request_refresh = False
         
     def disconnect(self):
         """Called right before we get disconnected from Live
@@ -201,8 +201,8 @@ class EffectController(ElectraOneBase):
                 # set a delay depending on the length (~complexity) of the preset
                 # to ensure it is loaded before doing anything else
                 # TODO: how to ensure this delay is long enough
-                self._refresh_state_timer = int(len(preset)/100)
-                # self._request_refresh = True
+                #self._refresh_state_timer = int(len(preset)/100)
+                self._request_refresh = True
                 self.debug(2,'EffCont requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
 

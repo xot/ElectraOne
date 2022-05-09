@@ -173,7 +173,7 @@ class ElectraOneBase:
         # wait for two ACKs to be received (for select_slot AND upload_preset)
         ElectraOneBase.ack_countdown = 2
         # timeout (and pretend upload was succesful) after some time
-        ElectraOneBase.upload_preset_timeout = 50 # in update_display calls
+        ElectraOneBase.upload_preset_timeout = int(len(preset)/10) # in update_display calls
         self._select_preset_slot(slot)
         self._upload_preset_to_current_slot(preset)
         
