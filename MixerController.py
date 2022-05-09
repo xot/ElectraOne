@@ -210,6 +210,10 @@ class MixerController(ElectraOneBase):
             rtrn.disconnect()
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(self.get_c_instance(),i) for i in range(returns)]
+        # reselect the mixer preset to force all controls to their default value
+        # TODO: once snapshots are properly embedded in a preset, use that instead
+        # as this 'hack' steals the focus if the device preset is actually visible
+        self._select_preset_slot(MIXER_PRESET_SLOT)
         # reconnect the tracks, this also requests value update (incl. the return tracks)
         self._handle_selection_change() 
 
