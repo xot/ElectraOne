@@ -11,7 +11,7 @@
 import json
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase 
+from .ElectraOneBase import ElectraOneBase
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .config import *
@@ -95,7 +95,8 @@ class ElectraOne(ElectraOneBase):
             request or not (ie whether the E1 is connected and no preset
             upload is in progress.
         """
-        return self._E1_connected and (not self.preset_uploading)
+        ready = self._E1_connected and (not ElectraOneBase.preset_uploading)
+        return ready
         
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
@@ -156,14 +157,13 @@ class ElectraOne(ElectraOneBase):
                 self.debug(3,'Other preset selected (ignoring)')                
 
     def _do_ack(self, midi_bytes):
-        if self._is_ready():
-            self.debug(3,'ACK received.')
-            # upload presets sets ack_countdown to 2
-            # (because select slot also responds with an ack)
-            if self.ack_countdown > 0:
-                self.ack_countdown -=1
-            if self.ack_countdown == 0:
-                self.preset_uploading = False
+        self.debug(3,'ACK received.')
+        # upload presets sets ack_countdown to 2
+        # (because select slot also responds with an ack)
+        if ElectraOneBase.ack_countdown > 0:
+            ElectraOneBase.ack_countdown -=1
+        if ElectraOneBase.ack_countdown == 0:
+            ElectraOneBase.preset_uploading = False
         
     def _do_nack(self, midi_bytes):
         if self._is_ready():
@@ -175,7 +175,6 @@ class ElectraOne(ElectraOneBase):
         self.debug(3,f'Request response received: {json_str}' )
         # json_dict = json.loads(json_str)
         self._complete_init()
-        #self._E1_connected = True
 
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message. Expected SysEx:
@@ -209,7 +208,8 @@ class ElectraOne(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
         """
-        if self._is_ready():
+        # TODO: check: do not block build_midi_map when preset loading
+        if self._E1_connected:
             self.debug(1,'Main build midi map called.') 
             self._effect_controller.build_midi_map(midi_map_handle)
             self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
@@ -238,13 +238,13 @@ class ElectraOne(ElectraOneBase):
                 self._resend_request_timer = 10
             else:
                 self._resend_request_timer -= 1
-        else: # self._preset_uploading
-            # decrement the upload preset timer, and reset _preset_uploading
+        else: # self.preset_uploading
+            # decrement the upload preset timer, and reset preset_uploading
             # to False after the timeout (i.e. ACK not received in time)
-            if self.upload_preset_timeout == 0:
-                self.preset_uploading = False
-            if self.upload_preset_timeout >= 0:
-                self.upload_preset_timeout -= 1
+            if ElectraOneBase.upload_preset_timeout == 0:
+                ElectraOneBase.preset_uploading = False
+            if ElectraOneBase.upload_preset_timeout >= 0:
+                ElectraOneBase.upload_preset_timeout -= 1
             
     def connect_script_instances(self,instanciated_scripts):
         """ Called by the Application as soon as all scripts are initialized.

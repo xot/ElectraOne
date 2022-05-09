@@ -32,6 +32,11 @@ class ElectraOneBase:
        (interfacing with Live through c_instance).
     """
 
+    # class variables (tested/used by ElectraOne)
+    preset_uploading = False
+    ack_countdown = 0 
+    upload_preset_timeout = -1
+
     def __init__(self, c_instance):
         # c_instance is/should be the object passed by Live when
         # initialising the remote script (see __init.py__). Through
@@ -40,9 +45,6 @@ class ElectraOneBase:
         self._c_instance = c_instance
         # initialise; used by _is_ready() in main class
         # set by upload_preset(); reset by _do_ack()
-        self.preset_uploading = False
-        self.ack_countdown = 0 
-        self.upload_preset_timout = -1
         
     # --- helper functions
 
@@ -167,11 +169,11 @@ class ElectraOneBase:
            to the specified slot (bank,preset) where bank:0..5 and
            preset: 0..11.
         """
-        self.preset_uploading = True
+        ElectraOneBase.preset_uploading = True
         # wait for two ACKs to be received (for select_slot AND upload_preset)
-        self.ack_countdown = 2
+        ElectraOneBase.ack_countdown = 2
         # timeout (and pretend upload was succesful) after some time
-        self.upload_preset_timeout = 50 # in update_display calls
+        ElectraOneBase.upload_preset_timeout = 50 # in update_display calls
         self._select_preset_slot(slot)
         self._upload_preset_to_current_slot(preset)
         
