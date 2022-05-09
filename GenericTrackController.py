@@ -14,7 +14,7 @@
 #
 # General idea of this module:
 #
-# Proper device parameters (sliders onlt really) are mapped directly to
+# Proper device parameters (sliders only really) are mapped directly to
 # their associated MIDI cc_no on a specific channel (see build_midi_map)
 # using Live.MidiMap.map_midi_cc.
 # From then on value updates from AND to the E1 are handled automatically.
@@ -190,6 +190,7 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
         
     def _on_mute_changed(self):
+        # TODO: this check should not be necessary
         if self._base_mute_cc != None:
             if self._track.mute:
                 value = 0
@@ -198,6 +199,7 @@ class GenericTrackController(ElectraOneBase):
             self.send_midi_cc7(self._midichannel, self._my_cc(self._base_mute_cc), value)
 
     def _on_arm_changed(self):
+        # TODO: this check should not be necessary
         if self._base_arm_cc != None:
             if self._track.arm:
                 value = 127
@@ -206,7 +208,7 @@ class GenericTrackController(ElectraOneBase):
             self.send_midi_cc7(self._midichannel, self._my_cc(self._base_arm_cc), value)
     
     def _on_solo_cue_changed(self):
-        # TODO not entirely clear whether this is what we want
+        # TODO: this check should not be necessary
         if self._base_solo_cue_cc != None:
             if self._track.solo:
                 value = 127
@@ -217,8 +219,8 @@ class GenericTrackController(ElectraOneBase):
     # --- Handlers ---
     
     def _init_cc_handlers(self):
-        # define handlers for incpming midi events
-        # to be defined by subclass
+        # define handlers for incoming midi events
+        # TO BE DEFINED BY SUBCLASS
         pass
     
     def _handle_mute_button(self,value):

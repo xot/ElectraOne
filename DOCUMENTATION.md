@@ -415,7 +415,7 @@ contain a Live Channel EQ device, this one is automatically discovered and mappe
 
 The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
 
-### Value updates / ```update_display``
+### Value updates / ```update_display```
 
 Initial value updating uses ```update_display``` to delay the value updates until after the mixer preset is uploaded to the E1. 
 
