@@ -14,7 +14,7 @@ Finally, it also manages a mixer preset to control the track mixers, returns, ma
 
 ## The mixer
 
-The mixer preset is by default stored in bank 6, first slot. 
+The mixer preset is included in the distribution, and should be uploaded to a free slot (e.g. bank 6, first slot). 
 
 It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains control the master pan, volume, cue volume, and solo switch. And it contains transport controls: play/stop, record, rewind, and forward.
 
@@ -38,8 +38,6 @@ All controls on all pages are synced with the values of the parameters in Live t
 ### Alternative mixer designs
 
 There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are layed out horizontally instead of vertically (such that all track controls are active at the same time).
-
-The Remote Script uploads a default mixer defined in ```consts.py```. This can be changed to suit your needs.
 
 ## Controlling the currently selected device
 

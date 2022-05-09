@@ -79,9 +79,6 @@ NEXT_TRACKS_CC = 69
 # - 76-81 (108-113) SEND A_E Mute
 #
 
-# TODO
-# ? should we deal with selected track changes
-
 
 # Ableton Live imports
 import Live
@@ -115,7 +112,6 @@ class MixerController(ElectraOneBase):
         # allocate return track controllers (at most two, but take existence into account)
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(c_instance,i) for i in range(returns)]
-        # TODO: upload mixer preset to E1 to Ableton bank (if not already present)
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
         self._track_controllers = []  # filled by self._handle_selection_change()

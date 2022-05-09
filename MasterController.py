@@ -21,7 +21,6 @@ MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
 
 # Change this to manage a different EQ like device on the master track
-# TODO: move this to devices
 #
 # Specify the device.class_name here
 MASTER_EQ_DEVICE_NAME = 'ChannelEq'

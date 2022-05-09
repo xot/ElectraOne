@@ -24,13 +24,13 @@
 # Other quantised parameters are represented on the ElectraOne as lists, for
 # which a separate overlay with all possible values is created.
 
-# TODO/FIXME: None mappings in cc_map
-# (Two different goals: in a *dumped* preset, you want to have *all* parameters
-# even those without a CC map; but in a preset you *upload* you only want to
-# include parameters that are actually mapped in order not to surprise the users)
-# Currently, the CC-map contains *all* parameters (also unmapped onse,
-# indicated ny None) while the on-the-fly constructed preset does not contain
-# them. 
+# Note that the CC map serves two different goals: in a *dumped* preset, you
+# want to have *all* parameters even those without a CC map; but in a preset
+# you *upload* you only want to include parameters that are actually mapped
+# in order not to surprise the users).
+# Currently, the CC-map contains *all* parameters (also unmapped ones,
+# indicated by None) while the on-the-fly constructed preset uploaded to the
+# E1 does not contain them. 
 
 # Note: parameter.name used as the visible name for a parameter, and
 # parameter.original_name used to index cc_map (because .original_name
