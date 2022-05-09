@@ -88,43 +88,43 @@ def device_idx_for_midi_channel(midi_channel):
 # --- output sanity checks
 
 # check/truncate name
-def check_name(name):
+def _check_name(name):
     # TODO log truncation
     return name[:MAX_NAME_LEN]
 
-def check_id(id):
+def _check_id(id):
     assert (1 <= id) and (id <= MAX_ID), f'{ id } exceeds max number of IDs ({ MAX_ID }).'
     return id
 
-def check_deviceid(id):
+def _check_deviceid(id):
     assert (1 <= id) and (id <= MAX_DEVICE_ID), f'{ id } exceeds max number of device IDs ({ MAX_DEVICE_ID }).'
     return id
 
-def check_midichannel(channel):
+def _check_midichannel(channel):
     assert channel in range(1,17), f'MIDI channel { channel } not in range.'
     return channel
 
-def check_pageid(id):
+def _check_pageid(id):
     assert (1 <= id) and (id <= MAX_PAGE_ID), f'{ id } exceeds max number of pages ({ MAX_PAGE_ID }).'
     return id
 
-def check_overlayid(id):
+def _check_overlayid(id):
     assert (1 <= id) and (id <= MAX_OVERLAY_ID), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
     return id
 
 # This is more strict than the Electra One documentation requires
-def check_controlset(id):
+def _check_controlset(id):
     assert (1 <= id) and (id <= MAX_CONTROLSET_ID), f'{ id } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).'
     return id
 
-def check_pot(id):
+def _check_pot(id):
     assert id in range(1,MAX_POT_ID+1), f'{ id } exceeds max number of pots ({ MAX_POT_ID }).'
     return id
     
 
 # --- utility
 
-def is_on_off_parameter(p):
+def _is_on_off_parameter(p):
     """Return whether the parameter has the values "Off" and "On" only.
     """
     if not p.is_quantized:
@@ -135,12 +135,12 @@ def is_on_off_parameter(p):
     else:
         return ( (str(values[0]) == "Off") and (str(values[1]) == "On"))
 
-def needs_overlay(p):
+def _needs_overlay(p):
     """Return whether the parameter needs an overlay to be generated
        (that enumerates all the values in the list, and that will be attached
        to the parameter in the 'controls' section of the same parameter.
     """
-    return p.is_quantized and (not is_on_off_parameter(p))
+    return p.is_quantized and (not _is_on_off_parameter(p))
 
 
 # Ableyon's str_for_value function for a parameter returns a string with the
@@ -155,12 +155,12 @@ def needs_overlay(p):
 
 # Return the number part and its type in the string representation of
 # the value of a parameter, as reported by Ableton
-def get_par_value_info(p,v):
+def _get_par_value_info(p,v):
     value_as_str = p.str_for_value(v)                                         # get value as a string
     (number_part,sep,type) = value_as_str.partition(' ')                      # split at the first space
     return (number_part,type)
 
-def strip_minus(v):
+def _strip_minus(v):
     if (len(v) > 0) and (v[0] == '-'):
         return v[1:]
     else:
@@ -169,11 +169,11 @@ def strip_minus(v):
 NON_INT_TYPES = ['dB', '%', 'Hz', 's', 'ms']
 
 # Determine whether the parameter is integer
-def is_int_parameter(p):
-    (min_number_part, min_type) = get_par_value_info(p,p.min)
-    min_number_part = strip_minus(min_number_part)
-    (max_number_part, max_type) = get_par_value_info(p,p.max)
-    max_number_part = strip_minus(max_number_part)
+def _is_int_parameter(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    min_number_part = _strip_minus(min_number_part)
+    (max_number_part, max_type) = _get_par_value_info(p,p.max)
+    max_number_part = _strip_minus(max_number_part)
     return min_number_part.isnumeric() and max_number_part.isnumeric() and \
        (min_type not in NON_INT_TYPES) and (max_type not in NON_INT_TYPES)
 
@@ -181,7 +181,7 @@ def wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
        (Faders that are not mapped to integer parameters want CC14.)
     """
-    return (not p.is_quantized) and (not is_int_parameter(p))                 # not quantized parameters are always faders
+    return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
 
 
 class ElectraOneDumper(io.StringIO):
@@ -189,7 +189,7 @@ class ElectraOneDumper(io.StringIO):
        construction of a long JSOPN preset string by appending to it.
     """
 
-    def append(self,*elements):
+    def _append(self,*elements):
         """Append the (string representation) of the elements to the output
         """
         for e in elements:
@@ -197,100 +197,100 @@ class ElectraOneDumper(io.StringIO):
 
     # append a comma if flag; return true; us as:
     # flag = false
-    # flag = append_comma(flag)
-    def append_comma(self,flag):
+    # flag = _append_comma(flag)
+    def _append_comma(self,flag):
         if flag:
-            self.append(',')
+            self._append(',')
         return True
                         
-    def debug(self,level,m):
+    def _debug(self,level,m):
         self._e1_instance.debug(level,m)
         
-    def append_json_pages(self,parameters) :
+    def _append_json_pages(self,parameters) :
         """Append the necessary number of pages (and their names)
         """
         # WARNING: this code assumes all parameters are included in the preset
         # (Also wrong once we start auto-detecting ADSRs)
-        self.append(',"pages":[')
+        self._append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
         flag = False
         for i in range(1,pagecount+1):
-            flag = self.append_comma(flag)
-            self.append( f'{{"id":{ check_pageid(i) },"name":"Page { i }"}}')
-        self.append(']')
+            flag = self._append_comma(flag)
+            self._append( f'{{"id":{ _check_pageid(i) },"name":"Page { i }"}}')
+        self._append(']')
 
-    def append_json_devices(self, cc_map):
-        self.append(',"devices":[')
+    def _append_json_devices(self, cc_map):
+        self._append(',"devices":[')
         channels = { c.get_midi_channel() for c in cc_map.values() }
         flag = False
         for channel in channels:
-            flag = self.append_comma(flag)
+            flag = self._append_comma(flag)
             device_id = device_idx_for_midi_channel(channel)
-            self.append( f'{{"id":{ check_deviceid(device_id) }'
+            self._append( f'{{"id":{ _check_deviceid(device_id) }'
                        ,   ',"name":"Generic MIDI"'
                        ,  f',"port":{ MIDI_PORT }'
-                       ,  f',"channel":{ check_midichannel(channel) }'
+                       ,  f',"channel":{ _check_midichannel(channel) }'
                        ,   '}'
                        )
-        self.append(']')
+        self._append(']')
         
-    def append_json_overlay_item(self,label,index,value):
+    def _append_json_overlay_item(self,label,index,value):
         """Append an overlay item.
         """
-        self.append( f'{{"label":"{ label }"' 
+        self._append( f'{{"label":"{ label }"' 
                    , f',"index":{ index }'
                    , f',"value":{ value }'
                    ,  '}'
                    )
 
-    def append_json_overlay_items(self,value_items):
+    def _append_json_overlay_items(self,value_items):
         """Append the overlay items.
         """
-        self.append(',"items":[')
+        self._append(',"items":[')
         flag = False
         for (idx,item) in enumerate(value_items):
             assert (len(value_items) <= 127), f'Too many overly items { len(value_items) }.'
             item_cc_value = cc_value_for_item_idx(idx,value_items)
             assert (0 <= item_cc_value) and (item_cc_value <= 127), f'MIDI CC value out of range { item_cc_value }.'
-            flag = self.append_comma(flag)
-            self.append_json_overlay_item(item,idx,item_cc_value)
-        self.append(']')
+            flag = self._append_comma(flag)
+            self._append_json_overlay_item(item,idx,item_cc_value)
+        self._append(']')
 
-    def append_json_overlay(self,idx,parameter):
+    def _append_json_overlay(self,idx,parameter):
         """Append an overlay.
         """
         self._overlay_map[parameter.original_name] = idx
-        self.append(f'{{"id":{ check_overlayid(idx) }')
-        self.append_json_overlay_items(parameter.value_items)
-        self.append('}')
+        self._append(f'{{"id":{ _check_overlayid(idx) }')
+        self._append_json_overlay_items(parameter.value_items)
+        self._append('}')
 
-    def append_json_overlays(self,parameters,cc_map):
+    def _append_json_overlays(self,parameters,cc_map):
         """Append the necessary overlays (for list valued parameters).
         """
-        self.append(',"overlays":[')
+        self._append(',"overlays":[')
         overlay_idx = 1
         flag = False
         for p in parameters:
             if p.original_name in cc_map:
                 cc_info = cc_map[p.original_name]
-                if cc_info.is_mapped() and needs_overlay(p):
-                    flag = self.append_comma(flag)
-                    self.append_json_overlay(overlay_idx,p)
+                if cc_info.is_mapped() and _needs_overlay(p):
+                    flag = self._append_comma(flag)
+                    self._append_json_overlay(overlay_idx,p)
                     overlay_idx += 1
-        self.append(']')
+        self._append(']')
 
-    def append_json_bounds(self,idx):
+    def _append_json_bounds(self,idx):
         idx = idx % PARAMETERS_PER_PAGE
         # (0,0) is top left slot; layout controls left -> right, top -> bottom
         x = idx % SLOTS_PER_ROW
         y = idx // SLOTS_PER_ROW
-        self.append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
+        self._append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
 
-    def append_json_toggle(self, idx, cc_info):
+    def _append_json_toggle(self, idx, cc_info):
         """Append a toggle pad for an on/off valued list.
         """
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        self.append( ',"type":"pad"'
+        self._append( ',"type":"pad"'
                    , ',"mode":"toggle"'
                    , ',"values":[{"message":{"type":"cc7"'
                    ,                       ',"offValue": 0'
@@ -302,21 +302,21 @@ class ElectraOneDumper(io.StringIO):
                    ,            '}]'
                    )
 
-    def append_json_list(self,idx, overlay_idx,cc_info):
+    def _append_json_list(self,idx, overlay_idx,cc_info):
         """Append a list, with values as specified in the overlay.
         """
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        self.append( ',"type":"list"'
+        self._append( ',"type":"list"'
                    ,  ',"values":[{"message":{"type":"cc7"' 
                    ,                       f',"parameterNumber":{ cc_info.get_cc_no() } '
                    ,                       f',"deviceId":{ device_id }'
                    ,                        '}' 
-                   ,            f',"overlayId":{ check_overlayid(overlay_idx) }'
+                   ,            f',"overlayId":{ _check_overlayid(overlay_idx) }'
                    ,             ',"id":"value"'
                    ,             '}]'
                    )
         
-    def append_json_fader(self, idx, p, cc_info):
+    def _append_json_fader(self, idx, p, cc_info):
         """Append a fader.
         """
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
@@ -328,67 +328,67 @@ class ElectraOneDumper(io.StringIO):
         else:
             min = 0
             max = 127        
-        self.append(    ',"type":"fader"' )
+        self._append(    ',"type":"fader"' )
         if cc_info.is_cc14():
-            self.append(',"values":['
+            self._append(',"values":['
                        ,   '{"message":{"type":"cc14"'
                        ,              ',"lsbFirst":false'
                        )
         else:
-            self.append(',"values":['
+            self._append(',"values":['
                        ,   '{"message":{"type":"cc7"'
                        )
-        self.append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+        self._append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
                    ,                 f',"deviceId":{ device_id }'
                    ,                 f',"min":{ min }'
                    ,                 f',"max":{ max }'
                    ,                  '}'
                    )
-        if is_int_parameter(p):
-            (vmin,mintype) = get_par_value_info(p,p.min)
-            (vmax,maxtype) = get_par_value_info(p,p.max)
-            self.append(  f',"min":{ vmin }'
+        if _is_int_parameter(p):
+            (vmin,mintype) = _get_par_value_info(p,p.min)
+            (vmax,maxtype) = _get_par_value_info(p,p.max)
+            self._append(  f',"min":{ vmin }'
                        ,  f',"max":{ vmax }'
                        ) 
-        self.append(       ',"id":"value"'
+        self._append(       ',"id":"value"'
                    ,       '}'
                    ,     ']'
                    )
         
     # idx (for the parameter): starts at 0!
-    def append_json_control(self, idx, parameter, cc_info):
+    def _append_json_control(self, idx, parameter, cc_info):
         """Append a control (depending on the parameter type): a fader, list or
            on/off toggle pad).
         """
         page = 1 + (idx // PARAMETERS_PER_PAGE)
         controlset = 1 + ((idx % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         pot = 1 + (idx % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
-        self.append( f'{{"id":{ check_id(idx+1) }'
-                  , f',"name":"{ check_name(parameter.name) }"'
+        self._append( f'{{"id":{ _check_id(idx+1) }'
+                  , f',"name":"{ _check_name(parameter.name) }"'
                   ,  ',"visible":true' 
                   , f',"color":"{ COLOR }"' 
-                  , f',"pageId":{ check_pageid(page) }'
-                  , f',"controlSetId":{ check_controlset(controlset) }'
-                  , f',"inputs":[{{"potId":{ check_pot(pot) },"valueId":"value"}}]'
+                  , f',"pageId":{ _check_pageid(page) }'
+                  , f',"controlSetId":{ _check_controlset(controlset) }'
+                  , f',"inputs":[{{"potId":{ _check_pot(pot) },"valueId":"value"}}]'
                   )
-        self.append_json_bounds(idx)
-        if needs_overlay(parameter):
+        self._append_json_bounds(idx)
+        if _needs_overlay(parameter):
             overlay_idx = self._overlay_map[parameter.original_name]
-            self.append_json_list(idx,overlay_idx,cc_info)
-        elif is_on_off_parameter(parameter):
-            self.append_json_toggle(idx,cc_info)
+            self._append_json_list(idx,overlay_idx,cc_info)
+        elif _is_on_off_parameter(parameter):
+            self._append_json_toggle(idx,cc_info)
         else:
-            self.append_json_fader(idx,parameter,cc_info)
-        self.append('}')
+            self._append_json_fader(idx,parameter,cc_info)
+        self._append('}')
 
-    def append_json_controls(self, parameters, cc_map):
+    def _append_json_controls(self, parameters, cc_map):
         """Append the controls. Parameters that do not have a CC assigned
            (i.e. not in cc_map, or with UNMAPPED_CCINFO in the ccmap)
            are skipped. (To create a full dump, set MAX_CC7_PARAMETERS,
            MAX_CC14_PARAMETERS and MAX_MIDI_EFFECT_CHANNELS generously).
         """
         global overlay_idx
-        self.append(',"controls":[')
+        self._append(',"controls":[')
         overlay_idx = 1
         id = 0  # control identifier
         flag = False
@@ -396,38 +396,39 @@ class ElectraOneDumper(io.StringIO):
             if p.original_name in cc_map:
                 cc_info = cc_map[p.original_name]
                 if cc_info.is_mapped():
-                    flag = self.append_comma(flag)
-                    self.append_json_control(id,p,cc_info)
+                    flag = self._append_comma(flag)
+                    self._append_json_control(id,p,cc_info)
                     id += 1
-        self.append(']')
+        self._append(']')
 
-    def construct_json_preset(self, device_name, parameters, cc_map):
+    def _construct_json_preset(self, device_name, parameters, cc_map):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
-        self.debug(1,'Construct JSON')
+        self._debug(1,'Construct JSON')
         # create a random project id
         PROJECT_ID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to a mutable string for efficiency
-        self.append( f'{{"version":{ VERSION }'
-                   , f',"name":"{ check_name(device_name) }"'
+        self._append( f'{{"version":{ VERSION }'
+                   , f',"name":"{ _check_name(device_name) }"'
                    , f',"projectId":"{ PROJECT_ID }"'
                    )
-        self.append_json_pages(parameters)
-        self.append_json_devices(cc_map)        
+        self._append_json_pages(parameters)
+        self._append_json_devices(cc_map)        
         self._overlay_map = {}
-        self.append_json_overlays (parameters,cc_map)
-        self.append( ',"groups":[]')
-        self.append_json_controls(parameters,cc_map)
-        self.append( '}' )
+        self._append_json_overlays (parameters,cc_map)
+        self._append( ',"groups":[]')
+        self._append_json_controls(parameters,cc_map)
+        self._append( '}' )
+        # return the string constructed within the StringIO object
         return self.getvalue()
 
-    def construct_ccmap(self,parameters):
+    def _construct_ccmap(self,parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
         """
-        self.debug(1,'Construct CC map')
+        self._debug(1,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots.
@@ -474,15 +475,15 @@ class ElectraOneDumper(io.StringIO):
                     cur_cc7par_idx += 1
                     cc_no += 1
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
-            self.debug(1,'Not all parameters could be mapped.')
+            self._debug(1,'Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'CC map constructed: { cc_map }')
+            self._debug(4,f'CC map constructed: { cc_map }')
         return cc_map
         
-    def order_parameters(self,device_name, parameters):
+    def _order_parameters(self,device_name, parameters):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
-        self.debug(2,'Order parameters')
+        self._debug(2,'Order parameters')
         if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT):
             banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
@@ -512,10 +513,10 @@ class ElectraOneDumper(io.StringIO):
         super(ElectraOneDumper, self).__init__()
         # e1_instance used to have access to the log file for debugging.
         self._e1_instance = e1_instance
-        self.debug(0,'Dumper loaded.')
-        parameters = self.order_parameters(device_name,parameters)
-        self._cc_map = self.construct_ccmap(parameters)
-        self._preset_json = self.construct_json_preset(device_name,parameters,self._cc_map)
+        self._debug(0,'Dumper loaded.')
+        parameters = self._order_parameters(device_name,parameters)
+        self._cc_map = self._construct_ccmap(parameters)
+        self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)
 
 
     def get_preset(self):

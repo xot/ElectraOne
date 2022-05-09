@@ -73,6 +73,8 @@ class EffectController(ElectraOneBase):
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
         self._refresh_state_timer = -1 # prevent refresh at the moment
+        # TODO preparing for whan ACK sent after preset constructed on the E1
+        # self._request_refresh = False
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
@@ -94,12 +96,15 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
-        self.debug(4,'EffCont update display.')
+        self.debug(6,'EffCont update display.')
         if self._refresh_state_timer == 0:
             self.refresh_state()
         if self._refresh_state_timer >= 0:
             self._refresh_state_timer -= 1
-
+        #if self._request_refresh:
+        #    self.refresh_state()
+        #self._request_refresh = False
+        
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
@@ -115,7 +120,7 @@ class EffectController(ElectraOneBase):
 
     # === Others ===
 
-    def get_preset(self,device):
+    def _get_preset(self,device):
         """Get the preset for the specified device, either externally,
            predefined or else construct it on the fly.
         """
@@ -136,7 +141,7 @@ class EffectController(ElectraOneBase):
     
     # --- handling presets  ----
     
-    def dump_presetinfo(self,device,preset_info):
+    def _dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
         # construct the folder to save in
@@ -188,15 +193,16 @@ class EffectController(ElectraOneBase):
         if device != self._assigned_device:
             self._assigned_device = device
             if device != None:
-                self._preset_info = self.get_preset(device)
+                self._preset_info = self._get_preset(device)
                 if DUMP:
-                    self.dump_presetinfo(device,self._preset_info)
+                    self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
                 self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 # set a delay depending on the length (~complexity) of the preset
                 # to ensure it is loaded before doing anything else
                 # TODO: how to ensure this delay is long enough
                 self._refresh_state_timer = int(len(preset)/100)
+                # self._request_refresh = True
                 self.debug(2,'EffCont requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
 

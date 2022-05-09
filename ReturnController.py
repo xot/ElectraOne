@@ -50,7 +50,7 @@ class ReturnController(GenericTrackController):
         self._base_arm_cc = None # not present on a return track
         self._base_solo_cue_cc = None # not present on a return track
         #
-        self._add_listeners()
+        self.add_listeners()
         self._init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
 

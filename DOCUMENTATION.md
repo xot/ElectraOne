@@ -233,6 +233,11 @@ In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ re
 
 It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle``` (which should be a method defined by the remote script object).
 
+# The main remote script
+
+- recognising an E1
+- waiting for preset uploads
+
 
 # The mixer
 

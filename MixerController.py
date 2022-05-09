@@ -149,7 +149,7 @@ class MixerController(ElectraOneBase):
            Used to effectuate a state refresh (after some delay) called for
            by _handle_selection_change
         """
-        self.debug(4,'MixCont update display.')
+        self.debug(6,'MixCont update display.')
         # handle a refresh state after some delay
         if self._refresh_state_timer == 0:
             self.refresh_state()
@@ -199,6 +199,7 @@ class MixerController(ElectraOneBase):
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map()
+        # TODO Hm.. do we really need to wait given that this rebuild midi is not really handled asynchronously anyway?
         self._refresh_state_timer = 2 # delay value updates until MIDI map ready
 
     def _on_tracks_added_or_deleted(self):

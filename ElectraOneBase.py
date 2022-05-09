@@ -16,7 +16,7 @@ import threading
 # Local imports
 from .config import *
 
-def get_cc_statusbyte(channel):
+def _get_cc_statusbyte(channel):
     # status byte encodes midi channel (-1!) in the least significant nibble
     CC_STATUS = 176
     return CC_STATUS + channel - 1
@@ -38,7 +38,12 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
-
+        # initialise; used by _is_ready() in main class
+        # set by upload_preset(); reset by _do_ack()
+        self.preset_uploading = False
+        self.ack_countdown = 0 
+        self.upload_preset_timout = -1
+        
     # --- helper functions
 
     def get_c_instance(self):
@@ -87,7 +92,7 @@ class ElectraOneBase:
         assert channel in range(1,17), f'CC channel { channel } out of range.'
         assert cc_no in range(128), f'CC no { cc_no } out of range.'
         assert value in range(128), f'CC value { value } out of range.'
-        message = (get_cc_statusbyte(channel), cc_no, value )
+        message = (_get_cc_statusbyte(channel), cc_no, value )
         self.send_midi(message)
 
     def send_midi_cc14(self, channel, cc_no, value):
@@ -100,8 +105,8 @@ class ElectraOneBase:
         msb = value // 128
         # a 14bit MIDI CC message is actually split into two messages:
         # one for the MSB and another for the LSB; the second uses cc_no+32
-        message1 = (get_cc_statusbyte(channel), cc_no, msb)
-        message2 = (get_cc_statusbyte(channel), 0x20 + cc_no, lsb)
+        message1 = (_get_cc_statusbyte(channel), cc_no, msb)
+        message2 = (_get_cc_statusbyte(channel), 0x20 + cc_no, lsb)
         self.send_midi(message1)
         self.send_midi(message2)
 
@@ -135,21 +140,8 @@ class ElectraOneBase:
         else:
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
-    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
-    # Upload the preset (a json string) to the Electro One
-    # 0xF0 SysEx header byte
-    # 0x00 0x21 0x45 Electra One MIDI manufacturer Id
-    # 0x01 Upload data
-    # 0x01 Preset file
-    # preset-json-data bytes representing ascii bytes of the preset file
-    # 0xF7 SysEx closing byte
-    #
-    # preset is the json preset as a string
-    def upload_preset(self,slot,preset):
-        """Upload an Electra One preset (given as a JSON string)
-           to the specified slot (bank,preset) where bank:0..5 and
-           preset: 0..11.
-        """
+    # TODO see https://docs.electra.one/developers/midiimplementation.html
+    def _select_preset_slot(self,slot):
         self.debug(1,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
@@ -158,7 +150,9 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
-        # 
+  
+    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
+    def _upload_preset_to_current_slot(self,preset):
         self.debug(1,'Uploading preset.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
@@ -166,4 +160,18 @@ class ElectraOneBase:
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(4,f'Preset = { preset }')
         self.send_midi(sysex_header + sysex_preset + sysex_close)
+        
+    # preset is the json preset as a string
+    def upload_preset(self,slot,preset):
+        """Upload an Electra One preset (given as a JSON string)
+           to the specified slot (bank,preset) where bank:0..5 and
+           preset: 0..11.
+        """
+        self.preset_uploading = True
+        # wait for two ACKs to be received (for select_slot AND upload_preset)
+        self.ack_countdown = 2
+        # timeout (and pretend upload was succesful) after some time
+        self.upload_preset_timeout = 50 # in update_display calls
+        self._select_preset_slot(slot)
+        self._upload_preset_to_current_slot(preset)
         

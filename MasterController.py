@@ -59,7 +59,7 @@ class MasterController(GenericTrackController):
         self._base_arm_cc = None # not present on a master track
         self._base_solo_cue_cc = None # present, but somehow not mappable
         #
-        self._add_listeners()
+        self.add_listeners()
         self._init_cc_handlers()
         self.debug(0,'MasterController loaded.')
 

@@ -75,7 +75,7 @@ class TrackController(GenericTrackController):
         self._base_arm_cc = ARM_CC 
         self._base_solo_cue_cc = SOLO_CUE_CC 
         #
-        self._add_listeners()
+        self.add_listeners()
         self._init_cc_handlers()
         self.debug(0,'TrackController loaded.')
 

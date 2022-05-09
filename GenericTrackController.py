@@ -107,7 +107,7 @@ class GenericTrackController(ElectraOneBase):
     
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
-        # to be defined by subclass
+        # TO BE DEFINED BY SUBCLASS
         pass
 
     def _my_channel_eq(self):
@@ -165,8 +165,10 @@ class GenericTrackController(ElectraOneBase):
 
     # --- Listeners
     
-    def _add_listeners(self):
+    def add_listeners(self):
         # add listeners for changes to Live elements
+        # (note: this needs to be called by the subclass, because
+        # only the subclass defines _track!)
         track = self._track
         if self._base_mute_cc != None:
             track.add_mute_listener(self._on_mute_changed)

@@ -10,6 +10,7 @@ It can also be used to dump Electra One presets for Ableton Live devices with se
 
 Finally, it also manages a mixer preset to control the track mixers, returns, master mixer and transport of the current Live song.
 
+(*Note/warning: this is really just a first release to receive feedback. Don't use this for anything serious yet: it may not be stable, and external interfaces/file-format definitions have not been frozen yet.*)
 
 ## The mixer
 
@@ -102,12 +103,18 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 
 Make sure that the version of Ableton Live and the firmware of the ElectraOne are supported (see below).
 
-Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
+1. Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
 ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne````.
 
-Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```Electr Controller (Electra Port 1)``` and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+2. MacOS: Download and install MidiPipe. Start MidiPipe and open the E1.mipi configuration file (included in the distribution). (I do not own/have access to a Windows laptop so I cannot test how to merge MIDI ports for Windows.)
 
-[img]
+3. Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```MidiPipe Output 1``` and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+
+![Ableton Preferences](./images/ableton.png "Ableton Preferences")
+
+4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the Electra One to any convenient slot, *except* the default device mapper slot (bank 6 preset 2). Bank 6 preset 1 might be a reasonable choice.
+
+Start Ableton 
 
 A patch for any device selected (the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the Electra One
 
@@ -153,7 +160,9 @@ The following constants deal with the mixer preset.
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1 (code relies on Abelton Live supporting Python 3.6).
-- Electra One firmware version XXXX (to allow sending of both SysEx preset uploads and MIDI CC changes over *one* MIDI port). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Electra One firmware version 2.2. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- On MacOS: [MidiPipe](http://www.subtlesoft.square7.net/MidiPipe.html).
+  (*Todo: add information on how to merge MIDI ports on Windows*)
 
 ## Recovering from errors
 
