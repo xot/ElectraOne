@@ -12,6 +12,7 @@
 
 # Python imports
 import os
+import threading
 
 # Ableton Live imports
 from _Generic.util import DeviceAppointer
@@ -72,15 +73,9 @@ class EffectController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
-        #self._refresh_state_timer = -1 # prevent refresh at the moment
-        # TODO preparing for whan ACK sent after preset constructed on the E1
-        self._request_refresh = False
         self._assigned_device = None
         self._assigned_device_locked = False
         self._preset_info = None
-        # timer set when device appointed; countdown through update_display
-        # until 0, in which case update_display calls the update_values function
-        # If -1 no updating needed.
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
@@ -96,15 +91,8 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
-        self.debug(6,'EffCont update display.')
-        #if self._refresh_state_timer == 0:
-        #    self.refresh_state()
-        #if self._refresh_state_timer >= 0:
-        #    self._refresh_state_timer -= 1
-        if self._request_refresh:
-            self.refresh_state()
-        self._request_refresh = False
-        
+        pass
+    
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
@@ -197,15 +185,12 @@ class EffectController(ElectraOneBase):
                 if DUMP:
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                self.upload_preset(EFFECT_PRESET_SLOT,preset)
-                # set a delay depending on the length (~complexity) of the preset
-                # to ensure it is loaded before doing anything else
-                # TODO: how to ensure this delay is long enough
-                #self._refresh_state_timer = int(len(preset)/100)
-                self._request_refresh = True
-                self.debug(2,'EffCont requesting MIDI map to be rebuilt.')
-                self.request_rebuild_midi_map()                
-
+                # 'close' the interface until preset uploaded.
+                ElectraOneBase.interface_active = False  # do this outside thread because thread may not even execute first statement before finishing
+                # thread also requests to rebuild MIDI map at the end, and calls refresh state
+                self._upload_thread = threading.Thread(target=self.upload_preset,args=(EFFECT_PRESET_SLOT,preset))
+                self._upload_thread.start()
+                
     def _set_appointed_device(self, device):
         if not self._assigned_device_locked:
             self._assign_device(device)

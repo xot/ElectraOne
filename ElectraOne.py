@@ -9,6 +9,9 @@
 
 # Python imports
 import json
+import threading
+import time
+import sys
 
 # Local imports
 from .ElectraOneBase import ElectraOneBase
@@ -69,16 +72,33 @@ class ElectraOne(ElectraOneBase):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
         # Check connection status and 'close' the interface until detected.
-        self._E1_connected = False
-        self.send_midi(E1_SYSEX_REQUEST)
-        # Detection is handled asynchronously:
-        # - incomming request response is handled by receive_midi,
-        #   who wil call _complete_init
-        # - update_display will resend request if response takes too long
-        #   to arrive and have been dropped
-        self._resend_request_timer = 10 # in calls to update_display
+        # Check connection status and 'close' the interface until detected.
+        ElectraOneBase.interface_active = False # do this outside thread because thread may not even execute first statement before finishing
+        self.debug(1,'ElectraOne starting thread...')
+        self._connection_thread = threading.Thread(target=self._connect_E1)
+        self._connection_thread.start()
         self.debug(1,'ElectraOne remote script waiting for connection...')
 
+    def _connect_E1(self):
+        """To be called as a thread. Send out request for information
+           repeatedly to detect E1. Once detected, complete initialisation
+           of the remote script and (re)activate the interface.
+        """
+        # should anything happen inside this thread, make sure we write to debug
+        try:
+            self.debug(1,'Connext E1 started')
+            self._request_response_received = False
+            self.send_midi(E1_SYSEX_REQUEST)
+            time.sleep(0.5)
+            # wait until _do_request_response called
+            while not self._request_response_received:
+                self.send_midi(E1_SYSEX_REQUEST)
+                time.sleep(0.5)
+            self._complete_init()
+            ElectraOneBase.interface_active = True
+        except:
+            self.debug(1,f'Exception occured {sys.exc_info()}')
+            
     def _complete_init(self):
         """Complete the object initialisiation once the E1 is detected.
            Only now the mixer and effect objects are initialised.
@@ -87,7 +107,6 @@ class ElectraOne(ElectraOneBase):
         c_instance = self.get_c_instance()
         self._effect_controller = EffectController(c_instance)
         self._mixer_controller = MixerController(c_instance)
-        self._E1_connected = True
         self.log_message('ElectraOne remote script loaded.')
 
     def _is_ready(self):
@@ -95,8 +114,8 @@ class ElectraOne(ElectraOneBase):
             request or not (ie whether the E1 is connected and no preset
             upload is in progress.
         """
-        ready = self._E1_connected and (not ElectraOneBase.preset_uploading)
-        self.debug(5,f'Is ready? {ready}, pu: {ElectraOneBase.preset_uploading} ac: {ElectraOneBase.ack_countdown} upt: {ElectraOneBase.upload_preset_timeout}')
+        ready = ElectraOneBase.interface_active
+        self.debug(5,f'Is ready? {ready}')
         return ready
         
     def suggest_input_port(self):
@@ -161,10 +180,7 @@ class ElectraOne(ElectraOneBase):
         self.debug(3,'ACK received.')
         # upload presets sets ack_countdown to 2
         # (because select slot also responds with an ack)
-        if ElectraOneBase.ack_countdown > 0:
-            ElectraOneBase.ack_countdown -=1
-        if ElectraOneBase.ack_countdown == 0:
-            ElectraOneBase.preset_uploading = False
+        ElectraOneBase.ack_received = True
         
     def _do_nack(self, midi_bytes):
         if self._is_ready():
@@ -175,7 +191,7 @@ class ElectraOne(ElectraOneBase):
         json_str = ''.join(chr(c) for c in json_bytes)
         self.debug(3,f'Request response received: {json_str}' )
         # json_dict = json.loads(json_str)
-        self._complete_init()
+        self._request_response_received = True
 
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message. Expected SysEx:
@@ -209,10 +225,7 @@ class ElectraOne(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
         """
-        # TODO: check: do not block build_midi_map when preset loading?
-        # THis is dangerous because then Live may start generating
-        # its own asynchronous MIDI events.
-        if self._E1_connected:
+        if self._is_ready():
             self.debug(1,'Main build midi map called.') 
             self._effect_controller.build_midi_map(midi_map_handle)
             self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
@@ -233,22 +246,6 @@ class ElectraOne(ElectraOneBase):
         if self._is_ready():
             self._effect_controller.update_display()
             self._mixer_controller.update_display()
-        elif not self._E1_connected:
-            # waiting for a REQUEST_RESPONSE
-            # resend the request for information after a delay
-            if self._resend_request_timer == 0:
-                self.debug(3,'Resending connection request...')
-                self.send_midi(E1_SYSEX_REQUEST)
-                self._resend_request_timer = 10
-            else:
-                self._resend_request_timer -= 1
-        else: # ElectraOneBase.preset_uploading
-            # decrement the upload preset timer, and reset preset_uploading
-            # to False after the timeout (i.e. ACK not received in time)
-            if ElectraOneBase.upload_preset_timeout == 0:
-                ElectraOneBase.preset_uploading = False
-            if ElectraOneBase.upload_preset_timeout >= 0:
-                ElectraOneBase.upload_preset_timeout -= 1
             
     def connect_script_instances(self,instanciated_scripts):
         """ Called by the Application as soon as all scripts are initialized.
@@ -260,7 +257,7 @@ class ElectraOne(ElectraOneBase):
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
-        if self._E1_connected:
+        if self._is_ready():
             self.debug(1,'Main disconnect called.') 
             self._effect_controller.disconnect()
             self._mixer_controller.disconnect()

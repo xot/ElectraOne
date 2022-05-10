@@ -63,7 +63,7 @@ The remote script is put on a separate thread (apparently): even if certain acti
 
 But within a remote script no threading appears to take place. However, sending MIDI appears to be asynchronous. That is to say: a call to ```send_midi``` (through the ```c_instance``` object) stores the MIDI bytes in a buffer within Live (who will then send them at its own pace) and immediately returns. Other sources of MIDI may also emit messages and these are interspersed with MIDI sent by the remote script. For longer messages (i.e. SysEx), if that happens, Live appears to cut the message into 256 byte chunks. It also appears that later (shorter) MIDI messages sent by the remote script may overtake earlier (longer) MIDI messages sent. *If both are SysEx messages, this means the second may corrupt the first.*
 
-Note however that you can start threads within the remote script using Python's ```threading``` package!
+Note however that you can start threads within the remote script using Python's ```threading``` package! We make of that in this remote script.
 
 ### The remote script object
 
@@ -235,11 +235,24 @@ It is the responsibility of the remote script to ask Live to start the process o
 
 # The main remote script
 
-- recognising an E1
-- waiting for preset uploads
+The main remote script is ```ElectraOne.py``` implementing the interface Live expects, and dividing the work over  ```MixerController``` and ```EffectController``` by creating instances of both classes. There is also a ```ElectraOneBase``` base class that uses the ```c_instance``` passed to it to offer helper functions for the other classes (like sending midi, or writing to the log file).
+
+Almost all methods in the ```ElectraOne``` interface test whether the remote script is ready to respond to external requests from Live. Normally this is the case (indicated by the fact that the ```ElectraOneBase.interface_active``` global flag is ```True``` as tested by ```_is_ready```). There are two cases when it is not.
+
+1. When the remote script is busy detecting whether an Electra One is indeed properly connected to it.
+2. When the remote script is busy uploading a preset to the Electra One.
+
+In both cases the remote script has sent a MIDI command to the Electra One and it is waiting for the appropriate response. To implement this waiting period in such a way that the MIDI response sent by the Electra One controller can be forwarded to Live to the remote script through ```receive_midi``` (the only interface method *not* testing the ```ElectraOneBase.interface_active``` flag), 
+two *threads* are used. 
+
+One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
+
+The other thread (```upload_preset```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
+
+Both threads set ```ElectraOneBase.interface_active``` to ```True``` when done. The *caller* of the thread sets ```ElectraOneBase.interface_active``` to ```False``` before starting it, to avoid any race conditions.
 
 
-# The mixer
+# The mixer (```MixerController```)
 
 The mixer preset can control the transport (play/stop, record, rewind and forward), the master track (pan, volume, cue volume, solo), at most six return tracks (pan, volume, mute) and five tracks (pan, volume, mute, solo, arm, and at most six sends). The tracks controlled can be switched. Also, each track (audio, MIDI but also the master) can contain a Live Channel EQ device. If present it is automatically mapped to controls on the default E1 mixer preset as well.
 
@@ -433,7 +446,7 @@ For non-quantised parameters (think value faders), the MIDI value to send for th
 The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with $n$ items, item $i$ (starting counting at $0$) has MIDI CC control value
 $round(i * 127/(n-1))$.
 
-# Device control
+# Device control (```EffectController```)
 
 The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely.
 
