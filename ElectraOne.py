@@ -91,7 +91,7 @@ class ElectraOne(ElectraOneBase):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(1,'Connext E1 started')
+            self.debug(1,'Connection procedure for E1 started')
             self._request_response_received = False
             self.send_midi(E1_SYSEX_REQUEST)
             time.sleep(0.5)
@@ -99,8 +99,8 @@ class ElectraOne(ElectraOneBase):
             while not self._request_response_received:
                 self.send_midi(E1_SYSEX_REQUEST)
                 time.sleep(0.5)
+            ElectraOneBase.interface_active = True # open it in case no effect selected and _complete_init therefore would not open it
             self._complete_init()
-            ElectraOneBase.interface_active = True
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
             
@@ -110,8 +110,8 @@ class ElectraOne(ElectraOneBase):
            'Open' the interface by setting its state to connected.
         """
         c_instance = self.get_c_instance()
+        self._mixer_controller = MixerController(c_instance) # only initialises internal datastructures; MIDI mapping and state refresh initiated by a call to request_rebuild_midi_map which will only be executed after this initialisation method finishes
         self._effect_controller = EffectController(c_instance)
-        self._mixer_controller = MixerController(c_instance)
         self.log_message('ElectraOne remote script loaded.')
 
     def _is_ready(self):
@@ -120,7 +120,7 @@ class ElectraOne(ElectraOneBase):
             upload is in progress.
         """
         ready = ElectraOneBase.interface_active
-        self.debug(6,f'Is ready? {ready}')
+        self.debug(6,f'Is ready? {ready} (ia: {ElectraOneBase.interface_active}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
         return ready
         
     def suggest_input_port(self):
@@ -182,9 +182,7 @@ class ElectraOne(ElectraOneBase):
                 self.debug(3,'Other preset selected (ignoring)')                
 
     def _do_ack(self, midi_bytes):
-        self.debug(3,'ACK received.')
-        # upload presets sets ack_countdown to 2
-        # (because select slot also responds with an ack)
+        self.debug(3,f'ACK received (ia: {ElectraOneBase.interface_active}.')
         ElectraOneBase.ack_received = True
         
     def _do_nack(self, midi_bytes):

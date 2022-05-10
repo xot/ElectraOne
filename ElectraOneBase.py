@@ -33,7 +33,11 @@ class ElectraOneBase:
        (interfacing with Live through c_instance).
     """
 
-    interface_active = True
+    # flag activating or deactivationg the ElectraOne interface: set when
+    # a thread is started; unset when thread finished
+    interface_active = None
+
+    # flag to inform thread the SysEx ACK message was received
     ack_received = False
     
     def __init__(self, c_instance):
@@ -42,8 +46,6 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
-        # initialise; used by _is_ready() in main class
-        # set by upload_preset(); reset by _do_ack()
         
     # --- helper functions
 
@@ -167,6 +169,7 @@ class ElectraOneBase:
         """To be called as a thread. Select a slot and upload a preset. In both
            cases wait (within a timeout) for confirmation from the E1.
            Reactivate the interface when done.
+           (self is a reference to the calling EffectController object)
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
@@ -175,21 +178,24 @@ class ElectraOneBase:
             self._select_preset_slot(slot)
             # wait until _do_ack() called or timeout after 1 second
             timeout = 10
+            self.debug(3,f'Upload thread setting slot selection timeout {timeout} (ia: {ElectraOneBase.interface_active}).')
             while (not ElectraOneBase.ack_received) and (timeout > 0):
                 time.sleep(0.1)
                 self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                 timeout -= 1
+            self.debug(3,f'Upload thread: slot selection finished after timeout {timeout} (ia: {ElectraOneBase.interface_active}).')
             if timeout > 0:
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
                 # wait until _do_ack() called or timeout (depending on patch complexity)
-                timeout = int(len(preset)/500)
-                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds')
+                timeout = int(len(preset)/100)
+                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (ia: {ElectraOneBase.interface_active})')
                 while (not ElectraOneBase.ack_received) and (timeout > 0):
                     time.sleep(0.1)
-                    self.debug(5,f'Upload thread Waiting for ACK, timeout {timeout}.')
+                    self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                     timeout -= 1
+                self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (ia: {ElectraOneBase.interface_active})')
                 # re-open the interface
                 ElectraOneBase.interface_active = True
                 # rebuild midi map and refresh state (this is why interface needs to be reactivated first ;-)
