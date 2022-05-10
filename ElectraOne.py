@@ -96,7 +96,7 @@ class ElectraOne(ElectraOneBase):
             upload is in progress.
         """
         ready = self._E1_connected and (not ElectraOneBase.preset_uploading)
-        self.debug(2,f'Is ready? {ready}, pu: {ElectraOneBase.preset_uploading} ac: {ElectraOneBase.ack_countdown} upt: {ElectraOneBase.upload_preset_timeout}')
+        self.debug(5,f'Is ready? {ready}, pu: {ElectraOneBase.preset_uploading} ac: {ElectraOneBase.ack_countdown} upt: {ElectraOneBase.upload_preset_timeout}')
         return ready
         
     def suggest_input_port(self):
