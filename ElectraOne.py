@@ -115,7 +115,7 @@ class ElectraOne(ElectraOneBase):
             upload is in progress.
         """
         ready = ElectraOneBase.interface_active
-        self.debug(5,f'Is ready? {ready}')
+        self.debug(6,f'Is ready? {ready}')
         return ready
         
     def suggest_input_port(self):

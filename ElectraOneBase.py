@@ -12,6 +12,7 @@
 
 # Python imports
 import time
+import sys
 
 # Local imports
 from .config import *
@@ -176,7 +177,7 @@ class ElectraOneBase:
             timeout = 10
             while (not ElectraOneBase.ack_received) and (timeout > 0):
                 time.sleep(0.1)
-                debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
+                self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                 timeout -= 1
             if timeout > 0:
                 # slot selected, now upload preset and wait for ACK
@@ -184,10 +185,10 @@ class ElectraOneBase:
                 self._upload_preset_to_current_slot(preset)
                 # wait until _do_ack() called or timeout (depending on patch complexity)
                 timeout = int(len(preset)/500)
-                self.debug(3,f'Upload thread setting upload timeout { timout } seconds')
+                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds')
                 while (not ElectraOneBase.ack_received) and (timeout > 0):
                     time.sleep(0.1)
-                    debug(5,f'Upload thread Waiting for ACK, timeout {timeout}.')
+                    self.debug(5,f'Upload thread Waiting for ACK, timeout {timeout}.')
                     timeout -= 1
                 # re-open the interface
                 ElectraOneBase.interface_active = True
@@ -196,5 +197,6 @@ class ElectraOneBase:
                 self.request_rebuild_midi_map()                
                 self.refresh_state()
         except:
+            ElectraOneBase.interface_active = True
             self.debug(1,f'Exception occured {sys.exc_info()}')
         
