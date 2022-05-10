@@ -186,7 +186,7 @@ class EffectController(ElectraOneBase):
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
                 # 'close' the interface until preset uploaded.
-                ElectraOneBase.interface_active = False  # do this outside thread because thread may not even execute first statement before finishing
+                ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing
                 # thread also requests to rebuild MIDI map at the end, and calls refresh state
                 self._upload_thread = threading.Thread(target=self.upload_preset,args=(EFFECT_PRESET_SLOT,preset))
                 self._upload_thread.start()

@@ -34,8 +34,8 @@ class ElectraOneBase:
     """
 
     # flag activating or deactivationg the ElectraOne interface: set when
-    # a thread is started; unset when thread finished
-    interface_active = None
+    # upload thread is started; unset when upload thread finished
+    preset_uploading = None
 
     # flag to inform thread the SysEx ACK message was received
     ack_received = False
@@ -178,31 +178,31 @@ class ElectraOneBase:
             self._select_preset_slot(slot)
             # wait until _do_ack() called or timeout after 1 second
             timeout = 10
-            self.debug(3,f'Upload thread setting slot selection timeout {timeout} (ia: {ElectraOneBase.interface_active}).')
+            self.debug(3,f'Upload thread setting slot selection timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
             while (not ElectraOneBase.ack_received) and (timeout > 0):
                 time.sleep(0.1)
                 self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                 timeout -= 1
-            self.debug(3,f'Upload thread: slot selection finished after timeout {timeout} (ia: {ElectraOneBase.interface_active}).')
+            self.debug(3,f'Upload thread: slot selection finished after timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
             if timeout > 0:
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
                 # wait until _do_ack() called or timeout (depending on patch complexity)
                 timeout = int(len(preset)/100)
-                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (ia: {ElectraOneBase.interface_active})')
+                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (pu: {ElectraOneBase.preset_uploading})')
                 while (not ElectraOneBase.ack_received) and (timeout > 0):
                     time.sleep(0.1)
                     self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                     timeout -= 1
-                self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (ia: {ElectraOneBase.interface_active})')
+                self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
                 # re-open the interface
-                ElectraOneBase.interface_active = True
+                ElectraOneBase.preset_uploading = False
                 # rebuild midi map and refresh state (this is why interface needs to be reactivated first ;-)
                 self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
                 self.refresh_state()
         except:
-            ElectraOneBase.interface_active = True
+            ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured {sys.exc_info()}')
         

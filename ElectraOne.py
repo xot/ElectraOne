@@ -78,7 +78,7 @@ class ElectraOne(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # Check connection status and 'close' the interface until detected.
         # Check connection status and 'close' the interface until detected.
-        ElectraOneBase.interface_active = False # do this outside thread because thread may not even execute first statement before finishing
+        self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         self.debug(1,'ElectraOne starting thread...')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
@@ -99,8 +99,8 @@ class ElectraOne(ElectraOneBase):
             while not self._request_response_received:
                 self.send_midi(E1_SYSEX_REQUEST)
                 time.sleep(0.5)
-            ElectraOneBase.interface_active = True # open it in case no effect selected and _complete_init therefore would not open it
             self._complete_init()
+            self._E1_connected = True 
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
             
@@ -119,8 +119,8 @@ class ElectraOne(ElectraOneBase):
             request or not (ie whether the E1 is connected and no preset
             upload is in progress.
         """
-        ready = ElectraOneBase.interface_active
-        self.debug(6,f'Is ready? {ready} (ia: {ElectraOneBase.interface_active}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
+        ready = self._E1_connected and not ElectraOneBase.preset_uploading
+        self.debug(6,f'Is ready? {ready} (pu: {ElectraOneBase.preset_uploading}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
         return ready
         
     def suggest_input_port(self):
@@ -182,7 +182,7 @@ class ElectraOne(ElectraOneBase):
                 self.debug(3,'Other preset selected (ignoring)')                
 
     def _do_ack(self, midi_bytes):
-        self.debug(3,f'ACK received (ia: {ElectraOneBase.interface_active}.')
+        self.debug(3,f'ACK received (pu: {ElectraOneBase.preset_uploading}).')
         ElectraOneBase.ack_received = True
         
     def _do_nack(self, midi_bytes):

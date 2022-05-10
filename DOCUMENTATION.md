@@ -237,19 +237,18 @@ It is the responsibility of the remote script to ask Live to start the process o
 
 The main remote script is ```ElectraOne.py``` implementing the interface Live expects, and dividing the work over  ```MixerController``` and ```EffectController``` by creating instances of both classes. There is also a ```ElectraOneBase``` base class that uses the ```c_instance``` passed to it to offer helper functions for the other classes (like sending midi, or writing to the log file).
 
-Almost all methods in the ```ElectraOne``` interface test whether the remote script is ready to respond to external requests from Live. Normally this is the case (indicated by the fact that the ```ElectraOneBase.interface_active``` global flag is ```True``` as tested by ```_is_ready```). There are two cases when it is not.
+Almost all methods in the ```ElectraOne``` interface test whether the remote script is ready to respond to external requests from Live. Normally this is the case (indicated by the flags ```self._E1_connected``` and ```ElectraOneBase.preset_uploading``` as tested by ```_is_ready```). There are two cases when it is not.
 
 1. When the remote script is busy detecting whether an Electra One is indeed properly connected to it.
 2. When the remote script is busy uploading a preset to the Electra One.
 
-In both cases the remote script has sent a MIDI command to the Electra One and it is waiting for the appropriate response. To implement this waiting period in such a way that the MIDI response sent by the Electra One controller can be forwarded to Live to the remote script through ```receive_midi``` (the only interface method *not* testing the ```ElectraOneBase.interface_active``` flag), 
+In both cases the remote script has sent a MIDI command to the Electra One and it is waiting for the appropriate response. To implement this waiting period in such a way that the MIDI response sent by the Electra One controller can be forwarded to Live to the remote script through ```receive_midi``` (the only interface method *not* testing readiness of the interface), 
 two *threads* are used. 
 
 One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
 
 The other thread (```upload_preset```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
-Both threads set ```ElectraOneBase.interface_active``` to ```True``` when done. The *caller* of the thread sets ```ElectraOneBase.interface_active``` to ```False``` before starting it, to avoid any race conditions.
 
 
 # The mixer (```MixerController```)
