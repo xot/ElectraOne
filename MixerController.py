@@ -102,7 +102,6 @@ class MixerController(ElectraOneBase):
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
-        self._refresh_state_timer = -1 # prevent refresh at the moment
         # TODO: Upload mixer preset if defined
         #if MIXER_PRESET:
         #    self.debug(1,'Uploading mixer preset.')
@@ -146,11 +145,6 @@ class MixerController(ElectraOneBase):
            by _handle_selection_change
         """
         self.debug(6,'MixCont update display.')
-        # handle a refresh state after some delay
-        if self._refresh_state_timer == 0:
-            self.refresh_state()
-        if self._refresh_state_timer >= 0:
-            self._refresh_state_timer -= 1
         # forward update request to children
         self._transport_controller.update_display()
         self._master_controller.update_display()
@@ -194,9 +188,7 @@ class MixerController(ElectraOneBase):
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
-        self.request_rebuild_midi_map()
-        # TODO Hm.. do we really need to wait given that this rebuild midi is not really handled asynchronously anyway?
-        self._refresh_state_timer = 2 # delay value updates until MIDI map ready
+        self.request_rebuild_midi_map() # also refreshes state 
 
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted; this includes
@@ -273,6 +265,6 @@ class MixerController(ElectraOneBase):
             retrn.build_midi_map(script_handle,midi_map_handle)
         for track in self._track_controllers:
             track.build_midi_map(script_handle,midi_map_handle)
-        
+        self.refresh_state()
                 
 

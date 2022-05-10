@@ -234,6 +234,7 @@ class ElectraOne(ElectraOneBase):
             self._effect_controller.update_display()
             self._mixer_controller.update_display()
         elif not self._E1_connected:
+            # waiting for a REQUEST_RESPONSE
             # resend the request for information after a delay
             if self._resend_request_timer == 0:
                 self.debug(3,'Resending connection request...')
