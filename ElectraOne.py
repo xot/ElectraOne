@@ -25,7 +25,8 @@ CC_STATUS = 0xB0
 
 # SysEx incoming commands
 
-E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45) 
+E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45)
+E1_SYSEX_LOGMESSAGE = (0x7F, 0x00) # followed by json data and terminated by 0xF7
 E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number and terminated by 0xF7
 E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) and terminated by 0xF7
 E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated by 0xF7
@@ -53,6 +54,10 @@ def _is_sysex_nack(midi_bytes):
 
 def _is_sysex_request_response(midi_bytes):
     return (midi_bytes[4:6] == E1_SYSEX_REQUEST_RESPONSE) and \
+           (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
+
+def _is_sysex_logmessage(midi_bytes):
+    return (midi_bytes[4:6] == E1_SYSEX_LOGMESSAGE) and \
            (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
 
 # --- ElectraOne class
@@ -193,11 +198,15 @@ class ElectraOne(ElectraOneBase):
         # json_dict = json.loads(json_str)
         self._request_response_received = True
 
+    def _do_logmessage(self, midi_bytes):
+        text_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
+        text_str = ''.join(chr(c) for c in text_bytes)
+        self.debug(3,f'Log message received: {text_str}' )
+
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message. Expected SysEx:
            - message informing script of preset selection change on E1
         """
-        self.debug(5,f'Handling SysEx { midi_bytes }.')
         if _is_sysex_preset_changed(midi_bytes):
             self._do_preset_changed(midi_bytes)
         elif _is_sysex_nack(midi_bytes):
@@ -206,7 +215,11 @@ class ElectraOne(ElectraOneBase):
             self._do_ack(midi_bytes)
         elif _is_sysex_request_response(midi_bytes):
             self._do_request_response(midi_bytes)
-                
+        elif _is_sysex_logmessage(midi_bytes):
+            self._do_logmessage(midi_bytes)
+        else:
+            self.debug(5,f'Handling SysEx { midi_bytes }.')
+            
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map' using
