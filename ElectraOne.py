@@ -209,7 +209,9 @@ class ElectraOne(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps.
         """
-        # TODO: check: do not block build_midi_map when preset loading
+        # TODO: check: do not block build_midi_map when preset loading?
+        # THis is dangerous because then Live may start generating
+        # its own asynchronous MIDI events.
         if self._E1_connected:
             self.debug(1,'Main build midi map called.') 
             self._effect_controller.build_midi_map(midi_map_handle)
