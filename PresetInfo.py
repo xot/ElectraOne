@@ -52,8 +52,11 @@ class PresetInfo:
 
     def validate(self):
         """ Check for internal consistency; return first found error as string.
+            (Note that there are actually valid reasons to have several device
+             parameters mapped to the same control/CC)
         """
         seen = []
+        dublicates = set()
         for cc_info in self._cc_map.values():
             # remember, for preloaded presets the cc_map actually contains tuples...
             if type(cc_info) is tuple:
@@ -66,7 +69,10 @@ class PresetInfo:
                 return f'Bad MIDI CC parameter {cc_no} in CC map.'
             seeing = (channel, cc_no)
             if seeing in seen:
-                return f'Duplicate { seeing } in CC map.'
+                duplicates.add(seeing)
             else:
                 seen.append(seeing)
-        return None
+        if len(duplicates) > 0:
+            return f'Warning: Duplicates { duplicates } in CC map.'
+        else:
+            return None

@@ -75,7 +75,7 @@ class ElectraOne(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
-        self.debug(1,'ElectraOne starting thread...')
+        self.debug(1,'ElectraOne starting E1 detection thread.')
         # start a thread to detect the E1, if found thread will complete the
         # initialisation calling self._mixer_controller = MixerController(c_instance)
         # and self._effect_controller = EffectController(c_instance)
@@ -90,7 +90,7 @@ class ElectraOne(ElectraOneBase):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(1,'Connection procedure for E1 started')
+            self.debug(2,'Connection thread: detecting E1....')
             self._request_response_received = False
             self.send_midi(E1_SYSEX_REQUEST)
             time.sleep(0.5)
@@ -98,6 +98,7 @@ class ElectraOne(ElectraOneBase):
             while not self._request_response_received:
                 self.send_midi(E1_SYSEX_REQUEST)
                 time.sleep(0.5)
+            self.debug(2,'Connection thread: E1 found')
             # complete the initialisation
             c_instance = self.get_c_instance()
             # TODO: note that this executes within a thread, so calls to
