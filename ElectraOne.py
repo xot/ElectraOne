@@ -68,18 +68,17 @@ class ElectraOne(ElectraOneBase):
        EffectController that handles the currently selected Effect/Instrument
        and a MixerController that handles the currently selected tracks volumes
        and sends, as well as the global transports and master volume.
-
-       Works in two steps: first checks to see if an Electra One is present,
-       and if so _complete_init is called.
     """
 
     def __init__(self, c_instance):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
-        # Check connection status and 'close' the interface until detected.
-        # Check connection status and 'close' the interface until detected.
+        # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         self.debug(1,'ElectraOne starting thread...')
+        # start a thread to detect the E1, if found thread will complete the
+        # initialisation calling self._mixer_controller = MixerController(c_instance)
+        # and self._effect_controller = EffectController(c_instance)
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
         self.debug(1,'ElectraOne remote script waiting for connection...')
@@ -99,21 +98,21 @@ class ElectraOne(ElectraOneBase):
             while not self._request_response_received:
                 self.send_midi(E1_SYSEX_REQUEST)
                 time.sleep(0.5)
+            # complete the initialisation
+            c_instance = self.get_c_instance()
+            # TODO: note that this executes within a thread, so calls to
+            # request_rebuild_midi_map() may (counterintuitively) be effectuated
+            # before this thread finishes. May be a problem because the interface
+            # is still closed
+            self._mixer_controller = MixerController(c_instance) 
+            self._effect_controller = EffectController(c_instance)
+            self.log_message('ElectraOne remote script loaded.')
             self._complete_init()
+            # re-open the interface
             self._E1_connected = True 
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
             
-    def _complete_init(self):
-        """Complete the object initialisiation once the E1 is detected.
-           Only now the mixer and effect objects are initialised.
-           'Open' the interface by setting its state to connected.
-        """
-        c_instance = self.get_c_instance()
-        self._mixer_controller = MixerController(c_instance) # only initialises internal datastructures; MIDI mapping and state refresh initiated by a call to request_rebuild_midi_map which will only be executed after this initialisation method finishes
-        self._effect_controller = EffectController(c_instance)
-        self.log_message('ElectraOne remote script loaded.')
-
     def _is_ready(self):
         """ Return whether the remote script is ready to process
             request or not (ie whether the E1 is connected and no preset
@@ -268,7 +267,7 @@ class ElectraOne(ElectraOneBase):
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
-        if self._is_ready():
+        if self._E1_connected:
             self.debug(1,'Main disconnect called.') 
             self._effect_controller.disconnect()
             self._mixer_controller.disconnect()
