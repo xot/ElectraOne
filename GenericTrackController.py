@@ -128,10 +128,15 @@ class GenericTrackController(ElectraOneBase):
             cc_map[p] = (channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('',cc_map)
 
+    def _refresh_track_name(self):
+        # Overriden by TrackController to rename track names
+        pass
+    
     def refresh_state(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         # called and initiated by MixerController
         track = self._track
+        self._refresh_track_name()
         if self._base_mute_cc != None:
             self._on_mute_changed()
         if self._base_arm_cc != None:
