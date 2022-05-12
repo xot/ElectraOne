@@ -108,7 +108,6 @@ class ElectraOne(ElectraOneBase):
             self._mixer_controller = MixerController(c_instance) 
             self._effect_controller = EffectController(c_instance)
             self.log_message('ElectraOne remote script loaded.')
-            self._complete_init()
             # re-open the interface
             self._E1_connected = True 
         except:

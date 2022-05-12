@@ -198,10 +198,10 @@ class ElectraOneBase:
                 self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
                 # re-open the interface
                 ElectraOneBase.preset_uploading = False
-                # rebuild midi map and refresh state (this is why interface needs to be reactivated first ;-)
+                # rebuild midi map (will also refresh state) (this is why interface needs to be reactivated first ;-)
                 self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
-                self.refresh_state()
+                self.debug(2,'Upload thread done.')
         except:
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured {sys.exc_info()}')

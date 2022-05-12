@@ -40,7 +40,7 @@ class PresetInfo:
             if type(v) is tuple:
                 return CCInfo(v)
             else:
-                return v  
+                return v # Then it is CCInfo 
         else:
             return UNMAPPED_CCINFO
         
@@ -56,7 +56,9 @@ class PresetInfo:
              parameters mapped to the same control/CC)
         """
         seen = []
-        dublicates = set()
+        duplicates = set()
+        assert self._cc_map !=  None, 'Validate expects a non-empty CC map'
+        assert self._json_preset != None, 'Validate expects a non-empty JSON preset'
         for cc_info in self._cc_map.values():
             # remember, for preloaded presets the cc_map actually contains tuples...
             if type(cc_info) is tuple:

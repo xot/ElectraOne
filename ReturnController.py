@@ -34,7 +34,7 @@ class ReturnController(GenericTrackController):
         # keep reference of track because if returns added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
         self._track = self.song().return_tracks[idx]
-        self._name = f'Return track {idx}'
+        self._name = self._track.name ##f'Return track {idx}'
         # EQ device info
         self._eq_device_name = None # not present on a return track
         self._eq_cc_map = None

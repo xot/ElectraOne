@@ -51,7 +51,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
                 # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
 # TODO: bit of a hack to pass ElectraOneBase as sender_object
@@ -105,7 +105,8 @@ class EffectController(ElectraOneBase):
         """
         self.debug(1,'EffCont building effect MIDI map.')
         build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
-
+        self.refresh_state()
+        
     # === Others ===
 
     def _get_preset(self,device):
@@ -124,7 +125,7 @@ class EffectController(ElectraOneBase):
         # check preset integrity; ny errors will be reported in the log
         error = preset_info.validate()
         if error:
-            self.debug(2,f'Invalid preset found: {error}.')
+            self.debug(2,f'Issues in preset found: {error}.')
         return preset_info
     
     # --- handling presets  ----
@@ -192,6 +193,6 @@ class EffectController(ElectraOneBase):
                 self._upload_thread.start()
                 
     def _set_appointed_device(self, device):
-        if not self._assigned_device_locked:
+        if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):
             self._assign_device(device)
         

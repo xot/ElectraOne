@@ -58,7 +58,7 @@ class TrackController(GenericTrackController):
         # keep reference of track because if tracks added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
         self._track = self.song().visible_tracks[idx]
-        self._name = f'Track {idx}'
+        self._name = self._track.name
         # offset of this track relative to the first mapped track
         self._offset = offset
         self._eq_device_name = TRACK_EQ_DEVICE_NAME 
