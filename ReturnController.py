@@ -54,6 +54,13 @@ class ReturnController(GenericTrackController):
         self._init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
 
+    def _refresh_track_name(self):
+        # TODO: this may need to be updated with E1 firmware API changes
+        # tracks
+        idx = self._idx+20
+        command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
+        self._send_lua_command(command)
+        
     def _my_cc(self,base_cc):
         # derive the actual cc_no from the assigned base CC and my index
         return base_cc + self._idx

@@ -129,7 +129,7 @@ class GenericTrackController(ElectraOneBase):
         return PresetInfo('',cc_map)
 
     def _refresh_track_name(self):
-        # Overriden by TrackController to rename track names
+        # Overriden by TrackController and ReturnController to rename track names
         pass
     
     def refresh_state(self):
