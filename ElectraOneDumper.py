@@ -502,13 +502,13 @@ class ElectraOneDumper(io.StringIO):
                 if name in parameters_dict:
                     parameters_copy.append(parameters_dict[name])
             return parameters_copy
-        elif (ORDER == ORDER_SORTED):
+        elif (ORDER == ORDER_SORTED) and (device_name not in DEVICE_DICT_IGNORE):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
             parameters_copy.sort(key=lambda p: p.name)
             return parameters_copy
-        else: # ORDER == ORDER_ORIGINAL or (ORDER == ORDER_DEVICEDICT) and (device_name not in DEVICE_DICT)
+        else: # (device_name in DEVICE_DICT_IGNORE) or ORDER == ORDER_ORIGINAL or (ORDER == ORDER_DEVICEDICT) and (device_name not in DEVICE_DICT)
             return parameters
 
     def __init__(self, e1_instance, device_name, parameters):
