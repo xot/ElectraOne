@@ -143,6 +143,14 @@ class ElectraOneBase:
         else:
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
+    # TODO see https://docs.electra.one/developers/luaext.html
+    def _send_lua_command(self,command):
+        self.debug(1,f'Sending LUA command {command}.')
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
+        sysex_command = tuple([ ord(c) for c in command ])
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_command + sysex_close)
+
     # TODO see https://docs.electra.one/developers/midiimplementation.html
     def _select_preset_slot(self,slot):
         self.debug(1,f'Selecting slot {slot}.')
@@ -156,7 +164,7 @@ class ElectraOneBase:
   
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     def _upload_preset_to_current_slot(self,preset):
-        self.debug(1,'Uploading preset.')
+        self.debug(1,f'Uploading preset (size {len(preset)} bytes).')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
