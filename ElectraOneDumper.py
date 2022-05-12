@@ -79,6 +79,13 @@ MAX_CONTROLSET_ID = CONTROLSETS_PER_PAGE
 MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
 
+# Device for which to ignore ORDER_DEVICEDICT
+DEVICE_DICT_IGNORE = ['AudioEffectGroupDevice',
+                      'MidiEffectGroupDevice',
+                      'InstrumentGroupDevice',
+                      'DrumGroupDevice']
+
+
 # return the device id to use in the preset for the specified MIDI channel
 # (deviceId 1 contains the first (lowest) MIDI channel)
 def device_idx_for_midi_channel(midi_channel):
@@ -484,7 +491,7 @@ class ElectraOneDumper(io.StringIO):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
         self._debug(2,'Order parameters')
-        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT):
+        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in DEVICE_DICT_IGNORE):
             banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
             # order parameters as in parlist, skip parameters that are not listed there
