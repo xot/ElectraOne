@@ -14,7 +14,7 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 4
+DEBUG = 5
 
 # Whether creates patch info should be dumped
 DUMP = False
@@ -26,6 +26,16 @@ DUMP = False
 # the user home directory is used instead (and ./dumps or ./user-presets
 # are not appended).
 LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
+
+# Flag whether to use fast sysex uploading,
+# using the (external) sendmidi package
+# If True, correctly set the following three constants too  
+USE_FAST_SYSEX_UPLOAD = True
+
+# path to the sendmidi command, relative to ~/LOCLADIR or ~ 
+SENDMIDI_CMD = 'lib/sendmidi'
+# name of the Electra One port to which to send the SysEx command
+E1_CTRL_PORT = 'Electra Controller Electra CTRL'
 
 # --- Effect/device configuration constants
 

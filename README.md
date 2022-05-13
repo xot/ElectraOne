@@ -63,7 +63,7 @@ Note that large devices with many parameters may create a preset with several pa
 
 Constructed presets can be dumped, along with associated CC mapping information for fine tuning the preset as shown on the Electra One (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
-Such a dump constructs a file ```<devicename>.json``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
+Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
 - the MIDI channel,
 - whether it is a 14bit controler (1: yes, 0: no), and
@@ -125,6 +125,11 @@ The behaviour of the remote script can be changed by editing ```config.py ```:
 - ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
 - ```DUMP ``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```). The default is ```False```.
+- ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
+- ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LOCALDIR```).
+- ```E1_CTRL_PORT``` (default is ```Electra Controller Electra CTRL```), the port to use to upload presets using ```sendmidi```
+
+If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 
 The following constant deals with the slot where device presets are loaded.
 
@@ -161,6 +166,7 @@ This project depends on:
 - Electra One firmware version 2.2. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - On MacOS: [MidiPipe](http://www.subtlesoft.square7.net/MidiPipe.html).
   (*Todo: add information on how to merge MIDI ports on Windows*)
+- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors
 

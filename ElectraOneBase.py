@@ -13,6 +13,7 @@
 # Python imports
 import time
 import sys
+import os
 
 # Local imports
 from .config import *
@@ -46,6 +47,16 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
+        # construct paths for fast midi sysex sending
+        self._sendmidi_cmd = self._find_localdir_path(SENDMIDI_CMD)
+        if self._sendmidi_cmd:
+            self._sysex_fast = self._test_sysex_fast()
+        else:
+            self._sysex_fast = False
+        if self._sysex_fast:
+            self.debug(1,'Fast uploading of presets supported. Great, using that!')
+        else:
+            self.debug(1,'Fast uploading of presets not supported, reverting to slow method.')
         
     # --- helper functions
 
@@ -66,6 +77,26 @@ class ElectraOneBase:
         """
         self._c_instance.request_rebuild_midi_map()
         
+    def _find_localdir_path(self,path):
+        """Find path in ~/LOCALDIR, LOCALDIR, or ~ and return it if found,
+           else return None
+        """
+        home = os.path.expanduser('~')
+        test =  f'{ home }/{ LOCALDIR }/{path}'
+        self.debug(4,f'Testing path {test}')
+        if not os.path.exists(test):                                        # try LOCALDIR as absolute directory
+            test =  f'{ LOCALDIR }/{path}'
+        self.debug(4,f'Testing path {test}')
+        if not os.path.exists(test):                                        # default is HOME
+            test = f'{ home }/{path}'
+        self.debug(4,f'Testing path {test}')
+        if not os.path.exists(test):
+            self.debug(4,f'Path {path} not found')
+            return None
+        else:
+            self.debug(4,f'Returning path {test}')
+            return test
+        
     # --- Sending/writing debug/log messages ---
         
     def debug(self,level,m):
@@ -82,8 +113,28 @@ class ElectraOneBase:
         """
         self._c_instance.show_message(m)
 
-    # --- MIDI handling ---
+    # --- Fast MIDI sysex upload handling
+
+    def _run_command(self,command):
+        self.debug(4,f'Running external command {command}')
+        return os.system(command)
+
+    def _test_sysex_fast(self):
+        testcommand = f"{self._sendmidi_cmd} dev '{E1_CTRL_PORT}'"
+        return USE_FAST_SYSEX_UPLOAD and (self._run_command(testcommand) == 0)
+
+    def _send_sysex_fast(self,preset_as_bytes):
+        # convert bytes to their string representation.
+        # strip first and last byte of SysEx command in preset_as_bytes
+        # because sendmidi syx adds them again
+        bytestr = ' '.join(str(b) for b in preset_as_bytes[1:-1])
+        command = f"{self._sendmidi_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
+        error = self._run_command(command)
+        if error:
+            self.debug(1,'Fast SysEx upload command returned with error.')
     
+    # --- MIDI handling ---
+
     def send_midi(self,message):
         self.debug(3,f'Sending MIDI message (first 10) { message[:10] }')
         self.debug(5,f'Sending MIDI message { message }.') 
@@ -170,7 +221,10 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(4,f'Preset = { preset }')
-        self.send_midi(sysex_header + sysex_preset + sysex_close)
+        if self._sysex_fast:
+            self._send_sysex_fast(sysex_header + sysex_preset + sysex_close)
+        else:
+            self.send_midi(sysex_header + sysex_preset + sysex_close)
         
     # preset is the json preset as a string
     def upload_preset(self,slot,preset):
