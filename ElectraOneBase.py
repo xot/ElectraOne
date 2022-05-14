@@ -140,7 +140,8 @@ class ElectraOneBase:
 
     def send_midi(self,message):
         self.debug(3,f'Sending MIDI message (first 10) { message[:10] }')
-        self.debug(5,f'Sending MIDI message { message }.') 
+        self.debug(5,f'Sending MIDI message { message }.')
+        time.sleep(0.005) # don't overwhelm the E1!
         self._c_instance.send_midi(message)
 
     def send_midi_cc7(self, channel, cc_no, value):
