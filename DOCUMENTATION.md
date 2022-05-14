@@ -63,7 +63,7 @@ The remote script is put on a separate thread (apparently): even if certain acti
 
 But within a remote script no threading appears to take place. However, sending MIDI appears to be asynchronous. That is to say: a call to ```send_midi``` (through the ```c_instance``` object) stores the MIDI bytes in a buffer within Live (who will then send them at its own pace) and immediately returns. Other sources of MIDI may also emit messages and these are interspersed with MIDI sent by the remote script. For longer messages (i.e. SysEx), if that happens, Live appears to cut the message into 256 byte chunks. It also appears that later (shorter) MIDI messages sent by the remote script may overtake earlier (longer) MIDI messages sent. *If both are SysEx messages, this means the second may corrupt the first.*
 
-Note however that you can start threads within the remote script using Python's ```threading``` package! We make of that in this remote script.
+Note however that you can start threads within the remote script using Python's ```threading``` package! We make use of that in this remote script.
 
 ### The remote script object
 
@@ -427,13 +427,12 @@ contain a Live Channel EQ device, this one is automatically discovered and mappe
 
 The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
 
-### Value updates / ```update_display```
+### Value updates 
 
-Initial value updating uses ```update_display``` to delay the value updates until after the mixer preset is uploaded to the E1. 
+Values are updated by a call to ```refresh_state```. This checks which of the presets is actually visible on the Electra One. This is possible because the Electra One sends out a SysEx whenever a preset is selected on the device (see 
+```_do_preset_changed```). Both the mixer and effect controller call ```refresh_state``` after having (re)built their MIDI map. 
 
-The class sets the  ```value_update_timer``` variable in its ```__init__``` method. The ```update_display``` method decrements it until it becomes 0. At that time it executes ```_init_controller_values``` that actually sends the controller value updates.
-
-*The current delays have not been thoroughly tested yet; and seem to be unnecessary anyway when no actual mixer presets are uploaded. (FIXME)*
+*Note: selecting the slot when uploading a preset apparently also triggers the preset selected sysex on the E1; luckily we do not update the state twice because the upload thread is still running so it blocks detection and processing of this SysEx command*
 
 The actual conversion of Live parameter values to the corresponding MIDI CC values, and the sending of these MIDI CC values over the right channel and with the right CC parameter number, is handled by the ```send_parameter_...``` and ```send_midi_...``` methods in ```ElectraOneBase.py```. (This is one of the reasons why all controller classes mentioned above subclass ```ElectraOneBase```). Care is taken to properly handle 7 bit and 14 bit CC parameters (in the latter case first sending the 7 most significant bits and then the remaining 7 least significant bits in a second MIDI CC message, with CC parameter 32 higher).
 
@@ -444,6 +443,8 @@ For non-quantised parameters (think value faders), the MIDI value to send for th
 
 The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with $n$ items, item $i$ (starting counting at $0$) has MIDI CC control value
 $round(i * 127/(n-1))$.
+
+When sending MIDI message a small delay is added after each message (see ```send_midi```) to avoid that the Electra One gets clogged and skips or wrongly interprets incoming messages.
 
 # Device control (```EffectController```)
 
@@ -541,6 +542,15 @@ For all quantized parameters  (```p. is_quantized```, except plain on/off button
 For faders some 'intelligence' is necessary to decide on how to define the range of display values to use in the preset. These are different than the underlying CC value range, which is always set to 0..127 for 7 bit and 0..16383 for 14 bit controls. This intelligence is necessary because the E1 only allows the definition of integer display value ranges, and when defined, *only sends out a MIDI CC message when the display value changes*. This is exactly as desired for parameters like 'Octave' (typically ranging from -3 to 3) or 'Semitones' (ranging typically from -12 to 12). But this is undesirable for e.g. output mix parameters that range from 0 to 100 % (or filter attenuations that range from -12 dB to 12 dB) but for which fine grained full 14 bit control is required. The 'intelligence' is implemented by ```is_int_parameter``` that looks at the minimum and maximum parameter values reported by Live, and when their value contains a '.' or they end with a type designator 'dB', '%', 'Hz', 's', or 'ms', then the parameter is considered not an integer, and is assigned a 14 bit CC (already when creating the CC map, of course) and no display value range is defined. For integer parameters, then minimum and maximum values reported by Live are used as the display value range.
 
 Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` to make the incremental construction of the preset string efficient. In Python strings are constants, so appending a string essentially means copying the old string to the new string and then appending the new part (some Python interpreters may catch this and optimise for this case, but we cannot rely on that). We use the ```write``` method of ```io.StringIO``` to define an ```append``` method that takes varying number of elements as parameter and writes (i.e. appends) their string representation to the output string. 
+
+### Uploading a preset
+
+The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, set ```USE_FAST_SYSEX_UPLOAD``` to true, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set
+```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+
+This has only be tested on MacOs.
+
+
 
 ## Device selection
 
