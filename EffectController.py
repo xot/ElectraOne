@@ -10,10 +10,6 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# Python imports
-import os
-import threading
-
 # Ableton Live imports
 from _Generic.util import DeviceAppointer
 import Live
@@ -136,16 +132,10 @@ class EffectController(ElectraOneBase):
     def _dump_presetinfo(self,device,preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
-        # construct the folder to save in
-        home = os.path.expanduser('~')
-        path =  f'{ home }/{ LOCALDIR }/dumps'
-        if not os.path.exists(path):                                        # try LOCALDIR as absolute directory
-            path =  f'{ LOCALDIR }/dumps'
-        if not os.path.exists(path):                                        # defaukt is HOME
-            path = home
         device_name = get_device_name(device)
-        fname = f'{ path }/{ device_name }.epr'
+        path = self._find_libdir('/dumps')
         # dump the preset JSON string
+        fname = f'{ path }/{ device_name }.epr'
         self.debug(2,f'dumping device: { device_name } in { fname }.')
         s = preset_info.get_preset()
         with open(fname,'w') as f:            
@@ -189,11 +179,7 @@ class EffectController(ElectraOneBase):
                 if DUMP:
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                # 'close' the interface until preset uploaded.
-                ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing
-                # thread also requests to rebuild MIDI map at the end, and calls refresh state
-                self._upload_thread = threading.Thread(target=self.upload_preset,args=(EFFECT_PRESET_SLOT,preset))
-                self._upload_thread.start()
+                self.upload_preset(EFFECT_PRESET_SLOT,preset)
                 
     def _set_appointed_device(self, device):
         if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):

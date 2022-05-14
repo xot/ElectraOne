@@ -11,6 +11,7 @@
 #
 
 # Python imports
+import threading
 import time
 import sys
 import os
@@ -34,14 +35,16 @@ class ElectraOneBase:
        (interfacing with Live through c_instance).
     """
 
-    # flag activating or deactivationg the ElectraOne interface: set when
-    # upload thread is started; unset when upload thread finished
+    # flag activating or deactivating the ElectraOne interface: set when
+    # upload thread is started; unset when upload thread finished. Checked
+    # by _is_ready()
     preset_uploading = None
 
-    # flag to inform thread the SysEx ACK message was received
+    # flag to inform the upload thread that a SysEx ACK message was received
     ack_received = False
 
-    # slot currently visibile on the E1
+    # slot currently visibile on the E1; used to prevent unneccessary
+    # refresh_state for invisible presets
     current_visible_slot = (0,0)
     
     def __init__(self, c_instance):
@@ -50,10 +53,10 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
-        # construct paths for fast midi sysex sending
-        self._sendmidi_cmd = self._find_localdir_path(SENDMIDI_CMD)
+        # find sendmidi, and test if it works
+        self._sendmidi_cmd = self._find_in_libdir(SENDMIDI_CMD)
         if self._sendmidi_cmd:
-            self._sysex_fast = self._test_sysex_fast()
+            self._sysex_fast = USE_FAST_SYSEX_UPLOAD  and self._test_sendmidi()
         else:
             self._sysex_fast = False
         if self._sysex_fast:
@@ -79,22 +82,29 @@ class ElectraOneBase:
            (The old mapping is (apparently) destroyed.)
         """
         self._c_instance.request_rebuild_midi_map()
-        
-    def _find_localdir_path(self,path):
-        """Find path in ~/LOCALDIR, LOCALDIR, or ~ and return it if found,
-           else return None
+
+    def _find_libdir(self,path):
+        """ Determine library path based on LIBDIR. Either ~/LIBDIR or LIBDIR
+            followed by path, or ~, the first of these that exist.
         """
         home = os.path.expanduser('~')
-        test =  f'{ home }/{ LOCALDIR }/{path}'
-        self.debug(4,f'Testing path {test}')
+        test =  f'{ home }/{ LOCALDIR }{ path }'
+        self.debug(4,f'Testing library path {test}')
         if not os.path.exists(test):                                        # try LOCALDIR as absolute directory
-            test =  f'{ LOCALDIR }/{path}'
-        self.debug(4,f'Testing path {test}')
-        if not os.path.exists(test):                                        # default is HOME
-            test = f'{ home }/{path}'
-        self.debug(4,f'Testing path {test}')
+            test =  f'{ LOCALDIR }{ path }'
+            self.debug(4,f'Testing library path {test}')
+            if not os.path.exists(test):                                        # default is HOME
+                test = home
+        return test
+        
+    def _find_in_libdir(self,path):
+        """Find path in library path and return it if found,
+           else return None
+        """
+        root = self._find_libdir('')
+        test = f'{ root }/{ path }'
         if not os.path.exists(test):
-            self.debug(4,f'Path {path} not found')
+            self.debug(4,f'Path { test } not found')
             return None
         else:
             self.debug(4,f'Returning path {test}')
@@ -122,9 +132,10 @@ class ElectraOneBase:
         self.debug(4,f'Running external command {command}')
         return os.system(command)
 
-    def _test_sysex_fast(self):
+    def _test_sendmidi(self):
+        # test the sendmidi command and return whether it is properly installed
         testcommand = f"{self._sendmidi_cmd} dev '{E1_CTRL_PORT}'"
-        return USE_FAST_SYSEX_UPLOAD and (self._run_command(testcommand) == 0)
+        return (self._run_command(testcommand) == 0)
 
     def _send_sysex_fast(self,preset_as_bytes):
         # convert bytes to their string representation.
@@ -200,7 +211,7 @@ class ElectraOneBase:
 
     # TODO see https://docs.electra.one/developers/luaext.html
     def _send_lua_command(self,command):
-        self.debug(1,f'Sending LUA command {command}.')
+        self.debug(3,f'Sending LUA command {command}.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
         sysex_command = tuple([ ord(c) for c in command ])
         sysex_close = (0xF7, )
@@ -208,7 +219,7 @@ class ElectraOneBase:
 
     # TODO see https://docs.electra.one/developers/midiimplementation.html
     def _select_preset_slot(self,slot):
-        self.debug(1,f'Selecting slot {slot}.')
+        self.debug(2,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
@@ -220,7 +231,7 @@ class ElectraOneBase:
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     def _upload_preset_to_current_slot(self,preset):
-        self.debug(1,f'Uploading preset (size {len(preset)} bytes).')
+        self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
@@ -232,7 +243,7 @@ class ElectraOneBase:
             self.send_midi(sysex_header + sysex_preset + sysex_close)
         
     # preset is the json preset as a string
-    def upload_preset(self,slot,preset):
+    def _upload_preset_thread(self,slot,preset):
         """To be called as a thread. Select a slot and upload a preset. In both
            cases wait (within a timeout) for confirmation from the E1.
            Reactivate the interface when done.
@@ -240,6 +251,7 @@ class ElectraOneBase:
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
+            self.debug(2,'Upload thread starting...')
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
             self._select_preset_slot(slot)
@@ -273,3 +285,12 @@ class ElectraOneBase:
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured {sys.exc_info()}')
         
+    def upload_preset(self,slot,preset):
+        """Select a slot and upload a preset. Returns immediately, but closes
+           interface until preset fully loaded in the background.
+        """
+        # 'close' the interface until preset uploaded.
+        ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing
+        # thread also requests to rebuild MIDI map at the end, and calls refresh state
+        self._upload_thread = threading.Thread(target=self._upload_preset_thread,args=(slot,preset))
+        self._upload_thread.start()

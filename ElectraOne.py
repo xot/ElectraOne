@@ -75,7 +75,6 @@ class ElectraOne(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
-        self.debug(1,'ElectraOne starting E1 detection thread.')
         # start a thread to detect the E1, if found thread will complete the
         # initialisation calling self._mixer_controller = MixerController(c_instance)
         # and self._effect_controller = EffectController(c_instance)
@@ -90,7 +89,7 @@ class ElectraOne(ElectraOneBase):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(2,'Connection thread: detecting E1....')
+            self.debug(2,'Connection thread: detecting E1...')
             self._request_response_received = False
             self.send_midi(E1_SYSEX_REQUEST)
             time.sleep(0.5)
@@ -169,15 +168,15 @@ class ElectraOne(ElectraOneBase):
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
 
     def _do_preset_changed(self, midi_bytes):
+        selected_slot = midi_bytes[6:8]
+        ElectraOneBase.current_visible_slot = selected_slot
+        self.debug(3,f'Preset {selected_slot} selected on the E1')
         if self._is_ready():
-            selected_slot = midi_bytes[6:8]
-            ElectraOneBase.current_visible_slot = selected_slot
-            self.debug(3,f'Preset {selected_slot} selected on the E1')
             if (selected_slot == MIXER_PRESET_SLOT):
-                self.debug(3,'Mixer preset selected')
+                self.debug(3,'Mixer preset selected: starting refresh.')
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT):  
-                self.debug(3,'Effect preset selected')
+                self.debug(3,'Effect preset selected: starting refresh.')
                 self._effect_controller.refresh_state()
             else:
                 self.debug(3,'Other preset selected (ignoring)')                
@@ -187,6 +186,7 @@ class ElectraOne(ElectraOneBase):
         ElectraOneBase.ack_received = True
         
     def _do_nack(self, midi_bytes):
+        # TODO: handle NACks
         if self._is_ready():
             self.debug(3,'NACK received.')
 
@@ -224,7 +224,7 @@ class ElectraOne(ElectraOneBase):
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
-        self.debug(3,f'Main receive MIDI called. Incoming bytes (first 10): { midi_bytes[:10] }')
+        self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { midi_bytes[:10] }')
         if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)
@@ -252,7 +252,7 @@ class ElectraOne(ElectraOneBase):
             self._mixer_controller.refresh_state()
 
     def update_display(self):
-        """ Called every 100 ms. Used to execute scheduled tasks
+        """ Called every 100 ms. We don't use it (but pass it down anyway)
         """
         self.debug(6,'Main update display called.') 
         if self._is_ready():

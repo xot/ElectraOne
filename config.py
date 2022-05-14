@@ -17,7 +17,7 @@
 DEBUG = 5
 
 # Whether creates patch info should be dumped
-DUMP = False
+DUMP = True
 
 # Local directory where dunps are stored (./dumps) and user defined
 # presets are loaded from (./user-presets). This is first tried as a
