@@ -40,6 +40,9 @@ class ElectraOneBase:
 
     # flag to inform thread the SysEx ACK message was received
     ack_received = False
+
+    # slot currently visibile on the E1
+    current_visible_slot = (0,0)
     
     def __init__(self, c_instance):
         # c_instance is/should be the object passed by Live when
@@ -212,7 +215,8 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
-  
+        ElectraOneBase.current_visible_slot = slot
+
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     def _upload_preset_to_current_slot(self,preset):
         self.debug(1,f'Uploading preset (size {len(preset)} bytes).')

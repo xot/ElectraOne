@@ -29,7 +29,7 @@ LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
 
 # Flag whether to use fast sysex uploading,
 # using the (external) sendmidi package
-# If True, correctly set the following three constants too  
+# If True, correctly set the following two constants too  
 USE_FAST_SYSEX_UPLOAD = True
 
 # path to the sendmidi command, relative to ~/LOCLADIR or ~ 

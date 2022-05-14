@@ -131,14 +131,18 @@ class MixerController(ElectraOneBase):
         return idx
     
     def refresh_state(self):
-        self.debug(2,'MixCont refreshing state.')
-        self._transport_controller.refresh_state()
-        self._master_controller.refresh_state()
-        for retrn in self._return_controllers:
-            retrn.refresh_state()    
-        for track in self._track_controllers:
-            track.refresh_state()    
-    
+        if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+            self.debug(2,'MixCont refreshing state.')
+            self._transport_controller.refresh_state()
+            self._master_controller.refresh_state()
+            for retrn in self._return_controllers:
+                retrn.refresh_state()    
+            for track in self._track_controllers:
+                track.refresh_state()    
+        else:
+            self.debug(2,'MixCont not refreshing state (mixer not visible).')
+                
+                
     def update_display(self):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.

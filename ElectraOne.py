@@ -170,11 +170,13 @@ class ElectraOne(ElectraOneBase):
 
     def _do_preset_changed(self, midi_bytes):
         if self._is_ready():
-            self.debug(3,'Preset selected on the E1')
-            if (midi_bytes[6:8] == MIXER_PRESET_SLOT):
+            selected_slot = midi_bytes[6:8]
+            ElectraOneBase.current_visible_slot = selected_slot
+            self.debug(3,f'Preset {selected_slot} selected on the E1')
+            if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected')
                 self._mixer_controller.refresh_state()
-            elif (midi_bytes[6:8] == EFFECT_PRESET_SLOT):  
+            elif (selected_slot == EFFECT_PRESET_SLOT):  
                 self.debug(3,'Effect preset selected')
                 self._effect_controller.refresh_state()
             else:

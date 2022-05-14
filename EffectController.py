@@ -83,9 +83,12 @@ class EffectController(ElectraOneBase):
 
     def refresh_state(self):
         # send the values of the controlled elements to the E1 (to bring them in sync)
-        self.debug(2,'EffCont refreshing state.')
-        update_values_for_device(self._assigned_device,self._preset_info,self)
-
+        if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
+            self.debug(2,'EffCont refreshing state.')
+            update_values_for_device(self._assigned_device,self._preset_info,self)
+        else:
+            self.debug(2,'EffCont not refreshing state (effect not visible).')
+            
     # --- initialise values ---
     
     def update_display(self):
