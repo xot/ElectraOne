@@ -111,7 +111,18 @@ class ElectraOne(ElectraOneBase):
             self._E1_connected = True 
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
-            
+
+    def _reset(self):
+        """Reset the remote script.
+        """
+        # TODO: get a device selected...
+        self._E1_connected = True
+        ElectraOneBase.preset_uploading = False
+        self._effect_controller._assigned_device_locked = False
+        self._effect_controller._assigned_device = None
+        self._effect_controller._preset_info = None
+        self._effect_controller._set_appointed_device(self.song().appointed_device)
+     
     def _is_ready(self):
         """ Return whether the remote script is ready to process
             request or not (ie whether the E1 is connected and no preset
@@ -171,7 +182,10 @@ class ElectraOne(ElectraOneBase):
         selected_slot = midi_bytes[6:8]
         ElectraOneBase.current_visible_slot = selected_slot
         self.debug(3,f'Preset {selected_slot} selected on the E1')
-        if self._is_ready():
+        if selected_slot == RESET_SLOT:
+            self.debug(1,'Remote script reset requested.')
+            self._reset()
+        elif self._is_ready():
             if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 self._mixer_controller.refresh_state()

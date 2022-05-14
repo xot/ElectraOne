@@ -10,22 +10,30 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# --- general configuration constants ---
+# === GENERAL CONFIGURATION CONSTANTS 
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 5
+DEBUG = 2
 
-# Whether creates patch info should be dumped
-DUMP = True
+# Whether created patch info should be dumped
+DUMP = False
 
-# Local directory where dunps are stored (./dumps) and user defined
-# presets are loaded from (./user-presets). This is first tried as a
-# directory relative to the user's home directory; if that doesn't exist,
-# it is interpreted as an absolute path. If that also doesn't exist, then
-# the user home directory is used instead (and ./dumps or ./user-presets
-# are not appended).
+# Local directory where dunps are stored (./dumps), user defined
+# presets are loaded from (./user-presets), and where to llok for the sendmidi
+# program.
+#
+# This is first tried as a directory relative to the user's home directory;
+# if that doesn't exist, it is interpreted as an absolute path. If that also
+# doesn't exist, then the user home directory is used instead (and ./dumps
+# or ./user-presets are not appended to make sure the directory exists).
 LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
+
+
+# 'reset slot': when selecting this slot on the E1, the remote script is reset
+RESET_SLOT = (5,11)
+
+# === FAST SYSEX UPLOAD 
 
 # Flag whether to use fast sysex uploading,
 # using the (external) sendmidi package
@@ -37,7 +45,7 @@ SENDMIDI_CMD = 'lib/sendmidi'
 # name of the Electra One port to which to send the SysEx command
 E1_CTRL_PORT = 'Electra Controller Electra CTRL'
 
-# --- Effect/device configuration constants
+# === EFFECT/DEVICE CONFIGURATION CONSTANTS
 
 # E1 preset slot where the preset controlling the currently selected device
 # is stored. Specified by bank index (0..5) followed by preset index (0.11)
@@ -59,7 +67,7 @@ ORDER = ORDER_SORTED
 MAX_CC7_PARAMETERS = -1
 MAX_CC14_PARAMETERS = -1
 
-# --- mixer configuration constants ---
+# ===  MIXER CONFIGURATION CONSTANTS 
 
 # E1 preset slot where the master is stored. Specified by bank index (0..5)
 # followed by preset index (0.11)
@@ -95,7 +103,7 @@ FORW_REW_JUMP_BY_AMOUNT = 1
 # Number of mappable tracks on the E1
 NO_OF_TRACKS = 5
 
-# --- checking ---
+# === CHECKING CONFIGURATION
 
 # sanity check on configuration values 
 def check_configuration():

@@ -86,7 +86,14 @@ The remote script is actually completely oblivious about the actual preset it up
 
 Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
- 
+## Resetting the remote script
+
+Occasionally, the remote script or the Electra One may get in a bad state.
+
+You can unplug and then replug the Electra One to restart it and continue to use it with the remote script to see if that solves the problem. (See below for how to completely reset and remove all existing presets from it.)
+
+If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the Electra One) you can reset the remote script by selecting the 'reset slot' on the Electra One (by default this is the last, lower right slot in the sixth bank).
+
 ## Warning
 
 **This is *alpha* software.**
@@ -125,6 +132,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
 - ```DUMP``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```). The default is ```False```.
+- ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
 - ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LOCALDIR```).
 - ```E1_CTRL_PORT``` (default is ```Electra Controller Electra CTRL```), the port to use to upload presets using ```sendmidi```

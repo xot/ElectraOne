@@ -115,7 +115,7 @@ class ElectraOneBase:
     def debug(self,level,m):
         """Write a debug message to the log, if level < DEBUG.
         """
-        if level < DEBUG:
+        if level <= DEBUG:
             self._c_instance.log_message(f'E1 (debug): {m}')
 
     def log_message(self,m):
