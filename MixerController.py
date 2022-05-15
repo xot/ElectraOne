@@ -117,6 +117,8 @@ class MixerController(ElectraOneBase):
         # init MIDI handlers
         self._init_handlers()
         self._add_global_listeners()
+        # flag to avoid update refresh_state
+        self._no_refresh_state_after_next_build_midi_map = False
         # force an update
         # TODO: _remap_tracks instead (to avoid request_rebuild_midi_map
         self._handle_selection_change()
@@ -212,13 +214,11 @@ class MixerController(ElectraOneBase):
         # (but only do this if it is actually visible)
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
             self._select_preset_slot(MIXER_PRESET_SLOT)
-        # TODO: this runs the danger of finishing before the slot is actually
-        # selected so update events may come in too soon;
-        # In any case, _select_preste_slot generates a PRESET CHANGED messages
-        # that when received also would update the values, so we may be updating
-        # values twice
-        #
-        # reconnect the tracks, this also requests value update (incl. the return tracks)
+        # reconnect the tracks, but avoid that the state is refreshed
+        # after requesting to rebuild the midi map. The state WILL already be updated
+        # later when the PRESET CHANGED command comes in that is caused by the
+        # _select_preset_slot() call above
+        self._no_refresh_state_after_next_build_midi_map = True
         self._handle_selection_change() 
 
     # --- Handlers ---
@@ -277,6 +277,9 @@ class MixerController(ElectraOneBase):
             retrn.build_midi_map(script_handle,midi_map_handle)
         for track in self._track_controllers:
             track.build_midi_map(script_handle,midi_map_handle)
-        self.refresh_state()
-                
+        # avoid refresh state (when build_midi_map requested
+        # _on_tracks_added_or_deleted (see explanation there)
+        if not self._no_refresh_state_after_next_build_midi_map:
+            self.refresh_state()
+        self._no_refresh_state_after_next_build_midi_map = False
 

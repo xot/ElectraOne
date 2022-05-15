@@ -198,7 +198,8 @@ class ElectraOne(ElectraOneBase):
             self._select_preset_slot(new_slot)
             # in response to selecting a slot, the E1 will send a
             # preset changed message that we will catch below to update
-            # the values on the preset currently shown
+            # the values on the preset currently shown; this also nicely
+            # ensures that the E1 is indeed ready to receive these updates
             self._swap_visible_slot_timeout = 10
         else:
             self.debug(3,'Ignoring slot switch request, because comes in too soon after previous request.')
