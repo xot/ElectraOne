@@ -221,7 +221,7 @@ class ElectraOneBase:
 
     # TODO see https://docs.electra.one/developers/midiimplementation.html
     def _select_preset_slot(self,slot):
-        self.debug(2,f'Selecting slot {slot}.')
+        self.debug(3,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
@@ -230,7 +230,9 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # Note: The E1 will in response send a preset changed message (7E 02)
-        # followed by an ack (7E 01)
+        # (followed by an ack (7E 01)); when received by the remote script
+        # WHEN READY, this will initiate a refresh_state that will update the
+        # values displayed on the E1
         ElectraOneBase.current_visible_slot = slot
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
@@ -256,7 +258,22 @@ class ElectraOneBase:
             self._send_sysex_fast(sysex_header + sysex_preset + sysex_close)
         else:
             self.send_midi(sysex_header + sysex_preset + sysex_close)
-        
+
+    def _wait_for_ack_or_timeout(self,timeout):
+        """Wait for the reception of an ACK message from the E1, or
+           the timeout, whichever is sooner. Return whether ACK received.
+        """
+        self.debug(3,f'Upload thread setting timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
+        while (not ElectraOneBase.ack_received) and (timeout > 0):
+            time.sleep(0.1)
+            self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
+            timeout -= 1
+        if not ElectraOneBase.ack_received:
+            self.debug(3,f'Upload thread: ACK received within timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
+        else:
+            self.debug(3,f'Upload thread: ACK not received, operation may have failed (pu: {ElectraOneBase.preset_uploading}).')
+        return ElectraOneBase.ack_received
+    
     # preset is the json preset as a string
     def _upload_preset_thread(self,slot,preset):
         """To be called as a thread. Select a slot and upload a preset. In both
@@ -270,42 +287,19 @@ class ElectraOneBase:
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
             self._select_preset_slot(slot)
-            # wait until _do_ack() called or timeout after 1 second
-            timeout = 10
-            self.debug(3,f'Upload thread setting slot selection timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
-            while (not ElectraOneBase.ack_received) and (timeout > 0):
-                time.sleep(0.1)
-                self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
-                timeout -= 1
-            self.debug(3,f'Upload thread: slot selection finished after timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
-            if timeout > 0:
+            if self._wait_for_ack_or_timeout(10): # timeout 1 second
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
-                # wait until _do_ack() called or timeout (depending on patch complexity)
-                timeout = int(len(preset)/100)
-                self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (pu: {ElectraOneBase.preset_uploading})')
-                while (not ElectraOneBase.ack_received) and (timeout > 0):
-                    time.sleep(0.1)
-                    self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
-                    timeout -= 1
-                self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
-                if timeout > 0:
+                # timeout depends on patch complexity
+                if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     ElectraOneBase.ack_received = False
                     self._upload_lua_script_to_current_slot(DEFAULT_LUASCRIPT)
-                    # wait until _do_ack() called or timeout
-                    timeout = 10
-                    self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (pu: {ElectraOneBase.preset_uploading})')
-                    while (not ElectraOneBase.ack_received) and (timeout > 0):
-                        time.sleep(0.1)
-                        self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
-                        timeout -= 1
-                    self.debug(3,f'Upload thread: lua script upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
-                    if (timeout == 0):
-                        self.debug(3,'Uplaod thread: lus script upload may have failed.')                        
+                    if not self._wait_for_ack_or_timeout(10):
+                        self.debug(3,'Upload thread: lua script upload may have failed.')                        
                 else:
-                    self.debug(3,'Uplaod thread: preset upload may have failed.')
+                    self.debug(3,'Upload thread: preset upload may have failed.')
                 ElectraOneBase.preset_uploading = False
                 # rebuild midi map (will also refresh state) (this is why interface needs to be reactivated first ;-)
                 self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')

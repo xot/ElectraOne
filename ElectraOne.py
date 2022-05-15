@@ -33,7 +33,12 @@ E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated 
 E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data and terminated by 0xF7
 SYSEX_TERMINATE = 0xF7
 
-# slot sent when pressing pathc request button to initiate a visible preset swap
+# slot sent when pressing patch request button on the E1 to initiate a
+# visible preset swap; note this is hardcoded in the Mixer preset and
+# in the lua script sent with every device preset
+#
+# (I would have preferred to use a Program Change message, but that one
+# is not forwarded to the remote script by Ableton
 SWITCH_SLOT = (5,10)
 
 # SysEx outgoing commands
@@ -195,6 +200,8 @@ class ElectraOne(ElectraOneBase):
             # preset changed message that we will catch below to update
             # the values on the preset currently shown
             self._swap_visible_slot_timeout = 10
+        else:
+            self.debug(3,'Ignoring slot switch request, because comes in too soon after previous request.')
                     
     def _do_preset_changed(self, midi_bytes):
         selected_slot = midi_bytes[6:8]
