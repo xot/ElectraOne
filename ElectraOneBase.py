@@ -19,6 +19,8 @@ import os
 # Local imports
 from .config import *
 
+DEFAULT_LUASCRIPT = 'function patch.onRequest (device) \n print ("Patch Request pressed"); \n midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x02, 5, 10}) \n end'
+
 def _get_cc_statusbyte(channel):
     # status byte encodes midi channel (-1!) in the least significant nibble
     CC_STATUS = 176
@@ -227,7 +229,20 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        # Note: The E1 will in response send a preset changed message (7E 02)
+        # followed by an ack (7E 01)
         ElectraOneBase.current_visible_slot = slot
+
+    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
+    def _upload_lua_script_to_current_slot(self,script):
+        self.debug(3,f'Uploading LUA script {script}.')
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x0C)
+        sysex_script = tuple([ ord(c) for c in script ])
+        sysex_close = (0xF7, )
+        if self._sysex_fast:
+            self._send_sysex_fast(sysex_header + sysex_script + sysex_close)
+        else:
+            self.send_midi(sysex_header + sysex_script + sysex_close)
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     def _upload_preset_to_current_slot(self,preset):
@@ -236,7 +251,7 @@ class ElectraOneBase:
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'Preset = { preset }')
+            self.debug(6,f'Preset = { preset }')
         if self._sysex_fast:
             self._send_sysex_fast(sysex_header + sysex_preset + sysex_close)
         else:
@@ -275,15 +290,34 @@ class ElectraOneBase:
                     self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
                     timeout -= 1
                 self.debug(3,f'Upload thread: preset upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
-                # re-open the interface
+                if timeout > 0:
+                    # preset uploaded, now upload lua script and wait for ACK
+                    ElectraOneBase.ack_received = False
+                    self._upload_lua_script_to_current_slot(DEFAULT_LUASCRIPT)
+                    # wait until _do_ack() called or timeout
+                    timeout = 10
+                    self.debug(3,f'Upload thread setting upload timeout { timeout } seconds. (pu: {ElectraOneBase.preset_uploading})')
+                    while (not ElectraOneBase.ack_received) and (timeout > 0):
+                        time.sleep(0.1)
+                        self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
+                        timeout -= 1
+                    self.debug(3,f'Upload thread: lua script upload finished after timeout {timeout}. (pu: {ElectraOneBase.preset_uploading})')
+                    if (timeout == 0):
+                        self.debug(3,'Uplaod thread: lus script upload may have failed.')                        
+                else:
+                    self.debug(3,'Uplaod thread: preset upload may have failed.')
                 ElectraOneBase.preset_uploading = False
                 # rebuild midi map (will also refresh state) (this is why interface needs to be reactivated first ;-)
                 self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
                 self.debug(2,'Upload thread done.')
+            else:
+                # slot selection timed out; reopen interface
+                ElectraOneBase.preset_uploading = False
+                self.debug(2,'Upload thread failed to select slot. Aborted.')
         except:
             ElectraOneBase.preset_uploading = False
-            self.debug(1,f'Exception occured {sys.exc_info()}')
+            self.debug(1,f'Exception occured in upload thread {sys.exc_info()}')
         
     def upload_preset(self,slot,preset):
         """Select a slot and upload a preset. Returns immediately, but closes

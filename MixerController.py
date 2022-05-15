@@ -209,9 +209,15 @@ class MixerController(ElectraOneBase):
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(self.get_c_instance(),i) for i in range(returns)]
         # reselect the mixer preset to force all controls to their default value
-        # TODO: once snapshots are properly embedded in a preset, use that instead
-        # as this 'hack' steals the focus if the device preset is actually visible
-        self._select_preset_slot(MIXER_PRESET_SLOT)
+        # (but only do this if it is actually visible)
+        if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+            self._select_preset_slot(MIXER_PRESET_SLOT)
+        # TODO: this runs the danger of finishing before the slot is actually
+        # selected so update events may come in too soon;
+        # In any case, _select_preste_slot generates a PRESET CHANGED messages
+        # that when received also would update the values, so we may be updating
+        # values twice
+        #
         # reconnect the tracks, this also requests value update (incl. the return tracks)
         self._handle_selection_change() 
 

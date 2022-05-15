@@ -86,6 +86,12 @@ The remote script is actually completely oblivious about the actual preset it up
 
 Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
+## Switching between presets
+
+You can use the normal way of switching between presets on the E1 via the MENU button. 
+
+There is a faster way however. Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
+
 ## Resetting the remote script
 
 Occasionally, the remote script or the Electra One may get in a bad state.

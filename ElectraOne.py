@@ -33,6 +33,9 @@ E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated 
 E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data and terminated by 0xF7
 SYSEX_TERMINATE = 0xF7
 
+# slot sent when pressing pathc request button to initiate a visible preset swap
+SWITCH_SLOT = (5,10)
+
 # SysEx outgoing commands
 
 E1_SYSEX_REQUEST = (0xF0, 0x00, 0x21, 0x45, 0x02, 0x7F, 0xF7)
@@ -75,6 +78,7 @@ class ElectraOne(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
+        self._swap_visible_slot_timeout = 0
         # start a thread to detect the E1, if found thread will complete the
         # initialisation calling self._mixer_controller = MixerController(c_instance)
         # and self._effect_controller = EffectController(c_instance)
@@ -178,20 +182,41 @@ class ElectraOne(ElectraOneBase):
             midi_channel = status - CC_STATUS + 1
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
 
+    def _swap_visible_slot(self):
+        # for some reason, the E1 sends the patch request three times in a row
+        # so we need to filter it
+        if self._swap_visible_slot_timeout == 0:
+            if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+                new_slot = EFFECT_PRESET_SLOT
+            else:
+                new_slot = MIXER_PRESET_SLOT
+            self._select_preset_slot(new_slot)
+            # in response to selecting a slot, the E1 will send a
+            # preset changed message that we will catch below to update
+            # the values on the preset currently shown
+            self._swap_visible_slot_timeout = 10
+                    
     def _do_preset_changed(self, midi_bytes):
         selected_slot = midi_bytes[6:8]
-        ElectraOneBase.current_visible_slot = selected_slot
         self.debug(3,f'Preset {selected_slot} selected on the E1')
+        # process resets even when not ready
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
+            ElectraOneBase.current_visible_slot = selected_slot
             self._reset()
         elif self._is_ready():
             if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected: starting refresh.')
+                ElectraOneBase.current_visible_slot = selected_slot
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT):  
                 self.debug(3,'Effect preset selected: starting refresh.')
+                ElectraOneBase.current_visible_slot = selected_slot
                 self._effect_controller.refresh_state()
+            elif (selected_slot == SWITCH_SLOT):
+                self.debug(3,'Slot switch requested.')
+                # will set ElectraOneBase.current_visible_slot through _select_preset_slot()
+                self._swap_visible_slot()
             else:
                 self.debug(3,'Other preset selected (ignoring)')                
 
@@ -266,9 +291,11 @@ class ElectraOne(ElectraOneBase):
             self._mixer_controller.refresh_state()
 
     def update_display(self):
-        """ Called every 100 ms. We don't use it (but pass it down anyway)
+        """ Called every 100 ms. 
         """
         self.debug(6,'Main update display called.') 
+        if self._swap_visible_slot_timeout > 0:
+            self._swap_visible_slot_timeout -= 1 
         if self._is_ready():
             self._effect_controller.update_display()
             self._mixer_controller.update_display()

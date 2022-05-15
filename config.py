@@ -14,10 +14,10 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 2
+DEBUG = 5
 
 # Whether created patch info should be dumped
-DUMP = False
+DUMP = True
 
 # Local directory where dunps are stored (./dumps), user defined
 # presets are loaded from (./user-presets), and where to llok for the sendmidi
