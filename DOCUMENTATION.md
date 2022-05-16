@@ -219,6 +219,21 @@ track.remove_mute_listener(on_mute_changed)
 
 It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle``` (which should be a method defined by the remote script object).
 
+## Device selection
+
+In Live, device selection (the 'Blue Hand') works as follows. You can register a handler that will be called whenever the currently selected ('appointed') device changes through the Live remote script framework class ```DeviceAppointer```, which should be called as follows
+
+```
+DeviceAppointer(song=c_instance.song(), appointed_device_setter=set_appointed_device)
+```
+
+The registered handler will be called with a reference to the selected device passed as its parameter.
+
+Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
+
+If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
+
+
 # The main E1 remote script
 
 With the basics out of the way, we are now ready to explain how the Electra One (or E1 for short) remote script works.
@@ -435,7 +450,6 @@ The ```process_midi``` function in the same class (called by the global ```recei
 In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any parameters/listeners this class is responsible for.
 
 
-
 ### The EQ device
 
 If the master track and the five audio and midi tracks currently managed 
@@ -449,17 +463,17 @@ The device mapped can relatively easily be changed by changing the definitions o
 Values are updated by a call to ```refresh_state```. This checks which of the presets is actually visible on the Electra One. This is possible because the Electra One sends out a SysEx whenever a preset is selected on the device (see 
 ```_do_preset_changed```). Both the mixer and effect controller call ```refresh_state``` after having (re)built their MIDI map. 
 
-*Note: selecting the slot when uploading a preset apparently also triggers the preset selected sysex on the E1; luckily we do not update the state twice because the upload thread is still running so it blocks detection and processing of this SysEx command*
+*Note: selecting the slot when uploading a preset apparently also triggers the preset selected sysex on the E1; we use this to trigger a value updates in certain cases because the preset selected sysex is sent after the preset has been fully activated. This way we can be sure it is actually ready to receive values.*
 
 The actual conversion of Live parameter values to the corresponding MIDI CC values, and the sending of these MIDI CC values over the right channel and with the right CC parameter number, is handled by the ```send_parameter_...``` and ```send_midi_...``` methods in ```ElectraOneBase.py```. (This is one of the reasons why all controller classes mentioned above subclass ```ElectraOneBase```). Care is taken to properly handle 7 bit and 14 bit CC parameters (in the latter case first sending the 7 most significant bits and then the remaining 7 least significant bits in a second MIDI CC message, with CC parameter 32 higher).
 
 For non-quantised parameters (think value faders), the MIDI value to send for the current device parameter value depends 
 
 - on the type of control (7 bit or 14  bit) and hence their MIDI value range (0..127 vs 0..16383), and 
-- the minimum and maximum value of this parameter, and the position of the current value within that range, i.e. $(val - min) / (max - min)$.
+- the minimum and maximum value of this parameter, and the position of the current value within that range, i.e. (val - min) / (max - min).
 
-The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with $n$ items, item $i$ (starting counting at $0$) has MIDI CC control value
-$round(i * 127/(n-1))$.
+The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with *n* items, item *i* (starting counting at 0) has MIDI CC control value
+*round*(*i* * 127/(*n*-1)).
 
 When sending MIDI message a small delay is added after each message (see ```send_midi```) to avoid that the Electra One gets clogged and skips or wrongly interprets incoming messages.
 
@@ -467,16 +481,15 @@ When sending MIDI message a small delay is added after each message (see ```send
 
 The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely.
 
-The ```EffectController.py``` module handles this, with the help of ```ElectraOneDumper.py``` (that creates device presets on the fly based in the information it can obtain from Live about the parameters of the device, see [further below](#dumper)) and ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices).
+The ```EffectController.py``` module handles this, with the help of ```ElectraOneDumper.py``` (that creates device presets on the fly based on the information it can obtain from Live about the parameters of the device, see [further below](#generating-an-e1-preset)) and ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices).
 
-Module ```EffectController.py ``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
+Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
 
 
 When the selected device changes, ```EffectController``` does the following.
 
-1. A patch for the newly selected device is uploaded to the Electra One.
-(FIXME : which slot)
-   - If a user-defined patch exists, that one is used 
+1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT ``` (default the second slot of the sixt bank).
+   - If a user-defined patch exists, that one is used. 
    - If not, the parameters for the newly selected device are retrieved from Live (using ```device.parameters```) and automatically converted to a Electra One patch (see ```ElectraOneDumper.py```) in the order specified by the configuration constant ```ORDER```. 
 
 2. All the parameters in the newly selected device are mapped to MIDI CC (using ```Live.MidiMap.map_midi_cc```). For a user-defined preset, a accompanying CC map must be defined to provide the necessary information. For presets constructed on the fly, ```ElectraOneDumper.py``` creates it. 
@@ -485,7 +498,7 @@ When the selected device changes, ```EffectController``` does the following.
 
 ## Preloaded presets
 
-Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device, so at the moment, presets for Max for Live devices cannot be preloaded. 
+Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device, so at the moment, presets for Max for Live devices cannot be preloaded. The same holds for chains.
 
 Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, and CC map.
 
@@ -513,26 +526,24 @@ DEVICES = {
     {'Device On': (11,0,1),'State': (11,0,2),'Feedback': (11,1,3),...})
 ```
 
-Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). 
-
-FIXME: CHECK: However, changing the parameter value in the Ableton UI does not necessarily update the displayed value in that case... (but this may be due to the fact that a parameter is then wrongly mapped to 14bit (or 7bit)
+Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). *However, changing the visible parameter in the Ableton UI does not update the displayed value.*
 
 
 ## Generating presets on the fly
 
-To generate a preset on the fly, create an instance of ```ElectraOneDumper``` passing it the device name and its list of parameters. The resulting object  can be queried for the generated preset through ```get_preset()```.
+To generate a preset on the fly, an instance of ```ElectraOneDumper``` is created passing it the device name and its list of parameters. The resulting object is queried for the generated preset through ```get_preset()```.
 
 Internally creating an instance (and hence the preset) proceeds through the following three steps:
 
-1. Sort (and filter) the list of parameters
-2. Construct a CC map for the resulting list of parameters (see below), and
-3. Generate a JSON encoded E1 preset as a string (see also below)
+1. [Sort (and filter) the list of parameters](#sorting-and-filter-parameters),
+2. [Construct a CC map for the resulting list of parameters](#constructing-a-cc-map), and
+3. [Generate a JSON encoded E1 preset as a string](#generating-an-e1-preset).
 
 ### Sorting and filter parameters
 
 Sorting and filtering the parameter list is controlled through the configuration constant ```ORDER```. The parameters can be 
 
-1. left in the order as reported by Live (```ORDER_ORIGINAL```),  
+1. left in the order as reported by Live (```ORDER_ORIGINAL```), 
 2. sorted alphabetically (```ORDER_SORTED```),  or 
 3. sorted according to the order specified in the Live remote script framework that is also used by all other officially supported remote scripts (```ORDER_DEVICEDICT```). 
 
@@ -540,9 +551,9 @@ The third option uses ```DEVICE_DICT``` defined in ```_Generic.Devices```. This 
 
 ### Constructing a CC map
 
-Each parameter in the list is assigned a MIDI channel and CC parameter number. Depending on the type of parameter, it is assigned either a 7bit or 14bit controller. Essentially this means that most faders (i.e. non-quantised and non-integer valued parameters, see ```wants_cc14()``` and also the [discussion below](###generating-an-e1-preset)) are considered 14bit. 
+Each parameter in the list is assigned a MIDI channel and CC parameter number. Depending on the type of parameter, it is assigned either a 7bit or 14bit controller. Essentially this means that most faders (i.e. non-quantised and non-integer valued parameters, see ```wants_cc14()``` and also the [discussion below](#generating-an-e1-preset)) are considered 14bit. 
 
-This is relevant also for constructing the CC map as 14bit CC parameters actually use *two* CC parameter numbers. The originally assigned one $c$ (used to transmit the most significant 7 bits of the value) and $c + 32$ (used to transmit the least significant 7 bits of the value). This means that when assigning $c$, $c + 32$ must be marked as taken too. The code in ```construct_ccmap``` therefore first maps all 14 bit CC parameters (limited by
+This is relevant also for constructing the CC map as 14bit CC parameters actually use *two* CC parameter numbers. The originally assigned one *c* (used to transmit the most significant 7 bits of the value) and *c* + 32 (used to transmit the least significant 7 bits of the value). This means that when assigning *c*, *c* + 32 must be marked as taken too. The code in ```construct_ccmap``` therefore first maps all 14 bit CC parameters (limited by
 ```MAX_CC14_PARAMETERS``` and then all 7 bit CC parameters (limited
  by ```MAX_CC14_PARAMETERS```). This allows the 7 bit CC parameters to fill any holes left by the 14 bit CC assignments.
  
@@ -554,9 +565,14 @@ The first MIDI channel assigned for a preset is ```MIDI_EFFECT_CHANNEL```. When 
 
 Using the information in the just created CC map, ```construct_json_preset``` proceeds to generate the E1 preset. Given the number of parameters it counts the required number of pages. For each assigned MIDI channel in the CC map it creates a corresponding E1 MIDI device. 
 
-For all quantized parameters  (```p. is_quantized```, except plain on/off buttons) it creates an overlay containing all possible values for the parameter as reported by Live through ```parameter.value_items```. This overlay is subsequently used by the corresponding 'list' control in the controls section of the patch. As a result, a parameter like 'Shape' can list as its values 'Sine', 'Saw' and 'Noise' on the E1. 
+For all quantized parameters  (```p.is_quantized```, except plain on/off buttons) it creates an overlay containing all possible values for the parameter as reported by Live through ```parameter.value_items```. This overlay is subsequently used by the corresponding 'list' control in the controls section of the patch. As a result, a parameter like 'Shape' can list as its values 'Sine', 'Saw' and 'Noise' on the E1. 
 
-For faders some 'intelligence' is necessary to decide on how to define the range of display values to use in the preset. These are different than the underlying CC value range, which is always set to 0..127 for 7 bit and 0..16383 for 14 bit controls. This intelligence is necessary because the E1 only allows the definition of integer display value ranges, and when defined, *only sends out a MIDI CC message when the display value changes*. This is exactly as desired for parameters like 'Octave' (typically ranging from -3 to 3) or 'Semitones' (ranging typically from -12 to 12). But this is undesirable for e.g. output mix parameters that range from 0 to 100 % (or filter attenuations that range from -12 dB to 12 dB) but for which fine grained full 14 bit control is required. The 'intelligence' is implemented by ```is_int_parameter``` that looks at the minimum and maximum parameter values reported by Live, and when their value contains a '.' or they end with a type designator 'dB', '%', 'Hz', 's', or 'ms', then the parameter is considered not an integer, and is assigned a 14 bit CC (already when creating the CC map, of course) and no display value range is defined. For integer parameters, then minimum and maximum values reported by Live are used as the display value range.
+For faders some 'intelligence' is necessary to decide on how to define the range of display values to use in the preset. These are different than the underlying CC value range, which is always set to 0..127 for 7 bit and 0..16383 for 14 bit controls. This intelligence is necessary because the E1 only allows the definition of integer display value ranges, and when defined, *only sends out a MIDI CC message when the display value changes*. This is exactly as desired for parameters like 'Octave' (typically ranging from -3 to 3) or 'Semitones' (ranging typically from -12 to 12). But this is undesirable for e.g. output mix parameters that range from 0 to 100 % (or filter attenuations that range from -12 dB to 12 dB) but for which fine grained full 14 bit control is required. The 'intelligence' is implemented by ```is_int_parameter``` that looks at the minimum and maximum parameter values reported by Live, and 
+
+- when their value contains a '.', or 
+- they end with a type designator 'dB', '%', 'Hz', 's', or 'ms', 
+
+then the parameter is considered not an integer, and is assigned a 14 bit CC (already when creating the CC map, of course) and no display value range is defined. For actual integer parameters, the minimum and maximum values reported by Live are used as the display value range.
 
 Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` to make the incremental construction of the preset string efficient. In Python strings are constants, so appending a string essentially means copying the old string to the new string and then appending the new part (some Python interpreters may catch this and optimise for this case, but we cannot rely on that). We use the ```write``` method of ```io.StringIO``` to define an ```append``` method that takes varying number of elements as parameter and writes (i.e. appends) their string representation to the output string. 
 
@@ -569,23 +585,9 @@ This has only be tested on MacOs.
 
 
 
-## Device selection
-
-In Live, device selection (the 'Blue Hand') works as follows. You can register a handler that will be called whenever the currently selected ('appointed') device changes through the Live remote script framework class ```DeviceAppointer```, which should be called as follows
-
-```
-DeviceAppointer(song=c_instance.song(), appointed_device_setter=set_appointed_device)
-```
-
-The registered handler will be called with a reference to the selected device passed as its parameter.
-
-Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
-
-If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
-
-
+<!--
 ## TODO
 
 - preset switch button
 - lessons learned, e.g. not overflooding the E1
-- using E1 response to a preset selection to start value updating 
+-->
