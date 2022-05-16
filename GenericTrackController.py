@@ -114,7 +114,7 @@ class GenericTrackController(ElectraOneBase):
         # Return a reference to the Channel EQ device on my track, if present.
         # None if not
         devices = self._track.devices
-        for d in devices:
+        for d in reversed(devices):
             if d.class_name == self._eq_device_name:
                 self.debug(4,'ChannelEq (or similar) device found')
                 return d

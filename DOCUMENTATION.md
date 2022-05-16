@@ -27,7 +27,7 @@ the paths in a MIDI Remote Script are slightly different than the paths mentione
 - also, paths in MIDI Remote Scripts don't use spaces but use dots, e.g. ```self.song().view.selected_track```.
 - the symbol N in a path means that the part before it returns a list. So ```live_set tracks N ``` should be translated to ```self.song().tracks[i]``` to return the i-th track.
 
-Note that (that version of) the Live API itself does not contain all the necessary information to write Remote Scripts: it does not offer any information in MIDI mapping, or the interface between Live and the remote script (i.e the ```c_instance``` object passed to the Remote Script by Live), which is necessary to understand how to send and receive MIDI messages, how to detect device selection changes, or how to indeed map MIDI (and how that works, exactly).
+Note that (that version of) the Live API itself does not contain all the necessary information to write Remote Scripts: it does not offer any information on MIDI mapping, or the interface between Live and the remote script (i.e the ```c_instance``` object passed to the Remote Script by Live), which is necessary to understand how to send and receive MIDI messages, how to detect device selection changes, or how to indeed map MIDI (and how that works, exactly).
 
 Because no official documentation existed, in the past people have reverse engineered the [Live API reference documentation](https://structure-void.com/PythonLiveAPI_documentation/Live11.0.xml) which shows the Python interface of most of Live's externally callable functions (most of the time without any documentation, however).
 
@@ -38,7 +38,7 @@ Remote scripts are the interface between the *controls* on an external MIDI cont
 
 Communication between Live and the MIDI controller takes place using MIDI, and a remote scripts is assigned a specific input port (to listen for MIDI events from the controller) and output port (to send MIDI events to the controller). MIDI events on other ports are invisible to the remote script.
 
-A remote script is written for a specific remote controller. As such the remote script knows the specific assignment of MIDI *events* (MIDI channel, event type and event number) to controls on the external controller. I.e. it knows what MIDI events will be generated when a dial on the controller is turned, a button is pushed or a key is pressed. The remote script Python program uses this information to make Ableton Live respond appropriately to a controller change (for example by calling the appropriate function in the Live API), and also to send status information back to the controller.
+A remote script is written for a specific remote controller. As such the remote script knows the specific assignment of MIDI *events* (MIDI channel, event type and event number) to controls on the external controller. I.e. it knows what MIDI events will be generated when a dial on the controller is turned, a button is pushed or a key is pressed. The remote script (written in [Python](https://docs.python.org/3/)) uses this information to make Ableton Live respond appropriately to a controller change (for example by calling the appropriate function in the Live API), and also to send status information back to the controller.
 
 A typical use case (and what makes them so useful and important to have for an external controller) is to map the controls on the external controller automatically to the currently selected device in Live. 
 
@@ -63,18 +63,18 @@ The remote script is put on a separate thread (apparently): even if certain acti
 
 But within a remote script no threading appears to take place. However, sending MIDI appears to be asynchronous. That is to say: a call to ```send_midi``` (through the ```c_instance``` object) stores the MIDI bytes in a buffer within Live (who will then send them at its own pace) and immediately returns. Other sources of MIDI may also emit messages and these are interspersed with MIDI sent by the remote script. For longer messages (i.e. SysEx), if that happens, Live appears to cut the message into 256 byte chunks. It also appears that later (shorter) MIDI messages sent by the remote script may overtake earlier (longer) MIDI messages sent. *If both are SysEx messages, this means the second may corrupt the first.*
 
-Note however that you can start threads within the remote script using Python's ```threading``` package! We make use of that in this remote script.
+Note that you can start threads within the remote script using Python's ```threading``` package! We make use of that in this remote script.
 
 ### The remote script object
 
 The remote script object should define the following methods (although if a method is missing, it is simply ignored):
 
-- ```suggest_input_port(self)``` to tell Live the name of the preferred input port name (returned as string)
-- ```suggest_output_port(self)``` to tell Live the name of the preferred output port name (returned as string)
+- ```suggest_input_port(self)``` to tell Live the name of the preferred input port name (returned as string).
+- ```suggest_output_port(self)``` to tell Live the name of the preferred output port name (returned as string).
 - ```can_lock_to_devices(self)``` to tell Live whether the remote script can be locked to devices (returned as a boolean).
 - ```lock_to_device(self, device)``` tells the remote script to lock to a given device (passed as a reference of type ```Live.Device.Device```).
 - ```unlock_from_device(self, device)``` tells the remote script to unlock from the given device (passed as a reference of type ```Live.Device.Device```).
-- ```toggle_lock(self)``` tell the script to toggle whether it will lock to devices or not; this is a bit weird because you would expect Live itself to handle this (and there is corresponding ```toggle_lock``` in ```c_instance``` to tell Live to toggle the lock...).
+- ```toggle_lock(self)``` tell the script to toggle whether it will lock to devices or not; this is a bit weird because you would expect Live itself to handle this (and there is a corresponding ```toggle_lock``` in ```c_instance``` to tell Live to toggle the lock...).
 - ```receive_midi(self,midi_bytes)``` is called to pass a single MIDI event (encoded in the *sequence* of bytes midi_bytes) to the remote script. For CC like events this is *only* called when the specific MIDI event was registered by the remote script using ```Live.MidiMap.forward_midi_cc()```. Other incoming MIDI CC like events are ignored and not forwarded to the remote script. SysEx messages are *always* passed to this function.
 - ```build_midi_map(self, midi_map_handle)``` asks the remote script to fill the MIDI map in ```midi_map_handle``` (empty when called).
 - ```update_display(self)``` is called by Live every 100 ms. Can be used to execute scheduled tasks, like updating the remote controller display (but other uses are of course also possible).
@@ -86,17 +86,17 @@ The remote script object should define the following methods (although if a meth
 
 ### The ```c_instance``` object
 
-The ```c_instance``` object defines the following methods (among others, presumably: it's interface is not documented anywhere):
+The ```c_instance``` object defines the following methods (among others, see below: it's interface is not officially documented anywhere):
 
 - ```song(self)``` a reference to the current song and hence essentially to all things accessible through the Live API.
 - ```log_message(self,m)``` log a message to the log file.
 - ```show_message(self,m)``` show a message in Live's message area in the lower left corner of the Live window.
-- ```send_midi(self,m)``` send the MIDI message m, defined as a *sequence* of bytes over the output port assigned to the remote script.
-- ```request_rebuild_midi_map(self)``` instructs Live to destroy *all* current MIDI mappings and to ask the remote script to construct a fresh map (by calling ```build_midi_map```, see above). Note that this is *not* an asynchronous message but calls the ```build_midi_map``` directly.
+- ```send_midi(self,m)``` send the MIDI message m, defined as a *sequence* (not a list) of bytes over the output port assigned to the remote script.
+- ```request_rebuild_midi_map(self)``` instructs Live to destroy *all* current MIDI mappings and to ask the remote script to construct a fresh map (by calling ```build_midi_map```, see above). This is somewhat asychronous. The way this appears to work is that as soon as the call to the remote script method that calls ```request_rebuild_midi_map(self)``` finishes and returns control back to Live, Live calls ```build_midi_map```.
 
 It's use can be seen when looking at the ```ElectraOneBase.py``` module.
 
-Using Python's ```dir()``` function we can obtain its signature:
+Using Python's ```dir()``` function we can obtain the full signature of ```c_instance```: 
 
 ```
 ['__bool__', 
@@ -150,7 +150,7 @@ Using Python's ```dir()``` function we can obtain its signature:
 'velocity_levels']
 ```
 
-FIXME _Framework (not used!)
+Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices, the Electra One remote script does not make use of these.
 
 ## MIDI / Ableton
 
@@ -162,7 +162,7 @@ Only the first 32 CC parameters can be assigned to be 14bit controllers (even th
 
 ### MIDI mapping
 
-All Live *device* parameters (including buttons) can be mapped to respond to incoming MIDI CC messages. This is done using:
+Almost all Live *device* parameters (including buttons) can be mapped to respond to incoming MIDI CC messages. This is done using:
 
 ```
 Live.MidiMap.map_midi_cc(midi_map_handle, parameter, midi_channel, cc_no, map_mode, avoid_takeover)
@@ -171,7 +171,7 @@ Live.MidiMap.map_midi_cc(midi_map_handle, parameter, midi_channel, cc_no, map_mo
 where:
 
 - ```midi_map_handle``` is the handle passed by Live to ```build_midi_map``` (presumably containing a reference to the MIDI map that Live uses internally to decide how to handle MIDI messages that come in over the MIDI input port specified for this particular MIDI Remote Script).
-- ```parameter``` (e.g. obtained as a member of ```device.parameters```) is a reference to the Live python object connected to the particular Live parameter to be controlled.
+- ```parameter``` (e.g. obtained as a member of ```device.parameters```) is a reference to the Live python object connected to the particular Live parameter to be controlled. (Note: complex Live interface objects like ```device.parameters``` are immutable.)
 - ```midi_channel``` is the MIDI channel on which to listen to CC parameters. Note that internally MIDI channels are numbered from 0-15, so the MIDI channel to pass is *one less* than the MIDI channel typically used in documentation (where it ranges from 1-16).
 - ```cc_no``` is the particular CC parameter number to listen to. 
 - ```map_mode``` defines how to interpret incoming CC values. Possible ```map_mode``` values are defined in ```Live.MidiMap.MapMode```; we use it only to define whether CC values will be 7 bit (one byte) or 14 bit (two bytes, sent using separate CC messages, see above).
@@ -181,7 +181,7 @@ Once mapped, there is nothing much left to do: incoming MIDI CC messages that ma
 
 ### MIDI forwarding
 
-For buttons on *non-device* parameters this is not the case unfortunately (luckily the volume faders, pan and send pots on tracks *can* be mapped as described above). For these parameters a different kind of mapping needs to be set up using
+Buttons on *non-device* parameters (like those appearing ontracks) can not be mapped to respond to incoming MIDI CC messages (luckily the volume faders, pan and send pots on tracks *can* be mapped as described above). For these parameters a different kind of mapping needs to be set up using
 
 ```
 Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle,midi_channel,cc_no)
@@ -189,30 +189,18 @@ Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle,midi_channel,cc_no)
 
 The parameters to this call are like the one above, except:
 
-- ```script_handle``` handle to this remote script (needed to call it's ```receive_midi``` method, see below). It is obtained using ```c_instance.handle()```  where ```c_instance``` is the parameter that Live passes to the call ```create_instance``` in ```__init__.py```. 
+- ```script_handle``` handle to this remote script (needed to call it's ```receive_midi``` method, see below). It is obtained using ```c_instance.handle()```  where ```c_instance``` is the parameter that Live passes to the call ```create_instance``` in ```__init__.py``` (as described [above](#the-c_instance-object)).
 
 Once mapped, incoming MIDI CC messages that match the map are forwarded to the remote script that registered this mapping by calling its ```receive_midi``` method. The parameter to this call is a python *sequence* (not a list) of all bytes in the message, including the MIDI status byte etc. It is the responsibility of the remote script to process these messages and ensure something happens.
 
-In the E1 remote script, each class (that needs to set up MIDI CC message forwarding)  defines a (constant) dictionary ```_CC_HANDLERS``` containing for each (midi_channel,cc_no) pair the function responsible for processing that particular incoming MIDI message.
+Note: only MIDI events that are forwarded as described above will be actually forwarded by Live to the ```receive_midi``` function when they occur. Other events are simply dropped. The only exception are MIDI SysEx messages that are always passed on to ```receive_midi``` for further processing by the remote script,
 
-For example, ```TransportController.py``` defines
-
-```
-self._CC_HANDLERS = {
-	   (MIDI_MASTER_CHANNEL, REWIND_CC) : self._do_rewind
-	,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._do_forward
-	,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
-	,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
-	}
-```
-
-The ```process_midi``` function in the same class (called by the global ```receive_midi_function``` but with the midi channel, CC parameter number and value already parsed) uses this dictionary to find the correct handler for the incoming MIDI CC message automatically. And the ```build_midi_map``` method in the same class uses the same dictionary to set up MIDI forwarding using ```Live.MidiMap.forward_midi_cc```.
 
 ### Listeners
 
 For such *non-device* parameters the remote script *also* needs to monitor any changes to the parameter in Live, and forward them to the E1 controller (to keep the two in sync). Unlike real device parameters, the mapping through ```Live.MidiMap.forward_midi_cc``` unfortunately does not instruct Live to automatically create the required MIDI CC message. The remote script needs to do that now continually (like it already needs to that for *all* mapped parameters *once* at the moment they are mapped).
 
-For each of such *non-device* parameters (of which Live thinks you might be interested to monitor a value change) live offers a function to add (and remove) *listeners* for this purpose. For example
+For each of such *non-device* parameters (of which Live thinks you might be interested to monitor a value change) Live offers a function to add (and remove) *listeners* for this purpose. For example
 
 ```
 track.add_mute_listener(on_mute_changed)
@@ -227,13 +215,13 @@ Unlike MIDI mappings (that appear to be destroyed whenever a new MIDI map is bei
 track.remove_mute_listener(on_mute_changed)
 ```
 
-In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any parameters/listeners this class is responsible for.
-
 ### Initiating MIDI mapping
 
 It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle``` (which should be a method defined by the remote script object).
 
-# The main remote script
+# The main E1 remote script
+
+With the basics out of the way, we are now ready to explain how the Electra One (or E1 for short) remote script works.
 
 The main remote script is ```ElectraOne.py``` implementing the interface Live expects, and dividing the work over  ```MixerController``` and ```EffectController``` by creating instances of both classes. There is also a ```ElectraOneBase``` base class that uses the ```c_instance``` passed to it to offer helper functions for the other classes (like sending midi, or writing to the log file).
 
@@ -247,15 +235,22 @@ two *threads* are used.
 
 One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
 
-The other thread (```upload_preset```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
+The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
 
 
 # The mixer (```MixerController```)
 
-The mixer preset can control the transport (play/stop, record, rewind and forward), the master track (pan, volume, cue volume, solo), at most six return tracks (pan, volume, mute) and five tracks (pan, volume, mute, solo, arm, and at most six sends). The tracks controlled can be switched. Also, each track (audio, MIDI but also the master) can contain a Live Channel EQ device. If present it is automatically mapped to controls on the default E1 mixer preset as well.
+The mixer preset controls 
 
-The mixer comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py``` (see there for details). 
+- the transport (play/stop, record, rewind and forward), 
+- the master track (pan, volume, cue volume, solo), 
+- at most six return tracks (pan, volume, mute), and 
+- five tracks (pan, volume, mute, solo, arm, and at most six sends). 
+
+The tracks controlled can be switched. Also, each track (audio, MIDI but also the master) can contain a Live Channel EQ device. If present it is automatically mapped to controls on the default E1 mixer preset as well.
+
+The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py``` (see there for details). 
 All that matters is that you do not change the MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
 
 
@@ -263,20 +258,20 @@ All that matters is that you do not change the MIDI channel assignments (ie the 
 
 For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions).
 
-Pan
+- Pan
 : mapped to 50L - C - 50L
 
-Volume
-: Live considers the CC value 13926 to be 0dB. The minimum CC value is 0, corresponding to -infinity. The maximum CC value equals 16383, corresponding to 6.0 db. You would therefore think that the function to map (MIDI) values to real display values is 6* (value-13926) / 2458), but this becomes less accurate below -20dB or so. The display value range is set to -435..76 (to stay just within 511 to ensure that the E1 actually even shows a value) with a default value of 0. With these specific range settings, the actual Live parameter value 0 dB is mapped to 0 on the E1.
+- Volume
+: Live considers the CC value 13926 to be 0dB. The minimum CC value is 0, corresponding to -infinity. The maximum CC value equals 16383, corresponding to 6.0 db. You would therefore think that the function to map (MIDI) values to real display values is 6* (value-13926) / 2458), but this becomes less accurate below -20dB or so. The display value range is set to -435..76 (to stay just within 511 to ensure that the E1 actually even shows a value) with a default value of 0. With these specific range settings, the actual Live parameter value 0 dB is displayed as 0 on the E1.
 
-High/Mid/Low/Output of the Channel Eq
+- High/Mid/Low/Output of the Channel Eq
 : The displayed value range is specified as -150..150 (or -120..120 for some); the formatter divides this by 10 and turns it into a float.
 
 Note that all these faders do not operate at their full 14bit potential due to the fact that the display value range is restricted (to ensure that values are shown on the E1), while the E1 unfortunately *only* sends out MIDI CC messages when the *display* value changes (not when the underlying MIDI value changes that comes from the true 14bit range). A bug report has been filed for this at Electra. As soon as any of these restrictions are lifted, the preset will be updated.
 
 ## The Mixer MIDI MAP
 
-Faders are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values. Controllers are mapped as follows.
+Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values. Controllers are mapped as follows.
 
 
 ### Master, return tracks and the transport.
@@ -400,7 +395,7 @@ The code to handle the mixer is distributed over the following modules (with the
 1 ```MixerController.py```
 : Sets up the other modules (and their classes) below. Handles the previous tracks and next tracks  selection buttons. Distributes incoming MIDI messages to the modules below (see ```receive_midi```). Coordinates the construction of the MIDI map (see```build_midi_map```). Forwards ```update_display``` to each module below. Also keeps track of which five tracks are assigned to the controller (the index of the first track in ```_first_track_index```) and updating the track controllers whenever tracks are added or deleted, or when the user presses the previous and next track buttons.
 
-  FIXME: uploading mixer preset
+  (Currently, the mixer preset must be installed once in the right slot ```MXIER_PRESET_SLOT``` before using the remote script; future release should upload it automatically when not present.)
 
 2 ```TransportController.py```
 : Handles the play/stop, record, rewind and forward button. ```update_display()``` (called every 100ms by Live) is used to test whether the rewind or forward button is (still) pressed and move the song play position accordingly (by ```FORW_REW_JUMP_BY_AMOUNT```).
@@ -416,13 +411,35 @@ The code to handle the mixer is distributed over the following modules (with the
 
 All these modules essentially map/manage controls and parameters using the strategy outlined above. In fact almost all code for this is in ```GenericTrackController```, of which ```TrackController```, ```MasterController``` and ```ReturnController``` are simple subclasses. The idea being that all three share a similar structure (they are all 'tracks') except that each of them has slightly different features. Which features are present is indicated through the definition of the corresponding CC parameter value in the ```__init__``` constructor of the subclass (where the value ```None``` indicates a feature is missing).
 
-The ```GenericTrackController``` expects the subclass to define a method ```_my_cc``` that derives the actual CC parameter number to use for a particular instance of an audio/midi track (```TrackController```) or a return track (```ReturnController```).
+The ```GenericTrackController``` expects the subclass to define a method ```_my_cc``` that derives the actual CC parameter number to use for a particular instance of an audio/midi track (```TrackController```) or a return track (```ReturnController```). It also expects the subclass to define a method ```_init_cc_handlers``` (explained below).
+
+### E1 midi CC forwarding
+
+In the E1 remote script, each class (that needs to set up MIDI CC message forwarding)  defines a (constant) dictionary ```_CC_HANDLERS``` containing for each (midi_channel,cc_no) pair the function responsible for processing that particular incoming MIDI message.
+
+For example, ```TransportController.py``` defines
+
+```
+self._CC_HANDLERS = {
+	   (MIDI_MASTER_CHANNEL, REWIND_CC) : self._do_rewind
+	,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._do_forward
+	,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
+	,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
+	}
+```
+
+The ```process_midi``` function in the same class (called by the global ```receive_midi_function``` but with the midi channel, CC parameter number and value already parsed) uses this dictionary to find the correct handler for the incoming MIDI CC message automatically. And the ```build_midi_map``` method in the same class uses the same dictionary to set up MIDI forwarding using ```Live.MidiMap.forward_midi_cc```.
+
+### E1 listeners
+
+In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any parameters/listeners this class is responsible for.
+
 
 
 ### The EQ device
 
 If the master track and the five audio and midi tracks currently managed 
-contain a Live Channel EQ device, this one is automatically discovered and mapped to the corresponding controls in the E1 preset 'Channel EQs' page. The mapping essentially follows the exact same method as used by ``` EffectController.py``` (see below) and involves little more than a call to 
+contain a Live Channel EQ device, this one is automatically discovered and mapped to the corresponding controls in the E1 preset 'Channel EQs' page. (The last possible match is used.) The mapping essentially follows the exact same method as used by ```EffectController.py``` (see below) and involves little more than a call to 
 ```build_midi_map_for_device``` (to map the device parameters to the CC controllers) and ```update_values_for_device``` to initialise the controller values as soon as the device is mapped.
 
 The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
@@ -567,3 +584,8 @@ Device selection should be ignored when the remote controller is locked to a dev
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
 
 
+## TODO
+
+- preset switch button
+- lessons learned, e.g. not overflooding the E1
+- using E1 response to a preset selection to start value updating 
