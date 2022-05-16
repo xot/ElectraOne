@@ -252,7 +252,8 @@ One thread (```_connect_E1```) sends out a request for a response from the Elect
 
 The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
-
+The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (using
+```device.id``` to ensure that a different messages is sent for each device defined in the patch, *one* of which has 0 as the 7th byte.
 
 # The mixer (```MixerController```)
 
