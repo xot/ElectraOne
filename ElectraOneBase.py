@@ -19,7 +19,12 @@ import os
 # Local imports
 from .config import *
 
-# Effect presets always have device.id = 1 as the first device
+# Default LUA script to send along an effect preset. Programs the PATCH REQUEST
+# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7)
+# received by ElectraOne to swap the visible preset. As complex presets may have
+# more than one device defined (an patch.onRequest sends a message out for
+# every device), we use device.id to diversify the outgoing message.
+# (Effect presets always have device.id = 1 as the first device)
 DEFAULT_LUASCRIPT = 'function patch.onRequest (device) \n print ("Patch Request pressed"); \n midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1}) \n end'
 
 def _get_cc_statusbyte(channel):
@@ -59,7 +64,7 @@ class ElectraOneBase:
         # find sendmidi, and test if it works
         self._sendmidi_cmd = self._find_in_libdir(SENDMIDI_CMD)
         if self._sendmidi_cmd:
-            self._sysex_fast = USE_FAST_SYSEX_UPLOAD  and self._test_sendmidi()
+            self._sysex_fast = USE_FAST_SYSEX_UPLOAD and self._test_sendmidi()
         else:
             self._sysex_fast = False
         if self._sysex_fast:

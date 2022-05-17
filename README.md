@@ -10,11 +10,13 @@ It can also be used to dump Electra One presets for Ableton Live devices with se
 
 Finally, it also manages a mixer preset to control the track mixers, returns, master mixer and transport of the current Live song.
 
+The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks.
+
 (*Note/warning: this is really just a first release to receive feedback. Don't use this for anything serious yet: it may not be stable, and external interfaces/file-format definitions have not been frozen yet.*)
 
 ## The mixer
 
-The mixer preset is included in the distribution, and should be uploaded to a bank 6, first slot. 
+The mixer preset is included in the distribution (```Mixer.eproj```), and should be uploaded to a bank 6, first slot. *Please make sure to upload the latest version each time you upgrade the script.*
 
 It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains control the master pan, volume, cue volume, and solo switch. And it contains transport controls: play/stop, record, rewind, and forward.
 
@@ -176,7 +178,7 @@ The following constants deal with the mixer preset.
 
 This project depends on:
 
-- Ableton Live 11, tested with version 11.1.1 (code relies on Abelton Live supporting Python 3.6).
+- Ableton Live 11, tested with version 11.1.1 and 11.1.5 (code relies on Abelton Live supporting Python 3.6).
 - Electra One firmware version 2.2. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - On MacOS: [MidiPipe](http://www.subtlesoft.square7.net/MidiPipe.html).
   (*Todo: add information on how to merge MIDI ports on Windows*)
