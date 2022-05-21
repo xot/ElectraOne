@@ -278,12 +278,85 @@ For certain controls, the default mixer preset contains some additional formatti
 : mapped to 50L - C - 50L
 
 - Volume
-: Live considers the CC value 13926 to be 0dB. The minimum CC value is 0, corresponding to -infinity. The maximum CC value equals 16383, corresponding to 6.0 db. You would therefore think that the function to map (MIDI) values to real display values is 6* (value-13926) / 2458), but this becomes less accurate below -20dB or so. The display value range is set to -435..76 (to stay just within 511 to ensure that the E1 actually even shows a value) with a default value of 0. With these specific range settings, the actual Live parameter value 0 dB is displayed as 0 on the E1.
+: Ranges from -infty to 6.0 dB
+  Live considers the CC value 13926 to be 0dB. The minimum CC value is 0, corresponding to -infinity. The maximum CC value equals 16383, corresponding to 6.0 db. In fact Live maps CC values to volume values using the following table (experimentally determined).
+  
+   
+| CC (div 1024) | Value (dB) |
+|---: |:-----------|
+|  0  | -infty  |
+| 8   | -54,925 |
+| 16  | -44,646 |
+| 24  | -35,941 |
+| 32  | -28,798 |
+| 40  | -23,202 |
+| 48  | -19,175 | 
+| 56  | -16,497 |
+| 64  | -13,999 |
+| 72  | -11,497 |
+| 80  | -8,996 |
+| 88  | -6,497 |
+| 96  | -3,998 |
+| 104 | -1,496 |
+| 112 | 1,004  |
+| 120 | 3,504  |
+| 127 | 6,0    |
+
+  
+- Send volume
+: Ranges from -infty to 0.0 dB. Live CC to value table
+
+
+| CC (div 1024) | Value (dB) |
+|---: |:-----------|
+| 0   | -inf    |
+| 8   | -60,925 |
+| 16  | -50,646 |
+| 24  | -41,941 |
+| 32  | -34,798 | 
+| 40  | -29,202 |
+| 48  | -25,175 |
+| 56  | -22,497 |
+| 64  | -19,999 |
+| 72  | -17,497 |
+| 80  | -14,996 |
+| 88  | -12,497 |
+| 96  | -9,998 |
+| 104 | -7,496 |
+| 112 | -4,996 |
+| 120 | -2,496 |
+| 127 | 0,0   |
+
 
 - High/Mid/Low/Output of the Channel Eq
 : The displayed value range is specified as -150..150 (or -120..120 for some); the formatter divides this by 10 and turns it into a float.
 
-Note that all these faders do not operate at their full 14bit potential due to the fact that the display value range is restricted (to ensure that values are shown on the E1), while the E1 unfortunately *only* sends out MIDI CC messages when the *display* value changes (not when the underlying MIDI value changes that comes from the true 14bit range). A bug report has been filed for this at Electra. As soon as any of these restrictions are lifted, the preset will be updated.
+- Mid Freq of Channel Eq
+: Ranges from 120 Hz to 7.5 kHz. Live CC to value table
+
+| CC (div 1024) | Value (Hz) |
+|---: |:-----------|
+| 0  | 120   |
+| 8  | 155   |
+| 16 | 201   |
+| 24 | 261   |
+| 32 | 337   |
+| 40 | 437   |
+| 48 | 566   |
+| 56 | 733   |
+| 64 | 949   |
+| 72 | 1230  |
+| 80 | 1590  |
+| 88 | 2060  |
+| 96 | 2670  |
+| 104 | 3450 |
+| 112 | 4470 |
+| 120 | 5790 |
+| 127 | 7500 |
+
+
+
+Note that all these faders do now operate at their full 14bit potential.
 
 ## The Mixer MIDI MAP
 
