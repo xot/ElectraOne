@@ -234,12 +234,12 @@ class GenericTrackController(ElectraOneBase):
             self._track.mute = (value < 64)
 
     def _handle_arm_button(self,value):
-        self.debug(2,f'Return track { self._name } arm button action.')
+        self.debug(2,f'Track { self._name } arm button action.')
         if self._base_arm_cc != None:
             self._track.arm = (value > 63)
 
     def _handle_solo_cue_button(self,value):
-        self.debug(2,f'Return track { self._name } solo/cue button action.')
+        self.debug(2,f'Track { self._name } solo/cue button action.')
         if self._base_solo_cue_cc != None:
             self._track.solo = (value > 63)
 

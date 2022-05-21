@@ -144,7 +144,7 @@ class ElectraOne(ElectraOneBase):
         ready = self._E1_connected and not ElectraOneBase.preset_uploading
         self.debug(6,f'Is ready? {ready} (pu: {ElectraOneBase.preset_uploading}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
         return ready
-        
+    
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
         """

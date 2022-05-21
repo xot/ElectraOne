@@ -74,6 +74,8 @@ class EffectController(ElectraOneBase):
         self._preset_info = None
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
+        #
+        # Note (2022-05-21): this appears to IMMEDIATELY call self._set_appointed_device
         self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
         self.debug(0,'EffectController loaded.')
 
