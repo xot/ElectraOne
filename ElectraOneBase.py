@@ -19,28 +19,6 @@ import os
 # Local imports
 from .config import *
 
-# Default LUA script to send along an effect preset. Programs the PATCH REQUEST
-# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7)
-# received by ElectraOne to swap the visible preset. As complex presets may have
-# more than one device defined (an patch.onRequest sends a message out for
-# every device), we use device.id to diversify the outgoing message.
-# (Effect presets always have device.id = 1 as the first device)
-#
-# Also contains formatter functions used by presets generated on the fly
-DEFAULT_LUASCRIPT = """
-function patch.onRequest (device)
-  print ("Patch Request pressed");
-  midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1})
-end
-
-function formatPan (valueObject, value)
-  if value < 0 
-    then return (string.format("%iL", -value))
-    else return (string.format("%iR", value))
-  end
-end
-"""
-
 def _get_cc_statusbyte(channel):
     # status byte encodes midi channel (-1!) in the least significant nibble
     CC_STATUS = 176
@@ -123,7 +101,7 @@ class ElectraOneBase:
         """
         self._c_instance.request_rebuild_midi_map()
 
-    def _find_libdir(self,path):
+    def _find_libdir(self, path):
         """ Determine library path based on LIBDIR. Either ~/LIBDIR or LIBDIR
             followed by path, or ~, the first of these that exist.
         """
@@ -137,7 +115,7 @@ class ElectraOneBase:
                 test = home
         return test
         
-    def _find_in_libdir(self,path):
+    def _find_in_libdir(self, path):
         """Find path in library path and return it if found,
            else return None
         """
@@ -152,23 +130,23 @@ class ElectraOneBase:
         
     # --- Sending/writing debug/log messages ---
         
-    def debug(self,level,m):
+    def debug(self, level, m):
         """Write a debug message to the log, if level < DEBUG.
         """
         if level <= DEBUG:
             self._c_instance.log_message(f'E1 (debug): {m}')
 
-    def log_message(self,m):
+    def log_message(self, m):
         self._c_instance.log_message(f'E1 (log): {m}')
 
-    def show_message(self,m):
+    def show_message(self, m):
         """Show a message in the Live message line (lower left corner).
         """
         self._c_instance.show_message(m)
 
     # --- Fast MIDI sysex upload handling
 
-    def _run_command(self,command):
+    def _run_command(self, command):
         self.debug(4,f'Running external command {command}')
         return os.system(command)
 
@@ -177,7 +155,7 @@ class ElectraOneBase:
         testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
         return (self._run_command(testcommand) == 0)
 
-    def _send_fast_sysex(self,preset_as_bytes):
+    def _send_fast_sysex(self, preset_as_bytes):
         # convert bytes to their string representation.
         # strip first and last byte of SysEx command in preset_as_bytes
         # because sendmidi syx adds them again
@@ -189,7 +167,7 @@ class ElectraOneBase:
     
     # --- MIDI handling ---
 
-    def send_midi(self,message):
+    def send_midi(self, message):
         self.debug(3,f'Sending MIDI message (first 10) { message[:10] }')
         self.debug(5,f'Sending MIDI message { message }.')
         time.sleep(0.005) # don't overwhelm the E1!
@@ -250,7 +228,7 @@ class ElectraOneBase:
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
     # TODO see https://docs.electra.one/developers/luaext.html
-    def _send_lua_command(self,command):
+    def _send_lua_command(self, command):
         self.debug(3,f'Sending LUA command {command}.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
         sysex_command = tuple([ ord(c) for c in command ])
@@ -258,7 +236,7 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_command + sysex_close)
 
     # TODO see https://docs.electra.one/developers/midiimplementation.html
-    def _select_preset_slot(self,slot):
+    def _select_preset_slot(self, slot):
         self.debug(3,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
@@ -274,7 +252,7 @@ class ElectraOneBase:
         ElectraOneBase.current_visible_slot = slot
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
-    def _upload_lua_script_to_current_slot(self,script):
+    def _upload_lua_script_to_current_slot(self, script):
         self.debug(3,f'Uploading LUA script {script}.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x0C)
         sysex_script = tuple([ ord(c) for c in script ])
@@ -285,7 +263,7 @@ class ElectraOneBase:
             self.send_midi(sysex_header + sysex_script + sysex_close)
 
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
-    def _upload_preset_to_current_slot(self,preset):
+    def _upload_preset_to_current_slot(self, preset):
         self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
@@ -297,7 +275,7 @@ class ElectraOneBase:
         else:
             self.send_midi(sysex_header + sysex_preset + sysex_close)
 
-    def _wait_for_ack_or_timeout(self,timeout):
+    def _wait_for_ack_or_timeout(self, timeout):
         """Wait for the reception of an ACK message from the E1, or
            the timeout, whichever is sooner. Return whether ACK received.
         """
@@ -313,8 +291,9 @@ class ElectraOneBase:
         return ElectraOneBase.ack_received
     
     # preset is the json preset as a string
-    def _upload_preset_thread(self,slot,preset):
-        """To be called as a thread. Select a slot and upload a preset. In both
+    def _upload_preset_thread(self, slot, preset, luascript):
+        """To be called as a thread. Select a slot and upload a preset
+           and a lua script for it. In all
            cases wait (within a timeout) for confirmation from the E1.
            Reactivate the interface when done.
            (self is a reference to the calling EffectController object)
@@ -333,7 +312,7 @@ class ElectraOneBase:
                 if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     ElectraOneBase.ack_received = False
-                    self._upload_lua_script_to_current_slot(DEFAULT_LUASCRIPT)
+                    self._upload_lua_script_to_current_slot(luascript)
                     if not self._wait_for_ack_or_timeout(10):
                         self.debug(3,'Upload thread: lua script upload may have failed.')                        
                 else:
@@ -351,12 +330,13 @@ class ElectraOneBase:
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured in upload thread {sys.exc_info()}')
         
-    def upload_preset(self,slot,preset):
-        """Select a slot and upload a preset. Returns immediately, but closes
-           interface until preset fully loaded in the background.
+    def upload_preset(self, slot, preset, luascript):
+        """Select a slot and upload a preset and associated luascript.
+           Returns immediately, but closes interface until preset fully loaded
+           in the background.
         """
         # 'close' the interface until preset uploaded.
         ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing
         # thread also requests to rebuild MIDI map at the end, and calls refresh state
-        self._upload_thread = threading.Thread(target=self._upload_preset_thread,args=(slot,preset))
+        self._upload_thread = threading.Thread(target=self._upload_preset_thread,args=(slot,preset,luascript))
         self._upload_thread.start()

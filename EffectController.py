@@ -22,6 +22,29 @@ from .Devices import get_predefined_preset_info
 from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
 
+
+# Default LUA script to send along an effect preset. Programs the PATCH REQUEST
+# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7)
+# received by ElectraOne to swap the visible preset. As complex presets may have
+# more than one device defined (an patch.onRequest sends a message out for
+# every device), we use device.id to diversify the outgoing message.
+# (Effect presets always have device.id = 1 as the first device)
+#
+# Also contains formatter functions used by presets generated on the fly
+DEFAULT_LUASCRIPT = """
+function patch.onRequest (device)
+  print ("Patch Request pressed");
+  midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1})
+end
+
+function formatPan (valueObject, value)
+  if value < 0 
+    then return (string.format("%iL", -value))
+    else return (string.format("%iR", value))
+  end
+end
+"""
+
 # --- helper functions
 
 # TODO: adapt to also get an appropriate name for MaxForLive devices
@@ -181,7 +204,7 @@ class EffectController(ElectraOneBase):
                 if DUMP:
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
-                self.upload_preset(EFFECT_PRESET_SLOT,preset)
+                self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
                 
     def _set_appointed_device(self, device):
         if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):
