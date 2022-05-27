@@ -79,7 +79,8 @@ MAX_CONTROLSET_ID = CONTROLSETS_PER_PAGE
 MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
 
-# Device for which to ignore ORDER_DEVICEDICT
+# Devices for which to ignore ORDER_DEVICEDICT
+# e.g. racks, or else any mapped macros will not be shown in a generated preset
 DEVICE_DICT_IGNORE = ['AudioEffectGroupDevice',
                       'MidiEffectGroupDevice',
                       'InstrumentGroupDevice',
@@ -162,10 +163,11 @@ def _needs_overlay(p):
 #
 # Note: Pan values are written 50L.. 50R *without* the space; the same is true
 # for phase parameters, e.g. 360°; I've also seen 22.0k for kHz
-
-# Return the number part and its type in the string representation of
-# the value of a parameter, as reported by Ableton
 def _get_par_value_info(p,v):
+    """ Return the number part and its type for value v of parameter p
+        (using the string representation of the value of a parameter as
+        reported by Ableton)
+    """
     value_as_str = p.str_for_value(v)                                         # get value as a string
     (number_part,sep,type) = value_as_str.partition(' ')                      # split at the first space
     # detect special cases:
@@ -197,12 +199,13 @@ def _is_int_parameter(p):
     return min_number_part.isnumeric() and max_number_part.isnumeric() and \
        (min_type not in NON_INT_TYPES) and (max_type not in NON_INT_TYPES)
 
-def wants_cc14(p):
+def _wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
        (Faders that are not mapped to integer parameters want CC14.)
     """
     # TODO: int parameter with a large range
     # (but smaller than 127) should be mapped to a CC14
+    # NON_INT_TYPES partially deals with this
     return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
 
 def _is_pan(p):
@@ -497,13 +500,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             # config checks that this is always <= 16
             max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         # get the list of parameters to be assigned to 14bit controllers
-        cc14pars = [p for p in parameters if wants_cc14(p)]
+        cc14pars = [p for p in parameters if _wants_cc14(p)]
         if MAX_CC14_PARAMETERS != -1:
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
         cur_cc14par_idx = 0
         # TODO: consider also including skipped cc14 parameters?
         # get the list of parameters to be assigned to 7bit controllers        
-        cc7pars = [p for p in parameters if not wants_cc14(p)]
+        cc7pars = [p for p in parameters if not _wants_cc14(p)]
         if MAX_CC7_PARAMETERS != -1:
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
         cur_cc7par_idx = 0
