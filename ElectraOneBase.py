@@ -25,7 +25,19 @@ from .config import *
 # more than one device defined (an patch.onRequest sends a message out for
 # every device), we use device.id to diversify the outgoing message.
 # (Effect presets always have device.id = 1 as the first device)
-DEFAULT_LUASCRIPT = 'function patch.onRequest (device) \n print ("Patch Request pressed"); \n midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1}) \n end'
+DEFAULT_LUASCRIPT = """
+function patch.onRequest (device)
+  print ("Patch Request pressed");
+  midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1})
+end
+
+function formatPan (valueObject, value)
+  if value < 0 
+    then return (string.format("%iL", -value))
+    else return (string.format("%iR", value))
+  end
+end
+"""
 
 def _get_cc_statusbyte(channel):
     # status byte encodes midi channel (-1!) in the least significant nibble

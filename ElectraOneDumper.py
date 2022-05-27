@@ -45,7 +45,7 @@ from _Generic.Devices import *
 
 # Local imports
 from .config import *
-from .ElectraOneBase import cc_value_for_item_idx
+from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
 from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
 
@@ -159,6 +159,8 @@ def _needs_overlay(p):
 # On
 # -inf dB
 # 3.7 Hz
+#
+# Note: Pan values are written 50L.. 50R *without* the space
 
 # Return the number part and its type in the string representation of
 # the value of a parameter, as reported by Ableton
@@ -191,7 +193,7 @@ def wants_cc14(p):
     return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
 
 
-class ElectraOneDumper(io.StringIO):
+class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
     """
@@ -210,9 +212,6 @@ class ElectraOneDumper(io.StringIO):
             self._append(',')
         return True
                         
-    def _debug(self,level,m):
-        self._e1_instance.debug(level,m)
-        
     def _append_json_pages(self,parameters) :
         """Append the necessary number of pages (and their names)
         """
@@ -267,6 +266,7 @@ class ElectraOneDumper(io.StringIO):
         """Append an overlay.
         """
         self._overlay_map[parameter.original_name] = idx
+        # {{ to escape { in f string
         self._append(f'{{"id":{ _check_overlayid(idx) }')
         self._append_json_overlay_items(parameter.value_items)
         self._append('}')
@@ -329,38 +329,36 @@ class ElectraOneDumper(io.StringIO):
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         # TODO: it may happen that an integer parameter has a lot of values
         # but it actually is assigned a 7bit CC
+        min = 0
         if cc_info.is_cc14():
-            min = 0
             max = 16383
         else:
-            min = 0
             max = 127        
-        self._append(    ',"type":"fader"' )
+        self._append(    ',"type":"fader"' 
+                    ,    ',"values":['
+                    )
         if cc_info.is_cc14():
-            self._append(',"values":['
-                       ,   '{"message":{"type":"cc14"'
-                       ,              ',"lsbFirst":false'
-                       )
+            self._append(   '{"message":{"type":"cc14"'
+                        ,              ',"lsbFirst":false'
+                        )
         else:
-            self._append(',"values":['
-                       ,   '{"message":{"type":"cc7"'
-                       )
+            self._append(   '{"message":{"type":"cc7"'  )
         self._append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
-                   ,                 f',"deviceId":{ device_id }'
-                   ,                 f',"min":{ min }'
-                   ,                 f',"max":{ max }'
-                   ,                  '}'
-                   )
+                    ,                 f',"deviceId":{ device_id }'
+                    ,                 f',"min":{ min }'
+                    ,                 f',"max":{ max }'
+                    ,                  '}'
+                    )
         if _is_int_parameter(p):
             (vmin,mintype) = _get_par_value_info(p,p.min)
             (vmax,maxtype) = _get_par_value_info(p,p.max)
             self._append(  f',"min":{ vmin }'
-                       ,  f',"max":{ vmax }'
-                       ) 
+                        ,  f',"max":{ vmax }'
+                        ) 
         self._append(       ',"id":"value"'
-                   ,       '}'
-                   ,     ']'
-                   )
+                    ,       '}'
+                    ,     ']'
+                    )
         
     # idx (for the parameter): starts at 0!
     def _append_json_control(self, idx, parameter, cc_info):
@@ -412,13 +410,14 @@ class ElectraOneDumper(io.StringIO):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
-        self._debug(1,'Construct JSON')
+        self.debug(1,'Construct JSON')
         # create a random project id
-        PROJECT_ID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
+        project_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to a mutable string for efficiency
+        # {{ to escape { in f-string
         self._append( f'{{"version":{ VERSION }'
                    , f',"name":"{ _check_name(device_name) }"'
-                   , f',"projectId":"{ PROJECT_ID }"'
+                   , f',"projectId":"{ project_id }"'
                    )
         self._append_json_pages(parameters)
         self._append_json_devices(cc_map)        
@@ -435,7 +434,7 @@ class ElectraOneDumper(io.StringIO):
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
         """
-        self._debug(1,'Construct CC map')
+        self.debug(1,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots.
@@ -482,15 +481,15 @@ class ElectraOneDumper(io.StringIO):
                     cur_cc7par_idx += 1
                     cc_no += 1
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
-            self._debug(1,'Not all parameters could be mapped.')
+            self.debug(1,'Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self._debug(4,f'CC map constructed: { cc_map }')
+            self.debug(4,f'CC map constructed: { cc_map }')
         return cc_map
         
     def _order_parameters(self,device_name, parameters):
         """Order the parameters: either original, device-dict based, or sorted by name.
         """
-        self._debug(2,'Order parameters')
+        self.debug(2,'Order parameters')
         if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in DEVICE_DICT_IGNORE):
             banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
@@ -511,16 +510,16 @@ class ElectraOneDumper(io.StringIO):
         else: # (device_name in DEVICE_DICT_IGNORE) or ORDER == ORDER_ORIGINAL or (ORDER == ORDER_DEVICEDICT) and (device_name not in DEVICE_DICT)
             return parameters
 
-    def __init__(self, e1_instance, device_name, parameters):
+    def __init__(self, c_instance, device_name, parameters):
         """Construct an Electra One JSON preset and a corresponding
            dictionary for the mapping to MIDI CC values, for the given
            device with the given list of Ableton Live Device/Instrument
            parameters. 
         """
-        super(ElectraOneDumper, self).__init__()
+        io.StringIO.__init__(self)
+        ElectraOneBase.__init__(self, c_instance)
         # e1_instance used to have access to the log file for debugging.
-        self._e1_instance = e1_instance
-        self._debug(0,'Dumper loaded.')
+        self.debug(0,'Dumper loaded.')
         parameters = self._order_parameters(device_name,parameters)
         self._cc_map = self._construct_ccmap(parameters)
         self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)

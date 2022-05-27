@@ -227,11 +227,40 @@ In Live, device selection (the 'Blue Hand') works as follows. You can register a
 DeviceAppointer(song=c_instance.song(), appointed_device_setter=set_appointed_device)
 ```
 
+*Note: it seems that as soon as the device appointer is registered in this way, and a device was already selected, the registered device appointer is called immediately*
+
 The registered handler will be called with a reference to the selected device passed as its parameter.
 
 Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
 
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
+
+## Value mapping
+
+The Live API also offers additional functionality for retrieving the value of a value. Every parameter ```p``` has properties ```p.min```, ```p.value``` and ```p.max``` to obtain the minimum, current, and maximum value. These functions *always* return floating point values. 
+
+To obtain a meaningful representation of such a value, as also displayed by Live in its own UI, every parameter ```p``` also defines a method ```p.str_of_value(v)``` that for a floating point value ```v``` for that parameter returns a string representation of that value (including its type, e.g. ```dB```, ```Hz```, ```kHz```, ```%```, ```st``` (for semitones), appended at the end of the sting).
+
+Live distinguishes the following types of real values:
+
+- Volume (```dB```)
+- Frequency (```Hz``` or ```kHz```, the ```kHz``` is real-valued). In the Analog instrument filter frequencies are denoted ```k``` immediately following the value, e.g. ```22.0k```.
+- ```%```. Different ranges are possible. When ranging from -x to x, the default is 0.
+- Time (```ms``` or ```s```).
+- Phase (```°```, written immediately after the value, e.g. ```360°```).
+
+Live distinguishes the following types of integer values:
+
+- Semitones (```st```). Range: -24, 24. Default: 0.
+- Detune (```ct```). Range: -50 .. 50. Default 0.
+- Morph (```lp/bp```), seen in Wavetable.
+- Pan: Ranging from ```50L``` through ```C``` to ```50R``` (note how the R and L immediately follow the value); the values appear to be integers at all times. Default: 0 (C).
+
+Others:
+
+- Analog Sync Rate: ```4d```..```1/32t```.
+- Wavetable Sync rate: ```8```..```1/64```.
+- Analog Noise Balance: ```F2```..```50/50```..```F1```.
 
 
 # The main E1 remote script
@@ -272,7 +301,9 @@ All that matters is that you do not change the MIDI channel assignments (ie the 
 
 ## Value mapping
 
-For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions).
+For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions). 
+
+We refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface, as it would make the remote script much more complex, and for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown. The only 'problematic' controls are the non-linear ones (e.g. volume). The values to display are interpolated using the tables experimentally established and documented below.
 
 - Pan
 : mapped to 50L - C - 50L
@@ -641,7 +672,7 @@ Using the information in the just created CC map, ```construct_json_preset``` pr
 
 For all quantized parameters  (```p.is_quantized```, except plain on/off buttons) it creates an overlay containing all possible values for the parameter as reported by Live through ```parameter.value_items```. This overlay is subsequently used by the corresponding 'list' control in the controls section of the patch. As a result, a parameter like 'Shape' can list as its values 'Sine', 'Saw' and 'Noise' on the E1. 
 
-For faders some 'intelligence' is necessary to decide on how to define the range of display values to use in the preset. These are different than the underlying CC value range, which is always set to 0..127 for 7 bit and 0..16383 for 14 bit controls. This intelligence is necessary because the E1 only allows the definition of integer display value ranges, and when defined, *only sends out a MIDI CC message when the display value changes*. This is exactly as desired for parameters like 'Octave' (typically ranging from -3 to 3) or 'Semitones' (ranging typically from -12 to 12). But this is undesirable for e.g. output mix parameters that range from 0 to 100 % (or filter attenuations that range from -12 dB to 12 dB) but for which fine grained full 14 bit control is required. The 'intelligence' is implemented by ```is_int_parameter``` that looks at the minimum and maximum parameter values reported by Live, and 
+For faders some 'intelligence' is necessary to decide on how to define the range of display values to use in the preset. These are different than the underlying CC value range, which is always set to 0..127 for 7 bit and 0..16383 for 14 bit controls. This intelligence is necessary because the E1 only allows the definition of integer display value ranges, and when defined, *only sends out a MIDI CC message when the display value changes*. This is exactly as desired for parameters like 'Octave' (typically ranging from -3 to 3) or 'Semitones' (ranging typically from -12 to 12). But this is undesirable for e.g. output mix parameters that range from 0 to 100 % (or filter attenuation that ranges from -12 dB to 12 dB) but for which fine grained full 14 bit control is required. The 'intelligence' is implemented by ```is_int_parameter``` that looks at the minimum and maximum parameter values reported by Live, and 
 
 - when their value contains a '.', or 
 - they end with a type designator 'dB', '%', 'Hz', 's', or 'ms', 

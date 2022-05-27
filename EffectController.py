@@ -121,7 +121,7 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Predefined preset found')
         else:
             self.debug(2,'Constructing preset on the fly...')
-            dumper = ElectraOneDumper(self, device_name, device.parameters)
+            dumper = ElectraOneDumper(self.get_c_instance(), device_name, device.parameters)
             preset_info = dumper.get_preset()
         # check preset integrity; ny errors will be reported in the log
         error = preset_info.validate()
