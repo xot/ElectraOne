@@ -25,6 +25,8 @@ from .config import *
 # more than one device defined (an patch.onRequest sends a message out for
 # every device), we use device.id to diversify the outgoing message.
 # (Effect presets always have device.id = 1 as the first device)
+#
+# Also contains formatter functions used by presets generated on the fly
 DEFAULT_LUASCRIPT = """
 function patch.onRequest (device)
   print ("Patch Request pressed");
@@ -50,10 +52,22 @@ def _get_cc_statusbyte(channel):
 def cc_value_for_item_idx(idx,items):
     return round( idx * (127 / (len(items)-1) ) )
 
+
 class ElectraOneBase:
     """E1 base class with common functions
        (interfacing with Live through c_instance).
     """
+    # This is the base class for all other classes in this package, and
+    # therefore several instances of it are created.
+
+    # Make sure checking for fast sysex upload is done exactly once.
+    _fast_sysex_tested = False
+
+    # Command to use for fast sysex upload
+    _fast_sysex_cmd = None
+    
+    # Record whether fast uploading of sysex is supported or not
+    _fast_sysex = False
 
     # flag activating or deactivating the ElectraOne interface: set when
     # upload thread is started; unset when upload thread finished. Checked
@@ -66,6 +80,18 @@ class ElectraOneBase:
     # slot currently visibile on the E1; used to prevent unneccessary
     # refresh_state for invisible presets
     current_visible_slot = (0,0)
+
+    def _test_fast_sysex(self):
+        # find sendmidi, and test if it works
+        ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
+        if ElectraOneBase._fast_sysex_cmd:
+            ElectraOneBase._fast_sysex = USE_FAST_SYSEX_UPLOAD and self._test_sendmidi()
+        else:
+            ElectraOneBase._fast_sysex = False
+        if ElectraOneBase._fast_sysex:
+            self.debug(1,'Fast uploading of presets supported. Great, using that!')
+        else:
+            self.debug(1,'Fast uploading of presets not supported, reverting to slow method.')
     
     def __init__(self, c_instance):
         # c_instance is/should be the object passed by Live when
@@ -73,17 +99,11 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
-        # find sendmidi, and test if it works
-        self._sendmidi_cmd = self._find_in_libdir(SENDMIDI_CMD)
-        if self._sendmidi_cmd:
-            self._sysex_fast = USE_FAST_SYSEX_UPLOAD and self._test_sendmidi()
-        else:
-            self._sysex_fast = False
-        if self._sysex_fast:
-            self.debug(1,'Fast uploading of presets supported. Great, using that!')
-        else:
-            self.debug(1,'Fast uploading of presets not supported, reverting to slow method.')
-        
+        # set up fast sysex upload once
+        if not ElectraOneBase._fast_sysex_tested:
+            self._test_fast_sysex()
+            ElectraOneBase._fast_sysex_tested = True
+            
     # --- helper functions
 
     def get_c_instance(self):
@@ -154,15 +174,15 @@ class ElectraOneBase:
 
     def _test_sendmidi(self):
         # test the sendmidi command and return whether it is properly installed
-        testcommand = f"{self._sendmidi_cmd} dev '{E1_CTRL_PORT}'"
+        testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
         return (self._run_command(testcommand) == 0)
 
-    def _send_sysex_fast(self,preset_as_bytes):
+    def _send_fast_sysex(self,preset_as_bytes):
         # convert bytes to their string representation.
         # strip first and last byte of SysEx command in preset_as_bytes
         # because sendmidi syx adds them again
         bytestr = ' '.join(str(b) for b in preset_as_bytes[1:-1])
-        command = f"{self._sendmidi_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
+        command = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
         error = self._run_command(command)
         if error:
             self.debug(1,'Fast SysEx upload command returned with error.')
@@ -259,8 +279,8 @@ class ElectraOneBase:
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x0C)
         sysex_script = tuple([ ord(c) for c in script ])
         sysex_close = (0xF7, )
-        if self._sysex_fast:
-            self._send_sysex_fast(sysex_header + sysex_script + sysex_close)
+        if ElectraOneBase._fast_sysex:
+            self._send_fast_sysex(sysex_header + sysex_script + sysex_close)
         else:
             self.send_midi(sysex_header + sysex_script + sysex_close)
 
@@ -272,8 +292,8 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
-        if self._sysex_fast:
-            self._send_sysex_fast(sysex_header + sysex_preset + sysex_close)
+        if ElectraOneBase._fast_sysex:
+            self._send_fast_sysex(sysex_header + sysex_preset + sysex_close)
         else:
             self.send_midi(sysex_header + sysex_preset + sysex_close)
 
