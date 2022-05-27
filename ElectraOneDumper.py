@@ -160,14 +160,25 @@ def _needs_overlay(p):
 # -inf dB
 # 3.7 Hz
 #
-# Note: Pan values are written 50L.. 50R *without* the space
+# Note: Pan values are written 50L.. 50R *without* the space; the same is true
+# for phase parameters, e.g. 360°; I've also seen 22.0k for kHz
 
 # Return the number part and its type in the string representation of
 # the value of a parameter, as reported by Ableton
 def _get_par_value_info(p,v):
     value_as_str = p.str_for_value(v)                                         # get value as a string
     (number_part,sep,type) = value_as_str.partition(' ')                      # split at the first space
-    return (number_part,type)
+    # detect special cases:
+    if number_part[-1] == '°':
+        return (number_part[:-1],'°')
+    elif number_part[-1] == 'L':
+        return (number_part[:-1],'L')
+    elif number_part[-1] == 'R':
+        return (number_part[:-1],'R')
+    elif number_part[-1] == 'k':
+        return (number_part[:-1],'kHz')
+    else:
+        return (number_part,type)
 
 def _strip_minus(v):
     if (len(v) > 0) and (v[0] == '-'):
@@ -175,7 +186,7 @@ def _strip_minus(v):
     else:
         return v
 
-NON_INT_TYPES = ['dB', '%', 'Hz', 's', 'ms']
+NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°']
 
 # Determine whether the parameter is integer
 def _is_int_parameter(p):
@@ -190,8 +201,13 @@ def wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
        (Faders that are not mapped to integer parameters want CC14.)
     """
+    # TODO: int parameter with a large range
+    # (but smaller than 127) should be mapped to a CC14
     return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
 
+def _is_pan(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return min_type == 'L'
 
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
@@ -274,9 +290,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     def _append_json_overlays(self,parameters,cc_map):
         """Append the necessary overlays (for list valued parameters).
         """
-        self._append(',"overlays":[')
-        overlay_idx = 1
-        flag = False
+        # create overlay with index 1 for all pan controls
+        self._append(',"overlays":['
+                    ,   '{ "id": 1,'
+                    ,     '"items": ['
+                    ,       '{ "value": 0, '
+                    ,         '"label": "C",'
+                    ,         '"index": 0'
+                    ,       '}]'
+                    ,   '}'
+                    )
+        overlay_idx = 2
+        flag = True
         for p in parameters:
             if p.original_name in cc_map:
                 cc_info = cc_map[p.original_name]
@@ -360,6 +385,31 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,     ']'
                     )
         
+    def _append_json_pan_fader(self, idx, p, cc_info):
+        """Append a PAN fader.
+        """
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
+        min = 0
+        max = 16383
+        self._append(    ',"type":"fader"' 
+                    ,    ',"values":['
+                    ,       '{"message":{"type":"cc14"'
+                    ,                  ',"lsbFirst":false'
+                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+                    ,                 f',"deviceId":{ device_id }'
+                    ,                 f',"min":{ min }'
+                    ,                 f',"max":{ max }'
+                    ,                  '}'
+                    ,      f',"min":{ -50 }'
+                    ,      f',"max":{ 50 }'
+                    ,       ',"defaultValue":0'
+                    ,       ',"formatter":"formatPan"'
+                    ,       ',"overlayId":1'
+                    ,       ',"id":"value"'
+                    ,       '}'
+                    ,     ']'
+                    )
+
     # idx (for the parameter): starts at 0!
     def _append_json_control(self, idx, parameter, cc_info):
         """Append a control (depending on the parameter type): a fader, list or
@@ -382,6 +432,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_list(idx,overlay_idx,cc_info)
         elif _is_on_off_parameter(parameter):
             self._append_json_toggle(idx,cc_info)
+        elif _is_pan(parameter):
+            self._append_json_pan_fader(idx,parameter,cc_info)
         else:
             self._append_json_fader(idx,parameter,cc_info)
         self._append('}')
@@ -392,9 +444,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            are skipped. (To create a full dump, set MAX_CC7_PARAMETERS,
            MAX_CC14_PARAMETERS and MAX_MIDI_EFFECT_CHANNELS generously).
         """
-        global overlay_idx
         self._append(',"controls":[')
-        overlay_idx = 1
         id = 0  # control identifier
         flag = False
         for p in parameters:
