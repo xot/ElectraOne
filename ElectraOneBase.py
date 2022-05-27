@@ -223,7 +223,7 @@ class ElectraOneBase:
         """Send the value of a Live parameter as a 14bit MIDI CC message.
         """
         self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
-        value = int(16383 * ((p.value - p.min) / (p.max - p.min)))
+        value = round(16383 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc14(channel, cc_no, value)
 
     def send_parameter_as_cc7(self, p, channel, cc_no):
@@ -234,7 +234,7 @@ class ElectraOneBase:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
         else:
-            value = int(127 * ((p.value - p.min) / (p.max - p.min)))
+            value = round(127 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc7(channel, cc_no, value)
 
     def send_parameter_using_ccinfo(self, p, ccinfo):
