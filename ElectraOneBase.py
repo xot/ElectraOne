@@ -27,7 +27,7 @@ def _get_cc_statusbyte(channel):
 # quantized parameters have a list of values. For such a list with
 # n items, item i (staring at 0) has MIDI CC control value
 # round(i * 127/(n-1)) 
-def cc_value_for_item_idx(idx,items):
+def cc_value_for_item_idx(idx, items):
     return round( idx * (127 / (len(items)-1) ) )
 
 
@@ -57,8 +57,40 @@ class ElectraOneBase:
 
     # slot currently visibile on the E1; used to prevent unneccessary
     # refresh_state for invisible presets
-    current_visible_slot = (0,0)
+    current_visible_slot = None
 
+    # --- LOCALDIR handling
+    
+    def _find_libdir(self, path):
+        """ Determine library path based on LOCALDIR. Either ~/LOCALDIR/<path> ,
+            LOCALDIR/<path>, or the user home directory (without path),
+            the first of these that exist.
+        """
+        home = os.path.expanduser('~')
+        test =  f'{ home }/{ LOCALDIR }{ path }'
+        self.debug(4,f'Testing library path {test}')
+        if not os.path.exists(test):                                        # try LOCALDIR as absolute directory
+            test =  f'{ LOCALDIR }{ path }'
+            self.debug(4,f'Testing library path {test}')
+            if not os.path.exists(test):                                        # default is HOME
+                test = home
+        return test
+        
+    def _find_in_libdir(self, path):
+        """Find path in library path and return it if found,
+           else return None
+        """
+        root = self._find_libdir('')
+        test = f'{ root }/{ path }'
+        if not os.path.exists(test):
+            self.debug(4,f'Path { test } not found')
+            return None
+        else:
+            self.debug(4,f'Returning path {test}')
+            return test
+
+    # --- INIT
+    
     def _test_fast_sysex(self):
         # find sendmidi, and test if it works
         ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
@@ -101,33 +133,6 @@ class ElectraOneBase:
         """
         self._c_instance.request_rebuild_midi_map()
 
-    def _find_libdir(self, path):
-        """ Determine library path based on LIBDIR. Either ~/LIBDIR or LIBDIR
-            followed by path, or ~, the first of these that exist.
-        """
-        home = os.path.expanduser('~')
-        test =  f'{ home }/{ LOCALDIR }{ path }'
-        self.debug(4,f'Testing library path {test}')
-        if not os.path.exists(test):                                        # try LOCALDIR as absolute directory
-            test =  f'{ LOCALDIR }{ path }'
-            self.debug(4,f'Testing library path {test}')
-            if not os.path.exists(test):                                        # default is HOME
-                test = home
-        return test
-        
-    def _find_in_libdir(self, path):
-        """Find path in library path and return it if found,
-           else return None
-        """
-        root = self._find_libdir('')
-        test = f'{ root }/{ path }'
-        if not os.path.exists(test):
-            self.debug(4,f'Path { test } not found')
-            return None
-        else:
-            self.debug(4,f'Returning path {test}')
-            return test
-        
     # --- Sending/writing debug/log messages ---
         
     def debug(self, level, m):
@@ -137,6 +142,8 @@ class ElectraOneBase:
             self._c_instance.log_message(f'E1 (debug): {m}')
 
     def log_message(self, m):
+        """Write a log message to the log.
+        """
         self._c_instance.log_message(f'E1 (log): {m}')
 
     def show_message(self, m):
@@ -246,11 +253,21 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # Note: The E1 will in response send a preset changed message (7E 02)
-        # (followed by an ack (7E 01)); when received by the remote script
-        # WHEN READY, this will initiate a refresh_state that will update the
-        # values displayed on the E1
+        # (followed by an ack (7E 01)); but this will typically be ignored
+        # as the upload thread closes the interface. 
         ElectraOneBase.current_visible_slot = slot
 
+    # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
+    def _remove_preset_from_slot(self, slot):
+        self.debug(3,f'Removing preset from slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), 'Bank index out of range.'
+        assert presetidx in range(12), 'Preset index out of range.'
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
+        sysex_select = (bankidx, presetidx)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_select + sysex_close)
+        
     # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
     def _upload_lua_script_to_current_slot(self, script):
         self.debug(3,f'Uploading LUA script {script}.')
@@ -292,10 +309,9 @@ class ElectraOneBase:
     
     # preset is the json preset as a string
     def _upload_preset_thread(self, slot, preset, luascript):
-        """To be called as a thread. Select a slot and upload a preset
-           and a lua script for it. In all
-           cases wait (within a timeout) for confirmation from the E1.
-           Reactivate the interface when done.
+        """To be called as a thread. Select a slot and upload a preset and a
+           lua script for it. In all cases wait (within a timeout) for
+           confirmation from the E1. Reactivate the interface when done.
            (self is a reference to the calling EffectController object)
         """
         # should anything happen inside this thread, make sure we write to debug
@@ -333,7 +349,8 @@ class ElectraOneBase:
     def upload_preset(self, slot, preset, luascript):
         """Select a slot and upload a preset and associated luascript.
            Returns immediately, but closes interface until preset fully loaded
-           in the background.
+           in the background. Once upload finished, the thread will request to
+           rebuild the midi map.
         """
         # 'close' the interface until preset uploaded.
         ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing

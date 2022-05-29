@@ -120,6 +120,7 @@ class EffectController(ElectraOneBase):
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
+        self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
         self._device_appointer.disconnect()                
 
     # --- MIDI ---
@@ -195,16 +196,21 @@ class EffectController(ElectraOneBase):
 
 
     def _assign_device(self, device):
-        device_name = get_device_name(device)
-        self.debug(1,f'Assigning device { device_name }')
-        if device != self._assigned_device:
-            self._assigned_device = device
-            if device != None:
+        if device != None:
+            device_name = get_device_name(device)
+            self.debug(1,f'Assigning device { device_name }')
+            if device != self._assigned_device:
+                self._assigned_device = device
                 self._preset_info = self._get_preset(device)
                 if DUMP:
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()
+                # upload preset: will also request midi map (which will also refresh state)
                 self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
+            else:
+                self.debug(1,'Device already assigned.')
+        else:
+            self.debug(1,'Assigning an empty device.')
                 
     def _set_appointed_device(self, device):
         if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):
