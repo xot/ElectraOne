@@ -217,7 +217,10 @@ track.remove_mute_listener(on_mute_changed)
 
 ### Initiating MIDI mapping
 
-It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle``` (which should be a method defined by the remote script object).
+It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle)``` (which should be a method defined by the remote script object).
+
+
+Live automatically calls ```build_midi_map``` when a device is added or deleted.
 
 ## Device selection
 
@@ -234,6 +237,8 @@ The registered handler will be called with a reference to the selected device pa
 Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
 
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
+
+*Note: there is something strange going on with the memory allocated to Device objects. ```song(). appointed_device``` returns alternating memory locations for the same device (e.g. ```<Device.Device object at 0x11da5bed0>``` and ```<Device.Device object at 0x11da5be00>```), and when copying such an object to a local variable in the remote script (e.g. ```self._assigned_device```  then refers to ```<Device.Device object at 0x11da5bf38>```), if the underlying device is deleted from Live, then testing ```self._assigned_device != None``` returns ```False```!*
 
 ## Value mapping
 

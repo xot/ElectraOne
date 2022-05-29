@@ -56,7 +56,9 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
     # used by TrackController and MasterController too to map the
     # ChannelEq device. Uses preset_info to get the CCInfo for device
     # parameters.
-    if device != None:
+    if device and preset_info:
+        device_name = get_device_name(device)
+        debug(2,f'Building MIDI map for device { device_name }')
         parameters = device.parameters
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
@@ -106,7 +108,7 @@ class EffectController(ElectraOneBase):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
             self.debug(2,'EffCont refreshing state.')
-            update_values_for_device(self._assigned_device,self._preset_info,self)
+            update_values_for_device(self._assigned_device, self._preset_info, self)
         else:
             self.debug(2,'EffCont not refreshing state (effect not visible).')
             
@@ -115,8 +117,17 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to call update_values with a delay
         """
-        pass
-    
+        # Remove preset from E1 if no device assigned
+        # (Theree does not appear to be a handler for this; in any case
+        # the device appointer is not called when the appointed device is
+        # deleted)
+        device = self.song().appointed_device
+        # using self._preset_info to keep track of whether preset already removed or not
+        if device == None and self._preset_info != None:
+            self.debug(2,'Currently no device appointed; removing preset.')
+            self._preset_info = None
+            self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
+        
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
@@ -134,7 +145,7 @@ class EffectController(ElectraOneBase):
         
     # === Others ===
 
-    def _get_preset(self,device):
+    def _get_preset(self, device):
         """Get the preset for the specified device, either externally,
            predefined or else construct it on the fly.
         """
@@ -155,7 +166,7 @@ class EffectController(ElectraOneBase):
     
     # --- handling presets  ----
     
-    def _dump_presetinfo(self,device,preset_info):
+    def _dump_presetinfo(self, device, preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
         device_name = get_device_name(device)
@@ -194,7 +205,6 @@ class EffectController(ElectraOneBase):
             self._assigned_device_locked = False
             self._assign_device(self.song().appointed_device)
 
-
     def _assign_device(self, device):
         if device != None:
             device_name = get_device_name(device)
@@ -210,6 +220,7 @@ class EffectController(ElectraOneBase):
             else:
                 self.debug(1,'Device already assigned.')
         else:
+            # this does not happen (unfortunately)
             self.debug(1,'Assigning an empty device.')
                 
     def _set_appointed_device(self, device):
