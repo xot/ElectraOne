@@ -463,7 +463,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
            Device/Instrument parameters. Return as string.
         """
-        self.debug(1,'Construct JSON')
+        self.debug(2,'Construct JSON')
         # create a random project id
         project_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to a mutable string for efficiency
@@ -487,7 +487,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
         """
-        self.debug(1,'Construct CC map')
+        self.debug(2,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots.
@@ -572,7 +572,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         io.StringIO.__init__(self)
         ElectraOneBase.__init__(self, c_instance)
         # e1_instance used to have access to the log file for debugging.
-        self.debug(0,'Dumper loaded.')
+        self.debug(2,'Dumper loaded.')
         parameters = self._order_parameters(device_name,parameters)
         self._cc_map = self._construct_ccmap(parameters)
         self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)

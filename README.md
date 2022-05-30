@@ -140,6 +140,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
 - ```DUMP``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```). The default is ```False```.
+- ```DETECT_E1``` controls whether to detect the ElectraOne at startup, or not.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
 - ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LOCALDIR```).

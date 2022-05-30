@@ -120,7 +120,8 @@ class MixerController(ElectraOneBase):
         # flag to avoid update refresh_state
         self._no_refresh_state_after_next_build_midi_map = False
         # force an update
-        # TODO: _remap_tracks instead (to avoid request_rebuild_midi_map
+        # TODO: _remap_tracks instead (to avoid request_rebuild_midi_map)
+        # ? must this be avoided?
         self._handle_selection_change()
         self.debug(0,'MixerController loaded.')
 
@@ -143,8 +144,7 @@ class MixerController(ElectraOneBase):
                 track.refresh_state()    
         else:
             self.debug(2,'MixCont not refreshing state (mixer not visible).')
-                
-                
+            
     def update_display(self):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.
@@ -185,7 +185,7 @@ class MixerController(ElectraOneBase):
             tc.disconnect()
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.song().visible_tracks))
         track_range = range(self._first_track_index, last_track_index)
-        self._track_controllers = [ TrackController(self.get_c_instance(),i,i-self._first_track_index)
+        self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
         
@@ -210,6 +210,7 @@ class MixerController(ElectraOneBase):
             rtrn.disconnect()
         returns = min(MAX_NO_OF_SENDS,len(self.song().return_tracks))
         self._return_controllers = [ReturnController(self.get_c_instance(),i) for i in range(returns)]
+        # TODO: is this necessary? (See commont that follows)
         # reselect the mixer preset to force all controls to their default value
         # (but only do this if it is actually visible)
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:

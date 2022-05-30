@@ -57,6 +57,10 @@ Essentially, the object returned by ```create_instance``` allow Live to send ins
 
 The parameter ```c_instance``` on the other hand allows the remote script to send instructions to (i.e. call methods on) Live. It is the interface from the remote script back to Live. It is used, for example, to tell Live to add a MIDI mapping, or to send MIDI events to the external controller.
 
+### Initialisation
+
+Remote scripts are initialised whenever Live is started *and* whenever a new song is loaded.
+
 ### Threading, asynchrony.
 
 The remote script is put on a separate thread (apparently): even if certain actions take seconds to complete they do not interfere with audio processing.
@@ -217,10 +221,16 @@ track.remove_mute_listener(on_mute_changed)
 
 ### Initiating MIDI mapping
 
-It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle)``` (which should be a method defined by the remote script object).
+It is the responsibility of the remote script to ask Live to start the process of building a MIDI map for the remote script. This makes sense because only the remote script can tell whether things changed in such a way that a remap is necessary. The remote script can do so by calling  ```c_instance.request_rebuild_midi_map()```. Live will remove *all* existing MIDI mappings (for this particular remote script only). Live will then ask the remote script to build a new map by calling  ```build_midi_map(midi_map_handle)``` (which should be a method defined by the remote script object). Because the MIDI map is completely emptied, *all* MIDI mappings must be added again.
 
 
-Live automatically calls ```build_midi_map``` when a device is added or deleted.
+Live automatically calls ```build_midi_map``` when 
+- a device is added or deleted, 
+- when a (return) track is added or deleted,
+- when a new song is opened, or
+- when Live starts up.
+
+At start-up or when loading a song build_midi_map is called several times.
 
 ## Device selection
 
@@ -237,8 +247,6 @@ The registered handler will be called with a reference to the selected device pa
 Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
 
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
-
-*Note: there is something strange going on with the memory allocated to Device objects. ```song(). appointed_device``` returns alternating memory locations for the same device (e.g. ```<Device.Device object at 0x11da5bed0>``` and ```<Device.Device object at 0x11da5be00>```), and when copying such an object to a local variable in the remote script (e.g. ```self._assigned_device```  then refers to ```<Device.Device object at 0x11da5bf38>```), if the underlying device is deleted from Live, then testing ```self._assigned_device != None``` returns ```False```!*
 
 ## Value mapping
 

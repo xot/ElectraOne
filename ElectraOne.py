@@ -91,9 +91,10 @@ class ElectraOne(ElectraOneBase):
         # start a thread to detect the E1, if found thread will complete the
         # initialisation calling self._mixer_controller = MixerController(c_instance)
         # and self._effect_controller = EffectController(c_instance)
+        self.debug(1,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
-        self.debug(1,'ElectraOne remote script waiting for connection...')
+        self.debug(1,'Waiting for connection...')
 
     def _connect_E1(self):
         """To be called as a thread. Send out request for information
@@ -102,15 +103,18 @@ class ElectraOne(ElectraOneBase):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(2,'Connection thread: detecting E1...')
-            self._request_response_received = False
-            self.send_midi(E1_SYSEX_REQUEST)
-            time.sleep(0.5)
-            # wait until _do_request_response called
-            while not self._request_response_received:
+            if DETECT_E1:
+                self.debug(2,'Connection thread: detecting E1...')
+                self._request_response_received = False
                 self.send_midi(E1_SYSEX_REQUEST)
                 time.sleep(0.5)
-            self.debug(2,'Connection thread: E1 found')
+                # wait until _do_request_response called
+                while not self._request_response_received:
+                    self.send_midi(E1_SYSEX_REQUEST)
+                    time.sleep(0.5)
+                self.debug(2,'Connection thread: E1 found')
+            else:
+                self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             c_instance = self.get_c_instance()
             # TODO: note that this executes within a thread, so calls to
@@ -142,7 +146,7 @@ class ElectraOne(ElectraOneBase):
             upload is in progress.
         """
         ready = self._E1_connected and not ElectraOneBase.preset_uploading
-        self.debug(6,f'Is ready? {ready} (pu: {ElectraOneBase.preset_uploading}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
+        # self.debug(6,f'Is ready? {ready} (pu: {ElectraOneBase.preset_uploading}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
         return ready
     
     def suggest_input_port(self):
@@ -283,10 +287,14 @@ class ElectraOne(ElectraOneBase):
             self.debug(1,'Main build midi map called.') 
             self._effect_controller.build_midi_map(midi_map_handle)
             self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
+        else:
+            self.debug(1,'Main build midi map ignored because E1 not ready.')
         
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the
-           remote controller needs to be updated.
+           remote controller needs to be updated. This doesn't appear
+           to happen often...  (At least not when devices or tracks are
+           added/deleter
         """
         if self._is_ready():
             self.debug(1,'Main refresh state called.') 

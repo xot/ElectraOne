@@ -116,7 +116,7 @@ class GenericTrackController(ElectraOneBase):
         devices = self._track.devices
         for d in reversed(devices):
             if d.class_name == self._eq_device_name:
-                self.debug(4,'ChannelEq (or similar) device found')
+                self.debug(3,'ChannelEq (or similar) device found')
                 return d
         return None
 
@@ -251,13 +251,14 @@ class GenericTrackController(ElectraOneBase):
         if (midi_channel,cc_no) in self._CC_HANDLERS:
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             if handler:
-                self.debug(5,f'GenericTrackController: handler found.')
+                self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
                 handler(value)
     
     def build_midi_map(self, script_handle, midi_map_handle):
         self.debug(2,f'Building MIDI map of track { self._name }.')
         # Map btton CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         # map main sliders
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call
@@ -266,12 +267,14 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         self.debug(3,f'Mapping track { self._name } pan to CC { self._my_cc(self._base_pan_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, self._midichannel-1, self._my_cc(self._base_pan_cc), map_mode, not needs_takeover)
+        self.debug(3,f'Mapping track { self._name } volume to CC { self._my_cc(self._base_volume_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, self._midichannel-1, self._my_cc(self._base_volume_cc), map_mode, not needs_takeover)
         if self._base_cue_volume_cc != None:  # master track only
+            self.debug(3,f'Mapping track { self._name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
             Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, self._midichannel-1, self._my_cc(self._base_cue_volume_cc), map_mode, not needs_takeover)
         # map sends (if present)
         if self._sends_cc != None:
-            sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
+            sends = track.mixer_device.sends[:MAX_NO_OF_SENDS] # never map more than MAX_NO_OF_SENDS
             cc_no = self._my_cc(self._sends_cc)
             for send in sends:
                 self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')

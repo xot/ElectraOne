@@ -93,6 +93,7 @@ class ElectraOneBase:
     
     def _test_fast_sysex(self):
         # find sendmidi, and test if it works
+        self.debug(1,'Testing whether fast uploading of presets is supported.')
         ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
         if ElectraOneBase._fast_sysex_cmd:
             ElectraOneBase._fast_sysex = USE_FAST_SYSEX_UPLOAD and self._test_sendmidi()
@@ -131,6 +132,7 @@ class ElectraOneBase:
         """Request that the MIDI map is rebuilt.
            (The old mapping is (apparently) destroyed.)
         """
+        self.debug(4,'Rebuilding MIDI map requested')
         self._c_instance.request_rebuild_midi_map()
 
     # --- Sending/writing debug/log messages ---
@@ -139,7 +141,11 @@ class ElectraOneBase:
         """Write a debug message to the log, if level < DEBUG.
         """
         if level <= DEBUG:
-            self._c_instance.log_message(f'E1 (debug): {m}')
+            if level == 0:
+                indent = '#'
+            else:
+                indent = '-' * level 
+            self._c_instance.log_message(f'E1 (debug): {indent} {m}')
 
     def log_message(self, m):
         """Write a log message to the log.

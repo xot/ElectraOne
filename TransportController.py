@@ -124,7 +124,7 @@ class TransportController(ElectraOneBase):
         if (midi_channel,cc_no) in self._CC_HANDLERS:
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             if handler:
-                self.debug(5,f'TransportController: handler found.')
+                self.debug(5,f'TransportController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
                 handler(value)
 
     
@@ -132,6 +132,7 @@ class TransportController(ElectraOneBase):
         self.debug(2,'Building transport MIDI map.')
         # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(4,f'TransportController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
 
    

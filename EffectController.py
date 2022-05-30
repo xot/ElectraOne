@@ -58,7 +58,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
     # parameters.
     if device and preset_info:
         device_name = get_device_name(device)
-        debug(2,f'Building MIDI map for device { device_name }')
+        debug(3,f'Building MIDI map for device { device_name }')
         parameters = device.parameters
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
@@ -72,7 +72,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
                 # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                debug(3,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
 # TODO: bit of a hack to pass ElectraOneBase as sender_object
