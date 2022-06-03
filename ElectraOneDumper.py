@@ -212,6 +212,10 @@ def _is_pan(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     return min_type == 'L'
 
+def _is_percent(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return min_type == '%'
+
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
@@ -413,6 +417,37 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,     ']'
                     )
 
+    def _append_json_percent_fader(self, idx, p, cc_info):
+        """Append a percentage fader.
+        """
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
+        min = 0
+        max = 16383
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        # vmin/vmax are float strings
+        vmin_int = 10 * int(float(vmin))
+        vmax_int = 10 * int(float(vmax))
+        self._append(    ',"type":"fader"' 
+                    ,    ',"variant": "fixedValuePosition"'
+                    ,    ',"values":['
+                    ,       '{"message":{"type":"cc14"'
+                    ,                  ',"lsbFirst":false'
+                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+                    ,                 f',"deviceId":{ device_id }'
+                    ,                 f',"min":{ min }'
+                    ,                 f',"max":{ max }'
+                    ,                  '}'
+                    ,      f',"min":{ vmin_int }'
+                    ,      f',"max":{ vmax_int }'
+                    ,       ',"defaultValue":0'
+                    ,       ',"formatter":"formatPercent"'
+                    ,       ',"overlayId":1'
+                    ,       ',"id":"value"'
+                    ,       '}'
+                    ,     ']'
+                    )
+        
     # idx (for the parameter): starts at 0!
     def _append_json_control(self, idx, parameter, cc_info):
         """Append a control (depending on the parameter type): a fader, list or
@@ -437,6 +472,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_toggle(idx,cc_info)
         elif _is_pan(parameter):
             self._append_json_pan_fader(idx,parameter,cc_info)
+        elif _is_percent(parameter):
+            self._append_json_percent_fader(idx,parameter,cc_info)
         else:
             self._append_json_fader(idx,parameter,cc_info)
         self._append('}')

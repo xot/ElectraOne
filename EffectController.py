@@ -43,6 +43,10 @@ function formatPan (valueObject, value)
     else return (string.format("%iR", value))
   end
 end
+
+function formatPercent (valueObject, value)
+  return (string.format("%.1f %%",value/10))
+end
 """
 
 # --- helper functions
