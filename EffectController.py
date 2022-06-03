@@ -41,6 +41,14 @@ function formatFloat (valueObject, value)
   return (string.format("%.1f",value/10))
 end
 
+function formatdB (valueObject, value)
+  return (string.format("%.1f dB",value/10))
+end
+
+function formatFreq (valueObject, value)
+  return (string.format("%.1f Hz",value/10))
+end
+
 function formatPan (valueObject, value)
   if value < 0 
     then return (string.format("%iL", -value))
@@ -52,9 +60,18 @@ function formatPercent (valueObject, value)
   return (string.format("%.1f %%",value/10))
 end
 
-function formatFrequency (valueObject, value)
-  return (string.format("%i Hz",value))
+function formatDegree (valueObject, value)
+  return (string.format("%i *",value))
 end
+
+function formatSemitone (valueObject, value)
+  return (string.format("%i st",value))
+end
+
+function formatDetune (valueObject, value)
+  return (string.format("%i ct",value))
+end
+
 """
 
 # --- helper functions

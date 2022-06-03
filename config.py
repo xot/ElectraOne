@@ -20,7 +20,7 @@ DEBUG = 5
 DUMP = False
 
 # Whether to detect the  E1 at start up (or assume it's there regardless)
-DETECT_E1 = False
+DETECT_E1 = True
 
 # Local directory where dunps are stored (./dumps), user defined
 # presets are loaded from (./user-presets), and where to llok for the sendmidi

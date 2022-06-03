@@ -71,8 +71,11 @@ class TrackController(GenericTrackController):
         self._base_cue_volume_cc = None  # not present on a normal track
         self._sends_cc = 0 
         # buttons
-        self._base_mute_cc = MUTE_CC 
-        self._base_arm_cc = ARM_CC 
+        self._base_mute_cc = MUTE_CC
+        if self._track.can_be_armed:
+            self._base_arm_cc = ARM_CC
+        else:
+            self._base_arm_cc = None # group tracks cannot be armed
         self._base_solo_cue_cc = SOLO_CUE_CC 
         #
         self.add_listeners()

@@ -182,20 +182,20 @@ def _get_par_value_info(p,v):
     else:
         return (number_part,type)
 
-def _strip_minus(v):
-    if (len(v) > 0) and (v[0] == '-'):
+def _strip_plusminus(v):
+    if (len(v) > 0) and (v[0] in [ '-', '+']):
         return v[1:]
     else:
         return v
-
+    
 NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°']
 
 # Determine whether the parameter is integer
 def _is_int_parameter(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    min_number_part = _strip_minus(min_number_part)
+    min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)
-    max_number_part = _strip_minus(max_number_part)
+    max_number_part = _strip_plusminus(max_number_part)
     return min_number_part.isnumeric() and max_number_part.isnumeric() and \
        (min_type not in NON_INT_TYPES) and (max_type not in NON_INT_TYPES)
 
@@ -208,6 +208,7 @@ def _wants_cc14(p):
     # NON_INT_TYPES partially deals with this
     return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
 
+# Types of faders
 def _is_pan(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     return min_type == 'L'
@@ -216,15 +217,37 @@ def _is_percent(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     return min_type == '%'
 
-def _is_frequency(p):
+def _is_degree(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    return (min_type == 'Hz') or (min_type == 'kHz')
+    return min_type == '°'
 
-def _is_complex_dB(p):
+def _is_semitone(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return min_type == 'st'
+
+def _is_detune(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return min_type == 'ct'
+
+def _is_dB(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return min_type == 'dB'
+
+def _NaN(s):
+    for c in s:
+        if not c.isdigit() and c != '.':
+            return True
+    return False
+
+def _is_complex(p):
+    # complex faders cannot show values
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)    
-    return (min_type == 'dB') and (_strip_minus(min_number_part) != max_number_part)
-
+    max_number_part = _strip_plusminus(max_number_part)
+    return ((min_type == 'dB') and (min_number_part != max_number_part)
+           ) or (min_type != max_type) or _NaN(min_number_part) or _NaN(max_number_part)
+           
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
@@ -363,19 +386,26 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                    ,             ',"id":"value"'
                    ,             '}]'
                    )
-        
-    def _append_json_fader(self, idx, p, cc_info):
-        """Append a fader.
+
+    def _append_json_generic_fader(self, cc_info, fixedValuePosition
+                                  ,vmin, vmax, formatter, overlayId ):
+        """Append a fader (generic constructor).
+           - cc_info: channel, cc_no, is_cc14 information; CCInfo
+           - fixedValuePosition: whether to use fixedValuePosition; bool
+           - vmin: minimum value; Object (None if not used)
+           - vmax: maximum value; Object
+           - formatter: name of LUA formatter function; str (None if not used)
+           - overlayId: index of overlay to use; int (None if not used)
         """
+        self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}, {overlayId}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        # TODO: it may happen that an integer parameter has a lot of values
-        # but it actually is assigned a 7bit CC
+        self._append(    ',"type":"fader"')
+        if fixedValuePosition:
+            self._append(',"variant": "fixedValuePosition"')
         min = 0
         if cc_info.is_cc14():
             max = 16383
-            self._append(',"type":"fader"' 
-                        ,',"variant": "fixedValuePosition"'
-                        ,',"values":['
+            self._append(',"values":['
                         ,   '{"message":{"type":"cc14"'
                         ,              ',"lsbFirst":false'
                         )
@@ -391,142 +421,118 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,                 f',"max":{ max }'
                     ,                  '}'
                     )
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        if _is_int_parameter(p):
+        if vmin != None:
             self._append(  f',"min":{ vmin }'
                         ,  f',"max":{ vmax }'
                         )
-        else:
-            vmin_int = 10 * int(float(vmin))
-            vmax_int = 10 * int(float(vmax))
-            self.debug(4,f'Min: {mintype}, {vmin}, {vmin_int}; Max: {maxtype}, {vmax}, {vmax_int}.')
-            self._append(  f',"min":{ vmin_int }'
-                        ,  f',"max":{ vmax_int }'
-                        ,   ',"formatter":"formatFloat"'
+        if formatter != None:
+            self._append(  f',"formatter":"{ formatter }"'
                         )
+        if overlayId != None:
+            self._append(  f',"overlayId":{ overlayId }')
+
         self._append(       ',"id":"value"'
                     ,       '}'
                     ,     ']'
                     )
         
+    def _append_json_valued_fader(self, idx, p, cc_info):
+        """Append a fader showing values.
+        """
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        self.debug(5,f'Value fader: {vmin} {mintype}, {vmax} {maxtype}.')
+        if _is_int_parameter(p):
+            self._append_json_generic_fader(cc_info, False, vmin, vmax, None, None)
+        else:
+            vmin_int = 10 * int(float(vmin))
+            vmax_int = 10 * int(float(vmax))
+            self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
+                                            ,"formatFloat", None)
+
+    def _append_json_dB_fader(self, idx, p, cc_info):
+        """Append a fader showing values.
+        """
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        vmin_int = 10 * int(float(vmin))
+        vmax_int = 10 * int(float(vmax))
+        self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
+                                            ,"formatdB", None)
+            
     def _append_json_pan_fader(self, idx, p, cc_info):
         """Append a PAN fader.
         """
-        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        min = 0
-        max = 16383
-        self._append(    ',"type":"fader"' 
-                    ,    ',"values":['
-                    ,       '{"message":{"type":"cc14"'
-                    ,                  ',"lsbFirst":false'
-                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
-                    ,                 f',"deviceId":{ device_id }'
-                    ,                 f',"min":{ min }'
-                    ,                 f',"max":{ max }'
-                    ,                  '}'
-                    ,      f',"min":{ -50 }'
-                    ,      f',"max":{ 50 }'
-                    ,       ',"defaultValue":0'
-                    ,       ',"formatter":"formatPan"'
-                    ,       ',"overlayId":1'
-                    ,       ',"id":"value"'
-                    ,       '}'
-                    ,     ']'
-                    )
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        self._append_json_generic_fader(cc_info, True, _strip_plusminus(vmin), _strip_plusminus(vmax), "formatPan", 1)
 
     def _append_json_percent_fader(self, idx, p, cc_info):
         """Append a percentage fader.
         """
-        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        min = 0
-        max = 16383
         (vmin,mintype) = _get_par_value_info(p,p.min)
         (vmax,maxtype) = _get_par_value_info(p,p.max)
         # vmin/vmax are float strings
         vmin_int = 10 * int(float(vmin))
         vmax_int = 10 * int(float(vmax))
-        self._append(    ',"type":"fader"' 
-                    ,    ',"variant": "fixedValuePosition"'
-                    ,    ',"values":['
-                    ,       '{"message":{"type":"cc14"'
-                    ,                  ',"lsbFirst":false'
-                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
-                    ,                 f',"deviceId":{ device_id }'
-                    ,                 f',"min":{ min }'
-                    ,                 f',"max":{ max }'
-                    ,                  '}'
-                    ,      f',"min":{ vmin_int }'
-                    ,      f',"max":{ vmax_int }'
-                    ,       ',"defaultValue":0'
-                    ,       ',"formatter":"formatPercent"'
-                    ,       ',"id":"value"'
-                    ,       '}'
-                    ,     ']'
-                    )
+        self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
+                                        ,"formatPercent", None)
 
-    def _append_json_frequency_fader(self, idx, p, cc_info):
-        """Append a frequence fader.
+    def _append_json_degree_fader(self, idx, p, cc_info):
+        """Append a (phase)degree fader.
         """
-        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        min = 0
-        max = 16383
         (vmin,mintype) = _get_par_value_info(p,p.min)
         (vmax,maxtype) = _get_par_value_info(p,p.max)
-        # vmin/vmax are float strings
-        if mintype == 'kHz':
-            vmin_int = int(1000 * float(vmin))
-        else:
-            vmin_int = int(float(vmin))
-        if maxtype == 'kHz':
-            vmax_int = int(1000 * float(vmax))
-        else:
-            vmax_int = int(float(vmax))
-        # TODO: frequency faders have non-linear vlaue mappings    
-        self._append(    ',"type":"fader"' 
-#                    ,    ',"variant": "fixedValuePosition"'
-                    ,    ',"values":['
-                    ,       '{"message":{"type":"cc14"'
-                    ,                  ',"lsbFirst":false'
-                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
-                    ,                 f',"deviceId":{ device_id }'
-                    ,                 f',"min":{ min }'
-                    ,                 f',"max":{ max }'
-                    ,                  '}'
-#                    ,      f',"min":{ vmin_int }'
-#                    ,      f',"max":{ vmax_int }'
-#                    ,       ',"defaultValue":0'
-#                    ,       ',"formatter":"formatFrequency"'
-                    ,       ',"id":"value"'
-                    ,       '}'
-                    ,     ']'
-                    )
+        self._append_json_generic_fader(cc_info, True, vmin, vmax
+                                        ,"formatDegree", None)
 
-    def _append_json_plain_fader(self, idx, p, cc_info):
-        """Append a plain fader showing no values.
+    def _append_json_semitone_fader(self, idx, p, cc_info):
+        """Append a semitone fader.
         """
-        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
-        min = 0
-        max = 16383
-        self._append(    ',"type":"fader"' 
-                    ,    ',"values":['
-                    ,       '{"message":{"type":"cc14"'
-                    ,                  ',"lsbFirst":false'
-                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
-                    ,                 f',"deviceId":{ device_id }'
-                    ,                 f',"min":{ min }'
-                    ,                 f',"max":{ max }'
-                    ,                  '}'
-                    ,       ',"id":"value"'
-                    ,       '}'
-                    ,     ']'
-                    )
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax
+                                        ,"formatSemitone", None)
+
+    def _append_json_detune_fader(self, idx, p, cc_info):
+        """Append a detune fader.
+        """
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax
+                                        ,"formatDetune", None)
+        
+    def _append_json_plain_fader(self, idx, p, cc_info):
+        """Append a plain fader, showing no values.
+        """
+        self._append_json_generic_fader(cc_info, False, None, None, None, None)
+        
+    def _append_json_fader(self, idx, parameter, cc_info):
+        """Append a fader (depending on the parameter type)
+        """
+        if _is_pan(parameter):
+            self._append_json_pan_fader(idx,parameter,cc_info)
+        elif _is_percent(parameter):
+            self._append_json_percent_fader(idx,parameter,cc_info)
+        elif _is_degree(parameter):
+            self._append_json_degree_fader(idx,parameter,cc_info)
+        elif _is_semitone(parameter):
+            self._append_json_semitone_fader(idx,parameter,cc_info)
+        elif _is_detune(parameter):
+            self._append_json_detune_fader(idx,parameter,cc_info)
+        elif _is_complex(parameter):
+            self._append_json_plain_fader(idx,parameter,cc_info)
+        elif _is_dB(parameter):
+            self._append_json_dB_fader(idx,parameter,cc_info)            
+        else:
+            self._append_json_valued_fader(idx,parameter,cc_info)
         
     # idx (for the parameter): starts at 0!
     def _append_json_control(self, idx, parameter, cc_info):
         """Append a control (depending on the parameter type): a fader, list or
            on/off toggle pad).
         """
+        self.debug(3,f'Appending JSON control for {parameter.name}.')
         page = 1 + (idx // PARAMETERS_PER_PAGE)
         controlset = 1 + ((idx % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         pot = 1 + (idx % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
@@ -544,14 +550,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_list(idx,overlay_idx,cc_info)
         elif _is_on_off_parameter(parameter):
             self._append_json_toggle(idx,cc_info)
-        elif _is_pan(parameter):
-            self._append_json_pan_fader(idx,parameter,cc_info)
-        elif _is_percent(parameter):
-            self._append_json_percent_fader(idx,parameter,cc_info)
-        elif _is_frequency(parameter):
-            self._append_json_frequency_fader(idx,parameter,cc_info)
-        elif _is_complex_dB(parameter):
-            self._append_json_plain_fader(idx,parameter,cc_info)
         else:
             self._append_json_fader(idx,parameter,cc_info)
         self._append('}')
