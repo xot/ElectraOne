@@ -37,6 +37,10 @@ function patch.onRequest (device)
   midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1})
 end
 
+function formatFloat (valueObject, value)
+  return (string.format("%.1f",value/10))
+end
+
 function formatPan (valueObject, value)
   if value < 0 
     then return (string.format("%iL", -value))
@@ -46,6 +50,10 @@ end
 
 function formatPercent (valueObject, value)
   return (string.format("%.1f %%",value/10))
+end
+
+function formatFrequency (valueObject, value)
+  return (string.format("%i Hz",value))
 end
 """
 

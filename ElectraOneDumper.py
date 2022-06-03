@@ -216,6 +216,15 @@ def _is_percent(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     return min_type == '%'
 
+def _is_frequency(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    return (min_type == 'Hz') or (min_type == 'kHz')
+
+def _is_complex_dB(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    (max_number_part, max_type) = _get_par_value_info(p,p.max)    
+    return (min_type == 'dB') and (_strip_minus(min_number_part) != max_number_part)
+
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
        construction of a long JSOPN preset string by appending to it.
@@ -364,29 +373,38 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         min = 0
         if cc_info.is_cc14():
             max = 16383
-        else:
-            max = 127        
-        self._append(    ',"type":"fader"' 
-                    ,    ',"values":['
-                    )
-        if cc_info.is_cc14():
-            self._append(   '{"message":{"type":"cc14"'
+            self._append(',"type":"fader"' 
+                        ,',"variant": "fixedValuePosition"'
+                        ,',"values":['
+                        ,   '{"message":{"type":"cc14"'
                         ,              ',"lsbFirst":false'
                         )
         else:
-            self._append(   '{"message":{"type":"cc7"'  )
+            max = 127        
+            self._append(',"type":"fader"' 
+                        ,',"values":['
+                        ,  '{"message":{"type":"cc7"'
+                        )
         self._append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
                     ,                 f',"deviceId":{ device_id }'
                     ,                 f',"min":{ min }'
                     ,                 f',"max":{ max }'
                     ,                  '}'
                     )
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
         if _is_int_parameter(p):
-            (vmin,mintype) = _get_par_value_info(p,p.min)
-            (vmax,maxtype) = _get_par_value_info(p,p.max)
             self._append(  f',"min":{ vmin }'
                         ,  f',"max":{ vmax }'
-                        ) 
+                        )
+        else:
+            vmin_int = 10 * int(float(vmin))
+            vmax_int = 10 * int(float(vmax))
+            self.debug(4,f'Min: {mintype}, {vmin}, {vmin_int}; Max: {maxtype}, {vmax}, {vmax_int}.')
+            self._append(  f',"min":{ vmin_int }'
+                        ,  f',"max":{ vmax_int }'
+                        ,   ',"formatter":"formatFloat"'
+                        )
         self._append(       ',"id":"value"'
                     ,       '}'
                     ,     ']'
@@ -442,7 +460,63 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,      f',"max":{ vmax_int }'
                     ,       ',"defaultValue":0'
                     ,       ',"formatter":"formatPercent"'
-                    ,       ',"overlayId":1'
+                    ,       ',"id":"value"'
+                    ,       '}'
+                    ,     ']'
+                    )
+
+    def _append_json_frequency_fader(self, idx, p, cc_info):
+        """Append a frequence fader.
+        """
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
+        min = 0
+        max = 16383
+        (vmin,mintype) = _get_par_value_info(p,p.min)
+        (vmax,maxtype) = _get_par_value_info(p,p.max)
+        # vmin/vmax are float strings
+        if mintype == 'kHz':
+            vmin_int = int(1000 * float(vmin))
+        else:
+            vmin_int = int(float(vmin))
+        if maxtype == 'kHz':
+            vmax_int = int(1000 * float(vmax))
+        else:
+            vmax_int = int(float(vmax))
+        # TODO: frequency faders have non-linear vlaue mappings    
+        self._append(    ',"type":"fader"' 
+#                    ,    ',"variant": "fixedValuePosition"'
+                    ,    ',"values":['
+                    ,       '{"message":{"type":"cc14"'
+                    ,                  ',"lsbFirst":false'
+                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+                    ,                 f',"deviceId":{ device_id }'
+                    ,                 f',"min":{ min }'
+                    ,                 f',"max":{ max }'
+                    ,                  '}'
+#                    ,      f',"min":{ vmin_int }'
+#                    ,      f',"max":{ vmax_int }'
+#                    ,       ',"defaultValue":0'
+#                    ,       ',"formatter":"formatFrequency"'
+                    ,       ',"id":"value"'
+                    ,       '}'
+                    ,     ']'
+                    )
+
+    def _append_json_plain_fader(self, idx, p, cc_info):
+        """Append a plain fader showing no values.
+        """
+        device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
+        min = 0
+        max = 16383
+        self._append(    ',"type":"fader"' 
+                    ,    ',"values":['
+                    ,       '{"message":{"type":"cc14"'
+                    ,                  ',"lsbFirst":false'
+                    ,                 f',"parameterNumber":{ cc_info.get_cc_no() }'
+                    ,                 f',"deviceId":{ device_id }'
+                    ,                 f',"min":{ min }'
+                    ,                 f',"max":{ max }'
+                    ,                  '}'
                     ,       ',"id":"value"'
                     ,       '}'
                     ,     ']'
@@ -474,6 +548,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_pan_fader(idx,parameter,cc_info)
         elif _is_percent(parameter):
             self._append_json_percent_fader(idx,parameter,cc_info)
+        elif _is_frequency(parameter):
+            self._append_json_frequency_fader(idx,parameter,cc_info)
+        elif _is_complex_dB(parameter):
+            self._append_json_plain_fader(idx,parameter,cc_info)
         else:
             self._append_json_fader(idx,parameter,cc_info)
         self._append('}')
