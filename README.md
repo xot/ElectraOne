@@ -75,7 +75,7 @@ Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+
 
 The construction of presets is controlled by several constants defined in ```config.py```
 
-Dumps are written in the folder ```<LOCALDIR>/dumps``` (see documentation of ```LOCALDIR``` below).
+Dumps are written in the folder ```<LIBDIR>/dumps``` (see documentation of ```LIBDIR``` below).
 
 
 ### Preloaded presets
@@ -137,13 +137,13 @@ See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error mes
 
 The behaviour of the remote script can be changed by editing ```config.py```:
 
-- ```LOCALDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
+- ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
-- ```DUMP``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LOCALDIR/dumps```). The default is ```False```.
+- ```DUMP``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
 - ```DETECT_E1``` controls whether to detect the ElectraOne at startup, or not.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
-- ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LOCALDIR```).
+- ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LIBDIR```).
 - ```E1_CTRL_PORT``` (default is ```Electra Controller Electra CTRL```), the port to use to upload presets using ```sendmidi```
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.

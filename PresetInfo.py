@@ -30,11 +30,13 @@ class PresetInfo:
 
     def get_ccinfo_for_parameter(self,parameter):
         """Return the MIDI CC parameter info assigned to the device parameter
-           (looked up through it's original_name which is guaranteed (?).
-           not to change over time.
-           Return default CCInfo if not mapped.
+           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - result: a CCInfo object describing the assignment, or
+             UNMAPPED_CCINFO if not mapped.
         """
         assert self._cc_map != None, 'Empty cc-map'
+        # look up through parameter original_name which is guaranteed (?) not
+        # to change over time.
         if parameter.original_name in self._cc_map:
             v = self._cc_map[parameter.original_name]
             if type(v) is tuple:
@@ -46,6 +48,7 @@ class PresetInfo:
         
     def get_preset(self):
         """Retrun the JSON preset as a string
+           - result: preset; str
         """
         assert self._json_preset != None, 'Empty JSON preset'
         return self._json_preset

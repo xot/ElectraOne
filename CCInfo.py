@@ -16,7 +16,7 @@ IS_CC7 = False
 IS_CC14 = True
 
 class CCInfo:
-    """Class storing the channel and parameter number of CC mapping, and
+    """Class storing the channel and parameter number of a CC mapping, and
        whether the associated controller on the E1 is 14bit (or not, in
        which case it is 7bit).
     """
@@ -37,18 +37,34 @@ class CCInfo:
         return f'({self._midi_channel},{self._is_cc14},{self._cc_no})'
         
     def get_midi_channel(self):
+        """Return the MIDI channel this object is mapped to (undefined if not mapped)
+           - result: channel; int (1..16)
+        """
         return self._midi_channel
 
     def is_cc14(self):
+        """Return whether the object represents a 7 or 14 bit CC parameter 
+           (undefiend when not mapped).
+           - result: IC_CC14/True if 14 bit; ID_CC7/False if 7 bit;  bool
+        """
         return self._is_cc14
 
     def get_cc_no(self):
+        """Return the CC parameter number of this object.
+           - result: the CC parameter number (-1 if not mapped); int (-1..127)
+        """
         return self._cc_no
 
     def is_mapped(self):
+        """Return whether object is mapped to a CC parameter at all.
+           - result: whether mapped or not ; bool
+        """
         return self._cc_no != UNMAPPED_CC
     
     def get_statusbyte(self):
+        """Return the MIDI byte signalling a CC message on the stored channel.
+           - result: statusbyte; int (0..127)
+        """
         # status byte encodes midi channel (-1!) in the least significant nibble
         CC_STATUS = 176
         return CC_STATUS + self.get_midi_channel() - 1

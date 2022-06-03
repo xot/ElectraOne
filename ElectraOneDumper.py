@@ -461,12 +461,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
 
     def _construct_json_preset(self, device_name, parameters, cc_map):
         """Construct a Electra One JSON preset for the given list of Ableton Live 
-           Device/Instrument parameters. Return as string.
+           Device/Instrument parameters using the info in the supplied cc_map
+           to determine the neccessary MIDI CC info. Return as string.
+           - device_name: device name for the preset; str
+           - parameters: parameters to include; list of Live.DeviceParameter.DeviceParameter
+           - cc_map: corresponding cc_map; dict of CCInfo
+           - result: the preset (a JSON object in E1 .epr format); str
         """
         self.debug(2,'Construct JSON')
         # create a random project id
         project_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
-        # write everything to a mutable string for efficiency
+        # write everything to the underlying StringIO, a mutable string
+        # for efficiency.
         # {{ to escape { in f-string
         self._append( f'{{"version":{ VERSION }'
                    , f',"name":"{ _check_name(device_name) }"'
@@ -486,6 +492,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
+           - parameters:  parameter list; list of Live.DeviceParameter.DeviceParameter
+           - result: ccmap; dict of CCInfo
         """
         self.debug(2,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
@@ -536,11 +544,15 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
             self.debug(1,'Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'CC map constructed: { cc_map }')
+            self.debug(5,f'CC map constructed: { cc_map }')
         return cc_map
         
     def _order_parameters(self,device_name, parameters):
-        """Order the parameters: either original, device-dict based, or sorted by name.
+        """Order the parameters: either original, device-dict based, or
+           sorted by name (determined by ORDER configuration constant).
+           - device_name: device orignal_name (needed to retreive DEVICE_DICT sort order); str
+           - parameters:  parameter list to sort; list of Live.DeviceParameter.DeviceParameter
+           - result: a copy of the parameter list, sorted; list of Live.DeviceParameter.DeviceParameter
         """
         self.debug(2,'Order parameters')
         if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in DEVICE_DICT_IGNORE):
@@ -565,9 +577,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
 
     def __init__(self, c_instance, device_name, parameters):
         """Construct an Electra One JSON preset and a corresponding
-           dictionary for the mapping to MIDI CC values, for the given
-           device with the given list of Ableton Live Device/Instrument
-           parameters. 
+           dictionary for the mapping to MIDI CC values, for the device with
+           the given device name and the given list of Ableton Live Device/Instrument
+           parameters. Use get_preset() for the contructed object to obtain the result
+           - c_instance: controller instance parameter as passed by Live
+           - device_name: device orignal_name; str
+           - parameters:  parameter list; list of Live.DeviceParameter.DeviceParameter
         """
         io.StringIO.__init__(self)
         ElectraOneBase.__init__(self, c_instance)
@@ -580,6 +595,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
 
     def get_preset(self):
         """Return the constructed preset and ccmap as PresetInfo.
+           - result: preset and ccmap; PresetInfo
         """
         return PresetInfo(self._preset_json,self._cc_map)
         

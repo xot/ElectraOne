@@ -81,15 +81,15 @@ class TrackController(GenericTrackController):
 
     def _refresh_track_name(self):
         # TODO: this may need to be updated with E1 firmware API changes
-        # tracks
+        # tracks page
         idx = self._offset+1
         command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
         self._send_lua_command(command)
-        # channel eq
+        # channel eq page
         idx = self._offset+9
         command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
         self._send_lua_command(command)
-        # sends
+        # sends page
         idx = self._offset+15
         command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
         self._send_lua_command(command)

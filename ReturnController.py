@@ -20,7 +20,6 @@ RETURNS_PAN_CC = 10
 RETURNS_VOLUME_CC = 16
 RETURNS_MUTE_CC = 70
 #
-# TODO: hide/gray out unmapped returns
 
 class ReturnController(GenericTrackController):
     """Manage a return track.
@@ -34,7 +33,7 @@ class ReturnController(GenericTrackController):
         # keep reference of track because if returns added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
         self._track = self.song().return_tracks[idx]
-        self._name = self._track.name ##f'Return track {idx}'
+        self._name = self._track.name 
         # EQ device info
         self._eq_device_name = None # not present on a return track
         self._eq_cc_map = None
@@ -56,9 +55,14 @@ class ReturnController(GenericTrackController):
 
     def _refresh_track_name(self):
         # TODO: this may need to be updated with E1 firmware API changes
-        # tracks
+        # return tracks page
         idx = self._idx+20
         command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
+        self._send_lua_command(command)
+        # TODO: update control name on send page as well: enable after bug fix of firmware
+        # send A (idx 0) = id 73 - 77; send B = 79 - 83; etc
+        idx = 73 + 6 * self._idx
+        # command = f'for i = {idx}, {idx}+4 do\n local control = controls.get(i)\n control:setName("{self._name}")\n end'
         self._send_lua_command(command)
         
     def _my_cc(self,base_cc):

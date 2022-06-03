@@ -24,23 +24,21 @@ PREAMBLE = """
 # Distributed under the MIT License, see LICENSE
 #
 
+from .ElectraOneDumper import PresetInfo
+
 # Dictionary with preset and MIDI cc mapping data for known devices
 # (indexed by device.original_name)
 # - The preset is a JSON string in Electra One format.
-#   (The current implementation assumes that all quantized parameters
-#   are 7-bit absolute CC values while all non quantized parameters are
-#   14-bit absolute values)
 # - The MIDI cc mapping data is a dictionary of Ableton Live original parameter
 #   names with their corresponding MIDI CCInfo values (as ordinary tuples)
-#   in the preset.
+#   in the preset. The CCInfo data must match the info in the preset used for
+#   the same parameter.
 
-from .ElectraOneDumper import PresetInfo
 """
 
 POSTSCRIPT = """
 # Return the predefined preset information for a device, None if it doesn't exist
 def get_predefined_preset_info(device_original_name):
-    # FIXME: try to read from file
     if device_original_name in DEVICES:
         return DEVICES[device_original_name]
     else:

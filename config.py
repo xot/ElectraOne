@@ -30,7 +30,7 @@ DETECT_E1 = False
 # if that doesn't exist, it is interpreted as an absolute path. If that also
 # doesn't exist, then the user home directory is used instead (and ./dumps
 # or ./user-presets are not appended to make sure the directory exists).
-LOCALDIR = 'src/ableton-control-scripts/ElectraOne'
+LIBDIR = 'src/ableton-control-scripts/ElectraOne'
 
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)

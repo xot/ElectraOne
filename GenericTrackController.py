@@ -69,9 +69,7 @@ from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase
 from .EffectController import build_midi_map_for_device, update_values_for_device
 
-# TODO: Handle track names
 # TODO: hide/gray out unmapped sends
-
 
 class GenericTrackController(ElectraOneBase):
     """Manage a generic track
