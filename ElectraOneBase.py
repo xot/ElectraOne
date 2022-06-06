@@ -373,8 +373,8 @@ class ElectraOneBase:
         """
         self.debug(3,f'Upload thread setting timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
         while (not ElectraOneBase.ack_received) and (timeout > 0):
-            time.sleep(0.1)
             self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
+            time.sleep(0.1)
             timeout -= 1
         if ElectraOneBase.ack_received:
             self.debug(3,f'Upload thread: ACK received within timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')

@@ -304,7 +304,12 @@ class ElectraOne(ElectraOneBase):
             else:
                 new_slot = MIXER_PRESET_SLOT
             # will set ElectraOneBase.current_visible_slot
+            # and E1 will send a preset change message in response which will
+            # trigger dO_preset_changed() and hence cause a state refresh 
             self._select_preset_slot(new_slot)
+            # TODO: really shoudl wait for an ACK! but this is a bit complex
+            # because the ACK  is only sent AFTER the preset changed message
+            time.sleep(0.5)
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
         
