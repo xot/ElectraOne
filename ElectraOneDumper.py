@@ -179,6 +179,8 @@ def _get_par_value_info(p,v):
         return (number_part[:-1],'R')
     elif number_part[-1] == 'k':
         return (number_part[:-1],'kHz')
+    elif (len(type) > 0) and (type[0]==':'):
+        return (type[2:],':')
     else:
         return (number_part,type)
 
@@ -188,7 +190,7 @@ def _strip_plusminus(v):
     else:
         return v
     
-NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°']
+NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°', ':']
 
 # Determine whether the parameter is integer
 def _is_int_parameter(p):
@@ -229,24 +231,27 @@ def _is_detune(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     return min_type == 'ct'
 
-def _is_dB(p):
-    (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    return min_type == 'dB'
-
-def _NaN(s):
-    for c in s:
-        if not c.isdigit() and c != '.':
-            return True
-    return False
-
-def _is_complex(p):
-    # complex faders cannot show values
+def _is_symmetric_dB(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)    
     max_number_part = _strip_plusminus(max_number_part)
-    return ((min_type == 'dB') and (min_number_part != max_number_part)
-           ) or (min_type != max_type) or _NaN(min_number_part) or _NaN(max_number_part)
+    return min_type == 'dB' and (min_number_part == max_number_part)
+
+def _is_float_str(s):
+    for c in s:
+        if not c.isdigit() and c != '.':
+            return False
+    return True
+        
+def _is_untyped_float(p):
+    (min_number_part, min_type) = _get_par_value_info(p,p.min)
+    min_number_part = _strip_plusminus(min_number_part)
+    (max_number_part, max_type) = _get_par_value_info(p,p.max)    
+    max_number_part = _strip_plusminus(max_number_part)
+    return (min_type == '') and (max_type == '') and \
+           _is_float_str(min_number_part) and _is_float_str(max_number_part)
+
            
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class allows the gradual
@@ -435,72 +440,65 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,       '}'
                     ,     ']'
                     )
-        
-    def _append_json_valued_fader(self, idx, p, cc_info):
-        """Append a fader showing values.
-        """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        self.debug(5,f'Value fader: {vmin} {mintype}, {vmax} {maxtype}.')
-        if _is_int_parameter(p):
-            self._append_json_generic_fader(cc_info, False, vmin, vmax, None, None)
-        else:
-            vmin_int = 10 * int(float(vmin))
-            vmax_int = 10 * int(float(vmax))
-            self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
-                                            ,"formatFloat", None)
 
-    def _append_json_dB_fader(self, idx, p, cc_info):
-        """Append a fader showing values.
+    def _get_par_min_max(self, p, factor):
+        (vmin_str,mintype) = _get_par_value_info(p,p.min)
+        (vmax_str,maxtype) = _get_par_value_info(p,p.max)
+        vmin = factor * int(float(vmin_str))
+        vmax = factor * int(float(vmax_str))
+        return (vmin,vmax)
+        
+    def _append_json_symmetric_dB_fader(self, idx, p, cc_info):
+        """Append a fader showing symmetric dB values.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        vmin_int = 10 * int(float(vmin))
-        vmax_int = 10 * int(float(vmax))
-        self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
-                                            ,"formatdB", None)
+        (vmin,vmax) = self._get_par_min_max(p,10)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatdB", None)
             
     def _append_json_pan_fader(self, idx, p, cc_info):
         """Append a PAN fader.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        self._append_json_generic_fader(cc_info, True, _strip_plusminus(vmin), _strip_plusminus(vmax), "formatPan", 1)
+        (vmin,vmax) = self._get_par_min_max(p,1)
+        # p.min typically equals 50L, so vmin=50
+        self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan", 1)
 
     def _append_json_percent_fader(self, idx, p, cc_info):
         """Append a percentage fader.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        # vmin/vmax are float strings
-        vmin_int = 10 * int(float(vmin))
-        vmax_int = 10 * int(float(vmax))
-        self._append_json_generic_fader(cc_info, True, vmin_int, vmax_int
-                                        ,"formatPercent", None)
+        (vmin,vmax) = self._get_par_min_max(p,10)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatPercent", None)
 
     def _append_json_degree_fader(self, idx, p, cc_info):
         """Append a (phase)degree fader.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax
-                                        ,"formatDegree", None)
+        (vmin,vmax) = self._get_par_min_max(p,1)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatDegree", None)
 
     def _append_json_semitone_fader(self, idx, p, cc_info):
         """Append a semitone fader.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax
-                                        ,"formatSemitone", None)
+        (vmin,vmax) = self._get_par_min_max(p,1)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatSemitone", None)
 
     def _append_json_detune_fader(self, idx, p, cc_info):
         """Append a detune fader.
         """
-        (vmin,mintype) = _get_par_value_info(p,p.min)
-        (vmax,maxtype) = _get_par_value_info(p,p.max)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax
-                                        ,"formatDetune", None)
+        (vmin,vmax) = self._get_par_min_max(p,1)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDetune", None)
+        
+    def _append_json_int_fader(self, idx, p, cc_info):
+        """Append an integer valued, untyped, fader.
+        """
+        (vmin,vmax) = self._get_par_min_max(p,1)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax, None, None)
+
+    def _append_json_float_fader(self, idx, p, cc_info):
+        """Append a float valued, untyped, fader.
+        """
+        (vmin,vmax) = self._get_par_min_max(p,100)
+        if vmax > 1000:
+            self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat", None)
+        else:
+            self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat", None)
         
     def _append_json_plain_fader(self, idx, p, cc_info):
         """Append a plain fader, showing no values.
@@ -520,12 +518,14 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_semitone_fader(idx,parameter,cc_info)
         elif _is_detune(parameter):
             self._append_json_detune_fader(idx,parameter,cc_info)
-        elif _is_complex(parameter):
-            self._append_json_plain_fader(idx,parameter,cc_info)
-        elif _is_dB(parameter):
-            self._append_json_dB_fader(idx,parameter,cc_info)            
+        elif _is_symmetric_dB(parameter):
+            self._append_json_symmetric_dB_fader(idx,parameter,cc_info)            
+        elif _is_int_parameter(parameter):
+            self._append_json_int_fader(idx,parameter,cc_info)            
+        elif _is_untyped_float(parameter):
+            self._append_json_float_fader(idx,parameter,cc_info)            
         else:
-            self._append_json_valued_fader(idx,parameter,cc_info)
+            self._append_json_plain_fader(idx,parameter,cc_info)
         
     # idx (for the parameter): starts at 0!
     def _append_json_control(self, idx, parameter, cc_info):

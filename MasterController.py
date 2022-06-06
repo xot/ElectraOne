@@ -42,7 +42,7 @@ class MasterController(GenericTrackController):
     def __init__(self, c_instance):
         GenericTrackController.__init__(self, c_instance)
         self._track = self.song().master_track
-        self._name = f'Master track'
+        self._name = self._track.name
         # EQ device info
         self._eq_device_name = MASTER_EQ_DEVICE_NAME 
         self._eq_cc_map = MASTER_EQ_CC_MAP

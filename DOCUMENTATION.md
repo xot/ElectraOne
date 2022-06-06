@@ -261,6 +261,7 @@ Live distinguishes the following types of real values:
 - ```%```. Different ranges are possible. When ranging from -x to x, the default is 0.
 - Time (```ms``` or ```s```).
 - Phase (```°```, written immediately after the value, e.g. ```360°```).
+- Untyped (e.g. the ones used by Amp)
 
 Live distinguishes the following types of integer values:
 
@@ -271,6 +272,7 @@ Live distinguishes the following types of integer values:
 
 Others:
 
+- Compression ratios: ```1 : 0.25``` .. ```1 : Inf```
 - Analog Sync Rate: ```4d```..```1/32t```.
 - Wavetable Sync rate: ```8```..```1/64```.
 - Analog Noise Balance: ```F2```..```50/50```..```F1```.

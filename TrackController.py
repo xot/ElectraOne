@@ -58,7 +58,6 @@ class TrackController(GenericTrackController):
         # keep reference of track because if tracks added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
         self._track = self.song().visible_tracks[idx]
-        self._name = self._track.name
         # offset of this track relative to the first mapped track
         self._offset = offset
         self._eq_device_name = TRACK_EQ_DEVICE_NAME 
@@ -86,15 +85,15 @@ class TrackController(GenericTrackController):
         # TODO: this may need to be updated with E1 firmware API changes
         # tracks page
         idx = self._offset+1
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
+        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
         self._send_lua_command(command)
         # channel eq page
         idx = self._offset+9
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
+        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
         self._send_lua_command(command)
         # sends page
         idx = self._offset+15
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._name}")'
+        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
         self._send_lua_command(command)
 
     def _my_cc(self,base_cc):

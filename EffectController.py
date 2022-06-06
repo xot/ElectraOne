@@ -38,6 +38,10 @@ function patch.onRequest (device)
 end
 
 function formatFloat (valueObject, value)
+  return (string.format("%.2f",value/100))
+end
+
+function formatLargeFloat (valueObject, value)
   return (string.format("%.1f",value/10))
 end
 
