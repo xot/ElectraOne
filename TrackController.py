@@ -29,7 +29,7 @@ ARM_CC = 89
 # other, ie with increments of NO_OF_TRACKS=5
 SENDS_CC = 0  
 
-# Change this to managa a different EQ like device on every track
+# Change this to manage a different EQ like device on every track
 # TODO: move this to Devices (but this modifying the ./makedevices script)
 #
 # Specify the device.class_name here

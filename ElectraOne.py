@@ -152,7 +152,7 @@ class ElectraOne(ElectraOneBase):
             # re-open the interface
             self._E1_connected = True
             # when opening a song without any devices selected, make sure
-            # the MIDI map is built
+            # the MIDI map is built (see comment above)
             if self._effect_controller._assigned_device == None:
                 self.request_rebuild_midi_map()                
         except:
@@ -309,8 +309,9 @@ class ElectraOne(ElectraOneBase):
             # and E1 will send a preset change message in response which will
             # trigger dO_preset_changed() and hence cause a state refresh 
             self._select_preset_slot(new_slot)
-            # TODO: really shoudl wait for an ACK! but this is a bit complex
-            # because the ACK  is only sent AFTER the preset changed message
+            # TODO: really should wait for an ACK! but this is a bit complex
+            # because the ACK is only sent AFTER the preset changed message
+            # so we stick to this hack that appears to work too
             time.sleep(0.5)
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
