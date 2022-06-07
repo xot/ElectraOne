@@ -144,15 +144,17 @@ class ElectraOne(ElectraOneBase):
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             c_instance = self.get_c_instance()
-            # TODO: note that this executes within a thread, so calls to
-            # request_rebuild_midi_map() may (counterintuitively) be effectuated
-            # before this thread finishes. May be a problem because the interface
-            # is still closed
+            # note: any requests to rebuild the MIDI map triggered by these
+            # two calls are ignored because the interface is still closed
             self._mixer_controller = MixerController(c_instance) 
             self._effect_controller = EffectController(c_instance)
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
-            self._E1_connected = True 
+            self._E1_connected = True
+            # when opening a song without any devices selected, make sure
+            # the MIDI map is built
+            if self._effect_controller._assigned_device == None:
+                self.request_rebuild_midi_map()                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 

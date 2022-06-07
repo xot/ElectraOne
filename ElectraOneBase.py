@@ -210,7 +210,7 @@ class ElectraOneBase:
             ElectraOneBase._fast_sysex = False
             self.debug(1,'Slow uploading of presets configured.')
                 
-    # --- MIDI handling ---
+    # --- MIDI CC handling ---
 
     def send_midi(self, message):
         """Send a MIDI message (through Ableton Live)
@@ -291,18 +291,19 @@ class ElectraOneBase:
         else:
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
-    # TODO see https://docs.electra.one/developers/luaext.html
+    # --- MIDI SysEx handling ---
+
     def _send_lua_command(self, command):
         """Send a LUA command to the E1.
            - command: the command to send; str
         """
         self.debug(3,f'Sending LUA command {command}.')
+        # see https://docs.electra.one/developers/luaext.html
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
         sysex_command = tuple([ ord(c) for c in command ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
 
-    # TODO see https://docs.electra.one/developers/midiimplementation.html
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
            - slot: slot to select; (bank: 0..5, preset: 0..1)
@@ -311,6 +312,7 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
+        # see https://docs.electra.one/developers/midiimplementation.html
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x09, 0x08)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
@@ -320,7 +322,6 @@ class ElectraOneBase:
         # as the upload thread closes the interface. 
         ElectraOneBase.current_visible_slot = slot
 
-    # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
     def _remove_preset_from_slot(self, slot):
         """Remove the current preset from a slot on the E1.
            - slot: slot to delete preset from; (bank: 0..5, preset: 0..1)
@@ -329,18 +330,19 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
+        # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
         
-    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
     def _upload_lua_script_to_current_slot(self, luascript):
         """Upload the specified LUA script to the currently selected slot on
            the E1 (use _select_preset_slot to select the desired slot)
            - luascript: LUA script to upload; str
         """
         self.debug(3,f'Uploading LUA script {luascript}.')
+        # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x0C)
         sysex_script = tuple([ ord(c) for c in luascript ])
         sysex_close = (0xF7, )
@@ -349,13 +351,13 @@ class ElectraOneBase:
         else:
             self.send_midi(sysex_header + sysex_script + sysex_close)
 
-    # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
     def _upload_preset_to_current_slot(self, preset):
         """Upload the specified preset to the currently selected slot on
            the E1 (use _select_preset_slot to select the desired slot)
            - preset: preset to upload; str (JASON, .epr format)
         """
         self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
+        # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
         sysex_close = (0xF7, )
@@ -440,3 +442,7 @@ class ElectraOneBase:
         # thread also requests to rebuild MIDI map at the end (if successful), and this then calls refresh state
         self._upload_thread = threading.Thread(target=self._upload_preset_thread,args=(slot,preset,luascript))
         self._upload_thread.start()
+
+                
+    
+        

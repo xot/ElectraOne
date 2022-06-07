@@ -196,31 +196,28 @@ class GenericTrackController(ElectraOneBase):
             
         
     def _on_mute_changed(self):
-        # TODO: this check should not be necessary
-        if self._base_mute_cc != None:
-            if self._track.mute:
-                value = 0
-            else:
-                value = 127
-            self.send_midi_cc7(self._midichannel, self._my_cc(self._base_mute_cc), value)
+        assert self._base_mute_cc != None
+        if self._track.mute:
+            value = 0
+        else:
+            value = 127
+        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_mute_cc), value) 
 
     def _on_arm_changed(self):
-        # TODO: this check should not be necessary
-        if self._base_arm_cc != None:
-            if self._track.arm:
-                value = 127
-            else:
-                value = 0
-            self.send_midi_cc7(self._midichannel, self._my_cc(self._base_arm_cc), value)
+        assert self._base_arm_cc != None
+        if self._track.arm:
+            value = 127
+        else:
+            value = 0
+        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_arm_cc), value)
     
     def _on_solo_cue_changed(self):
-        # TODO: this check should not be necessary
-        if self._base_solo_cue_cc != None:
-            if self._track.solo:
-                value = 127
-            else:
-                value = 0
-            self.send_midi_cc7(self._midichannel, self._my_cc(self._base_solo_cue_cc), value)
+        assert self._base_solo_cue_cc != None
+        if self._track.solo:
+            value = 127
+        else:
+            value = 0
+        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_solo_cue_cc), value)
     
     # --- Handlers ---
     

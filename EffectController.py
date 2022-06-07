@@ -85,10 +85,16 @@ def get_device_name(device):
     return device.class_name
 
 def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
-    # Internal function to build the MIDI map for a device, also
-    # used by TrackController and MasterController too to map the
-    # ChannelEq device. Uses preset_info to get the CCInfo for device
-    # parameters.
+    """Map the parameters for the specified device to MIDI CC as specified in
+       preset_info.
+       - midi_map_handle: handle to the MIDI map to be constructed, as passed
+           by Live to build_midi_mape(); ??
+       - device: device whose parameters need tobe sent to the controller; Live.Device.Device
+       - preset_info: mapping of device parameters to MIDI CC; PresetInfo
+       - debug: method for sending debug messages; ?? 
+    """
+    # This method is also used by GenericTrackController to map the
+    # ChannelEq device.
     if device and preset_info:
         device_name = get_device_name(device)
         debug(3,f'Building MIDI map for device { device_name }')
@@ -108,12 +114,18 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
-# TODO: bit of a hack to pass ElectraOneBase as sender_object
 def update_values_for_device(device, preset_info, sender_object):
-    # Internal function to update the displayed values for a device, also
-    # used by TrackController and MasterController too to map the
-    # ChannelEq device. Uses preset_info to get the CCInfo for device
-    # parameters.
+    """Update device parameter values on the controller (displaying the
+       preset associated with the specified device), by sending MIDI CC
+       value updates. Uses preset_info to get the CCInfo for the
+       device parameters.
+       - device: device whose parameters need tobe sent to the controller; Live.Device.Device
+       - preset_info: mapping of device parameters to MIDI CC; PresetInfo
+       - sender_object: object containing method to send MIDI; ElectraOneBase
+    """
+    # This method is also used by GenericTrackController to
+    # update the values of the ChannelEq device.
+    # unfortunately a bit of a hack by passing ElectraOneBase as sender_object
     if device and preset_info:
         for p in device.parameters:
             ccinfo = preset_info.get_ccinfo_for_parameter(p)
@@ -148,7 +160,7 @@ class EffectController(ElectraOneBase):
     # --- initialise values ---
     
     def update_display(self):
-        """ Called every 100 ms; used to call update_values with a delay
+        """ Called every 100 ms; used to remove preset from E1 if no device selected
         """
         # Remove preset from E1 if no device assigned
         # (Theree does not appear to be a handler for this; in any case

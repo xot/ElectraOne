@@ -166,7 +166,6 @@ class MixerController(ElectraOneBase):
     def _add_global_listeners(self):
         self.song().add_visible_tracks_listener(self._on_tracks_added_or_deleted)
         # self.song().add_loop_listener(self.__on_loop_changed)
-        # TODO : add listening to track name changes
 
     def _remove_global_listeners(self):
         self.song().remove_visible_tracks_listener(self._on_tracks_added_or_deleted)
@@ -195,8 +194,7 @@ class MixerController(ElectraOneBase):
            left or right.
         """
         self._remap_tracks()
-        # TODO: temporary; only needed to ensure return track name changes are at some point sent to E1
-        self._remap_return_tracks()
+        # no need to remap return tracks as the selection of those never changes
         self.debug(2,'MixCont requesting MIDI map to be rebuilt (because track selection changed).')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
