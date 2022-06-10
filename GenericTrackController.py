@@ -72,26 +72,30 @@ from .EffectController import build_midi_map_for_device, update_values_for_devic
 # TODO: hide/gray out unmapped sends
 
 class GenericTrackController(ElectraOneBase):
-    """Manage a generic track
+    """Generic class to manage a track. To be subclassed to handle normal
+       tracks, return tracks and the master track.
     """
     
     def __init__(self, c_instance):
-        """Initialise a return controller for a generic track
+        """Initialise a  generic track
         """
         ElectraOneBase.__init__(self, c_instance)
-        # initialisations provided by derived classes
+        # actual initialisations to be provided by derived classes;
+        # None indicates a fearture is not present.
         self._track = None
         # EQ device info
         self._eq_device_name = None # if None not present (ie all returns)
+        # dictionary of parameters to map as keys, and base MIDI CC values
+        # as the associated values
         self._eq_cc_map = None
         # midi info
         self._midichannel = None
-        # sliders
+        # slider CC numbers
         self._base_pan_cc = None
         self._base_volume_cc = None
         self._base_cue_volume_cc = None  # if None, not present (ie all non master tracks)
         self._sends_cc = None # if None, not present (ie all non audio/midi tracks)
-        # buttons
+        # button CC numbers
         self._base_mute_cc = None # if None, not present (i.e. master track)
         self._base_arm_cc = None # if None, not present (i.e. groups and returns)
         self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
@@ -103,13 +107,20 @@ class GenericTrackController(ElectraOneBase):
 
     
     def _my_cc(self,base_cc):
-        # derive the actual cc_no from the assigned base CC and my index
-        # TO BE DEFINED BY SUBCLASS
+        """Return the actual MIDI CC number for this instance of a control,
+           given the base MIDI CC number for the control. To be defined by
+           the subclass.
+           - base_cc: base MIDI CC number; int
+           - result: actual MIDI CC number; int
+        """
         pass
 
     def _my_channel_eq(self):
-        # Return a reference to the Channel EQ device on my track, if present.
-        # None if not
+        """ Get a reference to the Channel EQ device (or similar; determined
+            by the value of self._eq_device_name) on this track, if present.
+            None if not found.
+            - result: reference to the device ; Live.Device.Device 
+        """
         devices = self._track.devices
         for d in reversed(devices):
             if d.class_name == self._eq_device_name:
@@ -118,20 +129,30 @@ class GenericTrackController(ElectraOneBase):
         return None
 
     def _my_channel_eq_preset_info(self):
-        # add the offset to the cc_no present in TRACK_EQ_CC_MAP
+        """Return the preset info associated with the Channel EQ Device on this
+           track, filling in the correct MIDI CC numbers for this
+           particular instance of the device using self._eq_cc_map as source
+           for the base values.
+           - result: CC map in a preset info (with empty preset JSON string!); PresetInfo
+        """
         cc_map = {}
         for p in self._eq_cc_map:
             (channel, is_cc14, cc_no) = self._eq_cc_map[p]
+            # add the offset to the cc_no present in TRACK_EQ_CC_MAP
             cc_map[p] = (channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('',cc_map)
 
     def _refresh_track_name(self):
+        """Change the track name displayed on the remote controller. To be
+           overriden by subclass.
+        """
         # Overriden by TrackController and ReturnController to rename track names
         pass
     
     def refresh_state(self):
-        # send the values of the controlled elements to the E1 (to bring them in sync)
-        # called and initiated by MixerController
+        """ Send the values of the controlled elements to the E1
+           (to bring them in sync). Initiated by MixerController
+        """
         track = self._track
         self._refresh_track_name()
         if self._base_mute_cc != None:
@@ -140,6 +161,7 @@ class GenericTrackController(ElectraOneBase):
             self._on_arm_changed()
         if self._base_solo_cue_cc != None:
             self._on_solo_cue_changed()
+        # panning and volume always present
         self.send_parameter_as_cc14(track.mixer_device.panning, self._midichannel, self._my_cc(self._base_pan_cc))
         self.send_parameter_as_cc14(track.mixer_device.volume, self._midichannel, self._my_cc(self._base_volume_cc))
         if self._base_cue_volume_cc:  # master track only
@@ -156,19 +178,24 @@ class GenericTrackController(ElectraOneBase):
         channel_eq = self._my_channel_eq()
         if channel_eq:
             preset_info = self._my_channel_eq_preset_info()
-            update_values_for_device(channel_eq, preset_info,self)
+            update_values_for_device(channel_eq, preset_info, self)
 
     def update_display(self):
+        """Update the display. (Does nothing.)        
+        """
         pass
     
     def disconnect(self):
-        # cleanup
+        """Disconnect the track; remove all listeners.
+        """
         self._remove_listeners()
 
     # --- Listeners
     
     def add_listeners(self):
-        # add listeners for changes to Live elements
+        """Add listeners for Mute, Arm, and Solo/Cue where relevant; these
+           send changes to the UI elements in Live to the controller.
+        """
         # (note: this needs to be called by the subclass, because
         # only the subclass defines _track!)
         track = self._track
@@ -181,7 +208,8 @@ class GenericTrackController(ElectraOneBase):
         track.add_name_listener(self._refresh_track_name)
             
     def _remove_listeners(self):
-        # remove all listeners added
+        """Remove all listeners added.
+        """
         track = self._track
         # track may already have been deleted
         if track:
@@ -196,6 +224,9 @@ class GenericTrackController(ElectraOneBase):
             
         
     def _on_mute_changed(self):
+        """Send the new status of the Mute button to the controller using the
+           right MIDI CC number (derived from self._base_mute_cc)
+        """
         assert self._base_mute_cc != None
         if self._track.mute:
             value = 0
@@ -204,6 +235,9 @@ class GenericTrackController(ElectraOneBase):
         self.send_midi_cc7(self._midichannel, self._my_cc(self._base_mute_cc), value) 
 
     def _on_arm_changed(self):
+        """Send the new status of the Arm button to the controller using the
+           right MIDI CC number (derived from self._base_arm_cc)
+        """
         assert self._base_arm_cc != None
         if self._track.arm:
             value = 127
@@ -212,6 +246,9 @@ class GenericTrackController(ElectraOneBase):
         self.send_midi_cc7(self._midichannel, self._my_cc(self._base_arm_cc), value)
     
     def _on_solo_cue_changed(self):
+        """Send the new status of the Solo/Cue button to the controller using the
+           right MIDI CC number (derived from self._base_solo_cue_cc)
+        """
         assert self._base_solo_cue_cc != None
         if self._track.solo:
             value = 127
@@ -222,21 +259,31 @@ class GenericTrackController(ElectraOneBase):
     # --- Handlers ---
     
     def _init_cc_handlers(self):
-        # define handlers for incoming midi events
-        # TO BE DEFINED BY SUBCLASS
+        """Define handlers for incoming MIDI CC messages.
+           (to be defined by subclass)
+        """
         pass
     
     def _handle_mute_button(self,value):
+        """Default handler for Mute button
+           - value: incoming MIDI CC value; int
+        """
         self.debug(2,f'Track { self._track.name } activation button action.')
         if self._base_mute_cc != None:
             self._track.mute = (value < 64)
 
     def _handle_arm_button(self,value):
+        """Default handler for Arm button
+           - value: incoming MIDI CC value; int
+        """
         self.debug(2,f'Track { self._track.name } arm button action.')
         if self._base_arm_cc != None:
             self._track.arm = (value > 63)
 
     def _handle_solo_cue_button(self,value):
+        """Default handler for Solo/Cue button
+           - value: incoming MIDI CC value; int
+        """
         self.debug(2,f'Track { self._track.name } solo/cue button action.')
         if self._base_solo_cue_cc != None:
             self._track.solo = (value > 63)
@@ -244,17 +291,33 @@ class GenericTrackController(ElectraOneBase):
     # --- MIDI ---
     
     def process_midi(self, midi_channel, cc_no, value):
-        # receive incoming midi events and pass them to the correct handler
+        """Process incoming MIDI CC events for this track, and pass them to
+           the correct handler (defined by self._CC_HANDLERS as set up
+           by the call to self._init_cc_handlers() )
+           - midi_channel: MIDI channel of incomming message; int (1..16)
+           - cc_no: MIDI CC number; int (0..127)
+           - value: incoming CC value; int (0..127)
+        """
         self.debug(5,f'GenericTrackControler: trying to process MIDI by track { self._track.name}.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             if handler:
                 self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
                 handler(value)
-    
+
     def build_midi_map(self, script_handle, midi_map_handle):
+        """Map all track controls on their associated MIDI CC numbers; either
+           map them completely (Live handles all MIDI automatically) or make sure
+           the right MIDI CC messages are forwarded to the remote script to be
+           handled by the MIDI CC handlers defined here.
+           - script_handle: reference to the main remote script class
+               (whose receive_midi method will be called for any MIDI CC messages
+               marked to be forwarded here)
+           - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
+               which MIDI mappings must be added.
+        """
         self.debug(2,f'Building MIDI map of track { self._track.name }.')
-        # Map btton CCs to be forwarded as defined in MIXER_CC_HANDLERS
+        # Map button CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)

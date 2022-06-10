@@ -24,7 +24,7 @@ from .ElectraOneDumper import ElectraOneDumper
 
 
 # Default LUA script to send along an effect preset. Programs the PATCH REQUEST
-# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7)
+# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
 # received by ElectraOne to swap the visible preset. As complex presets may have
 # more than one device defined (an patch.onRequest sends a message out for
 # every device), we use device.id to diversify the outgoing message.
@@ -34,7 +34,9 @@ from .ElectraOneDumper import ElectraOneDumper
 DEFAULT_LUASCRIPT = """
 function patch.onRequest (device)
   print ("Patch Request pressed");
-  midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E, device.id - 1})
+  if device.id == 1
+    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
+  end
 end
 
 function formatFloat (valueObject, value)
@@ -114,6 +116,7 @@ def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
                 debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
+                
 def update_values_for_device(device, preset_info, sender_object):
     """Update device parameter values on the controller (displaying the
        preset associated with the specified device), by sending MIDI CC

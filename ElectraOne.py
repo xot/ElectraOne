@@ -37,68 +37,21 @@ SYSEX_TERMINATE = 0xF7
 # Additional SysEx commands defined specifically for this remote script
 
 # SysEx sent when pressing the PATCH REQUEST button on the E1
-# (Actually will also send 0x7E 0x7E 0x01 etc if more than one
-# device present in the patch; these are ignored)
-E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E, 0x00) # terminated by 0xF7
-
+E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # terminated by 0xF7
 
 # SysEx outgoing commands
 
 E1_SYSEX_REQUEST = (0xF0, 0x00, 0x21, 0x45, 0x02, 0x7F, 0xF7)
 
-def _is_sysex_preset_changed(midi_bytes):
-    """Return true if the midi_bytes represent a sysex preset changed message
+def _match_sysex(midi_bytes,pattern):
+    """Match an incoming sysex message (byte 4 and 5 to be precise) with a
+       pattern to determine its type.
        - midi_bytes: incoming MIDI message; sequence of bytes
+       - pattern: pattern to match; sequence of bytes
        - result: bool
     """
-    return (len(midi_bytes) == 9) and \
-           (midi_bytes[4:6] == E1_SYSEX_PRESET_CHANGED) and \
-           (midi_bytes[8] == SYSEX_TERMINATE)
-
-def _is_sysex_ack(midi_bytes):
-    """Return true if the midi_bytes represent an ACK message
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - result: bool
-    """
-    return (len(midi_bytes) == 9) and \
-           (midi_bytes[4:6] == E1_SYSEX_ACK) and \
-           (midi_bytes[8] == SYSEX_TERMINATE)
-
-def _is_sysex_nack(midi_bytes):
-    """Return true if the midi_bytes represent a NACK message
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - result: bool
-    """
-    return (len(midi_bytes) == 9) and \
-           (midi_bytes[4:6] == E1_SYSEX_NACK) and \
-           (midi_bytes[8] == SYSEX_TERMINATE)
-
-def _is_sysex_request_response(midi_bytes):
-    """Return true if the midi_bytes represent a sysex request response message
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - result: bool
-    """
-    return (midi_bytes[4:6] == E1_SYSEX_REQUEST_RESPONSE) and \
+    return (midi_bytes[4:6] == pattern) and \
            (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
-
-def _is_sysex_logmessage(midi_bytes):
-    """Return true if the midi_bytes represent a sysex log message
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - result: bool
-    """
-    return (midi_bytes[4:6] == E1_SYSEX_LOGMESSAGE) and \
-           (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
-
-def _is_sysex_patch_request_pressed(midi_bytes):
-    """Return true if the midi_bytes represent a sysex patch request
-       pressed message (not an official E1 sysex message, but one defined in
-       the lua scripts sent with the mixer/device presets, and sent
-       when pressing the PATCH REQUEST button on the E1
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - result: bool
-    """
-    return (midi_bytes[4:7] == E1_SYSEX_PATCH_REQUEST_PRESSED) and \
-           (midi_bytes[7] == SYSEX_TERMINATE)
 
 # --- ElectraOne class
 
@@ -320,17 +273,17 @@ class ElectraOne(ElectraOneBase):
         """Process incoming MIDI SysEx message.
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        if _is_sysex_preset_changed(midi_bytes):
+        if _match_sysex(midi_bytes,E1_SYSEX_PRESET_CHANGED):
             self._do_preset_changed(midi_bytes)
-        elif _is_sysex_nack(midi_bytes):
+        elif _match_sysex(midi_bytes,E1_SYSEX_NACK):
             self._do_nack(midi_bytes)
-        elif _is_sysex_ack(midi_bytes):
+        elif _match_sysex(midi_bytes,E1_SYSEX_ACK):
             self._do_ack(midi_bytes)
-        elif _is_sysex_request_response(midi_bytes):
+        elif _match_sysex(midi_bytes,E1_SYSEX_REQUEST_RESPONSE):
             self._do_request_response(midi_bytes)
-        elif _is_sysex_logmessage(midi_bytes):
+        elif _match_sysex(midi_bytes,E1_SYSEX_LOGMESSAGE):
             self._do_logmessage(midi_bytes)
-        elif _is_sysex_patch_request_pressed(midi_bytes):
+        elif _match_sysex(midi_bytes,E1_SYSEX_PATCH_REQUEST_PRESSED):
             self._do_sysex_patch_request_pressed()
         else:
             self.debug(5,f'SysEx ignored: { midi_bytes }.')
