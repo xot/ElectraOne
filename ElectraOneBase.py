@@ -113,6 +113,9 @@ class ElectraOneBase:
     # --- INIT
     
     def __init__(self, c_instance):
+        """Initialise; test whether fast SysEx sending is supported (once).
+           - c_instance: Live interface object (see __init.py__)
+        """
         # c_instance is/should be the object passed by Live when
         # initialising the remote script (see __init.py__). Through
         # c_instance we have access to Live: the log file, the midi map

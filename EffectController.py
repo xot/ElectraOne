@@ -12,7 +12,6 @@
 
 # Ableton Live imports
 from _Generic.util import DeviceAppointer
-import Live
 
 # Local imports
 from .config import *
@@ -21,7 +20,7 @@ from .PresetInfo import PresetInfo
 from .Devices import get_predefined_preset_info
 from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
-
+from .GenericDeviceController import GenericDeviceController, get_device_name
 
 # Default LUA script to send along an effect preset. Programs the PATCH REQUEST
 # button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
@@ -80,69 +79,14 @@ end
 
 """
 
-# --- helper functions
-
-# TODO: adapt to also get an appropriate name for MaxForLive devices
-def get_device_name(device):
-    return device.class_name
-
-def build_midi_map_for_device(midi_map_handle, device, preset_info, debug):
-    """Map the parameters for the specified device to MIDI CC as specified in
-       preset_info.
-       - midi_map_handle: handle to the MIDI map to be constructed, as passed
-           by Live to build_midi_mape(); ??
-       - device: device whose parameters need tobe sent to the controller; Live.Device.Device
-       - preset_info: mapping of device parameters to MIDI CC; PresetInfo
-       - debug: method for sending debug messages; ?? 
-    """
-    # This method is also used by GenericTrackController to map the
-    # ChannelEq device.
-    if device and preset_info:
-        device_name = get_device_name(device)
-        debug(3,f'Building MIDI map for device { device_name }')
-        parameters = device.parameters
-        # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
-        needs_takeover = True
-        for p in parameters:                
-            ccinfo = preset_info.get_ccinfo_for_parameter(p)
-            if ccinfo.is_mapped():
-                if ccinfo.is_cc14():
-                    map_mode = Live.MidiMap.MapMode.absolute_14_bit
-                else:
-                    map_mode = Live.MidiMap.MapMode.absolute
-                cc_no = ccinfo.get_cc_no()
-                midi_channel = ccinfo.get_midi_channel()
-                # BUG: this call internally adds 1 to the specified MIDI channel!!!
-                debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
-                Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
-
-                
-def update_values_for_device(device, preset_info, sender_object):
-    """Update device parameter values on the controller (displaying the
-       preset associated with the specified device), by sending MIDI CC
-       value updates. Uses preset_info to get the CCInfo for the
-       device parameters.
-       - device: device whose parameters need tobe sent to the controller; Live.Device.Device
-       - preset_info: mapping of device parameters to MIDI CC; PresetInfo
-       - sender_object: object containing method to send MIDI; ElectraOneBase
-    """
-    # This method is also used by GenericTrackController to
-    # update the values of the ChannelEq device.
-    # unfortunately a bit of a hack by passing ElectraOneBase as sender_object
-    if device and preset_info:
-        for p in device.parameters:
-            ccinfo = preset_info.get_ccinfo_for_parameter(p)
-            if ccinfo.is_mapped():
-                sender_object.send_parameter_using_ccinfo(p,ccinfo)
-
-                
 class EffectController(ElectraOneBase):
-    """Remote control script for the Electra One
+    """Control the currently selected device.
     """
 
     def __init__(self, c_instance):
         ElectraOneBase.__init__(self, c_instance)
         self._assigned_device = None
+        self._assigned_device_controller = None
         self._assigned_device_locked = False
         self._preset_info = None
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
@@ -156,7 +100,8 @@ class EffectController(ElectraOneBase):
         # send the values of the controlled elements to the E1 (to bring them in sync)
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
             self.debug(2,'EffCont refreshing state.')
-            update_values_for_device(self._assigned_device, self._preset_info, self)
+            if self._assigned_device_controller:
+                self._assigned_device_controller.refresh_state()
         else:
             self.debug(2,'EffCont not refreshing state (effect not visible).')
             
@@ -180,6 +125,8 @@ class EffectController(ElectraOneBase):
         """Called right before we get disconnected from Live
         """
         self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
+        if self._assigned_device_controller:
+            self._assigned_device_controller.remove_listeners()
         self._device_appointer.disconnect()                
 
     # --- MIDI ---
@@ -188,7 +135,8 @@ class EffectController(ElectraOneBase):
         """Build a MIDI map for the currently selected device    
         """
         self.debug(1,'EffCont building effect MIDI map.')
-        build_midi_map_for_device(midi_map_handle, self._assigned_device, self._preset_info, self.debug)
+        if self._assigned_device_controller:
+            self._assigned_device_controller.build_midi_map(midi_map_handle)
         self.refresh_state()
         
     # === Others ===
@@ -260,6 +208,8 @@ class EffectController(ElectraOneBase):
             if device != self._assigned_device:
                 self._assigned_device = device
                 self._preset_info = self._get_preset(device)
+                self._assigned_device_controller = GenericDeviceController(self._c_instance, device, self._preset_info)
+                self._assigned_device_controller.add_listeners()
                 if DUMP:
                     self._dump_presetinfo(device,self._preset_info)
                 preset = self._preset_info.get_preset()

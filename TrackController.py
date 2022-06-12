@@ -60,8 +60,8 @@ class TrackController(GenericTrackController):
         self._track = self.song().visible_tracks[idx]
         # offset of this track relative to the first mapped track
         self._offset = offset
-        self._eq_device_name = TRACK_EQ_DEVICE_NAME 
-        self._eq_cc_map = TRACK_EQ_CC_MAP
+        # EQ device
+        self.add_eq_device(TRACK_EQ_DEVICE_NAME,TRACK_EQ_CC_MAP) 
         # midi info
         self._midichannel = MIDI_TRACKS_CHANNEL
         # sliders
