@@ -117,7 +117,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 Make sure that the version of Ableton Live and the firmware of the ElectraOne are supported (see below).
 
 1. Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
-```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne```.
+```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne```. Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
 
 2. MacOS: Download and install MidiPipe. Start MidiPipe and open the E1.mipi configuration file (included in the distribution). (I do not own/have access to a Windows laptop so I cannot test how to merge MIDI ports for Windows.) Note that you have to start MidiPipe every time when you want to use this remote script.
 
