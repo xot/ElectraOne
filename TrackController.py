@@ -52,7 +52,10 @@ class TrackController(GenericTrackController):
     """
     
     def __init__(self, c_instance, idx, offset):
-        """Initialise a return controller for track idx
+        """Initialise a track controller for track idx with offset.
+           - c_instance: Live interface object (see __init.py__)
+           - idx: index in the list of tracks, 0=first; int
+           - offset: offset of this track realtive to the first mapped track; int
         """
         GenericTrackController.__init__(self, c_instance)
         # keep reference of track because if tracks added/deleted, idx
@@ -82,6 +85,9 @@ class TrackController(GenericTrackController):
         self.debug(0,'TrackController loaded.')
 
     def _refresh_track_name(self):
+        """Change the track name displayed on the remote controller for
+           this return track.
+        """
         # TODO: this may need to be updated with E1 firmware API changes
         # tracks page
         idx = self._offset+1
@@ -97,11 +103,17 @@ class TrackController(GenericTrackController):
         self._send_lua_command(command)
 
     def _my_cc(self,base_cc):
-        # derive the actual cc_no from the assigned base CC and my index
+        """Return the actual MIDI CC number for this instance of a control,
+           given the base MIDI CC number for the control. 
+           - base_cc: base MIDI CC number; int
+           - result: actual MIDI CC number; int
+        """
         return base_cc + self._offset
     
     def _init_cc_handlers(self):
-        # define handlers for incpming midi events
+        """Define handlers for incoming MIDI CC messages.
+           (Mute, solo/cue and arm button for the normal track)
+        """
         self._CC_HANDLERS = {
                 (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) ) : self._handle_mute_button
               , (MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC) ) : self._handle_solo_cue_button

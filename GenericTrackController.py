@@ -80,7 +80,8 @@ class GenericTrackController(ElectraOneBase):
     """
     
     def __init__(self, c_instance):
-        """Initialise a  generic track
+        """Initialise a generic track controller.
+           - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
         # actual initialisations to be provided by derived classes;
@@ -155,8 +156,12 @@ class GenericTrackController(ElectraOneBase):
 
     def add_eq_device(self, eq_device_name, cc_map):
         device = self._my_channel_eq(eq_device_name)
-        preset_info = self._my_channel_eq_preset_info(cc_map)
-        self._eq_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+        if device:
+            preset_info = self._my_channel_eq_preset_info(cc_map)
+            assert preset_info
+            self._eq_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+        else:
+            self._eq_device_controller = None
         
     def refresh_state(self):
         """ Send the values of the controlled elements to the E1
@@ -221,8 +226,9 @@ class GenericTrackController(ElectraOneBase):
         self._value_listeners.add(track.mixer_device.volume, None)
         self._value_listeners.add(track.mixer_device.panning, None)
         sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
-        for send in sends:
-            self._value_listeners.add(send, None)
+        if self._sends_cc != None: # audio/midi tracks only
+            for send in sends:
+                self._value_listeners.add(send, None)
         if self._eq_device_controller:
             self._eq_device_controller.add_listeners()
             

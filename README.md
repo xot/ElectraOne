@@ -23,7 +23,7 @@ It controls five consecutive session tracks parameters: pan, volume, mute, solo 
 ![Main](./images/main.png "Main")
 
 
-For each track, the level of at most six sends can be controlled (see the 'Sends' page). 
+For each track, the level of at most six sends can be controlled (see the 'Sends' page). Note that the sends on the return tracks (that are disabled by default in Live) are not included and cannot be controlled by the mixer.
 
 ![Sends](./images/sends.png "Sends")
 
@@ -119,9 +119,7 @@ Make sure that the version of Ableton Live and the firmware of the ElectraOne ar
 1. Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
 ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne```. Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
 
-2. MacOS: Download and install MidiPipe. Start MidiPipe and open the E1.mipi configuration file (included in the distribution). (I do not own/have access to a Windows laptop so I cannot test how to merge MIDI ports for Windows.) Note that you have to start MidiPipe every time when you want to use this remote script.
-
-3. Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the input port to ```MidiPipe Output 1``` and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+3. Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
 
 ![Ableton Preferences](./images/ableton.png "Ableton Preferences")
 
@@ -144,7 +142,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
 - ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LIBDIR```).
-- ```E1_CTRL_PORT``` (default is ```Electra Controller Electra CTRL```), the port to use to upload presets using ```sendmidi```
+- ```E1_CTRL_PORT``` (default is ```Electra Controller Electra Port 1```), the port to use to upload presets using ```sendmidi```
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 
@@ -180,9 +178,7 @@ The following constants deal with the mixer preset.
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1 and 11.1.5 (code relies on Abelton Live supporting Python 3.6).
-- Electra One firmware version 2.2. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
-- On MacOS: [MidiPipe](http://www.subtlesoft.square7.net/MidiPipe.html).
-  (*Todo: add information on how to merge MIDI ports on Windows*)
+- Electra One firmware version 3.0 See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors

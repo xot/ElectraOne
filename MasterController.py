@@ -36,10 +36,14 @@ MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
             }
 
 class MasterController(GenericTrackController):
-    """Manage the master track.
+    """Class to manage the master track. Instantiates GenericTrackController
+       with the correct data for the master track
     """
 
     def __init__(self, c_instance):
+        """Initialise the master track controller.
+           - c_instance: Live interface object (see __init.py__)
+        """
         GenericTrackController.__init__(self, c_instance)
         self._track = self.song().master_track
         # EQ device 
@@ -61,11 +65,17 @@ class MasterController(GenericTrackController):
         self.debug(0,'MasterController loaded.')
 
     def _my_cc(self,base_cc):
-        # derive the actual cc_no from the assigned base CC and my index
+        """Return the actual MIDI CC number for this instance of a control,
+           given the base MIDI CC number for the control. 
+           - base_cc: base MIDI CC number; int
+           - result: actual MIDI CC number; int
+        """
         return base_cc
     
     def _init_cc_handlers(self):
-        # define handlers for incpming midi events
+        """Define handlers for incoming MIDI CC messages.
+           (None for the master track)
+        """
         self._CC_HANDLERS = {}
 
     

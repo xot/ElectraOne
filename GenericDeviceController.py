@@ -49,6 +49,8 @@ class GenericDeviceController(ElectraOneBase):
 
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the device    
+           - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
+               which MIDI mappings must be added.
         """
         assert self._device
         assert self._preset_info
@@ -95,7 +97,7 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
-                # only add for sliders: onoff and lists automatically show the right value
+                # TODO only add for sliders: onoff and lists automatically show the right value
                 self._value_listeners.add(p, None)
 
     def remove_listeners(self):

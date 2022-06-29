@@ -45,7 +45,7 @@ USE_FAST_SYSEX_UPLOAD = True
 # path to the sendmidi command, relative to ~/LOCLADIR or ~ 
 SENDMIDI_CMD = 'lib/sendmidi'
 # name of the Electra One port to which to send the SysEx command
-E1_CTRL_PORT = 'Electra Controller Electra CTRL'
+E1_CTRL_PORT = 'Electra Controller Electra Port 1'
 
 # === EFFECT/DEVICE CONFIGURATION CONSTANTS
 

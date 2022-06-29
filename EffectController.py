@@ -84,6 +84,10 @@ class EffectController(ElectraOneBase):
     """
 
     def __init__(self, c_instance):
+        """Initialise an effect controller.
+           (Typically called only once, after loading a song.)
+           - c_instance: Live interface object (see __init.py__)
+        """
         ElectraOneBase.__init__(self, c_instance)
         self._assigned_device = None
         self._assigned_device_controller = None
@@ -97,11 +101,15 @@ class EffectController(ElectraOneBase):
         self.debug(0,'EffectController loaded.')
 
     def refresh_state(self):
-        # send the values of the controlled elements to the E1 (to bring them in sync)
+        """Send the values of the controlled elements to the E1
+           (to bring them in sync)
+        """
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
-            self.debug(2,'EffCont refreshing state.')
             if self._assigned_device_controller:
+                self.debug(2,'EffCont refreshing state.')
                 self._assigned_device_controller.refresh_state()
+            else:
+                self.debug(2,'EffCont not refreshing state (no effect selected).')
         else:
             self.debug(2,'EffCont not refreshing state (effect not visible).')
             

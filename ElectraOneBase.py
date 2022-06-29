@@ -155,8 +155,10 @@ class ElectraOneBase:
             if level == 0:
                 indent = '#'
             else:
-                indent = '-' * level 
-            self._c_instance.log_message(f'E1 (debug): {indent} {m}')
+                indent = '-' * level
+            # self._c_instance.log_message(f'E1 (debug): {indent} {m}')
+            for l in m.splitlines(keepends=True):
+                self._c_instance.log_message(f'E1 (debug): {indent} {l}')  
 
     def log_message(self, m):
         """Write a log message to the log.

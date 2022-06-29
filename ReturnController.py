@@ -22,11 +22,15 @@ RETURNS_MUTE_CC = 70
 #
 
 class ReturnController(GenericTrackController):
-    """Manage a return track.
+    """Class to manage a return track. Instantiates GenericTrackController
+       with the correct data for a return track
     """
+
  
     def __init__(self, c_instance, idx):
         """Initialise a return controller for return idx (starting at 0). 
+           - c_instance: Live interface object (see __init.py__)
+           - idx: index in the list of return tracks, 0=first; int
         """
         GenericTrackController.__init__(self, c_instance)
         self._idx = idx
@@ -53,6 +57,9 @@ class ReturnController(GenericTrackController):
         self.debug(0,'ReturnController loaded.')
 
     def _refresh_track_name(self):
+        """Change the track name displayed on the remote controller for
+           this return track.
+        """
         # TODO: this may need to be updated with E1 firmware API changes
         # return tracks page
         idx = self._idx+20
@@ -65,11 +72,17 @@ class ReturnController(GenericTrackController):
         self._send_lua_command(command)
         
     def _my_cc(self,base_cc):
-        # derive the actual cc_no from the assigned base CC and my index
+        """Return the actual MIDI CC number for this instance of a control,
+           given the base MIDI CC number for the control. 
+           - base_cc: base MIDI CC number; int
+           - result: actual MIDI CC number; int
+        """
         return base_cc + self._idx
 
     def _init_cc_handlers(self):
-        # define handlers for incpming midi events
+        """Define handlers for incoming MIDI CC messages.
+           (Mute button only for the return track)
+        """
         self._CC_HANDLERS = {
                 (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_MUTE_CC) ) : self._handle_mute_button
             }

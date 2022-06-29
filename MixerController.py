@@ -97,6 +97,10 @@ class MixerController(ElectraOneBase):
     """
 
     def __init__(self, c_instance):
+        """Initialise a mixer controller.
+           (Typically called only once, after loading a song.)
+           - c_instance: Live interface object (see __init.py__)
+        """
         ElectraOneBase.__init__(self, c_instance)
         # TODO: Upload mixer preset if defined
         #if MIXER_PRESET:
@@ -113,18 +117,27 @@ class MixerController(ElectraOneBase):
         self._remap_tracks()
         # init MIDI handlers
         self._init_handlers()
-        self._add_global_listeners()
+        self._add_listeners()
         self.debug(0,'MixerController loaded.')
 
     # --- helper functions ---
 
     def _validate_track_index(self,idx):
-        # Adjust the newly selected track to never go too far left or right.
+        """Check a proposal for a new first track index, adjusting it to
+           never go too far left or right.
+           - idx: proposal for new first track index; int
+           - result: corrected new first track index; int
+        """
         idx = min(idx, len(self.song().visible_tracks) - NO_OF_TRACKS)
         idx = max(idx, 0)            
         return idx
     
     def refresh_state(self):
+        """Send the values of the controlled elements to the E1
+           (to bring them in sync).
+           Forwarded to the transport, master, return and track controllers
+           when mixer is visible.
+        """
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
             self.debug(2,'MixCont refreshing state.')
             self._transport_controller.refresh_state()
@@ -153,7 +166,7 @@ class MixerController(ElectraOneBase):
         """Called right before we get disconnected from Live; cleanup
            Forwarded to the transport, master, return and track controllers.
         """
-        self._remove_global_listeners()
+        self._remove_listeners()
         self._transport_controller.disconnect()        
         self._master_controller.disconnect()
         for retrn in self._return_controllers:
@@ -163,14 +176,23 @@ class MixerController(ElectraOneBase):
 
     # --- Listeners
                 
-    def _add_global_listeners(self):
+    def _add_listeners(self):
+        """Add listeners for changes in visible tracks, to copy changes to the
+           controller.
+        """
         self.song().add_visible_tracks_listener(self._on_tracks_added_or_deleted)
-        # self.song().add_loop_listener(self.__on_loop_changed)
+        # self.song().add_loop_listener(self._on_loop_changed)
 
-    def _remove_global_listeners(self):
+    def _remove_listeners(self):
+        """Remove all listeners added.
+        """
         self.song().remove_visible_tracks_listener(self._on_tracks_added_or_deleted)
 
     def _remap_return_tracks(self):
+        """Create new return track controllers for the current set of
+           visible return tracks
+           (unmap and destroy existing return track controllers)
+        """
         for rtrn in self._return_controllers:
             rtrn.disconnect()
         return_count = min(MAX_NO_OF_SENDS, len(self.song().return_tracks))
@@ -179,6 +201,10 @@ class MixerController(ElectraOneBase):
         # TODO: hide unused tracks
         
     def _remap_tracks(self):
+        """Create new track controllers for the current set of visible tracks
+           (unmap and destroy existing track controllers). Show a message
+           to the user to tell which tracks are currently mapped.
+        """
         for tc in self._track_controllers:
             tc.disconnect()
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.song().visible_tracks))
@@ -191,29 +217,31 @@ class MixerController(ElectraOneBase):
     def _handle_selected_tracks_change(self):
         """Call this whenever the current set of selected tracks changes
            (e.g. when adding or deleting tracks, or when shifting the focus
-           left or right.
+           left or right)
         """
         self._remap_tracks()
         # no need to remap return tracks as the selection of those never changes
-        self.debug(2,'MixCont requesting MIDI map to be rebuilt (because track selection changed).')
+        self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
     def _on_tracks_added_or_deleted(self):
-        """ Call this whenever tracks are added or deleted; this includes
-            the Return tracks.
+        """ Call this whenever tracks are added or deleted (this includes
+            the Return tracks). Updates MIDI mapping, listeners and the
+            displayed values.
         """
         self.debug(2,'Tracks added or deleted.')
-        # make sure the first track index is still pointing to existing tracks
-        self._first_track_index = self._validate_track_index(self._first_track_index)
-        self._remap_tracks()
         # reconnect the return tracks (a return track may hev been added or deleted)
         self._remap_return_tracks()
-        self.debug(2,'MixCont requesting MIDI map to be rebuilt (because track added/deleted).')
-        self.request_rebuild_midi_map()
+        # make sure the first track index is still pointing to existing tracks
+        self._first_track_index = self._validate_track_index(self._first_track_index)
+        self._handle_selected_tracks_change()
         
     # --- Handlers ---
         
     def _init_handlers(self):
+        """Define handlers for incoming MIDI CC messages.
+           (previous and next track selection for the  mixer.)
+        """
         self._CC_HANDLERS = {
                (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._do_prev_tracks
             ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._do_next_tracks
@@ -224,6 +252,7 @@ class MixerController(ElectraOneBase):
         """
         if value == 127:
             self.debug(3,'Prev tracks pressed.')
+            # shift left, but not before first track
             self._first_track_index = self._validate_track_index(self._first_track_index - NO_OF_TRACKS)
             self._handle_selected_tracks_change()
             
@@ -232,6 +261,7 @@ class MixerController(ElectraOneBase):
         """
         if value == 127:
             self.debug(3,'Next tracks pressed.')
+            # shift right, but not beyond last track
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
             self._handle_selected_tracks_change()
 
@@ -240,6 +270,9 @@ class MixerController(ElectraOneBase):
     def process_midi(self, midi_channel, cc_no, value):
         """Receive incoming MIDI CC messages, and distribute them to the
            transport, master, return and track controllers.
+           - midi_channel: MIDI channel of incomming message; int (1..16)
+           - cc_no: MIDI CC number; int (0..127)
+           - value: incoming CC value; int (0..127)
         """
         self.debug(4,f'Handling ({midi_channel},{cc_no}) with value {value}.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
@@ -259,6 +292,11 @@ class MixerController(ElectraOneBase):
 
     def build_midi_map(self, script_handle, midi_map_handle):
         """Build a MIDI map for the full mixer, and refresh its state.
+           - script_handle: reference to the main remote script class
+               (whose receive_midi method will be called for any MIDI CC messages
+               marked to be forwarded here)
+           - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
+               which MIDI mappings must be added.
         """
         self.debug(1,'MixCont building mixer MIDI map.')
         # Map CCs to be forwarded as defined in _CC_HANDLERS

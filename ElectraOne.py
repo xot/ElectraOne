@@ -31,13 +31,10 @@ E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number an
 E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) and terminated by 0xF7
 E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated by 0xF7
 E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data and terminated by 0xF7
+# User-defined SysEx sent when pressing the PATCH REQUEST button on the E1
+E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # terminated by 0xF7
 
 SYSEX_TERMINATE = 0xF7
-
-# Additional SysEx commands defined specifically for this remote script
-
-# SysEx sent when pressing the PATCH REQUEST button on the E1
-E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # terminated by 0xF7
 
 # SysEx outgoing commands
 
@@ -94,12 +91,17 @@ class ElectraOne(ElectraOneBase):
                     time.sleep(0.5)
                 self.debug(2,'Connection thread: E1 found')
             else:
+                # allow the thread to be interrupted if E1 detection is skipped;
+                # this allows the song to load and any devices to be appointed
+                # if they are present during the call to EffectController()
+                time.sleep(0.1) 
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             c_instance = self.get_c_instance()
             # note: any requests to rebuild the MIDI map triggered by these
             # two calls are ignored because the interface is still closed
-            self._mixer_controller = MixerController(c_instance) 
+            self._mixer_controller = MixerController(c_instance)
+            # TODO: this starts the upload thread within a thread; be careful with race conditions???
             self._effect_controller = EffectController(c_instance)
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
@@ -107,6 +109,12 @@ class ElectraOne(ElectraOneBase):
             # when opening a song without any devices selected, make sure
             # the MIDI map is built (see comment above)
             if self._effect_controller._assigned_device == None:
+                self.debug(2,'No effect assigned during init.')
+                self._select_preset_slot(MIXER_PRESET_SLOT)
+                # TODO: really should wait for an ACK! but this is a bit complex
+                # because the ACK is only sent AFTER the preset changed message
+                # so we stick to this hack that appears to work too
+                time.sleep(0.5)
                 self.request_rebuild_midi_map()                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
