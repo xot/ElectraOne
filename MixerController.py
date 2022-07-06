@@ -139,15 +139,16 @@ class MixerController(ElectraOneBase):
            when mixer is visible.
         """
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
-            self.debug(2,'MixCont refreshing state.')
+            self.debug(1,'MixCont refreshing state.')
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
             for retrn in self._return_controllers:
                 retrn.refresh_state()    
             for track in self._track_controllers:
                 track.refresh_state()    
+            self.debug(1,'MixCont state refreshed.')
         else:
-            self.debug(2,'MixCont not refreshing state (mixer not visible).')
+            self.debug(1,'MixCont not refreshing state (mixer not visible).')
             
     def update_display(self):
         """Update the dispay (called every 100ms).
@@ -308,6 +309,7 @@ class MixerController(ElectraOneBase):
             retrn.build_midi_map(script_handle,midi_map_handle)
         for track in self._track_controllers:
             track.build_midi_map(script_handle,midi_map_handle)
+        self.debug(1,'MixCont mixer MIDI map built.')
         self.refresh_state()
 
 

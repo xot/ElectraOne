@@ -106,10 +106,11 @@ class EffectController(ElectraOneBase):
         """
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
             if self._assigned_device_controller:
-                self.debug(2,'EffCont refreshing state.')
+                self.debug(1,'EffCont refreshing state.')
                 self._assigned_device_controller.refresh_state()
+                self.debug(1,'EffCont state refreshed.')
             else:
-                self.debug(2,'EffCont not refreshing state (no effect selected).')
+                self.debug(1,'EffCont not refreshing state (no effect selected).')
         else:
             self.debug(2,'EffCont not refreshing state (effect not visible).')
             
@@ -145,6 +146,7 @@ class EffectController(ElectraOneBase):
         self.debug(1,'EffCont building effect MIDI map.')
         if self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
+        self.debug(1,'EffCont effect MIDI map built.')
         self.refresh_state()
         
     # === Others ===

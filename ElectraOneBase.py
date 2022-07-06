@@ -221,7 +221,7 @@ class ElectraOneBase:
         """Send a MIDI message (through Ableton Live)
            - message: the MIDI message to send; sequence of bytes
         """
-        self.debug(3,f'Sending MIDI message (first 10) { message[:10] }')
+        self.debug(4,f'Sending MIDI message (first 10) { message[:10] }')
         self.debug(5,f'Sending MIDI message { message }.')
         time.sleep(0.005) # don't overwhelm the E1!
         self._c_instance.send_midi(message)
@@ -263,7 +263,7 @@ class ElectraOneBase:
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
-        self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
+        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
         value = round(16383 * ((p.value - p.min) / (p.max - p.min)))
         self.send_midi_cc14(channel, cc_no, value)
 
@@ -274,7 +274,7 @@ class ElectraOneBase:
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
-        self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
+        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)

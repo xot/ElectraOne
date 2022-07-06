@@ -167,6 +167,7 @@ class GenericTrackController(ElectraOneBase):
         """ Send the values of the controlled elements to the E1
            (to bring them in sync). Initiated by MixerController
         """
+        self.debug(2,f'Refreshing state of track { self._track.name }.')
         track = self._track
         self._refresh_track_name()
         if self._base_mute_cc != None:

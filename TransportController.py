@@ -48,6 +48,7 @@ class TransportController(ElectraOneBase):
         """Send the states of the play/stop and record buttons to the E1
            (to bring them in sync)
         """
+        self.debug(2,'Refreshing transport state.')
         self._on_record_mode_changed()
         self._on_is_playing_changed()
 
