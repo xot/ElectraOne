@@ -214,6 +214,7 @@ class GenericTrackController(ElectraOneBase):
         """
         # (note: this needs to be called by the subclass, because
         # only the subclass defines _track!)
+        self.debug(3,f'Adding listeners for track { self._track.name }')
         track = self._track
         if self._base_mute_cc != None:
             track.add_mute_listener(self._on_mute_changed)
@@ -239,6 +240,7 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         # track may already have been deleted
         if track:
+            self.debug(3,f'Removing listeners for track { self._track.name }')
             if self._base_mute_cc != None:
                 track.remove_mute_listener(self._on_mute_changed)
             if self._base_arm_cc != None:

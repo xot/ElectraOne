@@ -35,8 +35,8 @@ class GenericDeviceController(ElectraOneBase):
     def __init__(self, c_instance, device, preset_info):
         """Create a new device controller for the device and the
            associated preset information. It is assumed the preset is already
-           present on the E1 (with controls matching the description in
-           PresetInfo)
+           present on the E1 or will be uploaded there shortly
+           (with controls matching the description in PresetInfo)
            - c_instance: Live interface object (see __init.py__)
            - device: the device; Live.Device.Device
            - preset_info: the preset information; PresetInfo
@@ -77,6 +77,7 @@ class GenericDeviceController(ElectraOneBase):
            on the E1. (Assumes the device is visible!)
         """
         # TODO Visibility matters for the displayed values (probably)
+        # and whether preet upload finished
         assert self._device
         assert self._preset_info
         for p in self._device.parameters:
@@ -87,17 +88,17 @@ class GenericDeviceController(ElectraOneBase):
         self._value_listeners.update_all()
 
     def add_listeners(self):
-        """Add value listeners for all (slider) parameters of the device)
+        """Add value listeners for all (slider) parameters of the device.
         """
-        # this needs ot be done only once when object/device controller created
+        # this needs to be done only once when object/device controller created
         device_name = get_device_name(self._device)
         self.debug(3,f'Setting up listeners for device { device_name }')
-        # TODO: add value listener data
         self._value_listeners = ValueListeners(self)
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
                 # TODO only add for sliders: onoff and lists automatically show the right value
+                # TODO: add value listener data
                 self._value_listeners.add(p, None)
 
     def remove_listeners(self):

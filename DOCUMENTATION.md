@@ -9,7 +9,7 @@ This is the *technical* documentation describing the internals of the Ableton Li
 
 The remote script essentially supports two control surfaces
 - a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1, and
-- a [current device](#device-control) with a E1 preset in bank slot 2.
+- a [current device](#device-control) with a E1 preset in bank 6 slot 2.
 
 Their implementation is described further below, after a brief introduction on 
 remote scripts and MIDI.
@@ -50,7 +50,7 @@ Every remote script is a separate [Python package](https://docs.python.org/3/tut
 
 Every remote script Python package must contain a file ```__init.py__``` that should define two functions
 
-- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live through the UI. 
+- ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live in the Preferences dialog. 
 - ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information what this should contain and how it is used.
 
 Essentially, the object returned by ```create_instance``` allow Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
@@ -83,8 +83,8 @@ The remote script object should define the following methods (although if a meth
 - ```build_midi_map(self, midi_map_handle)``` asks the remote script to fill the MIDI map in ```midi_map_handle``` (empty when called).
 - ```update_display(self)``` is called by Live every 100 ms. Can be used to execute scheduled tasks, like updating the remote controller display (but other uses are of course also possible).
 - ```disconnect(self)``` is called right before the remote script gets disconnected from Live, and should be used to perform any cleanup actions.
-- ```refresh_state(self)```: FIXME, expected to be present.
-- ```connect_script_instances```: FIXME, expected to be present.
+- ```refresh_state(self)```: Appears to be called only once each time the remote script loaded.
+- ```connect_script_instances```: Called after all remote scripts have been loaded. 
         
 
 
@@ -154,7 +154,7 @@ Using Python's ```dir()``` function we can obtain the full signature of ```c_ins
 'velocity_levels']
 ```
 
-Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices, the Electra One remote script does not make use of these.
+Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices and some code to deal with device appointment, the Electra One remote script does not make use of these.
 
 ## MIDI / Ableton
 
@@ -166,7 +166,7 @@ Only the first 32 CC parameters can be assigned to be 14bit controllers (even th
 
 ### MIDI mapping
 
-Almost all Live *device* parameters (including buttons) can be mapped to respond to incoming MIDI CC messages. This is done using:
+Almost all Live *device* parameters (including most buttons, in fact all parameters returned by ```device.parameters```) can be mapped to respond to incoming MIDI CC messages. This is done using:
 
 ```
 Live.MidiMap.map_midi_cc(midi_map_handle, parameter, midi_channel, cc_no, map_mode, avoid_takeover)
@@ -185,7 +185,7 @@ Once mapped, there is nothing much left to do: incoming MIDI CC messages that ma
 
 ### MIDI forwarding
 
-Buttons on *non-device* parameters (like those appearing ontracks) can not be mapped to respond to incoming MIDI CC messages (luckily the volume faders, pan and send pots on tracks *can* be mapped as described above). For these parameters a different kind of mapping needs to be set up using
+Strangely enough, certain *non-device* parameters (like buttons appearing on tracks) can not be mapped to respond to incoming MIDI CC messages directly (luckily the volume faders, pan and send pots on tracks *can* be mapped as described above). For these parameters a different kind of mapping needs to be set up using
 
 ```
 Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle,midi_channel,cc_no)
@@ -202,9 +202,9 @@ Note: only MIDI events that are forwarded as described above will be actually fo
 
 ### Listeners
 
-For such *non-device* parameters the remote script *also* needs to monitor any changes to the parameter in Live, and forward them to the E1 controller (to keep the two in sync). Unlike real device parameters, the mapping through ```Live.MidiMap.forward_midi_cc``` unfortunately does not instruct Live to automatically create the required MIDI CC message. The remote script needs to do that now continually (like it already needs to that for *all* mapped parameters *once* at the moment they are mapped).
+For such *non-device* parameters the remote script *also* needs to monitor any changes to the parameter in Live, and forward them to the E1 controller (to keep the two in sync). Unlike real device parameters, the mapping through ```Live.MidiMap.forward_midi_cc``` unfortunately does not instruct Live to automatically create the required MIDI CC message. Therefore the remote script needs to set this up differently (a bit like it already needs to do that for *all* mapped parameters *once* at the moment they are mapped).
 
-For each of such *non-device* parameters (of which Live thinks you might be interested to monitor a value change) Live offers a function to add (and remove) *listeners* for this purpose. For example
+For each of these *non-device* parameters (of which Live thinks you might be interested to monitor a value change) Live offers a function to add (and remove) *listeners* for this purpose. For example
 
 ```
 track.add_mute_listener(on_mute_changed)
@@ -213,11 +213,32 @@ track.add_mute_listener(on_mute_changed)
 registers the function ```on_mute_changed``` (this is a reference, not a call!) 
 to be called whenever the 'mute' button on track ```track``` changes. This function must then query the status of parameter (the mute button in this case) and send the appropriate MIDI CC message to the E1 controller to change the displayed value of the control there. 
 
+> Note: in order for the ```on_mute_method``` to know *which* mute button (i.e. on which track) it needs to listen to, some Python trickery is required. In the E1 remote script, each track is managed by a separate object that keeps track of the Ableton Live track by setting ```self._track``` and that also defines the method ```self._on_mute_changed```. Because methods in Python have access to the object state of the object that defines them, we can define
+
+    def _on_mute_changed(self):
+        if self._track.mute:
+            value = 0
+        else:
+            value = 127
+        self.send_midi_cc7(self.midichannel, self.cc, value) 
+
+> Passing this particular method when adding the listener (through ```track.add_mute_listener(self._on_mute_changed)```) then does the trick.
+
+
 Unlike MIDI mappings (that appear to be destroyed whenever a new MIDI map is being requested through ```c_instance.request_rebuild_midi_map()```), these listeners are permanent. Therefore they need to be explicitly removed as soon as they are no longer needed. In the example above, this is achieved by calling
 
 ```
 track.remove_mute_listener(on_mute_changed)
 ```
+
+### Parameter listeners
+
+Any normal parameter (i.e. a member of the list ```device.paramters``` or the ```track.mixer_device.volume```, ```track.mixer_device.panning```, and similar) 
+can also be assigned a value listener by calling ```parameter.add_value_listener(value_listener)```. This registers the function ```value_listener``` (this is a reference, not a call!) to be called whenever the 'mute' button on track ```track``` changes. See the discussion above on the mute button listener to learn how to pass the value listener some state that tells it which parameter to listen to.
+
+To remove an *existing* (test this first!) value listener for a parameter, call
+```parameter.remove_value_listener(value_listener)```
+
 
 ### Initiating MIDI mapping
 
