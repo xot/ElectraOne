@@ -31,6 +31,8 @@ from .GenericDeviceController import GenericDeviceController, get_device_name
 #
 # Also contains formatter functions used by presets generated on the fly
 DEFAULT_LUASCRIPT = """
+info.setText("by www.xot.nl")
+
 function patch.onRequest (device)
   print ("Patch Request pressed");
   if device.id == 1
