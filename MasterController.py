@@ -36,7 +36,7 @@ MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
             }
 
 class MasterController(GenericTrackController):
-    """Class to manage the master track. Instantiates GenericTrackController
+    """Manage the master track. Instantiates GenericTrackController
        with the correct data for the master track
     """
 

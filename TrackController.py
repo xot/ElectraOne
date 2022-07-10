@@ -48,7 +48,9 @@ TRACK_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
             }
 
 class TrackController(GenericTrackController):
-    """Manage an audio or midi track.
+    """Manage an audio or midi track. Instantiates GenericTrackController
+       with the correct data for the track. At most five instances, one
+       for each track present.
     """
     
     def __init__(self, c_instance, idx, offset):

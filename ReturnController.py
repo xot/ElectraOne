@@ -22,8 +22,9 @@ RETURNS_MUTE_CC = 70
 #
 
 class ReturnController(GenericTrackController):
-    """Class to manage a return track. Instantiates GenericTrackController
-       with the correct data for a return track
+    """Manage a return track. Instantiates GenericTrackController
+       with the correct data for a return track. One instance for
+       each return track present. (At most six).
     """
 
  
