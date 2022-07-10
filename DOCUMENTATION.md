@@ -469,8 +469,8 @@ Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 
 
 ### Master, return tracks and the transport.
 
-The master track, return tracks and the transport are controlled through MIDI channel ```MIDI_MASTER_CHANNEL``` with the following CC parameter assignments. 
-At most six return tracks are controlled through the mixer.
+The master track (including its optional ChannelEq device), return tracks and the transport are controlled through MIDI channel ```MIDI_MASTER_CHANNEL``` with the following CC parameter assignments. 
+At most six return tracks (labelled A to E below) are controlled through the mixer.
 
 |  CC | Controls   |            |            |            |
 |----:|:-----------|:-----------|:-----------|:-----------|
@@ -512,12 +512,10 @@ Legend:
 - '-' refers to an unused slot.
 - 'X refers to a 'shadow' CC occupied because of an earlier 14bit CC control.
 - The number after a parameter name is the track  offset (relative to the first track being controlled), see table below.
-- '-' refers to an unused slot.
-- 'X refers to a 'shadow' CC occupied because of an earlier 14bit CC control.
 
 ### Tracks
 
-Five tracks are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
+Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
 
 |  CC | Controls   |            |            |            |            |
 |----:|:-----------|:-----------|:-----------|:-----------|:-----------|
@@ -545,7 +543,7 @@ Five tracks are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_C
 |  89 | Arm    0   | Arm    1   | Arm    2   | Arm    3   | Arm    4   |
 |  94 | -          |
 |  95 | -          |
-|  96 | X          | X          | X          | X          | X          |
+|  96 | -          | -          | -          | -          | -          |
 | 101 | -          | -          | -          | -          | -          | 
 | 106 | -          | -          | -          | -          | -          | 
 | 111 | -          | -          | -          | -          | -          | 
@@ -554,7 +552,7 @@ Five tracks are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_C
 | 126 | -
 | 127 | -
 
-Note that EQ Out i is mapped as a 7bit controller due to space constraints.
+Note that EQ Out i is mapped as a 7bit controller due to space constraints. (Otherwise we would have needed to claim another MIDI channel for an additional 14bit CC slot.)
 
 ### Sends
 
@@ -661,12 +659,12 @@ The remote script also manages the currently selected device, through a second d
 
 The ```EffectController.py``` module handles this, with the help of ```ElectraOneDumper.py``` (that creates device presets on the fly based on the information it can obtain from Live about the parameters of the device, see [further below](#generating-an-e1-preset)) and ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices).
 
-Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
+Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. (Note that unfortunately certain devices omit certain controls from their parameter list.) The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
 
 
 When the selected device changes, ```EffectController``` does the following.
 
-1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT ``` (default the second slot of the sixt bank).
+1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixt bank).
    - If a user-defined patch exists, that one is used. 
    - If not, the parameters for the newly selected device are retrieved from Live (using ```device.parameters```) and automatically converted to a Electra One patch (see ```ElectraOneDumper.py```) in the order specified by the configuration constant ```ORDER```. 
 
@@ -676,7 +674,7 @@ When the selected device changes, ```EffectController``` does the following.
 
 ## Preloaded presets
 
-Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device, so at the moment, presets for Max for Live devices cannot be preloaded. The same holds for chains.
+Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device, so at the moment, presets for Max for Live devices cannot be preloaded. The same holds for racks.
 
 Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, and CC map.
 
@@ -704,7 +702,7 @@ DEVICES = {
     {'Device On': (11,0,1),'State': (11,0,2),'Feedback': (11,1,3),...})
 ```
 
-Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). *However, changing the visible parameter in the Ableton UI does not update the displayed value.*
+> Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). *However, changing the visible parameter in the Ableton UI does not update the displayed value.*
 
 
 ## Generating presets on the fly
