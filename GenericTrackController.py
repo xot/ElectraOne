@@ -59,6 +59,8 @@
 # Send controllers on audio/midi tracks, i.e those for which _sends_cc != None
 # are assumed to listen to MIDI_SENDS_CHANNEL
 
+# Python imports
+import time
 
 # Ableton Live imports
 import Live
@@ -169,6 +171,7 @@ class GenericTrackController(ElectraOneBase):
         """
         self.debug(2,f'Refreshing state of track { self._track.name }.')
         track = self._track
+        time.sleep(0.01) # TODO: wait a bit; else E1 ignores first name update
         self._refresh_track_name()
         if self._base_mute_cc != None:
             self._on_mute_changed()
