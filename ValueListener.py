@@ -12,6 +12,9 @@
 
 
 class ValueListener:
+    """Value listener for a particular parameter.
+    (Keeps state for the associated listener). 
+    """
 
     def __init__(self, parameter, info, base):
         """Add a value listener for the registered parameter that will send the

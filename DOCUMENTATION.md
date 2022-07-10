@@ -323,16 +323,8 @@ The PATCH REQUEST button on the E1 (right top button) is programmed to send the 
 # Remote script package structure
 
 
-- ```__init.py__ ```
-- ```config.py```
-- ```Devices.py```
-
 The remote script package defines the following classes, shown hierarchically based on inheritance / import order.
 
-- ```PresetInfo```
-- ```CCInfo```
-- ```ValueListener```
-- ```ValueListeners```
 - ```ElectraOne```: Main remote control script class for the Electra One.
   - ```MixerController```: Electra One track, transport, returns and mixer control. Also initialises and manages the E1 mixer preset.
 	- ```TransportController```: Manage the transport (play/stop, record, rewind, forward).
@@ -347,7 +339,23 @@ The remote script package defines the following classes, shown hierarchically ba
 	- ```ElectraOneDumper```: Construct an Electra One preset and a corresponding mapping of parameters to MIDI CC for a device.
 	- ```GenericDeviceController```: Control devices (both selected ones and the ChannelEq devices in the mixer): build MIDI maps, add value listeners, refresh state.
 
-Almost all classes subclass ```ElectraOneBase```. 
+Other, generic, classes:
+
+- ```ElectraOneBase```: Base class with common functions: debugging, sending MIDI. (interfacing with Live through ```c_instance```). 
+- ```PresetInfo```: Stores the E1 JSON preset and the associated CC-map for a device.
+- ```CCInfo```: Channel and parameter number of a CC mapping, and
+       whether the associated controller on the E1 is 14bit (or not, in
+       which case it is 7bit).
+- ```ValueListener```: Value listener for a particular parameter.
+- ```ValueListeners```: Maintain a list of value listeners for a device or a track.
+
+Core modules:
+
+- ```__init.py__ ```: package constructor.
+- ```config.py```: defines configuration constants. 
+- ```Devices.py```: stores curated device presets.
+
+
 
 # The mixer (```MixerController```)
 
