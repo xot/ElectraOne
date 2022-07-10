@@ -79,6 +79,9 @@ NEXT_TRACKS_CC = 69
 # - 76-81 (108-113) SEND A_E Mute
 #
 
+# Python imports
+import time
+
 
 # Ableton Live imports
 import Live
@@ -144,6 +147,7 @@ class MixerController(ElectraOneBase):
             self._master_controller.refresh_state()
             for retrn in self._return_controllers:
                 retrn.refresh_state()    
+            time.sleep(0.01) # TODO: wait a bit; else E1 ignores first name update
             for track in self._track_controllers:
                 track.refresh_state()    
             self.debug(1,'MixCont state refreshed.')
