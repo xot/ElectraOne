@@ -37,7 +37,7 @@ MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
 
 class MasterController(GenericTrackController):
     """Manage the master track. Instantiates GenericTrackController
-       with the correct data for the master track
+       with the correct data for the master track.
     """
 
     def __init__(self, c_instance):

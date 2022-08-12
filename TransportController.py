@@ -98,7 +98,7 @@ class TransportController(ElectraOneBase):
     def _on_is_playing_changed(self):
         """Update the value shown for the play/stop control on the E1.
         """
-        self.debug(3,'Stop/play change.')
+        self.debug(3,'Stop/play changed.')
         if self.song().is_playing:
             value = 127
         else:

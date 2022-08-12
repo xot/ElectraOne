@@ -226,6 +226,8 @@ class GenericTrackController(ElectraOneBase):
         self._value_listeners = ValueListeners(self)
         self._value_listeners.add(track.mixer_device.volume, None)
         self._value_listeners.add(track.mixer_device.panning, None)
+        if self._base_cue_volume_cc:  # master track only
+            self._value_listeners.add(track.mixer_device.cue_volume, None)
         sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
         if self._sends_cc != None: # audio/midi tracks only
             for send in sends:
