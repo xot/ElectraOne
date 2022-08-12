@@ -70,7 +70,7 @@ class ReturnController(GenericTrackController):
         # send A (idx 0) = id 73 - 77; send B = 79 - 83; etc
         idx = 73 + 6 * self._idx
         # command = f'for i = {idx}, {idx}+4 do\n local control = controls.get(i)\n control:setName("{self._track.name}")\n end'
-        self._send_lua_command(command)
+        # self._send_lua_command(command)
         
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,

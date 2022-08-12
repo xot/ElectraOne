@@ -261,6 +261,7 @@ class GenericTrackController(ElectraOneBase):
         """Send the new status of the Mute button to the controller using the
            right MIDI CC number (derived from self._base_mute_cc)
         """
+        self.debug(3,'Mute changed.')
         assert self._base_mute_cc != None
         if self._track.mute:
             value = 0
@@ -272,6 +273,7 @@ class GenericTrackController(ElectraOneBase):
         """Send the new status of the Arm button to the controller using the
            right MIDI CC number (derived from self._base_arm_cc)
         """
+        self.debug(3,'Arm changed.')
         assert self._base_arm_cc != None
         if self._track.arm:
             value = 127
@@ -283,6 +285,7 @@ class GenericTrackController(ElectraOneBase):
         """Send the new status of the Solo/Cue button to the controller using the
            right MIDI CC number (derived from self._base_solo_cue_cc)
         """
+        self.debug(3,'Solo/Cue changed.')
         assert self._base_solo_cue_cc != None
         if self._track.solo:
             value = 127

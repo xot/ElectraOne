@@ -111,27 +111,27 @@ class TransportController(ElectraOneBase):
         """Define handlers for incoming MIDI CC messages.
         """
         self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, REWIND_CC) : self._do_rewind
-            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._do_forward
-            ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
-            ,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
+               (MIDI_MASTER_CHANNEL, REWIND_CC) : self._handle_rewind
+            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._handle_forward
+            ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
+            ,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._handle_record
             }
 
-    def _do_rewind(self,value):
+    def _handle_rewind(self,value):
         """Handle rewind button press.
            - value: incoming MIDI CC value; int
         """
         self.debug(3,'Rewind button action.')
         self._rewind_pressed = (value > 63)
 
-    def _do_forward(self,value):        
+    def _handle_forward(self,value):        
         """Handle forward button press.
            - value: incoming MIDI CC value; int
         """
         self.debug(3,'Forward button action.')
         self._forward_pressed = (value > 63)
 
-    def _do_play_stop(self,value):        
+    def _handle_play_stop(self,value):        
         """Handle play/stop button press.
            - value: incoming MIDI CC value; int
         """
@@ -141,7 +141,7 @@ class TransportController(ElectraOneBase):
         else:
             self.song().stop_playing()
 
-    def _do_record(self,value):        
+    def _handle_record(self,value):        
         """Handle record button press.
            - value: incoming MIDI CC value; int
         """
