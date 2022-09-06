@@ -397,10 +397,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Append a fader (generic constructor).
            - cc_info: channel, cc_no, is_cc14 information; CCInfo
            - fixedValuePosition: whether to use fixedValuePosition; bool
-           - vmin: minimum value; Object (None if not used)
-           - vmax: maximum value; Object
+           - vmin: minimum value; int (or None if not used)
+           - vmax: maximum value; int 
            - formatter: name of LUA formatter function; str (None if not used)
+             (see EffectController DEFAULT_LUASCRIPT for possible values)
            - overlayId: index of overlay to use; int (None if not used)
+           If vmin != None, vmin and vmax specify the minimal and maximal value
+           for the fader as used by the E1 to compute and display its current
+           value (possibly using the formatter function if specified) based on
+           its MIDI value/position. These min and max values must be
+           integers.
         """
         self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}, {overlayId}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
@@ -442,6 +448,15 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     )
 
     def _get_par_min_max(self, p, factor):
+        """Return the minimum and maximum value for parameter p as reported
+           by live, scaled by a factor, and cast to an integer.
+           Use factor to create a reasonable range of integers to represent
+           a float value (e.g. use 10 for a volume/dB fader); the integer
+           value is converted back to a float, dividing out the smae factor,
+           with an appropriate formatter function.
+           - p: parameter; Live.DeviceParameter.DeviceParameter
+           - factor: multiplication factor; int
+        """
         (vmin_str,mintype) = _get_par_value_info(p,p.min)
         (vmax_str,maxtype) = _get_par_value_info(p,p.max)
         vmin = int(factor * float(vmin_str))
