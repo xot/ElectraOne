@@ -444,8 +444,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     def _get_par_min_max(self, p, factor):
         (vmin_str,mintype) = _get_par_value_info(p,p.min)
         (vmax_str,maxtype) = _get_par_value_info(p,p.max)
-        vmin = factor * int(float(vmin_str))
-        vmax = factor * int(float(vmax_str))
+        vmin = int(factor * float(vmin_str))
+        vmax = int(factor * float(vmax_str))
         return (vmin,vmax)
         
     def _append_json_symmetric_dB_fader(self, idx, p, cc_info):
