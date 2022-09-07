@@ -81,11 +81,17 @@ MAX_POT_ID = (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE)
 
 # Devices for which to ignore ORDER_DEVICEDICT
 # e.g. racks, or else any mapped macros will not be shown in a generated preset
-DEVICE_DICT_IGNORE = ['AudioEffectGroupDevice',
+ORDER_DEVICEDICT_IGNORE = ['AudioEffectGroupDevice',
                       'MidiEffectGroupDevice',
                       'InstrumentGroupDevice',
                       'DrumGroupDevice']
 
+# Devices for which to ignore ORDER_SORTED
+# e.g. racks, or else order of mapped macros will not correspond with order in Live
+ORDER_SORTED_IGNORE = ['AudioEffectGroupDevice',
+                      'MidiEffectGroupDevice',
+                      'InstrumentGroupDevice',
+                      'DrumGroupDevice']
 
 # return the device id to use in the preset for the specified MIDI channel
 # (deviceId 1 contains the first (lowest) MIDI channel)
@@ -675,15 +681,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self.debug(5,f'CC map constructed: { cc_map }')
         return cc_map
         
-    def _order_parameters(self,device_name, parameters):
+    def _filter_and_order_parameters(self,device_name, parameters):
         """Order the parameters: either original, device-dict based, or
            sorted by name (determined by ORDER configuration constant).
            - device_name: device orignal_name (needed to retreive DEVICE_DICT sort order); str
            - parameters:  parameter list to sort; list of Live.DeviceParameter.DeviceParameter
            - result: a copy of the parameter list, sorted; list of Live.DeviceParameter.DeviceParameter
         """
-        self.debug(2,'Order parameters')
-        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in DEVICE_DICT_IGNORE):
+        self.debug(2,'Filter and order parameters')
+        parameters = [p for p in parameters if p.name not in IGNORE_PARAMETERS]
+        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in ORDER_DEVICEDICT_IGNORE):
             banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
             # order parameters as in parlist, skip parameters that are not listed there
@@ -694,13 +701,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 if name in parameters_dict:
                     parameters_copy.append(parameters_dict[name])
             return parameters_copy
-        elif (ORDER == ORDER_SORTED) and (device_name not in DEVICE_DICT_IGNORE):
+        elif (ORDER == ORDER_SORTED) and (device_name not in ORDER_SORTED_IGNORE):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
             parameters_copy.sort(key=lambda p: p.name)
             return parameters_copy
-        else: # (device_name in DEVICE_DICT_IGNORE) or ORDER == ORDER_ORIGINAL or (ORDER == ORDER_DEVICEDICT) and (device_name not in DEVICE_DICT)
+        else: 
             return parameters
 
     def __init__(self, c_instance, device_name, parameters):
@@ -716,7 +723,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # e1_instance used to have access to the log file for debugging.
         self.debug(2,'Dumper loaded.')
-        parameters = self._order_parameters(device_name,parameters)
+        parameters = self._filter_and_order_parameters(device_name,parameters)
         self._cc_map = self._construct_ccmap(parameters)
         self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)
 

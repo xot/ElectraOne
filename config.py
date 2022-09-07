@@ -57,10 +57,14 @@ ORDER_ORIGINAL = 0   # order as reported by Live
 ORDER_SORTED = 1     # sort by parameter name
 ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred order as defined by DEVICE_DICT in the Ableton Live rmeote script framework
 
-# Specify the order in which parameters shoudl appear in an automatically
+# Specify the order in which parameters should appear in an automatically
 # created preset for the currently selected device. If order is
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
 ORDER = ORDER_DEVICEDICT
+
+# List of parameter names to ignore when generating presets on the fly
+# e.g. IGNORE_PARAMETERS = ["Device On"]
+IGNORE_PARAMETERS = []
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
