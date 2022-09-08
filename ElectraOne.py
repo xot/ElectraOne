@@ -1,4 +1,5 @@
 # ElectraOne
+# - Main class, implementing Control Script interface expected by Live
 #
 # Ableton Live MIDI Remote Script for the Electra One
 #
@@ -14,65 +15,80 @@ import time
 import sys
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase
+from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .config import *
 
 # SysEx defines and helpers
 
-CC_STATUS = 0xB0
-
-# SysEx incoming commands
-
-E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45)
-E1_SYSEX_LOGMESSAGE = (0x7F, 0x00) # followed by json data and terminated by 0xF7
-E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number and terminated by 0xF7
-E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) and terminated by 0xF7
-E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved) and terminated by 0xF7
-E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data and terminated by 0xF7
-# User-defined SysEx sent when pressing the PATCH REQUEST button on the E1
-E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # terminated by 0xF7
-
 SYSEX_TERMINATE = 0xF7
 
-# SysEx outgoing commands
+# SysEx incoming commands (as defined by the E1 firmware)
+# All SysEx commands start with E1_SYSEX_PREFIX and are terminated by SYSEX_TERMINATE
+
+E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45)
+
+E1_SYSEX_LOGMESSAGE = (0x7F, 0x00) # followed by json data 
+E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
+E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) 
+E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved)
+E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data 
+
+# SysEx incomming command when the PATCH REQUEST button on the E1 has been pressed 
+# (User-defined in effect patch LUA script, see DEFAULT_LUASCRIPT in EffectController.py)
+
+E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # no data
+
+# SysEx outgoing commands (as defined by the E1 firmware)
 
 E1_SYSEX_REQUEST = (0xF0, 0x00, 0x21, 0x45, 0x02, 0x7F, 0xF7)
 
 def _match_sysex(midi_bytes,pattern):
-    """Match an incoming sysex message (byte 4 and 5 to be precise) with a
-       pattern to determine its type.
+    """Match (byte 4 and 5 of) an incoming sysex message with a
+       pattern (see constants defined above) to determine its type.
        - midi_bytes: incoming MIDI message; sequence of bytes
-       - pattern: pattern to match; sequence of bytes
-       - result: bool
+       - pattern: pattern to match; sequence of exactly two bytes
+       - result: true if matched; bool
     """
     return (midi_bytes[4:6] == pattern) and \
            (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
+
 
 # --- ElectraOne class
 
 
 class ElectraOne(ElectraOneBase):
-    """Remote control script for the Electra One. Initialises an
-       EffectController that handles the currently selected Effect/Instrument
-       and a MixerController that handles the currently selected tracks volumes
-       and sends, as well as the global transports and master volume.
+    """Remote control script for the Electra One.
+
+       Implements the API Live expects remote control scripts to have.
+
+       Detects whether E1 is present.
+    
+       Initialises
+       - an EffectController that handles the currently selected
+         Effect/Instrument, and
+       - a MixerController that handles the currently selected tracks volumes
+         and sends, as well as the global transports and master volume. 
     """
 
     def __init__(self, c_instance):
+        # make sure that all configuration constants make sense
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
         # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         # start a thread to detect the E1, if found thread will complete the
-        # initialisation calling self._mixer_controller = MixerController(c_instance)
-        # and self._effect_controller = EffectController(c_instance)
+        # initialisation calling
+        # self._mixer_controller = MixerController(c_instance) and
+        # self._effect_controller = EffectController(c_instance)
         self.debug(1,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
         self.debug(1,'Waiting for connection...')
-
+        # connection thread still running of course, so any calls to refresh the
+        # state or to rebuild the MIDI map are ignored.
+        
     def _connect_E1(self):
         """To be called as a thread. Send out request for information
            repeatedly to detect E1. Once detected, complete initialisation
@@ -83,9 +99,8 @@ class ElectraOne(ElectraOneBase):
             if DETECT_E1:
                 self.debug(2,'Connection thread: detecting E1...')
                 self._request_response_received = False
-                self.send_midi(E1_SYSEX_REQUEST)
-                time.sleep(0.5)
-                # wait until _do_request_response called
+                # repeatedly request response until it is received 
+                # (E1_SYSEX_REQUEST_RESPONSE, see _do_request_response called)
                 while not self._request_response_received:
                     self.send_midi(E1_SYSEX_REQUEST)
                     time.sleep(0.5)
@@ -98,23 +113,28 @@ class ElectraOne(ElectraOneBase):
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             c_instance = self.get_c_instance()
-            # note: any requests to rebuild the MIDI map triggered by these
-            # two calls are ignored because the interface is still closed
             self._mixer_controller = MixerController(c_instance)
-            # TODO: this starts the upload thread within a thread; be careful with race conditions???
+            # TODO: if a device is appointed, this starts the upload thread
+            #   within a thread; be careful with race conditions???
+            # The upload thread for the appointed device (if any) will request
+            # the MIDI map to be rebuilt
             self._effect_controller = EffectController(c_instance)
             self.log_message('ElectraOne remote script loaded.')
-            # re-open the interface
+            # re-open the interface (unless a preset upload is still running)
             self._E1_connected = True
-            # when opening a song without any devices selected, make sure
-            # the MIDI map is built (see comment above)
+            # when opening a song without any devices selected, select
+            # the mixer track and make sure the MIDI map is built (see comment above)
             if self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
                 self._select_preset_slot(MIXER_PRESET_SLOT)
                 # TODO: really should wait for an ACK! but this is a bit complex
                 # because the ACK is only sent AFTER the preset changed message
-                # so we stick to this hack that appears to work too
+                # so we stick to this hack that appears to work too.
                 time.sleep(0.5)
+                # This also refreshes the state, but then the preset
+                # changed message from the E1 comes in and the state is
+                # refreshed again. Unfortunately, build_midi_map() sometimes
+                # needs to also call refresh_state()
                 self.request_rebuild_midi_map()                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
@@ -131,14 +151,12 @@ class ElectraOne(ElectraOneBase):
         self._effect_controller._set_appointed_device(self.song().appointed_device)
      
     def _is_ready(self):
-        """Return whether the remote script is ready to process
-           request or not (ie whether the E1 is connected and no preset
-           upload is in progress.
+        """Return whether the remote script is ready to process requests
+           or not (ie whether the E1 is connected and no preset upload is
+           in progress).
            - result: bool
         """
-        ready = self._E1_connected and not ElectraOneBase.preset_uploading
-        # self.debug(6,f'Is ready? {ready} (pu: {ElectraOneBase.preset_uploading}, ar: {ElectraOneBase.ack_received}, rrr: {self._request_response_received})')
-        return ready
+        return (self._E1_connected and not ElectraOneBase.preset_uploading)
     
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
@@ -189,12 +207,14 @@ class ElectraOne(ElectraOneBase):
             self.debug(1,'Main toggle lock ignored because E1 not ready.') 
 
     def _process_midi_cc(self, midi_bytes):
-        """Process incoming MIDI CC message. Ignore if interface not ready.
+        """Process incoming MIDI CC message and forward to the
+           MixerController only. (EffectController never registers CC_HANDLERS.)
+           Ignore if interface not ready.
            - midi_bytes: incoming MIDI CC message; sequence of bytes
         """
         if self._is_ready():
             (status,cc_no,value) = midi_bytes
-            midi_channel = status - CC_STATUS + 1
+            midi_channel = get_cc_midichannel(status)
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
         else:
             self.debug(3,'Process MIDI CC ignored because E1 not ready.') 
@@ -243,7 +263,7 @@ class ElectraOne(ElectraOneBase):
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
         json_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
-        json_str = ''.join(chr(c) for c in json_bytes)
+        json_str = ''.join(chr(c) for c in json_bytes) # convert bytes to a string
         self.debug(3,f'Request response received: {json_str}' )
         # json_dict = json.loads(json_str)
         self._request_response_received = True
@@ -253,7 +273,7 @@ class ElectraOne(ElectraOneBase):
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
         text_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
-        text_str = ''.join(chr(c) for c in text_bytes)
+        text_str = ''.join(chr(c) for c in text_bytes) # convert bytes to a string
         self.debug(3,f'Log message received: {text_str}' )
 
     def _do_sysex_patch_request_pressed(self):
@@ -302,7 +322,7 @@ class ElectraOne(ElectraOneBase):
            Live.MidiMap.forward_midi_cc().
         """
         self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { midi_bytes[:10] }')
-        if ((midi_bytes[0] & 0xF0) == CC_STATUS) and (len(midi_bytes) == 3):
+        if is_cc_statusbyte(midi_bytes[0]) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)
         elif midi_bytes[0:4] == E1_SYSEX_PREFIX:

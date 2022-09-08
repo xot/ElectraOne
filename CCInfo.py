@@ -61,12 +61,5 @@ class CCInfo:
         """
         return self._cc_no != UNMAPPED_CC
     
-    def get_statusbyte(self):
-        """Return the MIDI byte signalling a CC message on the stored channel.
-           - result: statusbyte; int (0..127)
-        """
-        # status byte encodes midi channel (-1!) in the least significant nibble
-        CC_STATUS = 176
-        return CC_STATUS + self.get_midi_channel() - 1
 
 

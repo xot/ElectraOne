@@ -19,14 +19,30 @@ import os
 # Local imports
 from .config import *
 
+# CC status nibble
+CC_STATUS = 0xB0
+
 def _get_cc_statusbyte(channel):
     """Return the MIDI byte signalling a CC message on the specified channel.
        - channel: MIDI channel; int (1..16)
        - result: statusbyte; int (0..127)
     """
     # status byte encodes midi channel (-1!) in the least significant nibble
-    CC_STATUS = 176
     return CC_STATUS + channel - 1
+
+def is_cc_statusbyte(statusbyte):
+    """Return whether the MIDI statusbyte encodes a MIDI CC message
+       - statusbyte; int (0..127)
+       - result: boolean
+    """
+    return (statusbyte & 0xF0) == CC_STATUS
+
+def get_cc_midichannel(statusbyte):
+    """Return the MIDI channel encoded in a CC status byte
+       - statusbyte; int (0..127)
+       - result: MIDI channel; int (1..16)
+    """
+    return statusbyte - CC_STATUS + 1
 
 def cc_value_for_item_idx(idx, items):
     """Return the MIDI CC control value corresponding to the idx-th item
