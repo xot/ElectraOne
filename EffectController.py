@@ -178,7 +178,8 @@ class EffectController(ElectraOneBase):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
         device_name = get_device_name(device)
-        path = self._find_libdir('/dumps')
+        # determine path to store the dumps in (created if it doesnt exist)
+        path = self._ensure_in_libdir('dumps')
         # dump the preset JSON string
         fname = f'{ path }/{ device_name }.epr'
         self.debug(2,f'dumping device: { device_name } in { fname }.')

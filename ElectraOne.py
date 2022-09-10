@@ -365,7 +365,7 @@ class ElectraOne(ElectraOneBase):
             self.debug(6,'Main update display ignored because E1 not ready.')
             
     def connect_script_instances(self,instanciated_scripts):
-        """ Called by the Application as soon as all scripts are initialized.
+        """ Called by Live as soon as all scripts are initialized.
             You can connect yourself to other running scripts here.
         """
         self.debug(1,'Main connect script instances called.') 

@@ -22,14 +22,15 @@ DUMP = False
 # Whether to detect the  E1 at start up (or assume it's there regardless)
 DETECT_E1 = True
 
-# Local directory where dunps are stored (./dumps), user defined
-# presets are loaded from (./user-presets), and where to llok for the sendmidi
+# Local directory where dumps are stored (./dumps), user defined
+# presets are loaded from (./user-presets), and where to look for the sendmidi
 # program.
 #
 # This is first tried as a directory relative to the user's home directory;
 # if that doesn't exist, it is interpreted as an absolute path. If that also
 # doesn't exist, then the user home directory is used instead (and ./dumps
 # or ./user-presets are not appended to make sure the directory exists).
+# (Leading or trailing slash is ignored)
 LIBDIR = 'src/ableton-control-scripts/ElectraOne'
 
 # 'reset slot': when selecting this slot on the E1, the remote script is reset

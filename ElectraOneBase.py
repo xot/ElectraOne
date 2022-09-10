@@ -1,5 +1,5 @@
 # ElectraOneBase
-# - Base class with common functions
+# - Base class with common functions and interface to Live
 #
 # Part of ElectraOne
 #
@@ -64,6 +64,8 @@ class ElectraOneBase:
     # This is the base class for all other classes in this package, and
     # therefore several instances of it are created.
 
+    # -- CLASS variables (exist exactly once, only inside this class)
+    
     # Make sure checking for fast sysex upload is done exactly once.
     _fast_sysex_tested = False
 
@@ -82,7 +84,7 @@ class ElectraOneBase:
     # flag indicating whether the last preset upload was successful
     preset_upload_successful = None
 
-    # flag to inform the upload thread that a SysEx ACK message was received
+    # flag to inform a thread that a SysEx ACK message was received
     # (set by _do_ack() in ElectraOne.py).
     ack_received = False
 
@@ -92,38 +94,60 @@ class ElectraOneBase:
     current_visible_slot = None
 
     # --- LIBDIR handling
-    
-    def _find_libdir(self, path):
-        """Determine library path based on LIBDIR and the specified path.
-           Either ~/LIBDIR/<path>, LIBDIR/<path>, or the user home directory
-           (without path), the first of these that exist.
+
+    def _get_libdir(self):
+        """Determine library path based on LIBDIR.
+           Either ~/LIBDIR, /LIBDIR, or the user home directory,
+           the first of these that exist.
            Home is assumed to always exist.
-           - path: path to append to LIBDIR; str
            - result: library path that exists ; str
         """
+        # sanitise leading and trailing /
+        ldir = LIBDIR
+        if ldir[0] == '/':
+            ldir = ldir[1:]
+        if ldir[-1] == '/':
+            ldir = ldir[:-1]
         home = os.path.expanduser('~')
-        test =  f'{ home }/{ LIBDIR }{ path }'
-        self.debug(4,f'Testing library path {test}')
-        if not os.path.exists(test):                                        # try LIBDIR as absolute directory
-            test =  f'{ LIBDIR }{ path }'
-            self.debug(4,f'Testing library path {test}')
-            if not os.path.exists(test):                                        # default is HOME
+        test =  f'{ home }/{ ldir }'
+        self.debug(4,f'Testing library path {test}...')
+        if not os.path.isdir(test):
+            # try LIBDIR as absolute path
+            test =  f'/{ ldir }'
+            self.debug(4,f'Testing library path {test}...')
+            if not os.path.isdir(test):
+                # default is HOME
                 test = home
+        self.debug(4,f'Using library path {test}.')
+        return test
+    
+    def _ensure_in_libdir(self, path):
+        """Ensure the specified relative directory exists in the library path
+           (ie create it if it doesnt exist).
+           - path: relative path; str
+           - result: full path in library that exists ; str
+        """
+        self.debug(4,f'Ensure {path} exists in library.')
+        root = self._get_libdir()
+        test = f'{ root }/{ path }'
+        if not os.path.isdir(test):
+            # TODO: what if test exists, but is not a directory
+            os.mkdir(test)    
         return test
         
     def _find_in_libdir(self, path):
-        """Find path in library path and return it if found,
-           else return None
+        """Find path in library path and return it if found, else return None
            - path: path to find; str
            - result: path found, None if not found; str
         """
-        root = self._find_libdir('')
+        self.debug(4,f'Looking for {path} in library.')
+        root = self._get_libdir()
         test = f'{ root }/{ path }'
         if not os.path.exists(test):
-            self.debug(4,f'Path { test } not found')
+            self.debug(4,f'Path { test } not found.')
             return None
         else:
-            self.debug(4,f'Returning path {test}')
+            self.debug(4,f'Found as {test}.')
             return test
 
     # --- INIT
