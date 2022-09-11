@@ -14,7 +14,7 @@
 
 # How much debugging information should be logged; higher values
 # imply more information. 0 means no logging at all.
-DEBUG = 5
+DEBUG = 2
 
 # Whether created patch info should be dumped
 DUMP = False
@@ -31,7 +31,7 @@ DETECT_E1 = True
 # doesn't exist, then the user home directory is used instead (and ./dumps
 # or ./user-presets are not appended to make sure the directory exists).
 # (Leading or trailing slash is ignored)
-LIBDIR = 'src/ableton-control-scripts/ElectraOne'
+LIBDIR = 'ElectraOne'
 
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)
@@ -41,7 +41,7 @@ RESET_SLOT = (5,11)
 # Flag whether to use fast sysex uploading,
 # using the (external) sendmidi package
 # If True, correctly set the following two constants too  
-USE_FAST_SYSEX_UPLOAD = True
+USE_FAST_SYSEX_UPLOAD = False
 
 # path to the sendmidi command, relative to ~/LOCLADIR or ~ 
 SENDMIDI_CMD = 'lib/sendmidi'
