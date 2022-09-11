@@ -340,13 +340,14 @@ The remote script package defines the following classes, shown hierarchically ba
 	- ```ElectraOneDumper```: Construct an Electra One preset and a corresponding mapping of parameters to MIDI CC for a device.
 	- ```GenericDeviceController```: Control devices (both selected ones and the ChannelEq devices in the mixer): build MIDI maps, add value listeners, refresh state.
 
+For the transport, as well as each currently controlled track and each currently controlled device, a separate object is created (a ```TransportController``` or derived from either ```GenericTrackController``` or ```GenericDeviceController```). This object is responsible for refreshing the state, listening to relevant parameter changes, mapping the MIDI, processing relevant incoming MIDI messages, for the controller on the E1 it is created for.
+
 It also defines the following other, generic, classes:
 
 - ```ElectraOneBase```: Base class with common functions: debugging, sending MIDI. (interfacing with Live through ```c_instance```). 
 - ```PresetInfo```: Stores the E1 JSON preset and the associated CC-map for a device.
 - ```CCInfo```: Channel and parameter number of a CC mapping, and
-       whether the associated controller on the E1 is 14bit (or not, in
-       which case it is 7bit).
+       whether the associated controller on the E1 is 14bit or 7bit.
 - ```ValueListener```: Value listener for a particular parameter.
 - ```ValueListeners```: Maintain a list of value listeners for a device or a track.
 
@@ -516,7 +517,7 @@ Legend:
 
 #### Tracks
 
-Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
+Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
 
 |  CC | Controls   |            |            |            |            |
 |----:|:-----------|:-----------|:-----------|:-----------|:-----------|
@@ -599,15 +600,26 @@ The code to handle the mixer is distributed over the following modules (with the
 : Handles one return track, as specified by the ```idx``` (0 for return track A) when created by ```MixerController```. ```MixerController``` will create at most six instances of this controller, the actual number depending on the actual number of return tracks present. Each ```ReturnController``` manages the pan, volume and mute on the return track assigned to it. ```idx``` is used to compute the actual CC parameter number to map to a Live parameter (using the base CC parameter number defined as a constant derived from the tables above).
 
 5 ```TrackController.py```
-: Handles one audio or MIDI track, as specified by the ```idc``` (0 for the first track in the song) when created by ```MixerController```. ```MixerController``` will create five instances of this controller (passing an additonal ```offset``` value, in the range 0..4, to tell this controller which of the five tracks it is controlling and hence allowing it to compute the correct CC parameter numbers to map to the parameters in the track assigned to it. Each ```TrackController``` manages the pan, volume, mute, solo and arm button of the assigned track. Also sets up control of a Channel EQ device, when present on this track.
+: Handles one audio or MIDI track, as specified by the ```idx``` (0 for the first track in the song) when created by ```MixerController```. ```MixerController``` will create five instances of this controller (passing an additonal ```offset``` value, in the range 0..4, to tell this controller which of the five tracks it is controlling and hence allowing it to compute the correct CC parameter numbers to map to the parameters in the track assigned to it. Each ```TrackController``` manages the pan, volume, mute, solo and arm button of the assigned track. Also sets up control of a Channel EQ device, when present on this track.
 
 All these modules essentially map/manage controls and parameters using the strategy outlined above. In fact almost all code for this is in ```GenericTrackController```, of which ```TrackController```, ```MasterController``` and ```ReturnController``` are simple subclasses. The idea being that all three share a similar structure (they are all 'tracks') except that each of them has slightly different features. Which features are present is indicated through the definition of the corresponding CC parameter value in the ```__init__``` constructor of the subclass (where the value ```None``` indicates a feature is missing).
 
 The ```GenericTrackController``` expects the subclass to define a method ```_my_cc``` that derives the actual CC parameter number to use for a particular instance of an audio/midi track (```TrackController```) or a return track (```ReturnController```). It also expects the subclass to define a method ```_init_cc_handlers``` (explained below).
 
-### E1 midi CC forwarding
+### The EQ device
 
-In the E1 remote script, each class (that needs to set up MIDI CC message forwarding)  defines a (constant) dictionary ```_CC_HANDLERS``` containing for each (midi_channel,cc_no) pair the function responsible for processing that particular incoming MIDI message.
+If the master track and the five audio and midi tracks currently managed 
+contain a Live Channel EQ device, this one is automatically discovered and mapped to the corresponding controls in the E1 preset 'Channel EQs' page. (The last possible match is used.) The mapping essentially follows the exact same method as used by ```EffectController.py``` (see below) and involves little more than a call to 
+```build_midi_map_for_device``` (to map the device parameters to the CC controllers) and ```update_values_for_device``` to initialise the controller values as soon as the device is mapped.
+
+The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
+
+
+## E1 midi CC forwarding
+
+Recall that certain Live UI elements cannot be mapped to MIDI CCs automatically. For those, incoming MIDI CC messages must be registered and, when received, be handled.
+
+In the E1 remote script, each class that needs to set up MIDI CC message forwarding defines a (constant) dictionary ```_CC_HANDLERS``` containing for each (midi_channel,cc_no) pair the function responsible for processing that particular incoming MIDI message.
 
 For example, ```TransportController.py``` defines
 
@@ -622,20 +634,14 @@ self._CC_HANDLERS = {
 
 The ```process_midi``` function in the same class (called by the global ```receive_midi_function``` but with the midi channel, CC parameter number and value already parsed) uses this dictionary to find the correct handler for the incoming MIDI CC message automatically. And the ```build_midi_map``` method in the same class uses the same dictionary to set up MIDI forwarding using ```Live.MidiMap.forward_midi_cc```.
 
-### E1 listeners
+## E1 listeners
 
-In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any parameters/listeners this class is responsible for.
+Live UI elements cannot be mapped to MIDI CCs automatically also need to be monitored for any changes, to send these changes to the E1 as well.
+
+In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any such parameters/listeners this class is responsible for.
 
 
-### The EQ device
-
-If the master track and the five audio and midi tracks currently managed 
-contain a Live Channel EQ device, this one is automatically discovered and mapped to the corresponding controls in the E1 preset 'Channel EQs' page. (The last possible match is used.) The mapping essentially follows the exact same method as used by ```EffectController.py``` (see below) and involves little more than a call to 
-```build_midi_map_for_device``` (to map the device parameters to the CC controllers) and ```update_values_for_device``` to initialise the controller values as soon as the device is mapped.
-
-The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
-
-### Value updates 
+## Value updates 
 
 Values are updated by a call to ```refresh_state```. This checks which of the presets is actually visible on the Electra One. This is possible because the Electra One sends out a SysEx whenever a preset is selected on the device (see 
 ```_do_preset_changed```). Both the mixer and effect controller call ```refresh_state``` after having (re)built their MIDI map. 
