@@ -56,6 +56,16 @@ def cc_value_for_item_idx(idx, items):
     # round(i * 127/(n-1)) 
     return round( idx * (127 / (len(items)-1) ) )
 
+def cc_value(p,max):
+    """Convert the value of a parameter to its corresponding CC value
+       (in the range 0..max)
+       - p: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+       - max: maximum value (127 or 16383), range is [0..max]; int
+       - result: CC value; int
+    """
+    return round(max * ((p.value - p.min) / (p.max - p.min)))
+
+
 
 class ElectraOneBase:
     """E1 base class with common functions
@@ -193,7 +203,7 @@ class ElectraOneBase:
                 indent = '#'
             else:
                 indent = '-' * level
-            # self._c_instance.log_message(f'E1 (debug): {indent} {m}')
+            # write readable log entries also for multi-line messages
             for l in m.splitlines(keepends=True):
                 self._c_instance.log_message(f'E1 (debug): {indent} {l}')  
 
@@ -225,9 +235,9 @@ class ElectraOneBase:
            bypassing Ableton Live.
            - bytes: bytes to send; sequence of bytes
         """
-        # convert bytes to their string representation.
-        # strip first and last byte of SysEx command in preset_as_bytes
-        # because sendmidi syx adds them again
+        # convert bytes sequence to its string representation.
+        # (strip first and last byte of SysEx command in bytes parameter
+        # because sendmidi syx adds them again)
         bytestr = ' '.join(str(b) for b in bytes[1:-1])
         command = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
         if not self._run_command(command):
@@ -288,7 +298,8 @@ class ElectraOneBase:
            - value: the value to send; int (0..16383)
         """
         assert channel in range(1,17), f'CC channel { channel } out of range.'
-        assert cc_no in range(128), f'CC no { cc_no } out of range.'
+        # CC14 controls only allowed in range 0..31
+        assert cc_no in range(32), f'CC no { cc_no } out of range.'
         assert value in range(16384), f'CC value { value } out of range.'
         lsb = value % 128
         msb = value // 128
@@ -302,18 +313,18 @@ class ElectraOneBase:
     def send_parameter_as_cc14(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 14bit MIDI CC message 
            (through Ableton Live).
-           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - p : Ableton Live parameter; Live.DeviceParameter.DeviceParameter
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
         self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
-        value = round(16383 * ((p.value - p.min) / (p.max - p.min)))
+        value = cc_value(p,16383)
         self.send_midi_cc14(channel, cc_no, value)
 
     def send_parameter_as_cc7(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 7bit MIDI CC message 
            (through Ableton Live)
-           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - p : Ableton Live parameter; Live.DeviceParameter.DeviceParameter
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
@@ -322,7 +333,7 @@ class ElectraOneBase:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
         else:
-            value = round(127 * ((p.value - p.min) / (p.max - p.min)))
+            value = cc_value(p,127)
         self.send_midi_cc7(channel, cc_no, value)
 
     def send_parameter_using_ccinfo(self, p, ccinfo):
@@ -354,12 +365,12 @@ class ElectraOneBase:
 
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
-           - slot: slot to select; (bank: 0..5, preset: 0..1)
+           - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
         self.debug(3,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
-        assert bankidx in range(6), 'Bank index out of range.'
-        assert presetidx in range(12), 'Preset index out of range.'
+        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
+        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
         # see https://docs.electra.one/developers/midiimplementation.html
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x09, 0x08)
         sysex_select = (bankidx, presetidx)
@@ -419,22 +430,22 @@ class ElectraOneBase:
     def _wait_for_ack_or_timeout(self, timeout):
         """Wait for the reception of an ACK message from the E1, or
            the timeout, whichever is sooner. Return whether ACK received.
-           - timeout: time to wait in 100ms; int
+           - timeout: time to wait in 10ms; int
         """
-        self.debug(3,f'Upload thread setting timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
+        self.debug(3,f'Thread setting timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
         while (not ElectraOneBase.ack_received) and (timeout > 0):
-            self.debug(5,f'Upload thread waiting for ACK, timeout {timeout}.')
-            time.sleep(0.1)
+            self.debug(5,f'Thread waiting for ACK, timeout {timeout}.')
+            time.sleep(0.01)
             timeout -= 1
         if ElectraOneBase.ack_received:
-            self.debug(3,f'Upload thread: ACK received within timeout {timeout} (pu: {ElectraOneBase.preset_uploading}).')
+            self.debug(3,f'Thread: ACK received within timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(3,f'Upload thread: ACK not received, operation may have failed (pu: {ElectraOneBase.preset_uploading}).')
+            self.debug(3,f'Thread: ACK not received, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
         return ElectraOneBase.ack_received
     
     def _upload_preset_thread(self, slot, preset, luascript):
-        """To be called as a thread. Select a slot and upload a preset and a
-           lua script for it. In all cases wait (within a timeout) for
+        """To be called as a thread. Select a slot, tehn upload a preset, and
+           then upload a lua script for it. In all cases wait (within a timeout) for
            confirmation from the E1. Reactivate the interface when done and
            request to rebuild the midi map.
            - slot: slot to upload to; (bank: 0..5, preset: 0..1)
@@ -447,16 +458,16 @@ class ElectraOneBase:
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
             self._select_preset_slot(slot)
-            if self._wait_for_ack_or_timeout(10): # timeout 1 second
+            if self._wait_for_ack_or_timeout(100): # timeout 1 second
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
-                if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
+                if self._wait_for_ack_or_timeout( int(len(preset)/10) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     ElectraOneBase.ack_received = False
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self._wait_for_ack_or_timeout(10):
+                    if self._wait_for_ack_or_timeout(100):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
