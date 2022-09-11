@@ -216,7 +216,11 @@ class MixerController(ElectraOneBase):
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
-        self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { self._first_track_index + NO_OF_TRACKS }.')
+        # TODO: height of highlight rectangle is a (small) constant
+        # (to ensure opening new song does not scroll to bottom of scene list)
+        # Also: return tracks not highlighted
+        self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 10, True)
+        self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         # TODO: hide unused tracks
         
     def _handle_selected_tracks_change(self):
