@@ -19,6 +19,8 @@ import os
 # Local imports
 from .config import *
 
+# --- MIDI CC handling
+
 # CC status nibble
 CC_STATUS = 0xB0
 
@@ -65,7 +67,7 @@ def cc_value(p,max):
     """
     return round(max * ((p.value - p.min) / (p.max - p.min)))
 
-
+# --- main class
 
 class ElectraOneBase:
     """E1 base class with common functions
@@ -90,6 +92,7 @@ class ElectraOneBase:
     preset_uploading = None
 
     # flag indicating whether the last preset upload was successful
+    # TODO: this is not used in rest of script 
     preset_upload_successful = None
 
     # flag to inform a thread that a SysEx ACK message was received

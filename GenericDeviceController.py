@@ -21,8 +21,14 @@ from .ValueListener import ValueListeners
 
 # --- helper functions
 
-# TODO: adapt to also get an appropriate name for MaxForLive devices
 def get_device_name(device):
+    """Return the (fixed) name of the device (i.e. not the name of the preset)
+       - device: the device; Live.Device.Device
+       - result: device name; str
+    """
+    # TODO: adapt to also get an appropriate name for MaxForLive devices
+    # (device.name equals the name of the selected preset;
+    # device.class_display_name is just a pretyy-printed version of class_name)
     return device.class_name
 
                 
