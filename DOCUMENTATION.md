@@ -317,8 +317,7 @@ One thread (```_connect_E1```) sends out a request for a response from the Elect
 
 The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
-The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (using
-```device.id``` to ens`ure that a different messages is sent for each device defined in the patch, *one* of which has 0 as the 7th byte.
+The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (see ```EffectController.py```).
 
 ## Remote script package structure
 
@@ -329,17 +328,19 @@ The remote script package defines the following classes, shown hierarchically ba
   - ```MixerController```: Electra One track, transport, returns and mixer control. Also initialises and manages the E1 mixer preset.
 	- ```TransportController```: Manage the transport (play/stop, record, rewind, forward).
 	- ```MasterController```: Manage the master track.
+	  - ```GenericTrackController```: Generic class to manage a track. To be subclassed to handle normal tracks, return tracks and the master track.
 	- ```ReturnController```: Manage a return track. One instance for each return track present. (At most six).
+      - ```GenericTrackController``` (see above).
 	- ```TrackController```: Manage an audio or midi track. At most five instances, one
        for each track present.
-	  - ```GenericTrackController```: Generic class to manage a track. To be subclassed to handle normal tracks, return tracks and the master track.
-		 - ```GenericDeviceController```: see below
+      - ```GenericTrackController``` (see above).
+		 - ```GenericDeviceController``` (see below).
   - ```EffectController```: Control the currently selected device. Handle device
     selection and coordinate preset construction and uploading. 
 	- ```ElectraOneDumper```: Construct an Electra One preset and a corresponding mapping of parameters to MIDI CC for a device.
 	- ```GenericDeviceController```: Control devices (both selected ones and the ChannelEq devices in the mixer): build MIDI maps, add value listeners, refresh state.
 
-Other, generic, classes:
+It also defines the following other, generic, classes:
 
 - ```ElectraOneBase```: Base class with common functions: debugging, sending MIDI. (interfacing with Live through ```c_instance```). 
 - ```PresetInfo```: Stores the E1 JSON preset and the associated CC-map for a device.
@@ -349,7 +350,7 @@ Other, generic, classes:
 - ```ValueListener```: Value listener for a particular parameter.
 - ```ValueListeners```: Maintain a list of value listeners for a device or a track.
 
-Core modules:
+And it defines the following core modules:
 
 - ```__init.py__ ```: package constructor.
 - ```config.py```: defines configuration constants. 
