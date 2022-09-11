@@ -60,7 +60,7 @@ class ValueListeners:
         self._base = base
         self._listeners = []
 
-    def add(self,parameter, info):
+    def add(self, parameter, info):
         """Add a value listener for a parameter that will send the new value of
            the parameter as a string (as formatted by Live) to the control on
            the E1 that controls it  whenever it changes (or when update_all is called).

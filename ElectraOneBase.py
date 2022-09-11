@@ -66,15 +66,13 @@ class ElectraOneBase:
 
     # -- CLASS variables (exist exactly once, only inside this class)
     
-    # Make sure checking for fast sysex upload is done exactly once.
-    _fast_sysex_tested = False
-
     # Command to use for fast sysex upload (to be set during initialisation
     # using SENDMIDI_CMD and LIBDIR).
     _fast_sysex_cmd = None
     
     # Record whether fast uploading of sysex is supported or not.
-    _fast_sysex = False
+    # (Initially None to indicate that support not tested yet)
+    _fast_sysex = None
 
     # flag activating or deactivating the ElectraOne interface: set when
     # upload thread is started; unset when upload thread finished. Checked
@@ -124,7 +122,7 @@ class ElectraOneBase:
     def _ensure_in_libdir(self, path):
         """Ensure the specified relative directory exists in the library path
            (ie create it if it doesnt exist).
-           - path: relative path; str
+           - path: relative path to directory; str
            - result: full path in library that exists ; str
         """
         self.debug(4,f'Ensure {path} exists in library.')
@@ -162,9 +160,8 @@ class ElectraOneBase:
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
         # set up fast sysex upload once
-        if not ElectraOneBase._fast_sysex_tested:
-            self._test_fast_sysex()
-            ElectraOneBase._fast_sysex_tested = True
+        if ElectraOneBase._fast_sysex == None:
+            ElectraOneBase._fast_sysex = self._test_fast_sysex()
             
     # --- helper functions
 
@@ -213,6 +210,10 @@ class ElectraOneBase:
     # --- Fast MIDI sysex upload handling
 
     def _run_command(self, command):
+        """Run the command in a shell, and return whether successful or not.
+           - command: command to run; str
+           - result: success?; bool
+        """
         self.debug(4,f'Running external command {command}')
         # TODO: return type is different accross platforms
         return_code = os.system(command)
@@ -235,7 +236,7 @@ class ElectraOneBase:
     def _test_fast_sysex(self):
         """Test whether fast SysEx commands (bypassing Ableton Live) is
            supported, and if so properly set it up.
-           - result: True if properly set up, False otherwise.
+           - result: wheter succesful or not
         """
         if USE_FAST_SYSEX_UPLOAD:
             # find sendmidi
@@ -244,17 +245,19 @@ class ElectraOneBase:
             if ElectraOneBase._fast_sysex_cmd:
                 # if found test if it works
                 testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
-                ElectraOneBase._fast_sysex = self._run_command(testcommand) 
+                if self._run_command(testcommand):
+                    self.debug(1,'Fast uploading of presets supported. Great, using that!')
+                    return True
+                else:
+                    self.debug(1,'Fast uploading of presets not supported (command failed), reverting to slow method.')
+                    return False
             else:
-                ElectraOneBase._fast_sysex = False
-            if ElectraOneBase._fast_sysex:
-                self.debug(1,'Fast uploading of presets supported. Great, using that!')
-            else:
-                self.debug(1,'Fast uploading of presets not supported, reverting to slow method.')
+                self.debug(1,'Fast uploading of presets not supported (command not found), reverting to slow method.')
+                return  False
         else:
-            ElectraOneBase._fast_sysex = False
             self.debug(1,'Slow uploading of presets configured.')
-                
+            return False
+            
     # --- MIDI CC handling ---
 
     def send_midi(self, message):

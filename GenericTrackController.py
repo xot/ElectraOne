@@ -18,9 +18,9 @@
 # their associated MIDI cc_no on a specific channel (see build_midi_map)
 # using Live.MidiMap.map_midi_cc.
 # From then on value updates from AND to the E1 are handled automatically.
-# The only thing to do is call _init_controller_values() once (to send
+# The only thing to do is call refresh_state() once (to send
 # the values currently held by the device parameters are sent to the E1 to
-# birng them in sync.
+# bring them in sync.
 #
 # For all other controlled elements we need handlers (to handle incoming data
 # from the E1 controller) and listeners (to send updates to the E1 controleer)

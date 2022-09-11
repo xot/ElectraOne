@@ -10,7 +10,13 @@
 from .ElectraOne import ElectraOne
 
 def create_instance(c_instance):
-    """ Creates and returns the ElectraOne script """
+    """ Creates and returns the ElectraOne script. (See DOCUMENTATION.md for
+       details of the interfaces.)
+        - c_instance: object exposing the interface to Live, ie functions
+             that can be called to tell Live to do something.
+        - result: the remote script object, whose functions Live can call
+             to tell it to do something.
+    """
     return ElectraOne(c_instance)
 
 # FIXME: copied from RemoteSL; not sure what this is needed for

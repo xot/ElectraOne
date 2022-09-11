@@ -260,8 +260,9 @@ def _is_untyped_float(p):
 
            
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
-    """ElectraOneDumper extends the StringIO class allows the gradual
+    """ElectraOneDumper extends the StringIO class; this allows the gradual
        construction of a long JSOPN preset string by appending to it.
+       (This is (much) more efficient than concatenating immutable strings.)
     """
 
     def _append(self,*elements):

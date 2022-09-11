@@ -8,8 +8,8 @@ author: Jaap-Henk Hoepman (info@xot.nl)
 This is the *technical* documentation describing the internals of the Ableton Live Remote Script for the Electra One (aka E1). For the user guide, see the [Read Me](README). 
 
 The remote script essentially supports two control surfaces
-- a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1, and
-- a [current device](#device-control) with a E1 preset in bank 6 slot 2.
+- a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1 (```MIXER_PRESET_SLOT```), and
+- a [current device](#device-control) with a E1 preset in bank 6 slot 2 (```EFFECT_PRESET_SLOT```).
 
 Their implementation is described further below, after a brief introduction on 
 remote scripts and MIDI.
@@ -21,7 +21,7 @@ remote scripts and MIDI.
 Ableton Live exposes a lot of its functionality for remotely controlling it through the so-called Live API. In essence any part of the interface, or most of the contents of a song all the way to the individual clip level can be accessed, not only for reading but also for writing!
 
 Ableton officially only supports the Live API through [Max for Live](https://docs.cycling74.com/max8/vignettes/live_object_model). However, that information is mostly valid for Remote Scripts too, except that 
-the paths in a MIDI Remote Script are slightly different than the paths mentioned in the documentation:
+the paths in a MIDI Remote Script are slightly different from the paths mentioned in the Max for Live documentation:
 
 - the root path for most of the API is listed as ```live_set```, but in a MIDI Remote Script, this is ```self.song()```
 - also, paths in MIDI Remote Scripts don't use spaces but use dots, e.g. ```self.song().view.selected_track```.
@@ -40,7 +40,7 @@ Communication between Live and the MIDI controller takes place using MIDI, and a
 
 A remote script is written for a specific remote controller. As such the remote script knows the specific assignment of MIDI *events* (MIDI channel, event type and event number) to controls on the external controller. I.e. it knows what MIDI events will be generated when a dial on the controller is turned, a button is pushed or a key is pressed. The remote script (written in [Python](https://docs.python.org/3/)) uses this information to make Ableton Live respond appropriately to a controller change (for example by calling the appropriate function in the Live API), and also to send status information back to the controller.
 
-A typical use case (and what makes them so useful and important to have for an external controller) is to map the controls on the external controller automatically to the currently selected device in Live. 
+A typical use case (and what makes remote scripts so useful and important to have for an external controller) is to map the controls on the external controller automatically to the currently selected device in Live. 
 
 This is the general idea. Unfortunately, no official information on how to implement a remote script is available. Luckily, twelve years ago already Hanz Petrov wrote an excellent [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html), and others made the effort of decompiling all officially supported [remote scripts in a Live distribution](https://github.com/gluon/AbletonLive11_MIDIRemoteScripts). Especially the latter resource proved to be invaluable to figure out exactly how to program a remote script.
 
@@ -51,9 +51,9 @@ Every remote script is a separate [Python package](https://docs.python.org/3/tut
 Every remote script Python package must contain a file ```__init.py__``` that should define two functions
 
 - ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live in the Preferences dialog. 
-- ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information what this should contain and how it is used.
+- ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information about what this should contain and how it is used.
 
-Essentially, the object returned by ```create_instance``` allow Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
+Essentially, the object returned by ```create_instance``` allows Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
 
 The parameter ```c_instance``` on the other hand allows the remote script to send instructions to (i.e. call methods on) Live. It is the interface from the remote script back to Live. It is used, for example, to tell Live to add a MIDI mapping, or to send MIDI events to the external controller.
 
@@ -193,7 +193,7 @@ Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle,midi_channel,cc_no)
 
 The parameters to this call are like the one above, except:
 
-- ```script_handle``` handle to this remote script (needed to call it's ```receive_midi``` method, see below). It is obtained using ```c_instance.handle()```  where ```c_instance``` is the parameter that Live passes to the call ```create_instance``` in ```__init__.py``` (as described [above](#the-c_instance-object)).
+- ```script_handle``` is the handle to this remote script (needed to call it's ```receive_midi``` method, see below). It is obtained using ```c_instance.handle()```  where ```c_instance``` is the parameter that Live passes to the call ```create_instance``` in ```__init__.py``` (as described [above](#the-c_instance-object)).
 
 Once mapped, incoming MIDI CC messages that match the map are forwarded to the remote script that registered this mapping by calling its ```receive_midi``` method. The parameter to this call is a python *sequence* (not a list) of all bytes in the message, including the MIDI status byte etc. It is the responsibility of the remote script to process these messages and ensure something happens.
 
@@ -225,7 +225,7 @@ to be called whenever the 'mute' button on track ```track``` changes. This funct
 > Passing this particular method when adding the listener (through ```track.add_mute_listener(self._on_mute_changed)```) then does the trick.
 
 
-Unlike MIDI mappings (that appear to be destroyed whenever a new MIDI map is being requested through ```c_instance.request_rebuild_midi_map()```), these listeners are permanent. Therefore they need to be explicitly removed as soon as they are no longer needed. In the example above, this is achieved by calling
+Unlike MIDI mappings (that appear to be destroyed whenever a new MIDI map is being requested through ```c_instance.request_rebuild_midi_map()```), these listeners are permanent. Therefore they only need to be added *once* when the controlling object is assigned. And they need to be explicitly removed as soon as they are no longer needed. In the example above, this is achieved by calling
 
 ```
 track.remove_mute_listener(on_mute_changed)
@@ -320,7 +320,7 @@ The other thread (```_upload_preset_thread```) first sends a select preset slot 
 The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0x00 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (using
 ```device.id``` to ens`ure that a different messages is sent for each device defined in the patch, *one* of which has 0 as the 7th byte.
 
-# Remote script package structure
+## Remote script package structure
 
 
 The remote script package defines the following classes, shown hierarchically based on inheritance / import order.
@@ -357,7 +357,7 @@ Core modules:
 
 
 
-# The mixer (```MixerController```)
+## The mixer (```MixerController```)
 
 The mixer preset controls 
 
@@ -372,7 +372,7 @@ The remote scripts comes with a default E1 mixer preset that matches the MIDI ma
 All that matters is that you do not change the MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
 
 
-## Value mapping
+### Value mapping
 
 For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions). 
 
@@ -462,12 +462,12 @@ We refrain from using the method used by almost all other remotes scripts to cor
 
 Note that all these faders do now operate at their full 14bit potential.
 
-## The Mixer MIDI MAP
+### The Mixer MIDI MAP
 
 Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values. Controllers are mapped as follows.
 
 
-### Master, return tracks and the transport.
+#### Master, return tracks and the transport.
 
 The master track (including its optional ChannelEq device), return tracks and the transport are controlled through MIDI channel ```MIDI_MASTER_CHANNEL``` with the following CC parameter assignments. 
 At most six return tracks (labelled A to E below) are controlled through the mixer.
@@ -513,7 +513,7 @@ Legend:
 - 'X refers to a 'shadow' CC occupied because of an earlier 14bit CC control.
 - The number after a parameter name is the track  offset (relative to the first track being controlled), see table below.
 
-### Tracks
+#### Tracks
 
 Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel, ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
 
@@ -554,7 +554,7 @@ Five tracks (each with an optional ChannelEq device) are simultaneously controll
 
 Note that EQ Out i is mapped as a 7bit controller due to space constraints. (Otherwise we would have needed to claim another MIDI channel for an additional 14bit CC slot.)
 
-### Sends
+#### Sends
 
 The sends of the five tracks are controlled over another MIDI channel, ```MIDI_SENDS_CHANNEL```, with the following CC parameter assignments. Note that
 not all sends may be present on a track. The first six sends of a track are controlled by the mixer.
@@ -579,7 +579,7 @@ not all sends may be present on a track. The first six sends of a track are cont
 |  62 | -          | 
 |  63 | -          | 
 
-## Internally
+### Internally
 
 The code to handle the mixer is distributed over the following modules (with their associated class definitions):
 
@@ -653,7 +653,7 @@ The computation of the 7bit MIDI value to send for a quantised parameter works a
 
 When sending MIDI message a small delay is added after each message (see ```send_midi```) to avoid that the Electra One gets clogged and skips or wrongly interprets incoming messages.
 
-# Device control (```EffectController```)
+## Device control (```EffectController```)
 
 The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely.
 
