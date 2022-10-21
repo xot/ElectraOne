@@ -15,7 +15,7 @@ import time
 import sys
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte
+from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte, hexify
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .config import *
@@ -314,14 +314,14 @@ class ElectraOne(ElectraOneBase):
         elif _match_sysex(midi_bytes,E1_SYSEX_PATCH_REQUEST_PRESSED):
             self._do_sysex_patch_request_pressed()
         else:
-            self.debug(5,f'SysEx ignored: { midi_bytes }.')
+            self.debug(5,f'SysEx ignored: { hexify(midi_bytes) }.')
             
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc().
         """
-        self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { midi_bytes[:10] }')
+        self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midi_bytes[:10]) }')
         if is_cc_statusbyte(midi_bytes[0]) and (len(midi_bytes) == 3):
             # is a CC
             self._process_midi_cc(midi_bytes)

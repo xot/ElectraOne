@@ -67,6 +67,14 @@ def cc_value(p,max):
     """
     return round(max * ((p.value - p.min) / (p.max - p.min)))
 
+def hexify ( message ):
+    """Convert the sequence of (MIDI) bytes into a hexadecimal string
+       - message: sequence; (byte)
+       - result: str
+    """
+    mstr = [ f'0x{e:02X}' for e in message ]
+    return " ".join(mstr)
+
 # --- main class
 
 class ElectraOneBase:
@@ -277,8 +285,8 @@ class ElectraOneBase:
         """Send a MIDI message (through Ableton Live)
            - message: the MIDI message to send; sequence of bytes
         """
-        self.debug(4,f'Sending MIDI message (first 10) { message[:10] }')
-        self.debug(5,f'Sending MIDI message { message }.')
+        self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
+        self.debug(5,f'Sending MIDI message: { hexify(message) }.')
         time.sleep(0.005) # don't overwhelm the E1!
         self._c_instance.send_midi(message)
 
