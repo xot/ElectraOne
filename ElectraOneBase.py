@@ -172,7 +172,7 @@ class ElectraOneBase:
     # --- INIT
     
     def __init__(self, c_instance):
-        """Initialise; test whether fast SysEx sending is supported (once).
+        """Initialise.
            - c_instance: Live interface object (see __init.py__)
         """
         # c_instance is/should be the object passed by Live when
@@ -180,9 +180,8 @@ class ElectraOneBase:
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         self._c_instance = c_instance
-        # set up fast sysex upload once
-        if ElectraOneBase._fast_sysex == None:
-            ElectraOneBase._fast_sysex = self._test_fast_sysex()
+        # (main ElectraOne script must setup fast sysex, because this can only
+        # be done after the E1 is detected)
             
     # --- helper functions
 
@@ -241,31 +240,32 @@ class ElectraOneBase:
         self.debug(4,f'External command returned {return_code}')        
         return (return_code == 0)
 
-    def _test_fast_sysex(self):
-        """Test whether fast SysEx commands (bypassing Ableton Live) is
-           supported, and if so properly set it up.
-           - result: wheter succesful or not
+    def setup_fast_sysex(self):
+        """Set up fast sysex upload.
         """
-        if USE_FAST_SYSEX_UPLOAD:
-            # find sendmidi
-            self.debug(1,'Testing whether fast uploading of presets is supported.')
-            ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
-            if ElectraOneBase._fast_sysex_cmd:
-                # if found test if it works
-                testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
-                if self._run_command(testcommand):
-                    self.debug(1,'Fast uploading of presets supported. Great, using that!')
-                    return True
+        # Do this only once.
+        if ElectraOneBase._fast_sysex == None:
+            if USE_FAST_SYSEX_UPLOAD:
+                # find sendmidi
+                self.debug(1,'Testing whether fast uploading of presets is supported.')
+                ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
+                if ElectraOneBase._fast_sysex_cmd:
+                    # if found test if it works
+                    testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
+                    if self._run_command(testcommand):
+                        self.debug(1,'Fast uploading of presets supported. Great, using that!')
+                        ElectraOneBase._fast_sysex = True
+                    else:
+                        self.debug(1,'Fast uploading of presets not supported (command failed), reverting to slow method.')
+                        ElectraOneBase._fast_sysex = False
                 else:
-                    self.debug(1,'Fast uploading of presets not supported (command failed), reverting to slow method.')
-                    return False
+                    self.debug(1,'Fast uploading of presets not supported (command not found), reverting to slow method.')
+                    ElectraOneBase._fast_sysex =  False
             else:
-                self.debug(1,'Fast uploading of presets not supported (command not found), reverting to slow method.')
-                return  False
-        else:
-            self.debug(1,'Slow uploading of presets configured.')
-            return False
+                self.debug(1,'Slow uploading of presets configured.')
+                ElectraOneBase._fast_sysex = False
 
+            
     # --- send midi ---
             
     def send_midi(self, message):
@@ -275,7 +275,7 @@ class ElectraOneBase:
         """
         time.sleep(0.005) # don't overwhelm the E1!
         # test whether longer SysEx message and fast uploading is supported
-        if len(message) > 40 and ElectraOneBase._fast_sysex \
+        if len(message) > 100 and ElectraOneBase._fast_sysex \
            and message[0] == 0xF0 and message[-1] == 0xF7:
             # convert bytes sequence to its string representation.
             # (strip first and last byte of SysEx command in bytes parameter

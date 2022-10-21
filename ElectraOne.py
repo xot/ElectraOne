@@ -79,7 +79,7 @@ class ElectraOne(ElectraOneBase):
         # 'close' the interface until E1 detected.
         self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         # start a thread to detect the E1, if found thread will complete the
-        # initialisation calling
+        # initialisation, setting
         # self._mixer_controller = MixerController(c_instance) and
         # self._effect_controller = EffectController(c_instance)
         self.debug(1,'Setting up connection.')
@@ -112,6 +112,7 @@ class ElectraOne(ElectraOneBase):
                 time.sleep(0.1) 
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
+            self.setup_fast_sysex()
             c_instance = self.get_c_instance()
             self._mixer_controller = MixerController(c_instance)
             # TODO: if a device is appointed, this starts the upload thread
