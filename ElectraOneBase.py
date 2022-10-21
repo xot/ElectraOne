@@ -58,7 +58,7 @@ def cc_value_for_item_idx(idx, items):
     # round(i * 127/(n-1)) 
     return round( idx * (127 / (len(items)-1) ) )
 
-def cc_value(p,max):
+def cc_value(p, max):
     """Convert the value of a parameter to its corresponding CC value
        (in the range 0..max)
        - p: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
@@ -67,7 +67,7 @@ def cc_value(p,max):
     """
     return round(max * ((p.value - p.min) / (p.max - p.min)))
 
-def hexify ( message ):
+def hexify(message):
     """Convert the sequence of (MIDI) bytes into a hexadecimal string
        - message: sequence; (byte)
        - result: str
@@ -241,19 +241,6 @@ class ElectraOneBase:
         self.debug(4,f'External command returned {return_code}')        
         return (return_code == 0)
 
-    def _send_fast_sysex(self, bytes):
-        """Send the specified bytes (encoding a SysEx command) to the E1 fast,
-           bypassing Ableton Live.
-           - bytes: bytes to send; sequence of bytes
-        """
-        # convert bytes sequence to its string representation.
-        # (strip first and last byte of SysEx command in bytes parameter
-        # because sendmidi syx adds them again)
-        bytestr = ' '.join(str(b) for b in bytes[1:-1])
-        command = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
-        if not self._run_command(command):
-            self.debug(4,'Sending SysEx failed')
-    
     def _test_fast_sysex(self):
         """Test whether fast SysEx commands (bypassing Ableton Live) is
            supported, and if so properly set it up.
@@ -278,17 +265,31 @@ class ElectraOneBase:
         else:
             self.debug(1,'Slow uploading of presets configured.')
             return False
-            
-    # --- MIDI CC handling ---
 
+    # --- send midi ---
+            
     def send_midi(self, message):
-        """Send a MIDI message (through Ableton Live)
+        """Send a MIDI message through Ableton Live (except for longer
+           SysEx messages, if fast sending is supported)
            - message: the MIDI message to send; sequence of bytes
         """
-        self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
-        self.debug(5,f'Sending MIDI message: { hexify(message) }.')
         time.sleep(0.005) # don't overwhelm the E1!
-        self._c_instance.send_midi(message)
+        # test whether longer SysEx message and fast uploading is supported
+        if len(message) > 40 and ElectraOneBase._fast_sysex \
+           and message[0] == 0xF0 and message[-1] == 0xF7:
+            # convert bytes sequence to its string representation.
+            # (strip first and last byte of SysEx command in bytes parameter
+            # because sendmidi syx adds them again)
+            bytestr = ' '.join(str(b) for b in message[1:-1])
+            command = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
+            if not self._run_command(command):
+                self.debug(4,'Sending SysEx failed')
+        else:
+            self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
+            self.debug(5,f'Sending MIDI message: { hexify(message) }.')
+            self._c_instance.send_midi(message)
+        
+    # --- MIDI CC handling ---
 
     def send_midi_cc7(self, channel, cc_no, value):
         """Send a 7bit MIDI CC message (through Ableton Live).
@@ -363,6 +364,16 @@ class ElectraOneBase:
 
     # --- MIDI SysEx handling ---
 
+    def _send_large_sysex(self, message):
+        """Send a SysEx message to the E1. Use for large messages only. (Use
+           self.send_midi() for short messages.
+           - message: the message to send; (byte)
+        """
+        if ElectraOneBase._fast_sysex:
+            self._send_fast_sysex(message)
+        else:
+            self.send_midi(message)
+    
     def _send_lua_command(self, command):
         """Send a LUA command to the E1.
            - command: the command to send; str
@@ -416,10 +427,7 @@ class ElectraOneBase:
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x01, 0x0C)
         sysex_script = tuple([ ord(c) for c in luascript ])
         sysex_close = (0xF7, )
-        if ElectraOneBase._fast_sysex:
-            self._send_fast_sysex(sysex_header + sysex_script + sysex_close)
-        else:
-            self.send_midi(sysex_header + sysex_script + sysex_close)
+        self.send_midi(sysex_header + sysex_script + sysex_close)
 
     def _upload_preset_to_current_slot(self, preset):
         """Upload the specified preset to the currently selected slot on
@@ -433,10 +441,7 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
-        if ElectraOneBase._fast_sysex:
-            self._send_fast_sysex(sysex_header + sysex_preset + sysex_close)
-        else:
-            self.send_midi(sysex_header + sysex_preset + sysex_close)
+        self.send_midi(sysex_header + sysex_preset + sysex_close)
 
     def _wait_for_ack_or_timeout(self, timeout):
         """Wait for the reception of an ACK message from the E1, or
