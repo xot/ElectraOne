@@ -83,7 +83,7 @@ class GenericDeviceController(ElectraOneBase):
            on the E1. (Assumes the device is visible!)
         """
         # TODO Visibility matters for the displayed values (probably)
-        # and whether preet upload finished
+        # and whether preset upload finished
         assert self._device
         assert self._preset_info
         for p in self._device.parameters:

@@ -91,10 +91,11 @@ class EffectController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
+        # referrence to the currently assigned device
         self._assigned_device = None
+        # generic controller associated with assigned device
         self._assigned_device_controller = None
         self._assigned_device_locked = False
-        self._preset_info = None
         # register a device appointer;  _set_appointed_device will be called when appointed device changed
         # see _Generic/util.py
         #
@@ -107,7 +108,10 @@ class EffectController(ElectraOneBase):
            (to bring them in sync)
         """
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
-            if self._assigned_device_controller:
+            # Check that a device is assigned and that assigned_device still exists.
+            # (When it gets deleted, the reference to it becomes None.)
+            # TODO: self._assigned_device should imply self._assigned_device_controller
+            if self._assigned_device and self._assigned_device_controller:
                 self.debug(1,'EffCont refreshing state.')
                 self._assigned_device_controller.refresh_state()
                 self.debug(1,'EffCont state refreshed.')
@@ -126,10 +130,11 @@ class EffectController(ElectraOneBase):
         # the device appointer is not called when the appointed device is
         # deleted)
         device = self.song().appointed_device
-        # using self._preset_info to keep track of whether preset already removed or not
-        if device == None and self._preset_info != None:
+        # using self._assigned_device_controller to keep track of whether preset already removed or not
+        # (self._assigned_device becomes None as soon as device it points it is removed)
+        if device == None and self._assigned_device_controller != None:
             self.debug(2,'Currently no device appointed; removing preset.')
-            self._preset_info = None
+            self._assigned_device_controller = None
             self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
         
     def disconnect(self):
@@ -146,15 +151,18 @@ class EffectController(ElectraOneBase):
         """Build a MIDI map for the currently selected device    
         """
         self.debug(1,'EffCont building effect MIDI map.')
-        if self._assigned_device_controller:
+        # Check that a device is assigned and that assigned_device still exists.
+        # (When it gets deleted, the reference to it becomes None.)
+        # TODO: self._assigned_device should imply self._assigned_device_controller
+        if self._assigned_device and self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
         self.debug(1,'EffCont effect MIDI map built.')
         self.refresh_state()
         
     # === Others ===
 
-    def _get_preset(self, device):
-        """Get the preset for the specified device, either externally,
+    def _get_preset_info(self, device):
+        """Get the preset info for the specified device, either externally,
            predefined or else construct it on the fly.
         """
         device_name = get_device_name(device)
@@ -166,7 +174,7 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device_name, device.parameters)
             preset_info = dumper.get_preset()
-        # check preset integrity; ny errors will be reported in the log
+        # check preset integrity; any errors will be reported in the log
         error = preset_info.validate()
         if error:
             self.debug(2,f'Issues in preset found: {error}.')
@@ -220,12 +228,12 @@ class EffectController(ElectraOneBase):
             self.debug(1,f'Assigning device { device_name }')
             if device != self._assigned_device:
                 self._assigned_device = device
-                self._preset_info = self._get_preset(device)
-                self._assigned_device_controller = GenericDeviceController(self._c_instance, device, self._preset_info)
+                preset_info = self._get_preset_info(device)
+                self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
                 self._assigned_device_controller.add_listeners()
                 if DUMP:
-                    self._dump_presetinfo(device,self._preset_info)
-                preset = self._preset_info.get_preset()
+                    self._dump_presetinfo(device,preset_info)
+                preset = preset_info.get_preset()
                 # upload preset: will also request midi map (which will also refresh state)
                 self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
             else:

@@ -264,9 +264,8 @@ class ElectraOneBase:
             else:
                 self.debug(1,'Slow uploading of presets configured.')
                 ElectraOneBase._fast_sysex = False
-
             
-    # --- send midi ---
+    # --- send MIDI ---
             
     def send_midi(self, message):
         """Send a MIDI message through Ableton Live (except for longer
@@ -274,7 +273,7 @@ class ElectraOneBase:
            - message: the MIDI message to send; sequence of bytes
         """
         time.sleep(0.005) # don't overwhelm the E1!
-        # test whether longer SysEx message and fast uploading is supported
+        # test whether longer SysEx message, and fast uploading is supported
         if len(message) > 100 and ElectraOneBase._fast_sysex \
            and message[0] == 0xF0 and message[-1] == 0xF7:
             # convert bytes sequence to its string representation.
@@ -364,16 +363,6 @@ class ElectraOneBase:
 
     # --- MIDI SysEx handling ---
 
-    def _send_large_sysex(self, message):
-        """Send a SysEx message to the E1. Use for large messages only. (Use
-           self.send_midi() for short messages.
-           - message: the message to send; (byte)
-        """
-        if ElectraOneBase._fast_sysex:
-            self._send_fast_sysex(message)
-        else:
-            self.send_midi(message)
-    
     def _send_lua_command(self, command):
         """Send a LUA command to the E1.
            - command: the command to send; str
