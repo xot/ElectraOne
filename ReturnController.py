@@ -14,7 +14,7 @@
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see MixerController.py)
+# CCs (see DOCUMENTATION.md)
 # These are base values, to which the returun index is added for each next return track
 RETURNS_PAN_CC = 10 
 RETURNS_VOLUME_CC = 16

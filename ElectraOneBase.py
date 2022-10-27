@@ -182,7 +182,7 @@ class ElectraOneBase:
         self._c_instance = c_instance
         # (main ElectraOne script must setup fast sysex, because this can only
         # be done after the E1 is detected)
-            
+
     # --- helper functions
 
     def get_c_instance(self):
@@ -202,6 +202,17 @@ class ElectraOneBase:
         """
         self.debug(4,'Rebuilding MIDI map requested')
         self._c_instance.request_rebuild_midi_map()
+
+    def get_device_name(self,device):
+        """Return the (fixed) name of the device (i.e. not the name of the preset)
+           - device: the device; Live.Device.Device
+           - result: device name; str
+        """
+        # TODO: adapt to also get an appropriate name for MaxForLive devices
+        # (device.name equals the name of the selected preset;
+        # device.class_display_name is just a pretyy-printed version of class_name)
+        self.debug(5,f'Returning class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }')
+        return device.class_name
 
     # --- Sending/writing debug/log messages ---
         
@@ -462,6 +473,7 @@ class ElectraOneBase:
             self.debug(2,'Upload thread starting...')
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
+            # TODO: honour SWITCH_WITH_UPLOAD
             self._select_preset_slot(slot)
             if self._wait_for_ack_or_timeout(100): # timeout 1 second
                 # slot selected, now upload preset and wait for ACK

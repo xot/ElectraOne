@@ -9,10 +9,7 @@
 #
 # Distributed under the MIT License, see LICENSE
 
-from .config import *
-from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC14
-
-UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
+from .CCInfo import CCInfo, UNMAPPED_CCINFO
 
 class PresetInfo:
     """ Class containing an E1 JSON preset and the associated CC-map

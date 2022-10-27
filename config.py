@@ -48,6 +48,18 @@ SENDMIDI_CMD = 'lib/sendmidi'
 # name of the Electra One port to which to send the SysEx command
 E1_CTRL_PORT = 'Electra Controller Electra Port 1'
 
+# === DEVICE APPOINTMENT OPTIONS
+
+# Whether to appoint the currently selected device on a selected track
+# (only guaranteed to work if this is the only remote script handling device
+# appointment), or only do this when device is explicitly selected
+APPOINT_ON_TRACK_CHANGE = True
+
+# Whether to change to the Effect preset on the E1 whenever a new device
+# is appointed and its corresponding preset is uploaded, or stay on the
+# master preset
+SWITCH_WITH_UPLOAD = True
+
 # === EFFECT/DEVICE CONFIGURATION CONSTANTS
 
 # E1 preset slot where the preset controlling the currently selected device

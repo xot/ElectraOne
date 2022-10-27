@@ -10,8 +10,8 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# Ableton Live imports
-from _Generic.util import DeviceAppointer
+# Ableton Live imports (TODO: remove, obsolote)
+#from _Generic.util import DeviceAppointer
 
 # Local imports
 from .config import *
@@ -20,7 +20,7 @@ from .PresetInfo import PresetInfo
 from .Devices import get_predefined_preset_info
 from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
-from .GenericDeviceController import GenericDeviceController, get_device_name
+from .GenericDeviceController import GenericDeviceController
 
 # Default LUA script to send along an effect preset. Programs the PATCH REQUEST
 # button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
@@ -92,15 +92,13 @@ class EffectController(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         # referrence to the currently assigned device
+        # (corresponds typically to the currently appointed device by Ableton
         self._assigned_device = None
         # generic controller associated with assigned device
         self._assigned_device_controller = None
         self._assigned_device_locked = False
-        # register a device appointer;  _set_appointed_device will be called when appointed device changed
-        # see _Generic/util.py
-        #
-        # Note (2022-05-21): this appears to IMMEDIATELY call self._set_appointed_device
-        self._device_appointer = DeviceAppointer(song=self.song(), appointed_device_setter=self._set_appointed_device)
+        # listen to device appointment changes (created by DeviceAppointer)
+        self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         self.debug(0,'EffectController loaded.')
 
     def refresh_state(self):
@@ -110,8 +108,7 @@ class EffectController(ElectraOneBase):
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
             # Check that a device is assigned and that assigned_device still exists.
             # (When it gets deleted, the reference to it becomes None.)
-            # TODO: self._assigned_device should imply self._assigned_device_controller
-            if self._assigned_device and self._assigned_device_controller:
+            if self._assigned_device:
                 self.debug(1,'EffCont refreshing state.')
                 self._assigned_device_controller.refresh_state()
                 self.debug(1,'EffCont state refreshed.')
@@ -125,25 +122,15 @@ class EffectController(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms; used to remove preset from E1 if no device selected
         """
-        # Remove preset from E1 if no device assigned
-        # (Theree does not appear to be a handler for this; in any case
-        # the device appointer is not called when the appointed device is
-        # deleted)
-        device = self.song().appointed_device
-        # using self._assigned_device_controller to keep track of whether preset already removed or not
-        # (self._assigned_device becomes None as soon as device it points it is removed)
-        if device == None and self._assigned_device_controller != None:
-            self.debug(2,'Currently no device appointed; removing preset.')
-            self._assigned_device_controller = None
-            self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
-        
+        pass
+    
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
         self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
         if self._assigned_device_controller:
             self._assigned_device_controller.remove_listeners()
-        self._device_appointer.disconnect()                
+        self.song().remove_appointed_device_listener(self._handle_appointed_device_change)
 
     # --- MIDI ---
 
@@ -153,8 +140,7 @@ class EffectController(ElectraOneBase):
         self.debug(1,'EffCont building effect MIDI map.')
         # Check that a device is assigned and that assigned_device still exists.
         # (When it gets deleted, the reference to it becomes None.)
-        # TODO: self._assigned_device should imply self._assigned_device_controller
-        if self._assigned_device and self._assigned_device_controller:
+        if self._assigned_device:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
         self.debug(1,'EffCont effect MIDI map built.')
         self.refresh_state()
@@ -165,7 +151,7 @@ class EffectController(ElectraOneBase):
         """Get the preset info for the specified device, either externally,
            predefined or else construct it on the fly.
         """
-        device_name = get_device_name(device)
+        device_name = self.get_device_name(device)
         self.debug(2,f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
@@ -185,10 +171,10 @@ class EffectController(ElectraOneBase):
     def _dump_presetinfo(self, device, preset_info):
         """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
         """
-        device_name = get_device_name(device)
+        device_name = self.get_device_name(device)
         # determine path to store the dumps in (created if it doesnt exist)
         path = self._ensure_in_libdir('dumps')
-        # dump the preset JSON string
+        # dump the preset JSON string 
         fname = f'{ path }/{ device_name }.epr'
         self.debug(2,f'dumping device: { device_name } in { fname }.')
         s = preset_info.get_preset()
@@ -224,7 +210,7 @@ class EffectController(ElectraOneBase):
 
     def _assign_device(self, device):
         if device != None:
-            device_name = get_device_name(device)
+            device_name = self.get_device_name(device)
             self.debug(1,f'Assigning device { device_name }')
             if device != self._assigned_device:
                 self._assigned_device = device
@@ -240,9 +226,12 @@ class EffectController(ElectraOneBase):
                 self.debug(1,'Device already assigned.')
         else:
             # this does not happen (unfortunately)
+            self._assigned_device = None
             self.debug(1,'Assigning an empty device.')
-                
-    def _set_appointed_device(self, device):
+            # TODO: remove device preset from E1
+            self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
+
+    def _handle_appointed_device_change(self):
+        device = self.song().appointed_device
         if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):
             self._assign_device(device)
-        

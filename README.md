@@ -41,9 +41,11 @@ All controls on all pages are synced with the values of the parameters in Live t
 
 There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are layed out horizontally instead of vertically (such that all track controls are active at the same time).
 
-## Controlling the currently selected device
+## Controlling the currently appointed device
 
-The remote script looks for a preloaded preset for the selected device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
+In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
+
+The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
@@ -127,7 +129,7 @@ Make sure that the version of Ableton Live and the firmware of the ElectraOne ar
 
 Start Ableton 
 
-A patch for any device selected (the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the Electra One
+A patch for the appointed  device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the Electra One
 
 See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS).
 
@@ -137,7 +139,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 
 - ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
-- ```DUMP``` controls whether the preset and CC map information of the  currently selected device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
+- ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
 - ```DETECT_E1``` controls whether to detect the ElectraOne at startup, or not.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
@@ -146,9 +148,15 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 
+The following constants configure when a device is *appointed* (becomes the device to manage by the remote controller(s)) and how to respond to that.
+
+- ```APPOINT_ON_TRACK_CHANGE``` Whether to appoint the currently selected device on a selected track (only guaranteed to work if this is the only remote script handling device appointment), or only do this when device is explicitly selected. Default is ```True```.
+- ```SWITCH_WITH_UPLOAD``` Whether to change to the Effect preset on the E1 whenever a new device is appointed and its corresponding preset is uploaded, or to stay on the master preset instead. Default is ```True```.
+
+
 The following constant deals with the slot where device presets are loaded.
 
-- ```EFFECT_PRESET_SLOT``` E1 preset slot where the preset controlling the currently selected device is stored. Specified by bank index (0..5) followed by preset index (0.11). The default is ```(5,1)```.
+- ```EFFECT_PRESET_SLOT``` E1 preset slot where the preset controlling the currently appointed device is stored. Specified by bank index (0..5) followed by preset index (0.11). The default is ```(5,1)```.
 
 The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
 

@@ -18,6 +18,7 @@ import sys
 from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte, hexify
 from .EffectController import EffectController
 from .MixerController import MixerController
+from .DeviceAppointer import DeviceAppointer
 from .config import *
 
 # SysEx defines and helpers
@@ -120,6 +121,9 @@ class ElectraOne(ElectraOneBase):
             # The upload thread for the appointed device (if any) will request
             # the MIDI map to be rebuilt
             self._effect_controller = EffectController(c_instance)
+            self._device_appointer = DeviceAppointer(c_instance)
+            # allow appointed device to trigger the listener registered by the effect controller
+            time.sleep(0.1)
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface (unless a preset upload is still running)
             self._E1_connected = True

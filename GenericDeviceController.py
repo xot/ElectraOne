@@ -21,18 +21,6 @@ from .ValueListener import ValueListeners
 
 # --- helper functions
 
-def get_device_name(device):
-    """Return the (fixed) name of the device (i.e. not the name of the preset)
-       - device: the device; Live.Device.Device
-       - result: device name; str
-    """
-    # TODO: adapt to also get an appropriate name for MaxForLive devices
-    # (device.name equals the name of the selected preset;
-    # device.class_display_name is just a pretyy-printed version of class_name)
-    return device.class_name
-
-                
-
 class GenericDeviceController(ElectraOneBase):
     """Control devices (both selected ones and the ChannelEq devices
        in the mixer): build MIDI maps, add value listeners, refresh state
@@ -49,6 +37,7 @@ class GenericDeviceController(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         self._device = device
+        self._device_name = self.get_device_name(self._device)
         self._preset_info = preset_info
         self._value_listeners = None
 
@@ -60,8 +49,7 @@ class GenericDeviceController(ElectraOneBase):
         """
         assert self._device
         assert self._preset_info
-        device_name = get_device_name(self._device)
-        self.debug(3,f'Building MIDI map for device { device_name }')
+        self.debug(3,f'Building MIDI map for device { self._device_name }')
         parameters = self._device.parameters
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
@@ -97,8 +85,7 @@ class GenericDeviceController(ElectraOneBase):
         """Add value listeners for all (slider) parameters of the device.
         """
         # this needs to be done only once when object/device controller created
-        device_name = get_device_name(self._device)
-        self.debug(3,f'Setting up listeners for device { device_name }')
+        self.debug(3,f'Setting up listeners for device { self._device_name }')
         self._value_listeners = ValueListeners(self)
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
@@ -111,6 +98,5 @@ class GenericDeviceController(ElectraOneBase):
         """Remove all value listeners added.
         """
         if self._value_listeners:
-            device_name = get_device_name(self._device)
-            self.debug(3,f'Removing listeners for device { device_name }')
+            self.debug(3,f'Removing listeners for device { self._device_name }')
             self._value_listeners.remove_all()

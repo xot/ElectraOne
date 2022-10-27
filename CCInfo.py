@@ -9,11 +9,14 @@
 #
 # Distributed under the MIT License, see LICENSE
 
-# dummy CC parameter value to indicate an unmapped CC
-UNMAPPED_CC = -1
+from .config import *
 
+# Boolean flag values indicating 7bit or 14bit CC parameters
 IS_CC7 = False
 IS_CC14 = True
+
+# dummy CC parameter value to represent an unmapped CC
+UNMAPPED_CC = -1
 
 class CCInfo:
     """Class storing the channel and parameter number of a CC mapping, and
@@ -60,6 +63,9 @@ class CCInfo:
            - result: whether mapped or not ; bool
         """
         return self._cc_no != UNMAPPED_CC
-    
+
+# CCInfo object for an unmapped parameter
+UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
+
 
 

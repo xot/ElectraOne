@@ -16,7 +16,7 @@
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see MixerController.py)
+# CCs (see DOCUMENTATION.md)
 # These are base values, to which TRACKS_FACTOR is added for each next return track
 PAN_CC = 0
 VOLUME_CC = 5
@@ -54,7 +54,7 @@ class TrackController(GenericTrackController):
     """
     
     def __init__(self, c_instance, idx, offset):
-        """Initialise a track controller for track idx with offset.
+        """Initialise a track controller for track idx.
            - c_instance: Live interface object (see __init.py__)
            - idx: index in the list of tracks, 0=first; int
            - offset: offset of this track realtive to the first mapped track; int

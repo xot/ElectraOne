@@ -18,70 +18,11 @@
 # (through the GUI or the another remote controller) are synced automatically :-( 
 #
 # This assumes a mixer preset with controls assigned to channel
-# MIDI_MASTER_CHANNEL and MIDI_TRACKS_CHANNEL with the following assignment
-# of CC parameters (where it is assumed each channel runs a Channel-EQ device).
-# All faders are CC14 MSB first mapped to the specified cc-no (and cc-no+32)
-#
-# Track x+1 (for x in [0..4]) all assigned to MIDI_TRACKS_CHANNEL
-#
-# - 0 + x (32 + x) Pan
-# - 5 + x (37 + x) Volume
-# - 79 + x Active (On/Off)
-# - 84 + x Solo/cue (On/Off)
-# - 89 + x Arm (On/Off)
-#
-# - 10 + x (42 + x) High
-# - 15 + x (47 + x) Mid Freq
-# - 20 + x (52 + x) Mid
-# - 25 + x (57 + x) Low
-# - 111 + x Rumble (On/Off)
-# - 64 + x (96 + x) Output
-#
-#
-# The sends for rack x+1 (for x in [0..4]) all assigned to MIDI_SENDS_CHANNEL
-#
-# - 0 + x (32 + x) Send A
-# - 5 + x (37 + x) Send B
-# - 10 + x (42 + x) Send C
-# - 15 + x (47 + x) Send D
-# - 20 + x (52 + x) Send E
-# - 25 + x (57 + x) Send F
-
-#
-# Transport all assigned to MIDI_MASTER_CHANNEL
-#
-# - 15 prev tracks (Trigger)
-# - 47 next tracks (Trigger)
-# - 16 play/stop (On/Off)
-# - 48 record (On/Off)
-# - 17 rewind (trigger)
-# - 49 forward (Trigger)
-
-PREV_TRACKS_CC = 68
-NEXT_TRACKS_CC = 69
-
-# Master all assigned to MIDI_MASTER_CHANNEL
-#
-# - 0 (32) Pan
-# - 1 (33) Volume
-# - 2 (34) Cue volume
-# - 9 Solo (On/Off)
-#
-# - 3 (35) High
-# - 4 (36) Mid Freq
-# - 5 (37) Mid
-# - 6 (38) Low
-# - 7 (39) Output
-# - 8 Rumble (On/Off)
-#
-# - 64-79 (96-101) SEND A-E Pan
-# - 70-75 (102-107) SEND A-E Volume
-# - 76-81 (108-113) SEND A_E Mute
-#
+# MIDI_MASTER_CHANNEL and MIDI_TRACKS_CHANNEL with CC assignments as detailed
+# in DOCUMENTATION.md
 
 # Python imports
 import time
-
 
 # Ableton Live imports
 import Live
@@ -93,6 +34,10 @@ from .TransportController import TransportController
 from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
+
+# CCs (see DOCUMENTATION.md)
+PREV_TRACKS_CC = 68
+NEXT_TRACKS_CC = 69
 
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
@@ -116,7 +61,7 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
-        self._track_controllers = []  # filled by self._handle_selected_tracks_change()
+        self._track_controllers = []  
         self._remap_tracks()
         # init MIDI handlers
         self._init_handlers()

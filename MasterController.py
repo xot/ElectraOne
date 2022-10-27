@@ -14,7 +14,7 @@
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see MixerController.py)
+# CCs (see DOCUMENTATION.md)
 MASTER_PAN_CC = 0
 MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2

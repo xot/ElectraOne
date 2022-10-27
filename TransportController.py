@@ -16,7 +16,7 @@ import Live
 from .config import *
 from .ElectraOneBase import ElectraOneBase
 
-# CCs (see MixerController.py)
+# CCs (see DOCUMENTATION.md)
 PLAY_STOP_CC = 64
 RECORD_CC = 65
 REWIND_CC = 66

@@ -27,7 +27,7 @@ the paths in a MIDI Remote Script are slightly different from the paths mentione
 - also, paths in MIDI Remote Scripts don't use spaces but use dots, e.g. ```self.song().view.selected_track```.
 - the symbol N in a path means that the part before it returns a list. So ```live_set tracks N ``` should be translated to ```self.song().tracks[i]``` to return the i-th track.
 
-Note that (that version of) the Live API itself does not contain all the necessary information to write Remote Scripts: it does not offer any information on MIDI mapping, or the interface between Live and the remote script (i.e the ```c_instance``` object passed to the Remote Script by Live), which is necessary to understand how to send and receive MIDI messages, how to detect device selection changes, or how to indeed map MIDI (and how that works, exactly).
+Note that (that version of) the Live API itself does not contain all the necessary information to write Remote Scripts: it does not offer any information on MIDI mapping, or the interface between Live and the remote script (i.e the ```c_instance``` object passed to the Remote Script by Live), which is necessary to understand how to send and receive MIDI messages, how to detect device 'appointment' (selection) changes, or how to indeed map MIDI (and how that works, exactly).
 
 Because no official documentation existed, in the past people have reverse engineered the [Live API reference documentation](https://structure-void.com/PythonLiveAPI_documentation/Live11.0.xml) which shows the Python interface of most of Live's externally callable functions (most of the time without any documentation, however).
 
@@ -53,7 +53,7 @@ Every remote script Python package must contain a file ```__init.py__``` that sh
 - ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live in the Preferences dialog. 
 - ```get_capabilities``` that returns a dictionary with properties apparently used by Live to determine what capabilities the remote script supports, although I have not been able to find any information about what this should contain and how it is used.
 
-Essentially, the object returned by ```create_instance``` allows Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script a new device is selected, or to send it MIDI events.
+Essentially, the object returned by ```create_instance``` allows Live to send instructions to (i.e. call methods on) the remote script. It is the interface from Live to the remote script. This is used by Live to tell the remote script to update the display, or to send it MIDI events.
 
 The parameter ```c_instance``` on the other hand allows the remote script to send instructions to (i.e. call methods on) Live. It is the interface from the remote script back to Live. It is used, for example, to tell Live to add a MIDI mapping, or to send MIDI events to the external controller.
 
@@ -154,7 +154,7 @@ Using Python's ```dir()``` function we can obtain the full signature of ```c_ins
 'velocity_levels']
 ```
 
-Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices and some code to deal with device appointment, the Electra One remote script does not make use of these.
+Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices, the Electra One remote script does not make use of these.
 
 ## MIDI / Ableton
 
@@ -253,19 +253,24 @@ Live automatically calls ```build_midi_map``` when
 
 At start-up or when loading a song build_midi_map is called several times.
 
-## Device selection
+## Device appointment
 
-In Live, device selection (the 'Blue Hand') works as follows. You can register a handler that will be called whenever the currently selected ('appointed') device changes through the Live remote script framework class ```DeviceAppointer```, which should be called as follows
+In Live, device *appointment* is the process of mapping the currently selected device to a remote controller. But it is a bit of a mess, to be honest. Here is why
+
+The currently loaded song maintains the currently appointed device (accessible as ```self.song().appointed_device```). If assigned a device, this device displays the `Blue Hand' to indicate it is controlled by a remote controller.
+Remote control script can register a listener for changes to this variable (a [property](https://docs.python.org/3/library/functions.html#property), really) by calling
 
 ```
-DeviceAppointer(song=c_instance.song(), appointed_device_setter=set_appointed_device)
+self.song().add_appointed_device_listener(<listener-function>)
 ```
 
-*Note: it seems that as soon as the device appointer is registered in this way, and a device was already selected, the registered device appointer is called immediately*
+to update the remote controller whenever the appointed device changes. So far so good.
 
-The registered handler will be called with a reference to the selected device passed as its parameter.
+The problem is that ```self.song().appointed_device``` is shared by all remote controllers and their scripts, but that Live does not itself handle the appointment of the currently selected device. The remote script needs to do it. In our case ```DeviceAppointer.py``` deals with this. But this potentially interferes with device appointment routines written by other remote scripts.
 
-Device selection should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
+
+
+Device appointments should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
 
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
 
