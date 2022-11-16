@@ -90,19 +90,12 @@ class TrackController(GenericTrackController):
         """Change the track name displayed on the remote controller for
            this return track.
         """
-        # TODO: this may need to be updated with E1 firmware API changes
         # tracks page
-        idx = self._offset+1
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
-        self._send_lua_command(command)
+        self.update_group_label(self._offset+1, self._track.name)
         # channel eq page
-        idx = self._offset+9
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
-        self._send_lua_command(command)
+        self.update_group_label(self._offset+9, self._track.name)
         # sends page
-        idx = self._offset+15
-        command = f'local group = groups.get({idx})\n group:setLabel("{self._track.name}")'
-        self._send_lua_command(command)
+        self.update_group_label(self._offset+15, self._track.name)
 
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,

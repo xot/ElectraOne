@@ -268,6 +268,7 @@ to update the remote controller whenever the appointed device changes. So far so
 
 The problem is that ```self.song().appointed_device``` is shared by all remote controllers and their scripts, but that Live does not itself handle the appointment of the currently selected device. The remote script needs to do it. In our case ```DeviceAppointer.py``` deals with this. But this potentially interferes with device appointment routines written by other remote scripts.
 
+This means, for example, that setting ```APPOINT_ON_TRACK_CHANGE``` to ```False``` may have no effect if the other remote script decides to appoint anyway.
 
 
 Device appointments should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
@@ -469,7 +470,7 @@ We refrain from using the method used by almost all other remotes scripts to cor
 
 Note that all these faders do now operate at their full 14bit potential.
 
-### The Mixer MIDI MAP
+### The Mixer MIDI map
 
 Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, essentially just buttons sending 0 for off and  127 for on values. Controllers are mapped as follows.
 
@@ -585,6 +586,50 @@ not all sends may be present on a track. The first six sends of a track are cont
 |  57 | X          | X          | X          | X          | X          |
 |  62 | -          | 
 |  63 | -          | 
+
+### The Mixer identifier map
+
+Each control and label in the Mixer has fixed id, used to change the label or the visibility (this allows different layouts of the mixer to be handled seamlessly). The assignment is as follows
+
+#### Main page
+
+- Track labels: *track-offset* + 1 , i.e. 1 .. 5 for the regular tracks, and 6 for the master track.
+- Track controls:
+  - Pan: *track-offset* + 1; master: 6.
+  - Volume: *track-offset* + 7; master: 12.
+  - Active:  *track-offset* + 13; master: 18.
+  - Solo/Cue: *track-offset* + 19; master: 24.
+  - Arm: *track-offset* + 25, not for master track.
+ 
+#### Channel EQs page
+
+- Track labels: *track-offset* + 9, master: 14.
+- Track Channel EQ controls:
+  - High: *track-offset* + 37
+  - Mid Freq: *track-offset* + 43
+  - Mid: *track-offset* + 49
+  - Low: *track-offset* + 55
+  - Rumble: *track-offset* + 61
+  - Output: *track-offset* + 67
+  
+#### Sends page
+
+- Track labels: *track-offset* + 15, not for master track.
+- Track sends
+  - Send A: *track-offset* + 73 (5 controls)
+  - Send B: *track-offset* + 79 (5 controls)
+  - Send C: *track-offset* + 85 (5 controls)
+  - Send D: *track-offset* + 91 (5 controls)
+  - Send E: *track-offset* + 97 (5 controls)
+  - Send F: *track-offset* + 103 (5 controls)
+
+#### Returns page
+
+- Return track labels: *return-index* + 20 (6 return tracks maximum)
+- Return track controls:
+  - Pan: *return-index* + 109
+  - Volume: *return-index* + 115
+  - Active: *return-index* + 121
 
 ### Internally
 

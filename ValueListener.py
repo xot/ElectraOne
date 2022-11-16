@@ -35,7 +35,9 @@ class ValueListener:
     def remove(self):
         """Remove the value listeners for the registered parameter.
         """
-        if self._parameter.value_has_listener(self.update_value):
+        # test if parameter still exists (if return track deleted, the
+        # corresponding send on a track no longer exists
+        if self._parameter and self._parameter.value_has_listener(self.update_value):
             self._parameter.remove_value_listener(self.update_value)        
 
     def update_value(self):

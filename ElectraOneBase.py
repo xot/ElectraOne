@@ -385,6 +385,42 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
 
+    def update_group_label(self, idx, label):
+        """Update the label for a group of the current preset on the E1.
+           - idx: index of the group in the current preset; int
+           - label: new text; str
+        """
+        # TODO: make a new command for this
+        command = f'local group = groups.get({idx})\n group:setLabel("{label}")'
+        self._send_lua_command(command)
+
+    def update_controls_labels(self, controls, label):
+        """Update the label for a set of controls in the currently selected preset.
+           - controls: set of control indices to change; set of int
+           - label: new text; str
+        """
+        # TODO: make a new command for this
+        command = f'for i,ci in ipairs({controls}) do\n local control = controls.get(ci)\n control:setName("{label}")\n end'
+        self._send_lua_command(command)
+        
+    def set_group_visibility(self, groupidx, flag):
+        """Set the visibility of a group in the currently selected preset
+           - groupidx: index of the group to show/hide; int
+           - flag: true if visible, false if not; boolean
+        """
+        flagstr = str(flag).lower()
+        command = f'local group = groups.get({groupidx})\n group:setVisible({flagstr})'
+        self._send_lua_command(command)
+    
+    def set_controls_visibility(self, controls, flag):
+        """Set the visibility of a set of controls in the currently selected preset.
+           - controls: set of control indices to show/hide; set of int
+           - flag: true if visible, false if not; boolean
+        """
+        flagstr = str(flag).lower()
+        command = f'for i,ci in ipairs({controls}) do\n local control = controls.get(ci)\n control:setVisible({flagstr})\n end'        
+        self._send_lua_command(command)
+        
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)

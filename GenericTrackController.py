@@ -71,7 +71,6 @@ from .ValueListener import ValueListeners
 from .GenericDeviceController import GenericDeviceController
 
 
-# TODO: hide/gray out unmapped sends
 
 class GenericTrackController(ElectraOneBase):
     """Generic class to manage a track. To be subclassed to handle normal
@@ -228,6 +227,7 @@ class GenericTrackController(ElectraOneBase):
         self._value_listeners.add(track.mixer_device.panning, None)
         if self._base_cue_volume_cc:  # master track only
             self._value_listeners.add(track.mixer_device.cue_volume, None)
+        # get at most MAX_NO_OF_SENDS sends
         sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
         if self._sends_cc != None: # audio/midi tracks only
             for send in sends:
