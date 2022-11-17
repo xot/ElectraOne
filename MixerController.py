@@ -80,52 +80,6 @@ class MixerController(ElectraOneBase):
         idx = max(idx, 0)            
         return idx
 
-    def _set_return_track_visibility(self, idx, flag):
-        """Set the visibility of the group label and all controls associated
-           with a return track on the return track and sends page
-           - idx: return track (relative, starting at 0); int
-           - flag: true if visible, false if not; boolean
-        """
-        if flag:
-            self.debug(4,f'Showing return track {idx}.')
-        else:
-            self.debug(4,f'Hiding return track {idx}.')            
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # label
-        self.set_group_visibility(idx+20,flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # return track controls
-        self.set_controls_visibility( { 109+idx+6*j for j in range(3) },flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # send controls
-        self.set_controls_visibility( { 73+6*idx+j for j in range(5) },flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update        
-
-    def _set_track_visibility_all_pages(self, idx, flag):
-        """Set the visibility of all controls and all group labels on
-           all pages (main, channel eq and sends) associated
-           with a track.
-           - idx: track (relative, starting at 0); int
-           - flag: true if visible, false if not; boolean
-        """
-        if flag:
-            self.debug(4,f'Showing track {idx}')
-        else:
-            self.debug(4,f'Hiding track {idx}.')            
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # main
-        self.set_group_visibility(idx+1,flag)
-        self.set_controls_visibility( { idx+1+6*j for j in range(5) },flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # channel eq
-        self.set_group_visibility(idx+9,flag)
-        self.set_controls_visibility( { idx+37+6*j for j in range(6) },flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-        # sends
-        self.set_group_visibility(idx+15,flag)
-        self.set_controls_visibility( { idx+73+6*j for j in range(6) },flag)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
-
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
            (to bring them in sync); hide controls for non existing
@@ -139,26 +93,14 @@ class MixerController(ElectraOneBase):
             self.debug(1,'MixCont refreshing state.')
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
-            # show in-use tracks (first, as return tracks may hide controls in send page)
-            # TODO: fix this, because now first all send controls are shown
-            # and then the ones that need to be hidden are hidden again
-            for i in range(len(self._track_controllers)):
-                self._set_track_visibility_all_pages(i,True)
+            # make the right controls and group labels visible
+            self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # refresh tracks
             for track in self._track_controllers:
                 track.refresh_state()
-            # hide tracks not in use
-            for i in range(len(self._track_controllers),5):
-                self._set_track_visibility_all_pages(i,False)
-            # show in-use return tracks
-            for i in range(len(self._return_controllers)):
-                self._set_return_track_visibility(i,True)
             # refresh return tracks
             for retrn in self._return_controllers:
                 retrn.refresh_state()
-            # hide return tracks not in use
-            for i in range(len(self._return_controllers),6):
-                self._set_return_track_visibility(i,False)
             self.debug(1,'MixCont state refreshed.')
         else:
             self.debug(1,'MixCont not refreshing state (mixer not visible).')
