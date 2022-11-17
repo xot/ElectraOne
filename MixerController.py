@@ -93,8 +93,6 @@ class MixerController(ElectraOneBase):
             self.debug(1,'MixCont refreshing state.')
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
-            # make the right controls and group labels visible
-            self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # refresh tracks
             for track in self._track_controllers:
                 track.refresh_state()
@@ -172,13 +170,19 @@ class MixerController(ElectraOneBase):
         self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 10, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         
-    def _handle_selected_tracks_change(self):
+    def _handle_selected_tracks_change(self,tracks_added_deleted):
         """Call this whenever the current set of selected tracks changes
            (e.g. when adding or deleting tracks, or when shifting the focus
            left or right)
+           - track_added_deleted: whether tracks were added or deleted
+               (and hence mixer preset visibility needs to be updated)
         """
         self._remap_tracks()
         # no need to remap return tracks as the selection of those never changes
+        # make the right controls and group labels visible if mixer currently visible
+        if tracks_added_deleted and (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            self.debug(3,'Tracks added or deleted so adjust mixer visibility.')
+            self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
@@ -192,7 +196,7 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
-        self._handle_selected_tracks_change()
+        self._handle_selected_tracks_change(True)
         
     # --- Handlers ---
         
@@ -212,7 +216,7 @@ class MixerController(ElectraOneBase):
             self.debug(3,'Prev tracks pressed.')
             # shift left, but not before first track
             self._first_track_index = self._validate_track_index(self._first_track_index - NO_OF_TRACKS)
-            self._handle_selected_tracks_change()
+            self._handle_selected_tracks_change(False)
             
     def _do_next_tracks(self,value):
         """Shift right NO_OF_TRACKS; don't move beyond last track.
@@ -221,7 +225,7 @@ class MixerController(ElectraOneBase):
             self.debug(3,'Next tracks pressed.')
             # shift right, but not beyond last track
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
-            self._handle_selected_tracks_change()
+            self._handle_selected_tracks_change(False)
 
     # --- MIDI mapping ---
         
