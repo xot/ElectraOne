@@ -43,7 +43,7 @@ RESET_SLOT = (5,11)
 # If True, correctly set the following two constants too  
 USE_FAST_SYSEX_UPLOAD = False
 
-# path to the sendmidi command, relative to ~/LOCLADIR or ~ 
+# path to the sendmidi command, relative to local library directory (see LIBDIR)
 SENDMIDI_CMD = 'lib/sendmidi'
 # name of the Electra One port to which to send the SysEx command
 E1_CTRL_PORT = 'Electra Controller Electra Port 1'

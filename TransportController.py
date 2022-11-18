@@ -111,10 +111,10 @@ class TransportController(ElectraOneBase):
         """Define handlers for incoming MIDI CC messages.
         """
         self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, REWIND_CC) : self._handle_rewind
-            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._handle_forward
+               (MIDI_MASTER_CHANNEL, REWIND_CC)    : self._handle_rewind
+            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC)   : self._handle_forward
             ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
-            ,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._handle_record
+            ,  (MIDI_MASTER_CHANNEL, RECORD_CC)    : self._handle_record
             }
 
     def _handle_rewind(self,value):
@@ -160,11 +160,9 @@ class TransportController(ElectraOneBase):
         """
         self.debug(5,f'Trying TransportControler.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(5,f'TransportController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
-            if handler:
-                self.debug(5,f'TransportController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
-                handler(value)
-
+            handler(value)
     
     def build_midi_map(self, script_handle, midi_map_handle):
         """Map all track controls on their associated MIDI CC numbers; either

@@ -28,11 +28,11 @@ MASTER_EQ_DEVICE_NAME = 'ChannelEq'
 # Specify the CC-map here (like in Devices.py)
 MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
               'Highpass On': (MIDI_MASTER_CHANNEL, 0, 8)
-            , 'Low Gain': (MIDI_MASTER_CHANNEL, 1, 6)
-            , 'Mid Gain': (MIDI_MASTER_CHANNEL, 1, 5)
-            , 'Mid Freq': (MIDI_MASTER_CHANNEL, 1, 4)
-            , 'High Gain': (MIDI_MASTER_CHANNEL, 1, 3)
-            , 'Gain': (MIDI_MASTER_CHANNEL, 1, 7)
+            , 'Low Gain':    (MIDI_MASTER_CHANNEL, 1, 6)
+            , 'Mid Gain':    (MIDI_MASTER_CHANNEL, 1, 5)
+            , 'Mid Freq':    (MIDI_MASTER_CHANNEL, 1, 4)
+            , 'High Gain':   (MIDI_MASTER_CHANNEL, 1, 3)
+            , 'Gain':        (MIDI_MASTER_CHANNEL, 1, 7)
             }
 
 class MasterController(GenericTrackController):

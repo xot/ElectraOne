@@ -13,7 +13,7 @@
 
 class ValueListener:
     """Value listener for a particular parameter.
-    (Keeps state for the associated listener). 
+       (Keeps state for the associated listener). 
     """
 
     def __init__(self, parameter, info, base):
@@ -35,8 +35,8 @@ class ValueListener:
     def remove(self):
         """Remove the value listeners for the registered parameter.
         """
-        # test if parameter still exists (if return track deleted, the
-        # corresponding send on a track no longer exists
+        # test if parameter still exists (if return track is deleted, the
+        # corresponding send on a track no longer exists)
         if self._parameter and self._parameter.value_has_listener(self.update_value):
             self._parameter.remove_value_listener(self.update_value)        
 

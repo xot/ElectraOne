@@ -40,11 +40,11 @@ TRACK_EQ_DEVICE_NAME = 'ChannelEq'
 # by adding the offset to the base defined here
 TRACK_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
               'Highpass On': (MIDI_TRACKS_CHANNEL, 0, 121)
-            , 'Low Gain': (MIDI_TRACKS_CHANNEL, 1, 25)
-            , 'Mid Gain': (MIDI_TRACKS_CHANNEL, 1, 20)
-            , 'Mid Freq': (MIDI_TRACKS_CHANNEL, 1, 15)
-            , 'High Gain': (MIDI_TRACKS_CHANNEL, 1, 10)
-            , 'Gain': (MIDI_TRACKS_CHANNEL, 0, 64)
+            , 'Low Gain'   : (MIDI_TRACKS_CHANNEL, 1, 25)
+            , 'Mid Gain'   : (MIDI_TRACKS_CHANNEL, 1, 20)
+            , 'Mid Freq'   : (MIDI_TRACKS_CHANNEL, 1, 15)
+            , 'High Gain'  : (MIDI_TRACKS_CHANNEL, 1, 10)
+            , 'Gain'       : (MIDI_TRACKS_CHANNEL, 0, 64)
             }
 
 class TrackController(GenericTrackController):
@@ -90,12 +90,7 @@ class TrackController(GenericTrackController):
         """Change the track name displayed on the remote controller for
            this return track.
         """
-        # tracks page
-        self.update_group_label(self._offset+1, self._track.name)
-        # channel eq page
-        self.update_group_label(self._offset+9, self._track.name)
-        # sends page
-        self.update_group_label(self._offset+15, self._track.name)
+        self.update_track_labels(self._offset,self._track.name)
 
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,
@@ -110,9 +105,9 @@ class TrackController(GenericTrackController):
            (Mute, solo/cue and arm button for the normal track)
         """
         self._CC_HANDLERS = {
-                (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) ) : self._handle_mute_button
+                (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) )     : self._handle_mute_button
               , (MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC) ) : self._handle_solo_cue_button
-              , (MIDI_TRACKS_CHANNEL, self._my_cc(ARM_CC) ) : self._handle_arm_button
+              , (MIDI_TRACKS_CHANNEL, self._my_cc(ARM_CC) )      : self._handle_arm_button
         }
 
         

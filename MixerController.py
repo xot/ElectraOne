@@ -64,7 +64,7 @@ class MixerController(ElectraOneBase):
         self._track_controllers = []  
         self._remap_tracks()
         # init MIDI handlers
-        self._init_handlers()
+        self._init_cc_handlers()
         self._add_listeners()
         self.debug(0,'MixerController loaded.')
 
@@ -170,22 +170,22 @@ class MixerController(ElectraOneBase):
         self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 10, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         
-    def _handle_selected_tracks_change(self,tracks_added_deleted):
-        """Call this whenever the current set of selected tracks changes
-           (e.g. when adding or deleting tracks, or when shifting the focus
-           left or right)
-           - track_added_deleted: whether tracks were added or deleted
-               (and hence mixer preset visibility needs to be updated)
+    def _handle_selected_tracks_change(self):
+        """Call this whenever the current set of selected tracks changes.
+            Updates MIDI mapping, listeners and the displayed values.
         """
         self._remap_tracks()
         # no need to remap return tracks as the selection of those never changes
         # make the right controls and group labels visible if mixer currently visible
-        if tracks_added_deleted and (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-            self.debug(3,'Tracks added or deleted so adjust mixer visibility.')
-            self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
+    def set_visibility(self):
+        """Set visibility of tracks, sends and return tracks on the E1.
+        """
+        if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+            self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
+        
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes
             the Return tracks). Updates MIDI mapping, listeners and the
@@ -196,36 +196,41 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
-        self._handle_selected_tracks_change(True)
+        self._remap_tracks()
+        # no need to remap return tracks as the selection of those never changes
+        # make the right controls and group labels visible if mixer currently visible
+        self.set_visibility()
+        self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
+        self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
         
     # --- Handlers ---
         
-    def _init_handlers(self):
+    def _init_cc_handlers(self):
         """Define handlers for incoming MIDI CC messages.
            (previous and next track selection for the  mixer.)
         """
         self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._do_prev_tracks
-            ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._do_next_tracks
+               (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
+            ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
             }
         
-    def _do_prev_tracks(self,value):
+    def _handle_prev_tracks(self,value):
         """Shift left NO_OF_TRACKS; don't move before first track.
         """
-        if value == 127:
+        if value > 63:
             self.debug(3,'Prev tracks pressed.')
             # shift left, but not before first track
             self._first_track_index = self._validate_track_index(self._first_track_index - NO_OF_TRACKS)
-            self._handle_selected_tracks_change(False)
+            self._handle_selected_tracks_change()
             
-    def _do_next_tracks(self,value):
+    def _handle_next_tracks(self,value):
         """Shift right NO_OF_TRACKS; don't move beyond last track.
         """
-        if value == 127:
+        if value > 63:
             self.debug(3,'Next tracks pressed.')
             # shift right, but not beyond last track
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
-            self._handle_selected_tracks_change(False)
+            self._handle_selected_tracks_change()
 
     # --- MIDI mapping ---
         
@@ -238,13 +243,11 @@ class MixerController(ElectraOneBase):
         """
         self.debug(4,f'Handling ({midi_channel},{cc_no}) with value {value}.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(5,f'MixerController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
-            if handler:
-                self.debug(4,'Handler found.')
-                handler(value)
-            else:
-                self.debug(4,'Handler expected but not found.')
+            handler(value)
         else:
+            # TODO: detect found handler and finish search immediately
             self._transport_controller.process_midi(midi_channel,cc_no,value)                    
             self._master_controller.process_midi(midi_channel,cc_no,value)    
             for retrn in self._return_controllers:

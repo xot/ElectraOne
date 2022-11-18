@@ -132,6 +132,7 @@ class ElectraOne(ElectraOneBase):
             if self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
                 self._select_preset_slot(MIXER_PRESET_SLOT)
+                self._mixer_controller.set_visibility()
                 # TODO: really should wait for an ACK! but this is a bit complex
                 # because the ACK is only sent AFTER the preset changed message
                 # so we stick to this hack that appears to work too.

@@ -250,7 +250,7 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
-            # TODO: remove value listeners
+            # remove value listeners
             if self._value_listeners:
                 self._value_listeners.remove_all()
             if self._eq_device_controller:
@@ -337,10 +337,9 @@ class GenericTrackController(ElectraOneBase):
         """
         self.debug(5,f'GenericTrackControler: trying to process MIDI by track { self._track.name}.')
         if (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
-            if handler:
-                self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
-                handler(value)
+            handler(value)
 
     def build_midi_map(self, script_handle, midi_map_handle):
         """Map all track controls on their associated MIDI CC numbers; either
