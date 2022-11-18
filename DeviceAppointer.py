@@ -35,6 +35,7 @@ class DeviceAppointer(ElectraOneBase):
         # TODO: trigger initial device appointment; or start always with mixer track
         self._selected_track = None
         self._handle_selected_track_change()
+        self.debug(0,'DeviceAppointer loaded.')
         
     def _handle_selected_track_change(self):
         """Handle a track selection change: make the currently selected device
@@ -79,10 +80,10 @@ class DeviceAppointer(ElectraOneBase):
         else:
             self.debug(5,f'No device selected. Now unappoint it.')
         if self.song().appointed_device != device:
-            self.debug(5,f'- Set as appointed device (unappointed if none).')
+            self.debug(5,f'\ Set as appointed device (unappointed if none).')
             # this will trigger the _handle_appointed_device_change
             # listener registered by EffectController
             self.song().appointed_device = device
         else:
-            self.debug(5,f'- Appointed device not changed.')                
+            self.debug(5,f'\ Appointed device not changed.')                
         

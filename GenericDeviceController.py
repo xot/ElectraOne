@@ -39,8 +39,7 @@ class GenericDeviceController(ElectraOneBase):
         self._device = device
         self._device_name = self.get_device_name(self._device)
         self._preset_info = preset_info
-        self._value_listeners = None
-
+        self.add_listeners()
 
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the device    
@@ -81,11 +80,18 @@ class GenericDeviceController(ElectraOneBase):
                 # TODO: value listeners
         self._value_listeners.update_all()
 
+    def disconnect(self):
+        """Disconnect the device; remove all listeners.
+        """
+        self.remove_listeners()
+
+    # --- Listeners
+    
     def add_listeners(self):
         """Add value listeners for all (slider) parameters of the device.
         """
         # this needs to be done only once when object/device controller created
-        self.debug(3,f'Setting up listeners for device { self._device_name }')
+        self.debug(3,f'Adding listeners for device { self._device_name }')
         self._value_listeners = ValueListeners(self)
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)

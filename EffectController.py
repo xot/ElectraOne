@@ -215,8 +215,15 @@ class EffectController(ElectraOneBase):
             if device != self._assigned_device:
                 self._assigned_device = device
                 preset_info = self._get_preset_info(device)
+                # clean up any previously assigned device controller;
+                # especially remove its listeners
+                # (unfortunately we cannot rely on __del__ to do this implcitly
+                # when reference to old assigned_effect_controller is overwritten
+                # becuase is not called immediately, but only after garbadge collect
+                if self._assigned_device_controller:
+                    self._assigned_device_controller.disconnect()
+                # TODO: this also sets up value listeners; but preset not uploaded yet!
                 self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
-                self._assigned_device_controller.add_listeners()
                 if DUMP:
                     self._dump_presetinfo(device,preset_info)
                 preset = preset_info.get_preset()

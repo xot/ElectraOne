@@ -266,6 +266,9 @@ self.song().add_appointed_device_listener(<listener-function>)
 
 to update the remote controller whenever the appointed device changes. So far so good.
 
+*Note: if such a listener is registered, and ```self.song().appointed_device``` changes, then the remote script is interrupted to execute the listener function*. 
+
+
 The problem is that ```self.song().appointed_device``` is shared by all remote controllers and their scripts, but that Live does not itself handle the appointment of the currently selected device. The remote script needs to do it. In our case ```DeviceAppointer.py``` deals with this. But this potentially interferes with device appointment routines written by other remote scripts.
 
 This means, for example, that setting ```APPOINT_ON_TRACK_CHANGE``` to ```False``` may have no effect if the other remote script decides to appoint anyway.

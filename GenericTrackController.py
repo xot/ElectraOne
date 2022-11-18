@@ -232,8 +232,6 @@ class GenericTrackController(ElectraOneBase):
         if self._sends_cc != None: # audio/midi tracks only
             for send in sends:
                 self._value_listeners.add(send, None)
-        if self._eq_device_controller:
-            self._eq_device_controller.add_listeners()
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -253,6 +251,8 @@ class GenericTrackController(ElectraOneBase):
             # remove value listeners
             if self._value_listeners:
                 self._value_listeners.remove_all()
+            # also delete eq device value listeners here, becuase we do
+            # not get notified any other way
             if self._eq_device_controller:
                 self._eq_device_controller.remove_listeners()
 
