@@ -4,9 +4,9 @@ Ableton Live MIDI Remote Script for the Electra One.
 
 ## What it does
 
-This Ableton Live MIDI Remote script allows you to control the parameters of the currently selected device in Ableton Live using the [Electra One](https://electra.one). 
+This Ableton Live MIDI Remote script allows you to control the parameters of the currently selected device in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
 
-It can also be used to dump Electra One presets for Ableton Live devices with sensible default control assignments.
+It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments.
 
 Finally, it also manages a mixer preset to control the track mixers, returns, master mixer and transport of the current Live song.
 
@@ -37,35 +37,37 @@ Finally a separate 'Channel EQs' page contains controls to control the parameter
 
 All controls on all pages are synced with the values of the parameters in Live they control as soon as a selection changes, or when parameters in Live are changed through the UI or using a different controller.
 
+When fewer than 5 tracks and fewer than 6 return tracks are present in the Live set, the controls on track strips on the E1 for tracks that are not present in Live are hidden.
+
 ### Alternative mixer designs
 
-There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are layed out horizontally instead of vertically (such that all track controls are active at the same time).
+There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are laid out horizontally instead of vertically (such that all track controls are active at the same time).
 
 ## Controlling the currently appointed device
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this Electra One remote script) is to modify dumps made by this script. See [below](##preset-dumps).
+The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](##preset-dumps).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
-If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the Electra One to the the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the E1 to the the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
 <img>
 
 When constructing presets:
-- On/off parameters are shown as toggles on the Electra One. 
-- Other 'quantised' parameters are shown as lists on the Electra One, using the possible values reported by Ableton. (In Electra One terms, these are turned into 'overlays' added to the preset.)
-- Non-quantised parameters are shown as faders on the Electra One. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.) 
-- Integer valued, non-quantised, parameters are shown as integer-valued faders on the Electra One. Other faders simply show a value within the minimum - maximum CC value range (although for faders with a large range this is currently not the case.).
+- On/off parameters are shown as toggles on the E1.
+- Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
+- Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.) 
+- Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. Other faders simply show a value within the minimum - maximum CC value range (although for faders with a large range this is currently not the case.).
 
 Note that large devices with many parameters may create a preset with several pages.
 
 ### Device preset dumps
 
-Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the Electra One (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
+Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
 
 Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
@@ -86,7 +88,7 @@ Preloaded presets are stored in ```Devices.py```. The Python script ```makedevic
 
 You can copy a dumped preset in ```./dumps``` to ```./preloaded```. Better still, upload the patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). 
 
-The remote script is actually completely oblivious about the actual preset it uploads to the Electra One: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
+The remote script is actually completely oblivious about the actual preset it uploads to the E1: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
 
 Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
@@ -98,17 +100,17 @@ There is a faster way however. Pressing the PRESET REQUEST button on the E1 (rig
 
 ## Resetting the remote script
 
-Occasionally, the remote script or the Electra One may get in a bad state.
+Occasionally, the remote script or the E1 may get in a bad state.
 
-You can unplug and then replug the Electra One to restart it and continue to use it with the remote script to see if that solves the problem. (See below for how to completely reset and remove all existing presets from it.)
+You can unplug and then replug the E1 to restart it and continue to use it with the remote script to see if that solves the problem. (See below for how to completely reset and remove all existing presets from it.)
 
-If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the Electra One) you can reset the remote script by selecting the 'reset slot' on the Electra One (by default this is the last, lower right slot in the sixth bank).
+If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the E1) you can reset the remote script by selecting the 'reset slot' on the E1 (by default this is the last, lower right slot in the sixth bank).
 
 ## Warning
 
 **This is *alpha* software.**
 
-It was built using the [excellent resources](https://structure-void.com/ableton-live-midi-remote-scripts/) provided by Julien Bayle (StructureVoid), and Hanz Petrov's [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html). Also the incredibly well maintained [documentation](https://docs.electra.one) for the Electra One itself was super useful.
+It was built using the [excellent resources](https://structure-void.com/ableton-live-midi-remote-scripts/) provided by Julien Bayle (StructureVoid), and Hanz Petrov's [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html). Also the incredibly well maintained [documentation](https://docs.electra.one) for the E1 itself was super useful.
 
 However, official documentation from Ableton to program MIDI remote scripts is unfortunately missing. This means the code seems to work, but I don't really know *why* it works. Clearly, this is dangerous. 
 
@@ -116,20 +118,20 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 
 ## Installation
 
-Make sure that the version of Ableton Live and the firmware of the ElectraOne are supported (see below).
+Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 1. Copy all Python files to your local Ableton MIDI Live Scripts folder (```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and
 ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows) into a directory called ```ElectraOne```. Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
 
-3. Add ElectraOne as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electr Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+3. Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
 
 ![Ableton Preferences](./images/ableton.png "Ableton Preferences")
 
-4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the Electra One to bank 6 preset 1.
+4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1.
 
 Start Ableton 
 
-A patch for the appointed  device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the Electra One
+A patch for the appointed  device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the E1
 
 See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS).
 
@@ -140,7 +142,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
 - ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
-- ```DETECT_E1``` controls whether to detect the ElectraOne at startup, or not.
+- ```DETECT_E1``` controls whether to detect the E1 at startup, or not.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
 - ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LIBDIR```).
@@ -187,12 +189,12 @@ The following constants deal with the mixer preset.
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1 and 11.1.5 (code relies on Abelton Live supporting Python 3.6).
-- Electra One firmware version 3.0 See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- E1 firmware version 3.0 See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors
 
-Should the Electra get bogged with presets or freeze, use this procedure for a 'factory reset'.
+Should the E1 get bogged with presets or freeze, use this procedure for a 'factory reset'.
 
 1. Disconnect Electra from the USB power.
 2. Press and hold left middle button.
@@ -210,7 +212,7 @@ If you encounter something you believe is a bug, please report it to me by email
 In the bug report please include:
 
 - a concise description of the bug as subject,
-- the firmware version your Electra One runs,
+- the firmware version your E1 runs,
 - the version of Ableton Live you are running,
 - the operating system (and version) Live runs on, and 
 - a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see above). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again.
