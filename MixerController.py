@@ -61,7 +61,9 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
-        self._track_controllers = []  
+        self._track_controllers = []
+        # initialise flag to detect delayed visibility setting
+        self._visibility_delayed = False
         self._remap_tracks()
         # init MIDI handlers
         self._init_cc_handlers()
@@ -183,8 +185,19 @@ class MixerController(ElectraOneBase):
     def set_visibility(self):
         """Set visibility of tracks, sends and return tracks on the E1.
         """
-        if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+        if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT): 
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
+        else:
+            self._visibility_delayed = True
+        
+    def ensure_visibility(self):
+        """Ensure visibility of tracks, sends and return tracks on the E1.
+        """
+        #TODO: update code
+        #if self._visibility_delayed:
+        #    self.set_visibility()
+        #    self._visibility_delayed = False
+        self.set_visibility()
         
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes
@@ -197,7 +210,6 @@ class MixerController(ElectraOneBase):
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
         self._remap_tracks()
-        # no need to remap return tracks as the selection of those never changes
         # make the right controls and group labels visible if mixer currently visible
         self.set_visibility()
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')

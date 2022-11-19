@@ -127,15 +127,6 @@ class ElectraOne(ElectraOneBase):
             if self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
                 self._select_preset_slot(MIXER_PRESET_SLOT)
-                # TODO: really should wait for an ACK! but this is a bit complex
-                # because the ACK is only sent AFTER the preset changed message
-                # so we stick to this hack that appears to work too.
-                time.sleep(0.1)
-                self._mixer_controller.set_visibility()
-                # This also refreshes the state, but then the preset
-                # changed message from the E1 comes in and the state is
-                # refreshed again. Unfortunately, build_midi_map() sometimes
-                # needs to also call refresh_state()
                 self.log_message('ElectraOne remote script loaded.')
                 # re-open the interface (unless a preset upload is still running)
                 ElectraOneBase.E1_connected = True
@@ -234,6 +225,7 @@ class ElectraOne(ElectraOneBase):
             if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
+                self._mixer_controller.ensure_visibility()
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT):  
                 self.debug(3,'Effect preset selected: starting refresh.')
@@ -293,7 +285,12 @@ class ElectraOne(ElectraOneBase):
             # TODO: really should wait for an ACK! but this is a bit complex
             # because the ACK is only sent AFTER the preset changed message
             # so we stick to this hack that appears to work too
-            time.sleep(0.1)
+            ##time.sleep(0.5)
+            # update the visibility of hte controls in hte mixer preset in
+            # case tracks were added/deleted since the last time it
+            # was selected
+            ##if new_slot == MIXER_PRESET_SLOT:
+            ##    self._mixer_controller.ensure_visibility()
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
         
