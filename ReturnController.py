@@ -61,7 +61,7 @@ class ReturnController(GenericTrackController):
         """Change the track name displayed on the remote controller for
            this return track. Also updates the sends
         """
-        self.update_return_sends_labels(self._idx)
+        self.update_return_sends_labels(self._idx,self._track.name)
         
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,

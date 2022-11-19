@@ -122,11 +122,6 @@ class ElectraOne(ElectraOneBase):
             # the MIDI map to be rebuilt
             self._effect_controller = EffectController(c_instance)
             self._device_appointer = DeviceAppointer(c_instance)
-            # allow appointed device to trigger the listener registered by the effect controller
-            time.sleep(0.1)
-            self.log_message('ElectraOne remote script loaded.')
-            # re-open the interface (unless a preset upload is still running)
-            self._E1_connected = True
             # when opening a song without any devices selected, select
             # the mixer track and make sure the MIDI map is built (see comment above)
             if self._effect_controller._assigned_device == None:
@@ -141,7 +136,14 @@ class ElectraOne(ElectraOneBase):
                 # changed message from the E1 comes in and the state is
                 # refreshed again. Unfortunately, build_midi_map() sometimes
                 # needs to also call refresh_state()
-                self.request_rebuild_midi_map()                
+                self.log_message('ElectraOne remote script loaded.')
+                # re-open the interface (unless a preset upload is still running)
+                self._E1_connected = True
+                self.request_rebuild_midi_map()
+            else:
+                self.log_message('ElectraOne remote script loaded.')
+                # re-open the interface (unless a preset upload is still running)
+                self._E1_connected = True                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 
