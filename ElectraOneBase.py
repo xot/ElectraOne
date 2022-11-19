@@ -444,7 +444,7 @@ class ElectraOneBase:
         # - group labels
         command = f'for i=1,{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
         self._send_lua_command(command)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
+        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
         command = f'for i={tc}+1,5 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
         self._send_lua_command(command)
         # - controls
@@ -462,7 +462,7 @@ class ElectraOneBase:
         # - group labels
         command = f'for i=9,8+{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
         self._send_lua_command(command)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
+        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
         command = f'for i={tc}+9,13 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
         self._send_lua_command(command)
         # - controls
@@ -475,7 +475,7 @@ class ElectraOneBase:
         # - group labels
         command = f'for i=15,{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
         self._send_lua_command(command)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
+        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
         command = f'for i=16+{tc},20 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
         self._send_lua_command(command)
         # - controls
@@ -490,7 +490,7 @@ class ElectraOneBase:
         # - group labels
         command = f'for i=20,20+{rc}-1 do\n local group = groups.get(i)\n group:setVisible(true)\n end'
         self._send_lua_command(command)
-        time.sleep(0.01) # TODO: wait a bit; else E1 may ignore update
+        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
         command = f'for i=20+{rc},25 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
         self._send_lua_command(command)
         # - controls
