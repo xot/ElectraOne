@@ -78,7 +78,7 @@ class ElectraOne(ElectraOneBase):
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
         # 'close' the interface until E1 detected.
-        self._E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
+        ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         # start a thread to detect the E1, if found thread will complete the
         # initialisation, setting
         # self._mixer_controller = MixerController(c_instance) and
@@ -138,12 +138,12 @@ class ElectraOne(ElectraOneBase):
                 # needs to also call refresh_state()
                 self.log_message('ElectraOne remote script loaded.')
                 # re-open the interface (unless a preset upload is still running)
-                self._E1_connected = True
+                ElectraOneBase.E1_connected = True
                 self.request_rebuild_midi_map()
             else:
                 self.log_message('ElectraOne remote script loaded.')
                 # re-open the interface (unless a preset upload is still running)
-                self._E1_connected = True                
+                ElectraOPneBase.E1_connected = True                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 
@@ -151,21 +151,13 @@ class ElectraOne(ElectraOneBase):
         """Reset the remote script.
         """
         # TODO: get a device selected...
-        self._E1_connected = True
+        ElectraOneBase.E1_connected = True
         ElectraOneBase.preset_uploading = False
         self._effect_controller._assigned_device_locked = False
         self._effect_controller._assigned_device = None
         self._effect_controller._preset_info = None
         self._effect_controller._set_appointed_device(self.song().appointed_device)
      
-    def _is_ready(self):
-        """Return whether the remote script is ready to process requests
-           or not (ie whether the E1 is connected and no preset upload is
-           in progress).
-           - result: bool
-        """
-        return (self._E1_connected and not ElectraOneBase.preset_uploading)
-    
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
            result: str
@@ -188,7 +180,7 @@ class ElectraOne(ElectraOneBase):
         """Live can tell the script to lock to a given device
            result: bool
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(1,'Main lock to device called.')
             self._effect_controller.lock_to_device(device)
         else:
@@ -198,7 +190,7 @@ class ElectraOne(ElectraOneBase):
         """Live can tell the script to unlock from a given device
            result: bool
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(1,'Main unlock called.') 
             self._effect_controller.unlock_from_device(device)
         else:
@@ -208,7 +200,7 @@ class ElectraOne(ElectraOneBase):
         """Live can tell the script to toggle the script's lock on devices
         """
         # Weird; why is Ableton relegating this to the script?
-        if self._is_ready():
+        if self.is_ready():
             self.debug(1,'Main toggle lock called.') 
             self.get_c_instance().toggle_lock()
         else:
@@ -220,7 +212,7 @@ class ElectraOne(ElectraOneBase):
            Ignore if interface not ready.
            - midi_bytes: incoming MIDI CC message; sequence of bytes
         """
-        if self._is_ready():
+        if self.is_ready():
             (status,cc_no,value) = midi_bytes
             midi_channel = get_cc_midichannel(status)
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
@@ -238,7 +230,7 @@ class ElectraOne(ElectraOneBase):
             self.debug(1,'Remote script reset requested.')
             ElectraOneBase.current_visible_slot = selected_slot
             self._reset()
-        elif self._is_ready():
+        elif self.is_ready():
             if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
@@ -288,7 +280,7 @@ class ElectraOne(ElectraOneBase):
         """Handle a patch request pressed message: swap the visible preset
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(3,f'Patch request received')
             if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
                 new_slot = EFFECT_PRESET_SLOT
@@ -342,7 +334,7 @@ class ElectraOne(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps. Ignore if interface not ready.
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(1,'Main build midi map called.') 
             self._effect_controller.build_midi_map(midi_map_handle)
             self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
@@ -355,7 +347,7 @@ class ElectraOne(ElectraOneBase):
            to happen often...  (At least not when devices or tracks are
            added/deleted). Ignore if interface not ready.
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(1,'Main refresh state called.') 
             self._effect_controller.refresh_state()
             self._mixer_controller.refresh_state()
@@ -365,7 +357,7 @@ class ElectraOne(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms. Ignore if interface not ready.
         """
-        if self._is_ready():
+        if self.is_ready():
             self.debug(6,'Main update display called.') 
             self._effect_controller.update_display()
             self._mixer_controller.update_display()

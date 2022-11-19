@@ -240,5 +240,8 @@ class EffectController(ElectraOneBase):
 
     def _handle_appointed_device_change(self):
         device = self.song().appointed_device
-        if (not ElectraOneBase.preset_uploading) and (not self._assigned_device_locked):
+        if self.is_ready() and (not self._assigned_device_locked):
             self._assign_device(device)
+        else:
+            self.debug(1,'Device appointment ignored because E1 not ready.')
+            

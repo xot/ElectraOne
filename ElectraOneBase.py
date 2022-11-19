@@ -94,10 +94,13 @@ class ElectraOneBase:
     # (Initially None to indicate that support not tested yet)
     _fast_sysex = None
 
-    # flag activating or deactivating the ElectraOne interface: set when
-    # upload thread is started; unset when upload thread finished. Checked
-    # by _is_ready() in ElectraOne.py.
+    # flag registering whether a preset is being uploaded. Used together with
+    # E1_connected to open/close E1 remote-script interface. See is_ready()
     preset_uploading = None
+
+    # flag registering whether E1 is connected. Used together with preset_uploading
+    # to open/close E1 remote-script interface. See is_ready()
+    E1_connected = None
 
     # flag indicating whether the last preset upload was successful
     # TODO: this is not used in rest of script 
@@ -183,6 +186,14 @@ class ElectraOneBase:
         # (main ElectraOne script must request to setup fast sysex,
         # because this can only be done after the E1 is detected)
 
+    def is_ready(self):
+        """Return whether the remote script is ready to process requests
+           or not (ie whether the E1 is connected and no preset upload is
+           in progress).
+           - result: bool
+        """
+        return (ElectraOneBase.E1_connected and not ElectraOneBase.preset_uploading)
+    
     # --- helper functions
 
     def get_c_instance(self):
