@@ -225,7 +225,8 @@ class ElectraOne(ElectraOneBase):
             if (selected_slot == MIXER_PRESET_SLOT):
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
-                self._mixer_controller.ensure_visibility()
+                # E1 does not keep (visibility) state across preset changes
+                self._mixer_controller.set_visibility()
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT):  
                 self.debug(3,'Effect preset selected: starting refresh.')
@@ -280,17 +281,9 @@ class ElectraOne(ElectraOneBase):
                 new_slot = MIXER_PRESET_SLOT
             # will set ElectraOneBase.current_visible_slot
             # and E1 will send a preset change message in response which will
-            # trigger dO_preset_changed() and hence cause a state refresh 
+            # trigger do_preset_changed() and hence cause a state refresh.
+            # We use that as an implicit ACK.
             self._select_preset_slot(new_slot)
-            # TODO: really should wait for an ACK! but this is a bit complex
-            # because the ACK is only sent AFTER the preset changed message
-            # so we stick to this hack that appears to work too
-            ##time.sleep(0.5)
-            # update the visibility of hte controls in hte mixer preset in
-            # case tracks were added/deleted since the last time it
-            # was selected
-            ##if new_slot == MIXER_PRESET_SLOT:
-            ##    self._mixer_controller.ensure_visibility()
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
         

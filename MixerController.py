@@ -62,8 +62,6 @@ class MixerController(ElectraOneBase):
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
         self._track_controllers = []
-        # initialise flag to detect delayed visibility setting
-        self._visibility_delayed = False
         self._remap_tracks()
         # init MIDI handlers
         self._init_cc_handlers()
@@ -187,17 +185,6 @@ class MixerController(ElectraOneBase):
         """
         if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT): 
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
-        else:
-            self._visibility_delayed = True
-        
-    def ensure_visibility(self):
-        """Ensure visibility of tracks, sends and return tracks on the E1.
-        """
-        #TODO: update code
-        #if self._visibility_delayed:
-        #    self.set_visibility()
-        #    self._visibility_delayed = False
-        self.set_visibility()
         
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes
