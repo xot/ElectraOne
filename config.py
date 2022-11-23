@@ -16,10 +16,11 @@
 # imply more information. 0 means no logging at all.
 DEBUG = 2
 
-# Whether created patch info should be dumped
+# Whether created patch info should be dumped (this is useful if you want
+# to create your own custom patches for certain devices)
 DUMP = False
 
-# Whether to detect the  E1 at start up (or assume it's there regardless)
+# Whether to detect the E1 at start up (or assume it's there regardless)
 DETECT_E1 = True
 
 # Local directory where dumps are stored (./dumps), user defined
@@ -35,6 +36,12 @@ LIBDIR = 'ElectraOne'
 
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)
+
+# When true, mixer support is disabled
+DISABLE_MIXER = False
+
+# When true, effect support is disabled
+DISABLE_EFFECT = False
 
 # === FAST SYSEX UPLOAD 
 
@@ -94,6 +101,7 @@ MIXER_PRESET_SLOT = (5,0)
 
 # E1 preset for the mixer (encoded as a JSON string); if None no mixer preset
 # is uploaded (and it is as assumed a mixer preset is already present)
+# TODO: Not implemented yet
 MIXER_PRESET = None
 
 # The MIXER uses three MIDI channels: MIDI_MASTER_CHANNEL, MIDI_TRACKS_CHANNEL

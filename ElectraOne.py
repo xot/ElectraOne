@@ -83,6 +83,8 @@ class ElectraOne(ElectraOneBase):
         # initialisation, setting
         # self._mixer_controller = MixerController(c_instance) and
         # self._effect_controller = EffectController(c_instance)
+        self._mixer_controller = None
+        self._effect_controller = None
         self.debug(1,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
@@ -115,18 +117,21 @@ class ElectraOne(ElectraOneBase):
             # complete the initialisation
             self.setup_fast_sysex()
             c_instance = self.get_c_instance()
-            self._mixer_controller = MixerController(c_instance)
+            if not DISABLE_MIXER:
+                self._mixer_controller = MixerController(c_instance)
             # TODO: if a device is appointed, this starts the upload thread
             #   within a thread; be careful with race conditions???
             # The upload thread for the appointed device (if any) will request
             # the MIDI map to be rebuilt
-            self._effect_controller = EffectController(c_instance)
-            self._device_appointer = DeviceAppointer(c_instance)
+            if not DISABLE_EFFECT:
+                self._effect_controller = EffectController(c_instance)
+                self._device_appointer = DeviceAppointer(c_instance)
             # when opening a song without any devices selected, select
             # the mixer track and make sure the MIDI map is built (see comment above)
-            if self._effect_controller._assigned_device == None:
+            if (not self._effect_controller) or self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
-                self._select_preset_slot(MIXER_PRESET_SLOT)
+                if self._mixer_controller:
+                    self._select_preset_slot(MIXER_PRESET_SLOT)
                 self.log_message('ElectraOne remote script loaded.')
                 # re-open the interface (unless a preset upload is still running)
                 ElectraOneBase.E1_connected = True
@@ -134,7 +139,7 @@ class ElectraOne(ElectraOneBase):
             else:
                 self.log_message('ElectraOne remote script loaded.')
                 # re-open the interface (unless a preset upload is still running)
-                ElectraOPneBase.E1_connected = True                
+                ElectraOneBase.E1_connected = True                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 
@@ -144,10 +149,11 @@ class ElectraOne(ElectraOneBase):
         # TODO: get a device selected...
         ElectraOneBase.E1_connected = True
         ElectraOneBase.preset_uploading = False
-        self._effect_controller._assigned_device_locked = False
-        self._effect_controller._assigned_device = None
-        self._effect_controller._preset_info = None
-        self._effect_controller._set_appointed_device(self.song().appointed_device)
+        if self._effect_controller:
+            self._effect_controller._assigned_device_locked = False
+            self._effect_controller._assigned_device = None
+            self._effect_controller._preset_info = None
+            self._effect_controller._set_appointed_device(self.song().appointed_device)
      
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
@@ -171,7 +177,7 @@ class ElectraOne(ElectraOneBase):
         """Live can tell the script to lock to a given device
            result: bool
         """
-        if self.is_ready():
+        if self.is_ready() and self._effect_controller:
             self.debug(1,'Main lock to device called.')
             self._effect_controller.lock_to_device(device)
         else:
@@ -181,7 +187,7 @@ class ElectraOne(ElectraOneBase):
         """Live can tell the script to unlock from a given device
            result: bool
         """
-        if self.is_ready():
+        if self.is_ready() and self._effect_controller:
             self.debug(1,'Main unlock called.') 
             self._effect_controller.unlock_from_device(device)
         else:
@@ -203,7 +209,7 @@ class ElectraOne(ElectraOneBase):
            Ignore if interface not ready.
            - midi_bytes: incoming MIDI CC message; sequence of bytes
         """
-        if self.is_ready():
+        if self.is_ready() and self._mixer_controller:
             (status,cc_no,value) = midi_bytes
             midi_channel = get_cc_midichannel(status)
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
@@ -222,13 +228,13 @@ class ElectraOne(ElectraOneBase):
             ElectraOneBase.current_visible_slot = selected_slot
             self._reset()
         elif self.is_ready():
-            if (selected_slot == MIXER_PRESET_SLOT):
+            if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
                 # E1 does not keep (visibility) state across preset changes
                 self._mixer_controller.set_visibility()
                 self._mixer_controller.refresh_state()
-            elif (selected_slot == EFFECT_PRESET_SLOT):  
+            elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
                 self._effect_controller.refresh_state()
@@ -275,15 +281,17 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(3,f'Patch request received')
-            if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+            if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT) \
+                   and self._effect_controller:
                 new_slot = EFFECT_PRESET_SLOT
-            else:
+                # will set ElectraOneBase.current_visible_slot
+                # and E1 will send a preset change message in response which will
+                # trigger do_preset_changed() and hence cause a state refresh.
+                # We use that as an implicit ACK.
+                self._select_preset_slot(new_slot)
+            elif self._mixer_controller:
                 new_slot = MIXER_PRESET_SLOT
-            # will set ElectraOneBase.current_visible_slot
-            # and E1 will send a preset change message in response which will
-            # trigger do_preset_changed() and hence cause a state refresh.
-            # We use that as an implicit ACK.
-            self._select_preset_slot(new_slot)
+                self._select_preset_slot(new_slot)
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
         
@@ -325,9 +333,11 @@ class ElectraOne(ElectraOneBase):
         """Build all MIDI maps. Ignore if interface not ready.
         """
         if self.is_ready():
-            self.debug(1,'Main build midi map called.') 
-            self._effect_controller.build_midi_map(midi_map_handle)
-            self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
+            self.debug(1,'Main build midi map called.')
+            if self._effect_controller:
+                self._effect_controller.build_midi_map(midi_map_handle)
+            if self._mixer_controller:
+                self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
         else:
             self.debug(1,'Main build midi map ignored because E1 not ready.')
         
@@ -338,9 +348,11 @@ class ElectraOne(ElectraOneBase):
            added/deleted). Ignore if interface not ready.
         """
         if self.is_ready():
-            self.debug(1,'Main refresh state called.') 
-            self._effect_controller.refresh_state()
-            self._mixer_controller.refresh_state()
+            self.debug(1,'Main refresh state called.')
+            if self._effect_controller:
+                self._effect_controller.refresh_state()
+            if self._mixer_controller:
+                self._mixer_controller.refresh_state()
         else:
             self.debug(1,'Main refresh state ignored because E1 not ready.')
 
@@ -349,8 +361,10 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(6,'Main update display called.') 
-            self._effect_controller.update_display()
-            self._mixer_controller.update_display()
+            if self._effect_controller:
+                self._effect_controller.update_display()
+            if self._mixer_controller:
+                self._mixer_controller.update_display()
         else:
             self.debug(6,'Main update display ignored because E1 not ready.')
             
@@ -367,8 +381,10 @@ class ElectraOne(ElectraOneBase):
         """
         if self._E1_connected:
             self.debug(1,'Main disconnect called.') 
-            self._effect_controller.disconnect()
-            self._mixer_controller.disconnect()
+            if self._effect_controller:
+                self._effect_controller.disconnect()
+            if self._mixer_controller:
+                self._mixer_controller.disconnect()
         else:
             self.debug(1,'Main disconnect ignored because E1 not connected.')
 

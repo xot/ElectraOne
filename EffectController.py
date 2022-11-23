@@ -30,6 +30,8 @@ from .GenericDeviceController import GenericDeviceController
 # (Effect presets always have device.id = 1 as the first device)
 #
 # Also contains formatter functions used by presets generated on the fly
+#
+# TODO: remove patch.onRequest code when DISABLE_MIXER
 DEFAULT_LUASCRIPT = """
 info.setText("by www.xot.nl")
 
