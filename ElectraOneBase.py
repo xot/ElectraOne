@@ -411,7 +411,7 @@ class ElectraOneBase:
            - returnidx: index of the return track (starting at 0); int
            - label: new text; str
         """
-        command = f'ursl({idx},"{label}")'
+        command = f'ursl({returnidx},"{label}")'
         self._send_lua_command(command)
         
     def set_mixer_visibility(self, tc, rc):
