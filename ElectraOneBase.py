@@ -402,7 +402,7 @@ class ElectraOneBase:
            - idx: index of the track (starting at 0); int
            - label: new text; str
         """
-        command = 'utl({idx},"{label}")'
+        command = f'utl({idx},"{label}")'
         self._send_lua_command(command)
         
     def update_return_sends_labels(self, returnidx, label):
@@ -411,7 +411,7 @@ class ElectraOneBase:
            - returnidx: index of the return track (starting at 0); int
            - label: new text; str
         """
-        command = 'ursl({idx},"{label}")'
+        command = f'ursl({idx},"{label}")'
         self._send_lua_command(command)
         
     def set_mixer_visibility(self, tc, rc):
@@ -422,7 +422,7 @@ class ElectraOneBase:
            - rc: return track count; int
         """
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns')
-        command = 'smv({tc},{rc})'
+        command = f'smv({tc},{rc})'
         self._send_lua_command(command)
     
     def _select_preset_slot(self, slot):
