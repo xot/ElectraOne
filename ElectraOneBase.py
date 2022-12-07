@@ -402,15 +402,7 @@ class ElectraOneBase:
            - idx: index of the track (starting at 0); int
            - label: new text; str
         """
-        # TODO: make a new command for this
-        # tracks page
-        command = f'local group = groups.get({idx}+1)\n group:setLabel("{label}")'
-        self._send_lua_command(command)
-        # channel eq page
-        command = f'local group = groups.get({idx}+9)\n group:setLabel("{label}")'
-        self._send_lua_command(command)
-        # sends page
-        command = f'local group = groups.get({idx}+15)\n group:setLabel("{label}")'
+        command = 'utl({idx},"{label}")'
         self._send_lua_command(command)
         
     def update_return_sends_labels(self, returnidx, label):
@@ -419,12 +411,7 @@ class ElectraOneBase:
            - returnidx: index of the return track (starting at 0); int
            - label: new text; str
         """
-        # TODO: make a new command for this
-        # return track label
-        command = f'local group = groups.get({returnidx}+20)\n group:setLabel("{label}")'
-        self._send_lua_command(command)
-        # all send controls (also invisible ones)
-        command = f'for i=0,4 do\n local control = controls.get(72+6*{returnidx}+i+1)\n control:setName("{label}")\n end'
+        command = 'ursl({idx},"{label}")'
         self._send_lua_command(command)
         
     def set_mixer_visibility(self, tc, rc):
@@ -435,68 +422,7 @@ class ElectraOneBase:
            - rc: return track count; int
         """
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns')
-        # TODO: make a command for this
-        # TODO: fix this, because now first all send controls are shown
-        # and then the ones that need to be hidden are hidden again
-        # show in use  tracks
-        #
-        # main page
-        # - group labels
-        command = f'for i=1,{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
-        self._send_lua_command(command)
-        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
-        command = f'for i={tc}+1,5 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
-        self._send_lua_command(command)
-        # - controls
-        command = f'for c=0,{tc}-1 do\n for r=0,4 do\n local control = controls.get(6*r+c+1)\n control:setVisible(true)\n end\n end'        
-        self._send_lua_command(command)
-        command = f'for c={tc},4 do\n for r=0,4 do\n local control = controls.get(6*r+c+1)\n control:setVisible(false)\n end\n end'        
-        self._send_lua_command(command)
-        #
-        # channel eq page:
-        #
-        # TODO: update to reflect tracks that actually have a channel eq device
-        # TODO: deal with different channel eqs that have different number of controls!
-        # (code assumes it has all 6)
-        #
-        # - group labels
-        command = f'for i=9,8+{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
-        self._send_lua_command(command)
-        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
-        command = f'for i={tc}+9,13 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
-        self._send_lua_command(command)
-        # - controls
-        command = f'for c=0,{tc}-1 do\n for r=0,5 do\n local control = controls.get(36+6*r+c+1)\n control:setVisible(true)\n end\n end'        
-        self._send_lua_command(command)
-        command = f'for c={tc},4 do\n for r=0,5 do\n local control = controls.get(36+6*r+c+1)\n control:setVisible(false)\n end\n end'        
-        self._send_lua_command(command)
-        #
-        # sends page
-        # - group labels
-        command = f'for i=15,{tc} do\n local group = groups.get(i)\n group:setVisible(true)\n end'
-        self._send_lua_command(command)
-        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
-        command = f'for i=16+{tc},20 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
-        self._send_lua_command(command)
-        # - controls
-        command = f'for c=0,{tc}-1 do\n for r=0,{rc}-1 do\n local control = controls.get(72+6*r+c+1)\n control:setVisible(true)\n end\n end'        
-        self._send_lua_command(command)
-        command = f'for c={tc},4 do\n for r=0,5 do\n local control = controls.get(72+6*r+c+1)\n control:setVisible(false)\n end\n end'        
-        self._send_lua_command(command)
-        command = f'for c=0,4 do\n for r={rc},5 do\n local control = controls.get(72+6*r+c+1)\n control:setVisible(false)\n end\n end'        
-        self._send_lua_command(command)
-        #
-        # returns page
-        # - group labels
-        command = f'for i=20,20+{rc}-1 do\n local group = groups.get(i)\n group:setVisible(true)\n end'
-        self._send_lua_command(command)
-        time.sleep(0.005) # TODO: wait a bit; else E1 may ignore update
-        command = f'for i=20+{rc},25 do\n local group = groups.get(i)\n group:setVisible(false)\n end'
-        self._send_lua_command(command)
-        # - controls
-        command = f'for c=0,{rc}-1 do\n for r=0,2 do\n local control = controls.get(108+6*r+c+1)\n control:setVisible(true)\n end\n end'        
-        self._send_lua_command(command)
-        command = f'for c={rc},5 do\n for r=0,2 do\n local control = controls.get(108+6*r+c+1)\n control:setVisible(false)\n end\n end'        
+        command = 'smv({tc},{rc})'
         self._send_lua_command(command)
     
     def _select_preset_slot(self, slot):
