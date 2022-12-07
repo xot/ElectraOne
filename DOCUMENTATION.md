@@ -589,7 +589,16 @@ not all sends may be present on a track. The first six sends of a track are cont
 
 ### The Mixer identifier map
 
-Each control and label in the Mixer has fixed id, used to change the label or the visibility (this allows different layouts of the mixer to be handled seamlessly). The assignment is as follows
+Each control and label in the Mixer has fixed id, used to change the label or the visibility (this allows different layouts of the mixer to be handled seamlessly). 
+
+In fact the actual update of labels and visibility is implemented in LUA scripts embedded in the Mixer eproj. The E1 remote scripts expects the following LUA functions to be implemented by the mixer (see ```ElectraOnebase.py```)
+
+- ```utl(idx,label)```: update track labels for track with index idx (starting at 0) with the specified label string on the Main, Channle EQs and Sends pages.
+- ```ursl(idx,label)```: update return track labels for track with index idx (starting at 0) with the specified label string on the Returns page and the associated control labels on the Sends page.
+- ```smv(tc,rc)```: make tc tracks and rc return tracks visible (tc: 1..5, rc: 1..6).
+
+
+The assignment of identifiers is as follows
 
 #### Main page
 
