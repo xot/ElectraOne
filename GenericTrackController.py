@@ -67,7 +67,7 @@ from .config import *
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase
 # TODO: new feature
-from .ValueListener import ValueListeners
+#from .ValueListener import ValueListeners
 from .GenericDeviceController import GenericDeviceController
 
 
@@ -191,8 +191,8 @@ class GenericTrackController(ElectraOneBase):
         if self._eq_device_controller:
             self._eq_device_controller.refresh_state()
         # TODO: value listeners
-        if self._value_listeners:
-            self._value_listeners.update_all()
+        #if self._value_listeners:
+        #    self._value_listeners.update_all()
         
     def update_display(self):
         """Update the display. (Does nothing.)        
@@ -222,16 +222,16 @@ class GenericTrackController(ElectraOneBase):
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
         # TODO: add value listener data
-        self._value_listeners = ValueListeners(self)
-        self._value_listeners.add(track.mixer_device.volume, None)
-        self._value_listeners.add(track.mixer_device.panning, None)
-        if self._base_cue_volume_cc:  # master track only
-            self._value_listeners.add(track.mixer_device.cue_volume, None)
+        #self._value_listeners = ValueListeners(self)
+        #self._value_listeners.add(track.mixer_device.volume, None)
+        #self._value_listeners.add(track.mixer_device.panning, None)
+        #if self._base_cue_volume_cc:  # master track only
+        #    self._value_listeners.add(track.mixer_device.cue_volume, None)
         # get at most MAX_NO_OF_SENDS sends
-        sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
-        if self._sends_cc != None: # audio/midi tracks only
-            for send in sends:
-                self._value_listeners.add(send, None)
+        #sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
+        #if self._sends_cc != None: # audio/midi tracks only
+        #    for send in sends:
+        #        self._value_listeners.add(send, None)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -249,10 +249,10 @@ class GenericTrackController(ElectraOneBase):
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
             # remove value listeners
-            if self._value_listeners:
-                self._value_listeners.remove_all()
-            # also delete eq device value listeners here, becuase we do
-            # not get notified any other way
+            #if self._value_listeners:
+            #    self._value_listeners.remove_all()
+            #also delete eq device value listeners here, becuase we do
+            #not get notified any other way
             if self._eq_device_controller:
                 self._eq_device_controller.remove_listeners()
 
