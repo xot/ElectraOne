@@ -414,7 +414,23 @@ We refrain from using the method used by almost all other remotes scripts to cor
 | 120 | 3,504  |
 | 127 | 6,0    |
 
-  
+Interpolation happens as follows in the  LUA script associated with the mixer. Let ```value``` be the CC value (ranging from 0 to 16383) and let ```show``` be the floating point value to display. The last eight entries are linearly interpolated as follows:
+
+```
+   idx = math.floor(value / 1024)+1
+   alpha = (value % 1024) / 1024.0
+   show = table[idx] + alpha * (table[idx+1] - table[idx])
+```
+
+The first eight entries are interpolated exponentially as follows
+
+```
+   idx = math.floor(value / 1024)+1
+   alpha = (value % 1024) / 1024.0
+   show = table[idx] + (-beta * (alpha-0.5)*(alpha-0.5) + alpha + 0.25 * beta) * (table[idx+1] - table[idx])
+```
+
+   
 - Send volume
 : Ranges from -infty to 0.0 dB. Live CC to value table
 
@@ -438,6 +454,8 @@ We refrain from using the method used by almost all other remotes scripts to cor
 | 112 | -4,996 |
 | 120 | -2,496 |
 | 127 | 0,0   |
+
+Interpolated similar to Volume
 
 
 - High/Mid/Low/Output of the Channel Eq
@@ -466,9 +484,9 @@ We refrain from using the method used by almost all other remotes scripts to cor
 | 120 | 5790 |
 | 127 | 7500 |
 
+All values are interpolated polynomially (again with ```beta=0.1```).
 
-
-Note that all these faders do now operate at their full 14bit potential.
+Note that all these faders operate at their full 14bit potential.
 
 ### The Mixer MIDI map
 
