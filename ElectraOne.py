@@ -283,15 +283,13 @@ class ElectraOne(ElectraOneBase):
             self.debug(3,f'Patch request received')
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT) \
                    and self._effect_controller:
-                new_slot = EFFECT_PRESET_SLOT
                 # will set ElectraOneBase.current_visible_slot
                 # and E1 will send a preset change message in response which will
                 # trigger do_preset_changed() and hence cause a state refresh.
                 # We use that as an implicit ACK.
-                self._select_preset_slot(new_slot)
+                self._effect_controller.select()
             elif self._mixer_controller:
-                new_slot = MIXER_PRESET_SLOT
-                self._select_preset_slot(new_slot)
+                self._mixer_controller.select()
         else:
             self.debug(3,'Patch request ignored because E1 not ready.')
         

@@ -99,6 +99,8 @@ class EffectController(ElectraOneBase):
         # referrence to the currently assigned device
         # (corresponds typically to the currently appointed device by Ableton
         self._assigned_device = None
+        # record whether assigned device is uploaded to E1
+        self._assigend_device_uploaded = False
         # generic controller associated with assigned device
         self._assigned_device_controller = None
         self._assigned_device_locked = False
@@ -213,40 +215,74 @@ class EffectController(ElectraOneBase):
             self._assigned_device_locked = False
             self._assign_device(self.song().appointed_device)
 
+    def select(self):
+        """Select the effect preset and upload the currently assigned device
+           if necessary.
+        """
+        if self._assigned_device and (not self._assigned_device_uploaded):
+            # also selects
+            self._upload_assigned_device()
+        else:
+            self._select_preset_slot(EFFECT_PRESET_SLOT)
+            
+    def _upload_assigned_device(self):
+        """Upload the currently assigned device to the effect preset slot on
+           the E1 and create a device controller for it.
+        """
+        device = self._assigned_device
+        device_name = self.get_device_name(device)
+        self.debug(1,f'Uploading device { device_name }')
+        preset_info = self._get_preset_info(device)
+        # clean up any previously assigned device controller;
+        # especially remove its listeners
+        # (unfortunately we cannot rely on __del__ to do this implcitly
+        # when reference to old assigned_effect_controller is overwritten
+        # becuase is not called immediately, but only after garbadge collect
+        if self._assigned_device_controller:
+            self._assigned_device_controller.disconnect()
+        # TODO: this also sets up value listeners; but preset not uploaded yet!
+        self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+        if DUMP:
+            self._dump_presetinfo(device,preset_info)
+        preset = preset_info.get_preset()
+        # upload preset: will also request midi map (which will also refresh state)
+        self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
+        self._assigned_device_uploaded = True
+        
+            
     def _assign_device(self, device):
+        """Assign the device to the E1 effect preset. Upload it immediately if
+           the E1 is ready for this, and SWITCH_TO_EFFECT_IMMEDIATELY == True.
+           - device: device to assign; Live.Device.Device
+        """
         if device != None:
             device_name = self.get_device_name(device)
             self.debug(1,f'Assigning device { device_name }')
             if device != self._assigned_device:
                 self._assigned_device = device
-                preset_info = self._get_preset_info(device)
-                # clean up any previously assigned device controller;
-                # especially remove its listeners
-                # (unfortunately we cannot rely on __del__ to do this implcitly
-                # when reference to old assigned_effect_controller is overwritten
-                # becuase is not called immediately, but only after garbadge collect
-                if self._assigned_device_controller:
-                    self._assigned_device_controller.disconnect()
-                # TODO: this also sets up value listeners; but preset not uploaded yet!
-                self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
-                if DUMP:
-                    self._dump_presetinfo(device,preset_info)
-                preset = preset_info.get_preset()
-                # upload preset: will also request midi map (which will also refresh state)
-                self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
+                if self.is_ready() and (SWITCH_TO_EFFECT_IMMEDIATELY or \
+                   (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)):
+                    self._upload_assigned_device()
+                else:
+                    self._assigned_device_uploaded = False
+                    self.debug(1,'Device upload delayed.')
             else:
                 self.debug(1,'Device already assigned.')
         else:
             # this does not happen (unfortunately)
             self._assigned_device = None
+            self._assigned_device_uploaded = False
             self.debug(1,'Assigning an empty device.')
             # TODO: remove device preset from E1
             self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
 
     def _handle_appointed_device_change(self):
+        """Handle an appointed device change: change the currently assigned
+           device unless it is locked.
+        """
         device = self.song().appointed_device
-        if self.is_ready() and (not self._assigned_device_locked):
+        if not self._assigned_device_locked:
             self._assign_device(device)
         else:
-            self.debug(1,'Device appointment ignored because E1 not ready.')
+            self.debug(1,'Device appointment ignored because device locked.')
             

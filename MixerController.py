@@ -128,6 +128,11 @@ class MixerController(ElectraOneBase):
         for track in self._track_controllers:
             track.disconnect()    
 
+    def select(self):
+        """Select the mixer preset on the E1
+        """
+        self._select_preset_slot(MIXER_PRESET_SLOT)
+    
     # --- Listeners
                 
     def _add_listeners(self):
