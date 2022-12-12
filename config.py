@@ -62,10 +62,11 @@ E1_CTRL_PORT = 'Electra Controller Electra Port 1'
 # appointment), or only do this when device is explicitly selected
 APPOINT_ON_TRACK_CHANGE = True
 
-# Whether to change to the Effect preset on the E1 whenever a new device
-# is appointed and its corresponding preset is uploaded, or stay on the
-# master preset
-SWITCH_WITH_UPLOAD = True
+# Whether to switch immediately from the mixer preset to the effect preset
+# whenever a new device is appointed in Ableton, or only switch when explicitly
+# requested by the user by pressing the upper right preset request button on
+# the E1 
+SWITCH_TO_EFFECT_IMMEDIATELY = True
 
 # === EFFECT/DEVICE CONFIGURATION CONSTANTS
 

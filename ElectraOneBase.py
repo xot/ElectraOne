@@ -513,7 +513,6 @@ class ElectraOneBase:
             self.debug(2,'Upload thread starting...')
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
-            # TODO: honour SWITCH_WITH_UPLOAD
             self._select_preset_slot(slot)
             if self._wait_for_ack_or_timeout(100): # timeout 1 second
                 # slot selected, now upload preset and wait for ACK

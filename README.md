@@ -155,7 +155,7 @@ If the sendmidi command cannot be found or fails, the remote script falls back t
 The following constants configure when a device is *appointed* (becomes the device to manage by the remote controller(s)) and how to respond to that.
 
 - ```APPOINT_ON_TRACK_CHANGE``` Whether to appoint the currently selected device on a selected track (only guaranteed to work if this is the only remote script handling device appointment), or only do this when device is explicitly selected. Default is ```True```.
-- ```SWITCH_WITH_UPLOAD``` Whether to change to the Effect preset on the E1 whenever a new device is appointed and its corresponding preset is uploaded, or to stay on the master preset instead. Default is ```True```.
+- ```SWITCH_TO_EFFECT_IMMEDIATELY```  Whether to switch immediately from the mixer preset to the effect preset whenever a new device is appointed in Ableton, or only switch when explicitly requested by the user by pressing the upper right preset request button on the E1. Default is ```True```.
 
 
 The following constant deals with the slot where device presets are loaded.

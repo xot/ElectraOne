@@ -59,9 +59,12 @@ function formatFreq (valueObject, value)
 end
 
 function formatPan (valueObject, value)
-  if value < 0 
-    then return (string.format("%iL", -value))
-    else return (string.format("%iR", value))
+  if value < 0 then
+    return (string.format("%iL", -value))
+  elseif value == 0 then
+    return "C"
+  else
+    return (string.format("%iR", value))
   end
 end
 
