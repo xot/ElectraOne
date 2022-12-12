@@ -341,17 +341,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     def _append_json_overlays(self,parameters,cc_map):
         """Append the necessary overlays (for list valued parameters).
         """
-        # create overlay with index 1 for all pan controls
-        self._append(',"overlays":['
-                    ,   '{ "id": 1,'
-                    ,     '"items": ['
-                    ,       '{ "value": 0, '
-                    ,         '"label": "C",'
-                    ,         '"index": 0'
-                    ,       '}]'
-                    ,   '}'
-                    )
-        overlay_idx = 2
+        self._append(',"overlays":[')
+        overlay_idx = 1
         flag = True
         for p in parameters:
             if p.original_name in cc_map:
@@ -400,7 +391,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                    )
 
     def _append_json_generic_fader(self, cc_info, fixedValuePosition
-                                  ,vmin, vmax, formatter, overlayId ):
+                                  ,vmin, vmax, formatter):
         """Append a fader (generic constructor).
            - cc_info: channel, cc_no, is_cc14 information; CCInfo
            - fixedValuePosition: whether to use fixedValuePosition; bool
@@ -408,14 +399,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - vmax: maximum value; int 
            - formatter: name of LUA formatter function; str (None if not used)
              (see EffectController DEFAULT_LUASCRIPT for possible values)
-           - overlayId: index of overlay to use; int (None if not used)
            If vmin != None, vmin and vmax specify the minimal and maximal value
            for the fader as used by the E1 to compute and display its current
            value (possibly using the formatter function if specified) based on
            its MIDI value/position. These min and max values must be
            integers.
         """
-        self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}, {overlayId}')
+        self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append(    ',"type":"fader"')
         if fixedValuePosition:
@@ -446,9 +436,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if formatter != None:
             self._append(  f',"formatter":"{ formatter }"'
                         )
-        if overlayId != None:
-            self._append(  f',"overlayId":{ overlayId }')
-
         self._append(       ',"id":"value"'
                     ,       '}'
                     ,     ']'
@@ -474,58 +461,58 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Append a fader showing symmetric dB values.
         """
         (vmin,vmax) = self._get_par_min_max(p,10)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatdB", None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatdB")
             
     def _append_json_pan_fader(self, idx, p, cc_info):
         """Append a PAN fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
         # p.min typically equals 50L, so vmin=50
-        self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan", 1)
+        self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan")
 
     def _append_json_percent_fader(self, idx, p, cc_info):
         """Append a percentage fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,10)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatPercent", None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatPercent")
 
     def _append_json_degree_fader(self, idx, p, cc_info):
         """Append a (phase)degree fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatDegree", None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatDegree")
 
     def _append_json_semitone_fader(self, idx, p, cc_info):
         """Append a semitone fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatSemitone", None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatSemitone")
 
     def _append_json_detune_fader(self, idx, p, cc_info):
         """Append a detune fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDetune", None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDetune")
         
     def _append_json_int_fader(self, idx, p, cc_info):
         """Append an integer valued, untyped, fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax, None, None)
+        self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
 
     def _append_json_float_fader(self, idx, p, cc_info):
         """Append a float valued, untyped, fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,100)
         if vmax > 1000:
-            self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat", None)
+            self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat")
         else:
-            self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat", None)
+            self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat")
         
     def _append_json_plain_fader(self, idx, p, cc_info):
         """Append a plain fader, showing no values.
         """
-        self._append_json_generic_fader(cc_info, False, None, None, None, None)
+        self._append_json_generic_fader(cc_info, False, None, None, None)
         
     def _append_json_fader(self, idx, parameter, cc_info):
         """Append a fader (depending on the parameter type)
@@ -682,7 +669,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self.debug(5,f'CC map constructed: { cc_map }')
         return cc_map
         
-    def _filter_and_order_parameters(self,device_name, parameters):
+    def _filter_and_order_parameters(self, device_name, parameters):
         """Order the parameters: either original, device-dict based, or
            sorted by name (determined by ORDER configuration constant).
            - device_name: device orignal_name (needed to retreive DEVICE_DICT sort order); str
@@ -690,11 +677,14 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - result: a copy of the parameter list, sorted; list of Live.DeviceParameter.DeviceParameter
         """
         self.debug(2,'Filter and order parameters')
-        parameters = [p for p in parameters if p.name not in IGNORE_PARAMETERS]
-        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and (device_name not in ORDER_DEVICEDICT_IGNORE):
+        parameters = [p for p in parameters \
+                      if p.name not in PARAMETERS_TO_IGNORE]
+        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and \
+           (device_name not in ORDER_DEVICEDICT_IGNORE):
             banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
-            # order parameters as in parlist, skip parameters that are not listed there
+            # order parameters as in parlist, skip parameters that are not
+            # listed in parlist
             parameters_copy = []
             parameters_dict = { p.name: p for p in parameters }
             # copy in the order in which parameters appear in parlist
@@ -702,7 +692,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 if name in parameters_dict:
                     parameters_copy.append(parameters_dict[name])
             return parameters_copy
-        elif (ORDER == ORDER_SORTED) and (device_name not in ORDER_SORTED_IGNORE):
+        elif (ORDER == ORDER_SORTED) and \
+             (device_name not in ORDER_SORTED_IGNORE):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)

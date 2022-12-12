@@ -84,8 +84,8 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 ORDER = ORDER_DEVICEDICT
 
 # List of parameter names to ignore when generating presets on the fly
-# e.g. IGNORE_PARAMETERS = ["Device On"]
-IGNORE_PARAMETERS = []
+# e.g. PARAMETERS_TO_IGNORE = ["Device On"]
+PARAMETERS_TO_IGNORE = []
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
