@@ -12,8 +12,10 @@
 from .CCInfo import CCInfo, UNMAPPED_CCINFO
 
 class PresetInfo:
-    """ Class containing an E1 JSON preset and the associated CC-map
+    """ Class containing an E1 JSON preset,a LUA scripty and the
+        associated CC-map
       - The preset is a JSON string in Electra One format.
+      - The LUA script is (a possibly empty) string.
       - The MIDI cc mapping data is a dictionary of Ableton Live original
         parameter names with their corresponding CCInfo (either as an untyped
         tuple when preloaded from from Devices.py, or a CCInfo object when
@@ -21,8 +23,9 @@ class PresetInfo:
         get_ccinfo_for_parameter()
     """
     
-    def __init__(self,json_preset,cc_map):
+    def __init__(self,json_preset,lua_script,cc_map):
         self._json_preset = json_preset
+        self._lua_script = lua_script
         self._cc_map = cc_map
 
     def get_ccinfo_for_parameter(self,parameter):
@@ -50,6 +53,12 @@ class PresetInfo:
         assert self._json_preset != None, 'Empty JSON preset'
         return self._json_preset
 
+    def get_lua_script(self):
+        """Retrun the LUA script as a string
+           - result: lua_script; str
+        """
+        return self._lua_script
+    
     def validate(self):
         """ Check for internal consistency; return first found error as string.
             (Note that there are actually valid reasons to have several device

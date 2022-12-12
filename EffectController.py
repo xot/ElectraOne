@@ -245,8 +245,9 @@ class EffectController(ElectraOneBase):
         if DUMP:
             self._dump_presetinfo(device,preset_info)
         preset = preset_info.get_preset()
+        lua_script = preset_info.get_lua_script()
         # upload preset: will also request midi map (which will also refresh state)
-        self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT)
+        self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT + lua_script)
         self._assigned_device_uploaded = True
         
             

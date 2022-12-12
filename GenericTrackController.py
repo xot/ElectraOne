@@ -143,7 +143,7 @@ class GenericTrackController(ElectraOneBase):
             (channel, is_cc14, cc_no) = eq_cc_map[p]
             # add the offset to the cc_no present in TRACK_EQ_CC_MAP
             cc_map[p] = (channel, is_cc14, self._my_cc(cc_no))
-        return PresetInfo('',cc_map)
+        return PresetInfo('','',cc_map)
 
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be

@@ -1,1 +1,1872 @@
-{"version":2,"name":"Echo","projectId":"hwfNuLyMxBrryYqqbBdC","pages":[{"id":1,"name":"Echo"},{"id":2,"name":"Mod / Char"}],"groups":[{"id":1,"pageId":1,"name":"LEFT","color":"F45C51","bounds":[0,16,656,16]},{"id":2,"pageId":1,"name":"REVERB","color":"529DEC","bounds":[680,16,146,16]},{"id":3,"pageId":1,"name":"OUTPUT","color":"03A598","bounds":[850,16,146,16]},{"id":4,"pageId":1,"name":"RIGHT","color":"F49500","bounds":[0,104,656,16]},{"id":5,"pageId":1,"name":"FILTER","color":"C44795","bounds":[170,456,826,16]},{"id":6,"pageId":2,"name":"MODULATION","color":"FFFFFF","bounds":[0,104,996,16]},{"id":7,"pageId":2,"name":"GATE","color":"F49500","bounds":[0,192,486,16]},{"id":8,"pageId":2,"name":"DUCKING","color":"529DEC","bounds":[510,192,486,16]},{"id":9,"pageId":2,"name":"NOISE","color":"F49500","bounds":[0,280,486,16]},{"id":10,"pageId":2,"name":"WOBBLE","color":"F45C51","bounds":[510,280,486,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"Notes","index":0,"value":0},{"label":"Triplet","index":1,"value":42},{"label":"Dotted","index":2,"value":85},{"label":"16th","index":3,"value":127}]},{"id":2,"items":[{"label":"Pre","index":0,"value":0},{"label":"Post","index":1,"value":64},{"label":"Feedback","index":2,"value":127}]},{"id":3,"items":[{"label":"Stereo","index":0,"value":0},{"label":"Ping Pong","index":1,"value":64},{"label":"Mid/Side","index":2,"value":127}]},{"id":4,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":25},{"label":"Saw Up","index":2,"value":51},{"label":"Saw Down","index":3,"value":76},{"label":"Square","index":4,"value":102},{"label":"Random","index":5,"value":127}]}],"controls":[{"id":1,"type":"fader","visible":true,"name":"L TIME","color":"F45C51","bounds":[0,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":14,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":2,"type":"pad","mode":"toggle","visible":true,"name":"L SYNC","color":"F45C51","bounds":[170,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":70,"deviceId":1},"id":"value"}]},{"id":3,"type":"list","visible":true,"name":"L SYNC MODE","color":"F45C51","bounds":[340,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":71,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":4,"type":"fader","visible":true,"name":"L OFFSET","color":"F45C51","bounds":[510,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":5,"type":"fader","visible":true,"name":"REVERB LEVEL","color":"529DEC","bounds":[680,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":6,"type":"fader","visible":true,"name":"STEREO WIDTH","color":"03A598","bounds":[850,40,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":7,"type":"fader","visible":true,"name":"R TIME","color":"F49500","bounds":[0,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":8,"type":"pad","mode":"toggle","visible":true,"name":"R SYNC","color":"F49500","bounds":[170,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":78,"deviceId":1},"id":"value"}]},{"id":9,"type":"list","visible":true,"name":"R SYNC MODE","color":"F49500","bounds":[340,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":79,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":10,"type":"fader","visible":true,"name":"R OFFSET","color":"F49500","bounds":[510,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":11,"type":"list","visible":true,"name":"REVERB LOC","color":"529DEC","bounds":[680,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":81,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":12,"type":"fader","visible":true,"name":"OUTPUT GAIN","color":"03A598","bounds":[850,128,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":13,"type":"pad","mode":"toggle","visible":true,"name":"LINK","color":"FFFFFF","bounds":[0,216,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"id":"value"}]},{"id":17,"type":"fader","visible":true,"name":"REVERB DECAY","color":"529DEC","bounds":[680,216,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":18,"type":"fader","visible":true,"name":"DRY WET","color":"03A598","bounds":[850,216,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":19,"type":"fader","visible":true,"name":"INPUT GAIN","color":"FFFFFF","bounds":[0,304,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":20,"type":"fader","visible":true,"name":"FEEDBACK","color":"FFFFFF","bounds":[170,304,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":23,"type":"list","visible":true,"name":"CHANNEL MODE","color":"529DEC","bounds":[680,304,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":31,"deviceId":1},"overlayId":3,"id":"value"}]},{"id":25,"type":"pad","mode":"toggle","visible":true,"name":"CLIP DRY","color":"FFFFFF","bounds":[0,392,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":63,"deviceId":1},"id":"value"}]},{"id":26,"type":"pad","mode":"toggle","visible":true,"name":"FEEDBACK INV","color":"FFFFFF","bounds":[170,392,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":66,"deviceId":1},"id":"value"}]},{"id":31,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"FFFFFF","bounds":[0,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":64,"deviceId":1},"id":"value"}]},{"id":32,"type":"pad","mode":"toggle","visible":true,"name":"FILTER ON","color":"C44795","bounds":[170,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":67,"deviceId":1},"id":"value"}]},{"id":33,"type":"fader","visible":true,"name":"HP FREQ","color":"C44795","bounds":[340,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":34,"type":"fader","visible":true,"name":"HP RES","color":"C44795","bounds":[510,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":35,"type":"fader","visible":true,"name":"LP FREQ","color":"C44795","bounds":[680,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":36,"type":"fader","visible":true,"name":"LP RES","color":"C44795","bounds":[850,480,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":37,"type":"pad","mode":"toggle","visible":true,"name":"MOD SYNC","color":"FFFFFF","bounds":[0,40,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":74,"deviceId":1},"id":"value"}]},{"id":38,"type":"list","visible":true,"name":"MOD WAVE","color":"FFFFFF","bounds":[170,40,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":75,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":43,"type":"fader","visible":true,"name":"MOD FREQ","color":"FFFFFF","bounds":[0,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":44,"type":"fader","visible":true,"name":"MOD PHASE","color":"FFFFFF","bounds":[170,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":45,"type":"pad","mode":"toggle","visible":true,"name":"MOD 4X","color":"FFFFFF","bounds":[340,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":73,"deviceId":1},"id":"value"}]},{"id":46,"type":"fader","visible":true,"name":"DLY < MOD","color":"FFFFFF","bounds":[510,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":47,"type":"fader","visible":true,"name":"FLT < MOD","color":"FFFFFF","bounds":[680,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":48,"type":"fader","visible":true,"name":"ENV MIX","color":"FFFFFF","bounds":[850,128,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":49,"type":"pad","mode":"toggle","visible":true,"name":"GATE ON","color":"F49500","bounds":[0,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":68,"deviceId":1},"id":"value"}]},{"id":50,"type":"fader","visible":true,"name":"GATE THR","color":"F49500","bounds":[170,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":51,"type":"fader","visible":true,"name":"GATE RELEASE","color":"F49500","bounds":[340,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":52,"type":"pad","mode":"toggle","visible":true,"name":"DUCK ON","color":"529DEC","bounds":[510,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":53,"type":"fader","visible":true,"name":"DUCK THR","color":"529DEC","bounds":[680,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":54,"type":"fader","visible":true,"name":"DUCK RELEASE","color":"529DEC","bounds":[850,216,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":55,"type":"pad","mode":"toggle","visible":true,"name":"NOISE ON","color":"FFFFFF","bounds":[0,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":76,"deviceId":1},"id":"value"}]},{"id":56,"type":"fader","visible":true,"name":"NOISE AMT","color":"FFFFFF","bounds":[170,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":57,"type":"fader","visible":true,"name":"NOISE MRPH","color":"FFFFFF","bounds":[340,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":58,"type":"pad","mode":"toggle","visible":true,"name":"WOBBLE ON","color":"F45C51","bounds":[510,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":82,"deviceId":1},"id":"value"}]},{"id":59,"type":"fader","visible":true,"name":"WOBBLE AMT","color":"F45C51","bounds":[680,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":60,"type":"fader","visible":true,"name":"WOBBLE MRPH","color":"F45C51","bounds":[850,304,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"id":"value"}]},{"id":61,"type":"pad","mode":"toggle","visible":true,"name":"REPITCH","color":"529DEC","bounds":[0,392,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":80,"deviceId":1},"id":"value"}]}]}
+{
+  "version": 2,
+  "name": "Echo",
+  "projectId": "hwfNuLyMxBrryYqqbBdC",
+  "pages": [
+    {
+      "id": 1,
+      "name": "Echo"
+    },
+    {
+      "id": 2,
+      "name": "Mod / Char"
+    }
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "pageId": 1,
+      "name": "LEFT",
+      "color": "F45C51",
+      "bounds": [
+        0,
+        16,
+        656,
+        16
+      ]
+    },
+    {
+      "id": 2,
+      "pageId": 1,
+      "name": "REVERB",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        16,
+        146,
+        16
+      ]
+    },
+    {
+      "id": 3,
+      "pageId": 1,
+      "name": "OUTPUT",
+      "color": "03A598",
+      "bounds": [
+        850,
+        16,
+        146,
+        16
+      ]
+    },
+    {
+      "id": 4,
+      "pageId": 1,
+      "name": "RIGHT",
+      "color": "F49500",
+      "bounds": [
+        0,
+        104,
+        656,
+        16
+      ]
+    },
+    {
+      "id": 5,
+      "pageId": 1,
+      "name": "FILTER",
+      "color": "C44795",
+      "bounds": [
+        170,
+        456,
+        826,
+        16
+      ]
+    },
+    {
+      "id": 6,
+      "pageId": 2,
+      "name": "MODULATION",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        104,
+        996,
+        16
+      ]
+    },
+    {
+      "id": 7,
+      "pageId": 2,
+      "name": "GATE",
+      "color": "F49500",
+      "bounds": [
+        0,
+        192,
+        486,
+        16
+      ]
+    },
+    {
+      "id": 8,
+      "pageId": 2,
+      "name": "DUCKING",
+      "color": "529DEC",
+      "bounds": [
+        510,
+        192,
+        486,
+        16
+      ]
+    },
+    {
+      "id": 9,
+      "pageId": 2,
+      "name": "NOISE",
+      "color": "F49500",
+      "bounds": [
+        0,
+        280,
+        486,
+        16
+      ]
+    },
+    {
+      "id": 10,
+      "pageId": 2,
+      "name": "WOBBLE",
+      "color": "F45C51",
+      "bounds": [
+        510,
+        280,
+        486,
+        16
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": 1,
+      "name": "Generic MIDI",
+      "port": 1,
+      "channel": 11
+    }
+  ],
+  "overlays": [
+    {
+      "id": 1,
+      "items": [
+        {
+          "label": "Notes",
+          "index": 0,
+          "value": 0
+        },
+        {
+          "label": "Triplet",
+          "index": 1,
+          "value": 42
+        },
+        {
+          "label": "Dotted",
+          "index": 2,
+          "value": 85
+        },
+        {
+          "label": "16th",
+          "index": 3,
+          "value": 127
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "items": [
+        {
+          "label": "Pre",
+          "index": 0,
+          "value": 0
+        },
+        {
+          "label": "Post",
+          "index": 1,
+          "value": 64
+        },
+        {
+          "label": "Feedback",
+          "index": 2,
+          "value": 127
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "items": [
+        {
+          "label": "Stereo",
+          "index": 0,
+          "value": 0
+        },
+        {
+          "label": "Ping Pong",
+          "index": 1,
+          "value": 64
+        },
+        {
+          "label": "Mid/Side",
+          "index": 2,
+          "value": 127
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "items": [
+        {
+          "label": "Sine",
+          "index": 0,
+          "value": 0
+        },
+        {
+          "label": "Triangle",
+          "index": 1,
+          "value": 25
+        },
+        {
+          "label": "Saw Up",
+          "index": 2,
+          "value": 51
+        },
+        {
+          "label": "Saw Down",
+          "index": 3,
+          "value": 76
+        },
+        {
+          "label": "Square",
+          "index": 4,
+          "value": 102
+        },
+        {
+          "label": "Random",
+          "index": 5,
+          "value": 127
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "id": 1,
+      "type": "fader",
+      "visible": true,
+      "name": "L TIME",
+      "color": "F45C51",
+      "bounds": [
+        0,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 14,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 431,
+      "type": "fader",
+      "visible": false,
+      "name": "L TIME X",
+      "color": "045C51",
+      "bounds": [
+        0,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 14,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "L SYNC",
+      "color": "F45C51",
+      "bounds": [
+        170,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 2,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 70,
+            "deviceId": 1
+          },
+          "id": "value",
+	  "function": "switch"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "list",
+      "visible": true,
+      "name": "L SYNC MODE",
+      "color": "F45C51",
+      "bounds": [
+        340,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 3,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "parameterNumber": 71,
+            "deviceId": 1
+          },
+          "overlayId": 1,
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "fader",
+      "visible": true,
+      "name": "L OFFSET",
+      "color": "F45C51",
+      "bounds": [
+        510,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 4,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 13,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "fader",
+      "visible": true,
+      "name": "REVERB LEVEL",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 5,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 27,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "fader",
+      "visible": true,
+      "name": "STEREO WIDTH",
+      "color": "03A598",
+      "bounds": [
+        850,
+        40,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 6,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 28,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "fader",
+      "visible": true,
+      "name": "R TIME",
+      "color": "F49500",
+      "bounds": [
+        0,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 7,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 25,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "R SYNC",
+      "color": "F49500",
+      "bounds": [
+        170,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 8,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 78,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "list",
+      "visible": true,
+      "name": "R SYNC MODE",
+      "color": "F49500",
+      "bounds": [
+        340,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 9,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "parameterNumber": 79,
+            "deviceId": 1
+          },
+          "overlayId": 1,
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "fader",
+      "visible": true,
+      "name": "R OFFSET",
+      "color": "F49500",
+      "bounds": [
+        510,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 10,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 24,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "list",
+      "visible": true,
+      "name": "REVERB LOC",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 11,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "parameterNumber": 81,
+            "deviceId": 1
+          },
+          "overlayId": 2,
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "fader",
+      "visible": true,
+      "name": "OUTPUT GAIN",
+      "color": "03A598",
+      "bounds": [
+        850,
+        128,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 12,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 22,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "LINK",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        216,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 72,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "fader",
+      "visible": true,
+      "name": "REVERB DECAY",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        216,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 5,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 26,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "fader",
+      "visible": true,
+      "name": "DRY WET",
+      "color": "03A598",
+      "bounds": [
+        850,
+        216,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 6,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 1,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "type": "fader",
+      "visible": true,
+      "name": "INPUT GAIN",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        304,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 7,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 11,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "fader",
+      "visible": true,
+      "name": "FEEDBACK",
+      "color": "FFFFFF",
+      "bounds": [
+        170,
+        304,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 8,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 5,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "list",
+      "visible": true,
+      "name": "CHANNEL MODE",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        304,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 11,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "parameterNumber": 31,
+            "deviceId": 1
+          },
+          "overlayId": 3,
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "CLIP DRY",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        392,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 63,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "FEEDBACK INV",
+      "color": "FFFFFF",
+      "bounds": [
+        170,
+        392,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 2,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 66,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "DEVICE ON",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 7,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 64,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "FILTER ON",
+      "color": "C44795",
+      "bounds": [
+        170,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 8,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 67,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "type": "fader",
+      "visible": true,
+      "name": "HP FREQ",
+      "color": "C44795",
+      "bounds": [
+        340,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 9,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 9,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "type": "fader",
+      "visible": true,
+      "name": "HP RES",
+      "color": "C44795",
+      "bounds": [
+        510,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 10,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 10,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "type": "fader",
+      "visible": true,
+      "name": "LP FREQ",
+      "color": "C44795",
+      "bounds": [
+        680,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 11,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 15,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "type": "fader",
+      "visible": true,
+      "name": "LP RES",
+      "color": "C44795",
+      "bounds": [
+        850,
+        480,
+        146,
+        56
+      ],
+      "pageId": 1,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 12,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 16,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "MOD SYNC",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        40,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 74,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "type": "list",
+      "visible": true,
+      "name": "MOD WAVE",
+      "color": "FFFFFF",
+      "bounds": [
+        170,
+        40,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 2,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "parameterNumber": 75,
+            "deviceId": 1
+          },
+          "overlayId": 4,
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "type": "fader",
+      "visible": true,
+      "name": "MOD FREQ",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 7,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 17,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "type": "fader",
+      "visible": true,
+      "name": "MOD PHASE",
+      "color": "FFFFFF",
+      "bounds": [
+        170,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 8,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 18,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "MOD 4X",
+      "color": "FFFFFF",
+      "bounds": [
+        340,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 9,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 73,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "type": "fader",
+      "visible": true,
+      "name": "DLY < MOD",
+      "color": "FFFFFF",
+      "bounds": [
+        510,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 10,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 0,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "type": "fader",
+      "visible": true,
+      "name": "FLT < MOD",
+      "color": "FFFFFF",
+      "bounds": [
+        680,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 11,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 6,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "type": "fader",
+      "visible": true,
+      "name": "ENV MIX",
+      "color": "FFFFFF",
+      "bounds": [
+        850,
+        128,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 1,
+      "inputs": [
+        {
+          "potId": 12,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 4,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "GATE ON",
+      "color": "F49500",
+      "bounds": [
+        0,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 68,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "type": "fader",
+      "visible": true,
+      "name": "GATE THR",
+      "color": "F49500",
+      "bounds": [
+        170,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 2,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 8,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "type": "fader",
+      "visible": true,
+      "name": "GATE RELEASE",
+      "color": "F49500",
+      "bounds": [
+        340,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 3,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 7,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "DUCK ON",
+      "color": "529DEC",
+      "bounds": [
+        510,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 4,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 65,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "type": "fader",
+      "visible": true,
+      "name": "DUCK THR",
+      "color": "529DEC",
+      "bounds": [
+        680,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 5,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 3,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "type": "fader",
+      "visible": true,
+      "name": "DUCK RELEASE",
+      "color": "529DEC",
+      "bounds": [
+        850,
+        216,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 6,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 2,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "NOISE ON",
+      "color": "FFFFFF",
+      "bounds": [
+        0,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 7,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 76,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "type": "fader",
+      "visible": true,
+      "name": "NOISE AMT",
+      "color": "FFFFFF",
+      "bounds": [
+        170,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 8,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 20,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "type": "fader",
+      "visible": true,
+      "name": "NOISE MRPH",
+      "color": "FFFFFF",
+      "bounds": [
+        340,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 9,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 21,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "WOBBLE ON",
+      "color": "F45C51",
+      "bounds": [
+        510,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 10,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 82,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "type": "fader",
+      "visible": true,
+      "name": "WOBBLE AMT",
+      "color": "F45C51",
+      "bounds": [
+        680,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 11,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 29,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "type": "fader",
+      "visible": true,
+      "name": "WOBBLE MRPH",
+      "color": "F45C51",
+      "bounds": [
+        850,
+        304,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 2,
+      "inputs": [
+        {
+          "potId": 12,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc14",
+            "lsbFirst": false,
+            "parameterNumber": 30,
+            "deviceId": 1,
+            "min": 0,
+            "max": 16383
+          },
+          "id": "value"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "type": "pad",
+      "mode": "toggle",
+      "visible": true,
+      "name": "REPITCH",
+      "color": "529DEC",
+      "bounds": [
+        0,
+        392,
+        146,
+        56
+      ],
+      "pageId": 2,
+      "controlSetId": 3,
+      "inputs": [
+        {
+          "potId": 1,
+          "valueId": "value"
+        }
+      ],
+      "values": [
+        {
+          "message": {
+            "type": "cc7",
+            "offValue": 0,
+            "onValue": 127,
+            "parameterNumber": 80,
+            "deviceId": 1
+          },
+          "id": "value"
+        }
+      ]
+    }
+  ]
+}

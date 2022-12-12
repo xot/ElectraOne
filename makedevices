@@ -11,6 +11,7 @@
 # Distributed under the MIT License, see LICENSE
 
 from pathlib import Path
+import json
 
 PREAMBLE = """
 # ElectraOne - Device definitions
@@ -29,6 +30,10 @@ from .ElectraOneDumper import PresetInfo
 # Dictionary with preset and MIDI cc mapping data for known devices
 # (indexed by device.original_name)
 # - The preset is a JSON string in Electra One format.
+#   (The current implementation assumes that all quantized parameters
+#   are 7-bit absolute CC values while all non quantized parameters are
+#   14-bit absolute values)
+# - The LUA script is a string, possibly empty
 # - The MIDI cc mapping data is a dictionary of Ableton Live original parameter
 #   names with their corresponding MIDI CCInfo values (as ordinary tuples)
 #   in the preset. The CCInfo data must match the info in the preset used for
@@ -38,9 +43,10 @@ from .ElectraOneDumper import PresetInfo
 
 POSTSCRIPT = """
 # Return the predefined preset information for a device, None if it doesn't exist
-def get_predefined_preset_info(device_original_name):
-    if device_original_name in DEVICES:
-        return DEVICES[device_original_name]
+def get_predefined_preset_info(device_name):
+    # FIXME: try to read from file
+    if device_name in DEVICES:
+        return DEVICES[device_name]
     else:
         return None
 """
@@ -56,17 +62,29 @@ with open(DEVICES,'w') as outf:
     flag = False
     for preset in allpresets:
         json_preset_path = preset
+        lua_script_path = preset.with_suffix('.lua')
         ccmap_path = preset.with_suffix('.ccmap')
         device_name = preset.stem
         if flag:
             outf.write(',\n')
         flag = True
         with open(json_preset_path,'r') as inf:
-            json_preset = inf.read()
+            #json_preset = inf.read()
+            json_preset = json.dumps(json.load(inf), separators=(',', ':'))
             # escape single quotes in json_preset; it will be written
             # as a single-quoted string to Devices.py
             filter_quotes = str.maketrans({ "'": "\\'"})
             json_preset = json_preset.translate(filter_quotes)
+         # LUA script file need not exist; return empty string in that case
+        try:
+            with open(lua_script_path,'r') as inf:
+                lua_script = inf.read()
+                # escape single quotes in json_preset; it will be written
+                # as a single-quoted string to Devices.py
+                filter_quotes = str.maketrans({ "'": "\\'"})
+                lua_script = lua_script.translate(filter_quotes)
+        except Exception as e:
+            lua_script = ''
         with open(ccmap_path,'r') as inf:
             ccmap = inf.read()
             # Remove newlines from ccmap
@@ -75,6 +93,10 @@ with open(DEVICES,'w') as outf:
         outf.write(f"'{ device_name }': PresetInfo('")
         outf.write(json_preset)
         outf.write("',\n    ")
+        # LUA script may contain newlines
+        outf.write('"""')
+        outf.write(lua_script)
+        outf.write('""",\n    ')
         outf.write(ccmap)
         outf.write(')')
     outf.write('\n}\n\n')

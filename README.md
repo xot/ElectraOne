@@ -84,7 +84,11 @@ Dumps are written in the folder ```<LIBDIR>/dumps``` (see documentation of ```LI
 
 ### Preloaded presets
 
-Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded``` (using the ```<devicename>.epr``` and ```<devicename>.cmap``` it finds there).
+Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded```, using the following files
+
+- ```<devicename>.epr```, the preset in JSON format, as [documented here](https://docs.electra.one/developers/presetformat.html#preset-json-format); it is minified by the script, 
+- ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
+- ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
 
 You can copy a dumped preset in ```./dumps``` to ```./preloaded```. Better still, upload the patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). 
 

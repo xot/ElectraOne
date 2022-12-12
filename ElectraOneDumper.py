@@ -717,11 +717,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         parameters = self._filter_and_order_parameters(device_name,parameters)
         self._cc_map = self._construct_ccmap(parameters)
         self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)
+        self._lua_script = ''
 
 
     def get_preset(self):
         """Return the constructed preset and ccmap as PresetInfo.
            - result: preset and ccmap; PresetInfo
         """
-        return PresetInfo(self._preset_json,self._cc_map)
+        return PresetInfo(self._preset_json,self._lua_script,self._cc_map)
         
