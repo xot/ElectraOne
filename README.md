@@ -173,7 +173,6 @@ The following constants *only* influence the construction of presets 'on the fly
 The following constants deal with the mixer preset.
 
 - ```MIXER_PRESET_SLOT``` E1 preset slot where the master preset is stored. Specified by bank index (0..5) followed by preset index (0..11). The default is ```(5,0)```.
-- ```MIXER_PRESET``` E1 preset for the mixer (encoded as a JSON string); if ```None``` no mixer prese is uploaded (and it is as assumed a mixer preset is already present).
 - ```MIDI_MASTER_CHANNEL```,  ```MIDI_TRACKS_CHANNEL``` and ```MIDI_SENDS_CHANNEL``` set the distinct MIDI channels to map the master, track, and sends controls to. See the [technical documentation](./DOCUMENTATION.md) for details.
 - ```MAX_NO_OF_SENDS``` sets the maximum number of sends (and return tracks) present on the controller (currently 6).
 - ```NO_OF_TRACKS``` sets the number of tracks present on the controller (currently 5).
@@ -182,7 +181,7 @@ The following constants deal with the mixer preset.
 ## Current limitations
 
 - Externally stored, user-defined, presets are not implemented yet. (You *can* add them to ```Devices.py```.)
-- Value handling is quite rudimentary at the moment. Values do not follow the way values are shown in Ableton (and other remote controllers like Novation RemoteSL line), like showing the actual float value, percentages, semitones etc.
+- Values are not always shown on the E1 exactly as how Ableton displays them. This is particularly the case for non-integer, non-linear, controls in on-the-fly constructed presets.
 - Uploading large patches is *slow*, unless you enable fast loading. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
 
 
@@ -190,8 +189,8 @@ The following constants deal with the mixer preset.
 
 This project depends on:
 
-- Ableton Live 11, tested with version 11.1.1 and 11.1.5 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.0 See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Ableton Live 11, tested with version 11.1.1, 11.1.5, and 11.2.6 (code relies on Abelton Live supporting Python 3.6).
+- E1 firmware version 3.0 ()currently in beta). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors
