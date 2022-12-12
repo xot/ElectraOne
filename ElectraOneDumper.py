@@ -390,11 +390,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                    ,             '}]'
                    )
 
-    def _append_json_generic_fader(self, cc_info, fixedValuePosition
+    def _append_json_generic_fader(self, cc_info, thin
                                   ,vmin, vmax, formatter):
         """Append a fader (generic constructor).
            - cc_info: channel, cc_no, is_cc14 information; CCInfo
-           - fixedValuePosition: whether to use fixedValuePosition; bool
+           - thin: whether to use a thin variant; bool
            - vmin: minimum value; int (or None if not used)
            - vmax: maximum value; int 
            - formatter: name of LUA formatter function; str (None if not used)
@@ -408,8 +408,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append(    ',"type":"fader"')
-        if fixedValuePosition:
-            self._append(',"variant": "fixedValuePosition"')
+        if thin: 
+            self._append(',"variant": "thin"')
         min = 0
         if cc_info.is_cc14():
             max = 16383
@@ -434,8 +434,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                         ,  f',"max":{ vmax }'
                         )
         if formatter != None:
-            self._append(  f',"formatter":"{ formatter }"'
-                        )
+            self._append(  f',"formatter":"{ formatter }"' )
         self._append(       ',"id":"value"'
                     ,       '}'
                     ,     ']'
