@@ -343,7 +343,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self._append(',"overlays":[')
         overlay_idx = 1
-        flag = True
+        flag = False
         for p in parameters:
             if p.original_name in cc_map:
                 cc_info = cc_map[p.original_name]
