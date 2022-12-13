@@ -202,11 +202,11 @@ This project depends on:
 Should the E1 get bogged with presets or freeze, use this procedure for a 'factory reset'.
 
 1. Disconnect Electra from the USB power.
-2. Press and hold left middle button.
+2. Press and hold the top left button.
 3. While keeping the button pressed, connect the USB power.
 4. Keep the button pressed until the splash screen animation is completed
 
-This procedure will remove all presets, Lua scripts, config files.
+This procedure will start the E1 without loading any presets. Manually remove any problematic ones.
 
 See the [section on dependencies](##dependencies) on how to update the firmware.
 

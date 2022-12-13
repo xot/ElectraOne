@@ -98,7 +98,7 @@ class GenericDeviceController(ElectraOneBase):
             if ccinfo.is_mapped():
                 # TODO only add for sliders: onoff and lists automatically show the right value
                 # TODO: add value listener data
-                self._value_listeners.add(p, None)
+                self._value_listeners.add(p, ccinfo)
 
     def remove_listeners(self):
         """Remove all value listeners added.

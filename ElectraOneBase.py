@@ -424,7 +424,15 @@ class ElectraOneBase:
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns')
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
-    
+
+    def send_value_update(self, controller, valuestr):
+        """Send a value update
+           TODO: this is just a stub for testing purposes.
+        """
+        command = f'vu({controller},"{valuestr}")'
+        self._send_lua_command(command)
+        
+                          
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)

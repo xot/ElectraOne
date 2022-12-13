@@ -26,7 +26,7 @@ class ValueListener:
                for communicating with Live and the E1).
         """
         self._parameter = parameter
-        self._controller = None # tbd based on info
+        self._controller = info # TODO
         self._base = base
         self._base.debug(5,f'Adding listener for {self._parameter.original_name}.')
         self._parameter.add_value_listener(self.update_value)
