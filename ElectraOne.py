@@ -377,7 +377,7 @@ class ElectraOne(ElectraOneBase):
         """Called right before we get disconnected from Live. Ignore if
            connecting to E1 failed.
         """
-        if self._E1_connected:
+        if ElectraOneBase.E1_connected:
             self.debug(1,'Main disconnect called.') 
             if self._effect_controller:
                 self._effect_controller.disconnect()
