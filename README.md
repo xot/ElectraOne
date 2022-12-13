@@ -208,7 +208,15 @@ Should the E1 get bogged with presets or freeze, use this procedure for a 'facto
 
 This procedure will start the E1 without loading any presets. Manually remove any problematic ones.
 
-See the [section on dependencies](##dependencies) on how to update the firmware.
+
+To completely erase the E1 and format the internal SD do the following
+
+1. Disconnect Electra from the USB power.
+2. Press and hold the left middle button.
+3. While keeping the button pressed, connect the USB power.
+4. Keep the button pressed for some time.
+
+After this you need to update the firmware. See the [section on dependencies](##dependencies) on how to do that.
 
 ## Bug reports
 
