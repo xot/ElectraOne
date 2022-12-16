@@ -26,7 +26,7 @@ class ValueListener:
                for communicating with Live and the E1).
         """
         self._parameter = parameter
-        self._controller = info # TODO
+        self._controller = info # TODO: get the controller id
         self._base = base
         self._base.debug(5,f'Adding listener for {self._parameter.original_name}.')
         self._parameter.add_value_listener(self.update_value)
@@ -45,7 +45,7 @@ class ValueListener:
         """
         self._base.debug(5,f'Value of {self._parameter.original_name} changed to {str(self._parameter)}.')
         # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
-        # self._base.send_value_update(self._controller,str(self._parameter))
+        self._base.send_value_update(self._controller,str(self._parameter))
 
 
 
