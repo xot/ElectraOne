@@ -42,6 +42,31 @@ function patch.onRequest (device)
   end
 end
 
+-- received values for normal faders (see value())
+values =  { }
+
+-- default formatter for controls that use Ableton provided value strings
+function defaultFormatter(valueObject, value)
+    local control = valueObject:getControl()
+    local id = control:getId()
+    local str = values[id]
+    if str == nil then 
+        return("")
+    else
+        return(str)
+    end
+end
+
+--- send Ableton string value update for control id
+function svu(id,valuestring)
+    values[id] = valuestring
+    local control = controls.get(id)
+    if control:isVisible() then    
+       control:setVisible(false)
+       control:setVisible(true)
+    end
+end
+
 function formatFloat (valueObject, value)
   return (string.format("%.2f",value/100))
 end

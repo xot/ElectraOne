@@ -14,7 +14,8 @@
 import Live
 
 # Local imports
-from .CCInfo import CCInfo
+from .config import USE_ABLETON_VALUES
+from .CCInfo import CCInfo, UNMAPPED_IDX
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase 
 from .ValueListener import ValueListeners
@@ -96,9 +97,8 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
-                # TODO only add for sliders: onoff and lists automatically show the right value
-                # TODO: add value listener data
-                self._value_listeners.add(p, ccinfo)
+                if ccinfo.get_control_idx() != UNMAPPED_IDX and USE_ABLETON_VALUES:
+                    self._value_listeners.add(p, ccinfo)
 
     def remove_listeners(self):
         """Remove all value listeners added.

@@ -18,6 +18,10 @@ IS_CC14 = True
 # dummy CC parameter value to represent an unmapped CC
 UNMAPPED_CC = -1
 
+# indicate that control index is not mapped, ie will not listen to Ableton value
+# strings
+UNMAPPED_IDX = -1
+
 class CCInfo:
     """Class storing the channel and parameter number of a CC mapping, and
        whether the associated controller on the E1 is 14bit (or not, in
@@ -25,19 +29,19 @@ class CCInfo:
     """
 
     def __init__(self, v):
-        """Initialise with a tuple (MIDI_channel, is_cc14?, CC_parameter_no).
+        """Initialise with a tuple (control_idx, MIDI_channel, is_cc14?, CC_parameter_no).
            Where is_cc14? is IS_CC7 when the parameter is 7bit, IS_CC14 if 14bit.
            Constructing from a tuple instead of a list of parameters, to allow
            Devices.py to contain plain tuples in the cc_map.
         """
         assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
-        (self._midi_channel, self._is_cc14, self._cc_no) = v
+        (self._control_idx, self._midi_channel, self._is_cc14, self._cc_no) = v
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
         assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'
         assert self._cc_no in range(-1,128), f'MIDI channel {self._cc_no} out of range.'
         
     def __repr__(self):
-        return f'({self._midi_channel},{self._is_cc14},{self._cc_no})'
+        return f'({self._control_idx},{self._midi_channel},{self._is_cc14},{self._cc_no})'
         
     def get_midi_channel(self):
         """Return the MIDI channel this object is mapped to (undefined if not mapped)
@@ -58,6 +62,17 @@ class CCInfo:
         """
         return self._cc_no
 
+    def get_control_idx(self):
+        """Return the E1 preset control idx of this object.
+           - result: the control idx (-1 if not mapped); int 
+        """
+        return self._control_idx
+
+    def set_control_idx(self,idx):
+        """Set the E1 preset control idx of this object.
+        """
+        self._control_idx = idx
+
     def is_mapped(self):
         """Return whether object is mapped to a CC parameter at all.
            - result: whether mapped or not ; bool
@@ -65,7 +80,7 @@ class CCInfo:
         return self._cc_no != UNMAPPED_CC
 
 # CCInfo object for an unmapped parameter
-UNMAPPED_CCINFO = CCInfo((MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
+UNMAPPED_CCINFO = CCInfo((UNMAPPED_IDX,MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
 
 
 

@@ -425,11 +425,13 @@ class ElectraOneBase:
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
-    def send_value_update(self, controller, valuestr):
-        """Send a value update
-           TODO: this is just a stub for testing purposes.
+    def send_value_update(self, id, valuestr):
+        """Send a value update for a control in the currently displayed patch
+           on the E1.
+           - id: control id in the preset; int
+           - valuestr: string representing value to display; str
         """
-        command = f'vu({controller},"{valuestr}")'
+        command = f'svu({id},"{valuestr}")'
         self._send_lua_command(command)
         
                           

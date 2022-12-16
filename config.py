@@ -43,6 +43,10 @@ DISABLE_MIXER = False
 # When true, effect support is disabled
 DISABLE_EFFECT = False
 
+# Whether to use the exact value strings Ableton generates for faders
+# whose value cannot be easily computed by the E1 itself.
+USE_ABLETON_VALUES = True
+
 # === FAST SYSEX UPLOAD 
 
 # Flag whether to use fast sysex uploading,

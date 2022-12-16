@@ -46,7 +46,7 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
-from .CCInfo import CCInfo, UNMAPPED_CC, IS_CC7, IS_CC14
+from .CCInfo import CCInfo, UNMAPPED_CC, UNMAPPED_IDX, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
 
 # Electra One MIDI Port to use
@@ -497,8 +497,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Append an integer valued, untyped, fader.
         """
         (vmin,vmax) = self._get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
-
+        if USE_ABLETON_VALUES:
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, "defaultFormatter")
+            cc_info.set_control_idx(idx+1)
+        else:
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
+            
     def _append_json_float_fader(self, idx, p, cc_info):
         """Append a float valued, untyped, fader.
         """
@@ -511,8 +515,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     def _append_json_plain_fader(self, idx, p, cc_info):
         """Append a plain fader, showing no values.
         """
-        self._append_json_generic_fader(cc_info, False, None, None, None)
-        
+        if USE_ABLETON_VALUES:
+            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
+            cc_info.set_control_idx(idx+1)
+        else:
+            self._append_json_generic_fader(cc_info, False, None, None, None)
+            
     def _append_json_fader(self, idx, parameter, cc_info):
         """Append a fader (depending on the parameter type)
         """
@@ -648,7 +656,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 if cur_cc14par_idx >= len(cc14pars):
                     break
                 p = cc14pars[cur_cc14par_idx]
-                cc_map[p.original_name] = CCInfo((channel,IS_CC14,i))
+                cc_map[p.original_name] = CCInfo((UNMAPPED_IDX,channel,IS_CC14,i))
                 cur_cc14par_idx += 1
                 free[i] = False
                 free[i+32] = False
@@ -659,7 +667,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     cc_no += 1
                 if cc_no < 128: # free slot in current channel found
                     p = cc7pars[cur_cc7par_idx]
-                    cc_map[p.original_name] = CCInfo((channel,IS_CC7,cc_no))
+                    cc_map[p.original_name] = CCInfo((UNMAPPED_IDX,channel,IS_CC7,cc_no))
                     cur_cc7par_idx += 1
                     cc_no += 1
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
@@ -716,6 +724,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(2,'Dumper loaded.')
         parameters = self._filter_and_order_parameters(device_name,parameters)
         self._cc_map = self._construct_ccmap(parameters)
+        # thus modifes cc_map to include control indices that use Ableton
+        # generated value strings
         self._preset_json = self._construct_json_preset(device_name,parameters,self._cc_map)
         self._lua_script = ''
 
