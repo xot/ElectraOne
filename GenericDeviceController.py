@@ -15,7 +15,7 @@ import Live
 
 # Local imports
 from .config import USE_ABLETON_VALUES
-from .CCInfo import CCInfo, UNMAPPED_IDX
+from .CCInfo import CCInfo, UNMAPPED_ID
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase 
 from .ValueListener import ValueListeners
@@ -97,7 +97,7 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
-                if ccinfo.get_control_idx() != UNMAPPED_IDX and USE_ABLETON_VALUES:
+                if ccinfo.get_control_id() != UNMAPPED_ID and USE_ABLETON_VALUES:
                     self._value_listeners.add(p, ccinfo)
 
     def remove_listeners(self):

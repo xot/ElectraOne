@@ -353,7 +353,7 @@ It also defines the following other, generic, classes:
 - ```ElectraOneBase```: Base class with common functions: debugging, sending MIDI. (interfacing with Live through ```c_instance```). 
 - ```PresetInfo```: Stores the E1 JSON preset and the associated CC-map for a device.
 - ```CCInfo```: Channel and parameter number of a CC mapping, and
-       whether the associated controller on the E1 is 14bit or 7bit.
+       whether the associated controller on the E1 is 14bit or 7bit. Also records the control index of the associated control in the E1 preset (if necessary for sending the exact Ableton string representation of its value).
 - ```ValueListener```: Value listener for a particular parameter.
 - ```ValueListeners```: Maintain a list of value listeners for a device or a track.
 
@@ -384,7 +384,9 @@ All that matters is that you do not change the MIDI channel assignments (ie the 
 
 For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions). 
 
-We refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface, as it would make the remote script much more complex, and for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown. The only 'problematic' controls are the non-linear ones (e.g. volume). The values to display are interpolated using the tables experimentally established and documented below.
+We mostly refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface (using the ```p.str_of_value(v)``` approach, see above). In most cases this is unnecessary: for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown, and for simple controls a properly chosen 'formatter' LUA function can be used to display the correct value representation on the E1 . The only 'problematic' controls are the non-linear ones (e.g. volume, and frequency). For such parameters a ```ValueListener``` is added that sends the string representation of the value to the E1 together with the index in the preset of the associated control.
+
+In the mixer preset, the values to display are interpolated using the tables experimentally established and documented below.
 
 - Pan
 : mapped to 50L - C - 50L

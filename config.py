@@ -78,6 +78,9 @@ SWITCH_TO_EFFECT_IMMEDIATELY = True
 # is stored. Specified by bank index (0..5) followed by preset index (0.11)
 EFFECT_PRESET_SLOT = (5,1)
 
+# Default color to use for controls in a generated preset
+PRESET_COLOR = 'FFFFFF'
+
 ORDER_ORIGINAL = 0   # order as reported by Live
 ORDER_SORTED = 1     # sort by parameter name
 ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred order as defined by DEVICE_DICT in the Ableton Live rmeote script framework
