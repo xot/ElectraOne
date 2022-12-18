@@ -1,0 +1,11 @@
+{'Device On': (-1,11,False,8)
+,'Dry/Wet': (-1,11,True,3)
+,'Drive': (-1,11,True,2)
+,'Output': (-1,11,True,5)
+,'Bias': (-1,11,True,1)
+,'Envelope': (-1,11,True,4)
+,'Attack': (1,11,True,0)
+,'Release': (8,11,True,6)
+,'Tone': (-1,11,True,7)
+,'Tube Type': (-1,11,False,9)
+}

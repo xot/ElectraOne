@@ -1,0 +1,8 @@
+{'Device On': (-1,11,False,6)
+,'Filter Freq': (4,11,True,2)
+,'Filter Width': (-1,11,True,3)
+,'Drive': (-1,11,True,0)
+,'Dry/Wet': (-1,11,True,1)
+,'Tone': (-1,11,True,5)
+,'Preserve Dynamics': (-1,11,True,4)
+}

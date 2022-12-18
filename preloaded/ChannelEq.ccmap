@@ -1,0 +1,8 @@
+{'Device On': (-1,11,False,5)
+,'Highpass On': (-1,11,False,6)
+,'Low Gain': (-1,11,True,2)
+,'Mid Gain': (-1,11,True,4)
+,'Mid Freq': (-1,11,True,3)
+,'High Gain': (-1,11,True,1)
+,'Gain': (-1,11,True,0)
+}

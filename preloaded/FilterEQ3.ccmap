@@ -1,0 +1,11 @@
+{'Device On': (-1,11,False,5)
+,'GainLo': (5,11,True,3)
+,'GainMid': (6,11,True,4)
+,'GainHi': (4,11,True,2)
+,'FreqLo': (3,11,True,1)
+,'FreqHi': (2,11,True,0)
+,'LowOn': (-1,11,False,7)
+,'MidOn': (-1,11,False,8)
+,'HighOn': (-1,11,False,6)
+,'Slope': (-1,11,False,9)
+}

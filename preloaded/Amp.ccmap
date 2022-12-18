@@ -1,0 +1,11 @@
+{'Device On': (-1,11,False,8)
+,'Amp Type': (-1,11,False,7)
+,'Bass': (-1,11,True,0)
+,'Middle': (-1,11,True,3)
+,'Treble': (-1,11,True,5)
+,'Presence': (-1,11,True,4)
+,'Gain': (-1,11,True,2)
+,'Volume': (-1,11,True,6)
+,'Dual Mono': (-1,11,False,9)
+,'Dry/Wet': (-1,11,True,1)
+}
