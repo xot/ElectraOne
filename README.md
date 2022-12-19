@@ -4,21 +4,19 @@ Ableton Live MIDI Remote Script for the Electra One.
 
 ## What it does
 
-This Ableton Live MIDI Remote script allows you to control the parameters of the currently selected device in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
+This Ableton Live MIDI Remote script allows you to [control the session mixer]((#the-mixer)) and the parameters of the [currently selected device](#controlling-the-currently-appointed-device) in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
 
-It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments.
+It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments, which can be used to craft ones own preset designs to control these devices.
 
-Finally, it also manages a mixer preset to control the track mixers, returns, master mixer and transport of the current Live song.
+The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks, together with an [E1 mixer preset](#the-mixer) (```Mixer.eproj```) to control it.
 
-The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks.
-
-(*Note/warning: this is really just a first release to receive feedback. Don't use this for anything serious yet: it may not be stable, and external interfaces/file-format definitions have not been frozen yet.*)
+(*Note: this is a beta release, but it should be relatively stable and usable by now.*)
 
 ## The mixer
 
 The mixer preset is included in the distribution (```Mixer.eproj```), and should be uploaded to a bank 6, first slot. *Please make sure to upload the latest version each time you upgrade the script.*
 
-It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains control the master pan, volume, cue volume, and solo switch. And it contains transport controls: play/stop, record, rewind, and forward.
+It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, rewind, and forward.
 
 ![Main](./images/main.png "Main")
 
@@ -31,7 +29,7 @@ The return track corresponding to each send can be managed using the controls on
 
 ![Returns](./images/returns.png "Returns")
 
-Finally a separate 'Channel EQs' page contains controls to control the parameters of a Channel EQ device, when present *as the last device* on an audio/midi track or the master track.
+Finally a separate 'Channel EQs' page contains controls to control the parameters of a Channel EQ device, when present on an audio/midi track or the master track. (When more than one ChannelEq device is present, the last, rightmost ChannelEq device will be controlled.)
 
 ![Channel EQs](./images/channeleqs.png "Channel EQs")
 
@@ -47,11 +45,11 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](##preset-dumps).
+The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
-If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the E1 to the the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the E1 to the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
@@ -67,19 +65,19 @@ Note that large devices with many parameters may create a preset with several pa
 
 ### Device preset dumps
 
-Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a preloaded preset.
+Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [preloaded preset](#preloaded-presets).
 
 Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
+- the identifier of the control on the E1, in case Ableton Live needs to send the string representation of the value of the parameter to the E1 for display, because the E1 cannot reliably determine it (-1 otherwise).
 - the MIDI channel,
 - whether it is a 14bit controler (1/True: yes, 0/False: no), and
 - the CC parameter number (between 0 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
 
 Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher. (This means the constructed map may appear to have holes in the 32-63 range.)
 
-The construction of presets is controlled by several constants defined in ```config.py```
-
-Dumps are written in the folder ```<LIBDIR>/dumps``` (see documentation of ```LIBDIR``` below).
+The construction of presets is controlled by several constants defined in ```config.py```. Dumps are written in the folder ```<LIBDIR>/dumps```.
+See [documentation of configuration options](#configuring) below.)
 
 
 ### Preloaded presets
@@ -90,11 +88,13 @@ Preloaded presets are stored in ```Devices.py```. The Python script ```makedevic
 - ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
 - ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
 
-You can copy a dumped preset in ```./dumps``` to ```./preloaded```. Better still, upload the patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). 
+You can copy a dumped preset in ```./dumps``` to ```./preloaded```. Better still, upload the patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). Save any LUA script you added to the preset to the corresponding LUA file (```.lua```). 
 
-The remote script is actually completely oblivious about the actual preset it uploads to the E1: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
+The remote script is actually completely oblivious about the actual preset it uploads to the E1: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a control with the specified index and mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
 
-Apart from that, anything  goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
+If you set the control identifier in the CC-map of a parameter to the actual identifier in the preset (instead of -1), the remote script sends the textual representation of the current value of the parameter as reported by Ableton Live to the E1. To make sure it is displayed, set the ```formatter``` function field in the E1 preset to ```defaultFormatter```.
+
+Apart from that, anything goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
 ## Switching between presets
 
@@ -106,13 +106,13 @@ There is a faster way however. Pressing the PRESET REQUEST button on the E1 (rig
 
 Occasionally, the remote script or the E1 may get in a bad state.
 
-You can unplug and then replug the E1 to restart it and continue to use it with the remote script to see if that solves the problem. (See below for how to completely reset and remove all existing presets from it.)
+You can unplug and then replug the E1 to restart it and continue to use it with the remote script to see if that solves the problem. (See below for [how to completely reset](#recovering-from-errors) and remove all existing presets from it.)
 
 If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the E1) you can reset the remote script by selecting the 'reset slot' on the E1 (by default this is the last, lower right slot in the sixth bank).
 
 ## Warning
 
-**This is *alpha* software.**
+**This is *beta* software.**
 
 It was built using the [excellent resources](https://structure-void.com/ableton-live-midi-remote-scripts/) provided by Julien Bayle (StructureVoid), and Hanz Petrov's [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html). Also the incredibly well maintained [documentation](https://docs.electra.one) for the E1 itself was super useful.
 
@@ -187,7 +187,6 @@ The following constants deal with the mixer preset.
 ## Current limitations
 
 - Externally stored, user-defined, presets are not implemented yet. (You *can* add them to ```Devices.py```.)
-- Values are not always shown on the E1 exactly as how Ableton displays them. This is particularly the case for non-integer, non-linear, controls in on-the-fly constructed presets.
 - Uploading large patches is *slow*, unless you enable fast loading. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
 
 
@@ -195,8 +194,8 @@ The following constants deal with the mixer preset.
 
 This project depends on:
 
-- Ableton Live 11, tested with version 11.1.1, 11.1.5, and 11.2.6 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.0 ()currently in beta). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Ableton Live 11, tested with version 11.1.1, 11.1.5, 11.2.6, and 11.2.7 (code relies on Abelton Live supporting Python 3.6).
+- E1 firmware version 3.0 (currently in beta). See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors
@@ -222,7 +221,7 @@ After this you need to update the firmware. See the [section on dependencies](##
 
 ## Bug reports
 
-If you encounter something you believe is a bug, please report it to me by email: [info@xot.nl](mailto:info@xot.nl). You can also create a [Github Issue]().
+If you encounter something you believe is a bug, please report it to me by email: [info@xot.nl](mailto:info@xot.nl). You can also create a [Github Issue](https://github.com/xot/ElectraOne/issues).
 
 In the bug report please include:
 
