@@ -99,8 +99,6 @@ class GenericTrackController(ElectraOneBase):
         self._base_mute_cc = None # if None, not present (i.e. master track)
         self._base_arm_cc = None # if None, not present (i.e. groups and returns)
         self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
-        # TODO new feature
-        self._value_listeners = None
         #
         self.debug(0,'GenericTrackController loaded.')
 
@@ -191,9 +189,6 @@ class GenericTrackController(ElectraOneBase):
         # send channel eq
         if self._eq_device_controller:
             self._eq_device_controller.refresh_state()
-        # TODO: value listeners
-        #if self._value_listeners:
-        #    self._value_listeners.update_all()
         
     def update_display(self):
         """Update the display. (Does nothing.)        
@@ -222,17 +217,6 @@ class GenericTrackController(ElectraOneBase):
         if self._base_solo_cue_cc != None:
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
-        # TODO: add value listener data
-        #self._value_listeners = ValueListeners(self)
-        #self._value_listeners.add(track.mixer_device.volume, None)
-        #self._value_listeners.add(track.mixer_device.panning, None)
-        #if self._base_cue_volume_cc:  # master track only
-        #    self._value_listeners.add(track.mixer_device.cue_volume, None)
-        # get at most MAX_NO_OF_SENDS sends
-        #sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
-        #if self._sends_cc != None: # audio/midi tracks only
-        #    for send in sends:
-        #        self._value_listeners.add(send, None)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -249,9 +233,6 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
-            # remove value listeners
-            #if self._value_listeners:
-            #    self._value_listeners.remove_all()
             #also delete eq device value listeners here, becuase we do
             #not get notified any other way
             if self._eq_device_controller:

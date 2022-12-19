@@ -78,7 +78,6 @@ class GenericDeviceController(ElectraOneBase):
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
                 self.send_parameter_using_ccinfo(p,ccinfo)
-                # TODO: value listeners
         self._value_listeners.update_all()
 
     def disconnect(self):

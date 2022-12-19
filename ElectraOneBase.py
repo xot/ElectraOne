@@ -115,6 +115,12 @@ class ElectraOneBase:
     # in ElectraOne.py and _select_preset_slot() below).
     current_visible_slot = None
 
+    # delay after sending (to prevent overload when refreshing full state
+    # which leads to bursts in updates)
+    # Global variables because there are different instances of ElectraOneBase!
+    _send_midi_sleep = 0  # 0.005 
+    _send_value_update_sleep = 0 # 0.015
+    
     # --- LIBDIR handling
 
     def _get_libdir(self):
@@ -185,7 +191,8 @@ class ElectraOneBase:
         self._c_instance = c_instance
         # (main ElectraOne script must request to setup fast sysex,
         # because this can only be done after the E1 is detected)
-
+        #
+        
     def is_ready(self):
         """Return whether the remote script is ready to process requests
            or not (ie whether the E1 is connected and no preset upload is
@@ -288,13 +295,28 @@ class ElectraOneBase:
                 ElectraOneBase._fast_sysex = False
             
     # --- send MIDI ---
-            
+
+    def _midi_burst_on(self):
+        """Prepare the script for a burst of updates; set a small delay
+           to prevent clogging the E1
+        """
+        self.debug(5,'MIDI burst on.')
+        # TODO: set proper timings
+        ElectraOneBase._send_midi_sleep = 0.005
+        ElectraOneBase._send_value_update_sleep = 0.035
+        
+    def _midi_burst_off(self):
+        """Reset the delays, because updates are now individual.
+        """
+        self.debug(5,'MIDI burst off.')
+        ElectraOneBase._send_midi_sleep = 0
+        ElectraOneBase._send_value_update_sleep = 0 
+    
     def send_midi(self, message):
         """Send a MIDI message through Ableton Live (except for longer
            SysEx messages, if fast sending is supported)
            - message: the MIDI message to send; sequence of bytes
         """
-        time.sleep(0.005) # don't overwhelm the E1!
         # test whether longer SysEx message, and fast uploading is supported
         if len(message) > 100 and ElectraOneBase._fast_sysex \
            and message[0] == 0xF0 and message[-1] == 0xF7:
@@ -309,6 +331,7 @@ class ElectraOneBase:
             self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
             self.debug(5,f'Sending MIDI message: { hexify(message) }.')
             self._c_instance.send_midi(message)
+        time.sleep(ElectraOneBase._send_midi_sleep) # don't overwhelm the E1!
         
     # --- MIDI CC handling ---
 
@@ -431,10 +454,9 @@ class ElectraOneBase:
            - id: control id in the preset; int
            - valuestr: string representing value to display; str
         """
-        time.sleep(0.01) # don't overwhelm the E1!
         command = f'svu({id},"{valuestr}")'
         self._send_lua_command(command)
-        
+        time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
                           
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.

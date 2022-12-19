@@ -91,6 +91,7 @@ class MixerController(ElectraOneBase):
         """
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
             self.debug(1,'MixCont refreshing state.')
+            self._midi_burst_on()
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
             # refresh tracks
@@ -99,6 +100,7 @@ class MixerController(ElectraOneBase):
             # refresh return tracks
             for retrn in self._return_controllers:
                 retrn.refresh_state()
+            self._midi_burst_off()
             self.debug(1,'MixCont state refreshed.')
         else:
             self.debug(1,'MixCont not refreshing state (mixer not visible).')

@@ -844,13 +844,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
         self.debug(2,f'Dumper for device { device_name } loaded.')
-        parameters = self._filter_and_order_parameters(device_name, device.parameters)
         # TODO: remove: debuging
-        for p in parameters:
+        for p in device.parameters:
             value_as_str = p.str_for_value(p.min)
             self.debug(5,f'Min value {value_as_str} for {p.original_name} ')
             value_as_str = p.str_for_value(p.max)
             self.debug(5,f'Max value {value_as_str} for {p.original_name} ')
+        parameters = self._filter_and_order_parameters(device_name, device.parameters)
         self._cc_map = self._construct_ccmap(parameters)
         # this modifes cc_map to set the control indices for parameters that
         # need to use Ableton generated value strings.
