@@ -187,7 +187,11 @@ def _get_par_value_info(p,v):
           both as strings; (str,str)
     """
     value_as_str = p.str_for_value(v)                                         # get value as a string
-    (number_part,sep,type) = value_as_str.partition(' ')                      # split at the first space
+    i = 0
+    # skip leading spaces (string guaranteed not to be empty)
+    while value_as_str[i] == ' ':
+        i += 1
+    (number_part,sep,type) = value_as_str[i:].partition(' ')                      # split at the first space
     # detect special cases:
     if number_part[-1] == '°':
         return (number_part[:-1],'°')
@@ -841,6 +845,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         device_name = self.get_device_name(device)
         self.debug(2,f'Dumper for device { device_name } loaded.')
         parameters = self._filter_and_order_parameters(device_name, device.parameters)
+        # TODO: remove: debuging
+        for p in parameters:
+            value_as_str = p.str_for_value(p.min)
+            self.debug(5,f'Min value {value_as_str} for {p.original_name} ')
+            value_as_str = p.str_for_value(p.max)
+            self.debug(5,f'Max value {value_as_str} for {p.original_name} ')
         self._cc_map = self._construct_ccmap(parameters)
         # this modifes cc_map to set the control indices for parameters that
         # need to use Ableton generated value strings.
