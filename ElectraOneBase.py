@@ -431,6 +431,7 @@ class ElectraOneBase:
            - id: control id in the preset; int
            - valuestr: string representing value to display; str
         """
+        time.sleep(0.01) # don't overwhelm the E1!
         command = f'svu({id},"{valuestr}")'
         self._send_lua_command(command)
         
