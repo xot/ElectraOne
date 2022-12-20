@@ -154,16 +154,18 @@ class EffectController(ElectraOneBase):
     # --- initialise values ---
     
     def update_display(self):
-        """ Called every 100 ms; used to remove preset from E1 if no device selected
+        """ Called every 100 ms; used to update values
         """
-        pass
+        if self._assigned_device_controller:
+            self._assigned_device_controller.update_display()
+
     
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
         self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
         if self._assigned_device_controller:
-            self._assigned_device_controller.remove_listeners()
+            self._assigned_device_controller.disconnect()
         self.song().remove_appointed_device_listener(self._handle_appointed_device_change)
 
     # --- MIDI ---

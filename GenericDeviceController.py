@@ -18,7 +18,6 @@ from .config import USE_ABLETON_VALUES
 from .CCInfo import CCInfo, UNMAPPED_ID
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase 
-from .ValueListener import ValueListeners
 
 # --- helper functions
 
@@ -40,7 +39,8 @@ class GenericDeviceController(ElectraOneBase):
         self._device = device
         self._device_name = self.get_device_name(self._device)
         self._preset_info = preset_info
-        self.add_listeners()
+        # keep track of values that changed since last refresh_state / update_dsiplay
+        self._values = { }
 
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the device    
@@ -77,31 +77,48 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
+                # update MIDI value on the E1
                 self.send_parameter_using_ccinfo(p,ccinfo)
-        self._value_listeners.update_all()
+                control_id = ccinfo.get_control_id()
+                # update controls wiht Ableton value string when required
+                if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
+                    pstr = str(p)
+                    self._values[control_id] = pstr
+                    self.debug(5,f'Value of {p.original_name} refreshed to {pstr}.')
+                    # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
+                    self.send_value_update(control_id, pstr)
+
+    def update_display(self):
+        """ Called every 100 ms; used to update values for controls
+            that want Ableton to set their value string
+        """
+        for p in self._device.parameters:
+            ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
+            if ccinfo.is_mapped():
+                control_id = ccinfo.get_control_id()
+                if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
+                    pstr = str(p)
+                    # check if control value string changed since last refresh/update
+                    if (control_id in self._values) and \
+                       (self._values[control_id] != pstr):
+                        self._values[control_id] = pstr
+                        self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
+                        # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
+                        self.send_value_update(control_id, pstr)
 
     def disconnect(self):
         """Disconnect the device; remove all listeners.
         """
-        self.remove_listeners()
+        pass
 
     # --- Listeners
     
     def add_listeners(self):
         """Add value listeners for all (slider) parameters of the device.
         """
-        # this needs to be done only once when object/device controller created
-        self.debug(3,f'Adding listeners for device { self._device_name }')
-        self._value_listeners = ValueListeners(self)
-        for p in self._device.parameters:
-            ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
-            if ccinfo.is_mapped():
-                if ccinfo.get_control_id() != UNMAPPED_ID and USE_ABLETON_VALUES:
-                    self._value_listeners.add(p, ccinfo)
+        pass
 
     def remove_listeners(self):
         """Remove all value listeners added.
         """
-        if self._value_listeners:
-            self.debug(3,f'Removing listeners for device { self._device_name }')
-            self._value_listeners.remove_all()
+        pass

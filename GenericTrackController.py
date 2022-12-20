@@ -67,8 +67,6 @@ from .config import *
 from .PresetInfo import PresetInfo
 from .CCInfo import UNMAPPED_ID
 from .ElectraOneBase import ElectraOneBase
-# TODO: new feature
-#from .ValueListener import ValueListeners
 from .GenericDeviceController import GenericDeviceController
 
 
