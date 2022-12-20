@@ -258,7 +258,7 @@ At start-up or when loading a song build_midi_map is called several times.
 In Live, device *appointment* is the process of mapping the currently selected device to a remote controller. But it is a bit of a mess, to be honest. Here is why
 
 The currently loaded song maintains the currently appointed device (accessible as ```self.song().appointed_device```). If assigned a device, this device displays the `Blue Hand' to indicate it is controlled by a remote controller.
-Remote control script can register a listener for changes to this variable (a [property](https://docs.python.org/3/library/functions.html#property), really) by calling
+A remote control script can register a listener for changes to this variable (a [property](https://docs.python.org/3/library/functions.html#property), really) by calling
 
 ```
 self.song().add_appointed_device_listener(<listener-function>)
@@ -274,6 +274,8 @@ This means, for example, that setting ```APPOINT_ON_TRACK_CHANGE``` to ```False`
 Device appointments should be ignored when the remote controller is locked to a device (this is not something Live handles for you; your appointed device handler needs to take care of this).
 
 If your remote script supports device locking, ```can_lock_to_device``` should return ```True```. When a user locks the remote controller to a device, Live calls ```lock_to_device``` (with a reference to the device) and when the user later unlocks it Live calls ```unlock_from_device``` (again with a reference to the device).
+
+*Note: hot-swapping a device preset in Ableton apparently sets the appointed device, even if that device was already appointed, and thus hot swapping presets always triggers the appointed device listener. It also triggers the MIDI map to be rebuilt and the state to be refreshed. The latter is a happy coincidence because it automatically ensures the state of the preset on the E1 is updated.*
 
 ## Value mapping
 

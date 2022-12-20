@@ -295,6 +295,10 @@ class EffectController(ElectraOneBase):
                     self._assigned_device_uploaded = False
                     self.debug(1,'Device upload delayed.')
             else:
+                # Note: even if this is the case, Ableton rebuilds the midi map
+                # and initiates a state refresh. As hot-swapping a device
+                # apparently triggers a device appointment of the same device,
+                # this (luckily) triggers the required state refresh
                 self.debug(1,'Device already assigned.')
         else:
             # this does not happen (unfortunately)
