@@ -66,6 +66,24 @@ class GenericDeviceController(ElectraOneBase):
                 self.debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
+    def _send_parameter_valuestr(self, p, ccinfo, force):
+        """Send the Ableton value string for the parameter to the E1, if needed
+           and mapped as such.
+           - p: parameter; Live.DeviceParameter.DeviceParameter
+           - ccinfo: information about the CC mapping; CCInfo
+           - force: whether to always send the valuestr, or only if changed. Used
+               to distinguish a state refresh from a value update; bool
+        """
+        control_id = ccinfo.get_control_id()
+        if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
+            pstr = str(p)
+            if force or (control_id not in self._values) or \
+                        (self._values[control_id] != pstr):
+                self._values[control_id] = pstr
+                self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
+                # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
+                self.send_value_update(control_id, pstr)
+        
     def refresh_state(self):
         """Update both the MIDI CC values and the displayed values for the device
            on the E1. (Assumes the device is visible!)
@@ -79,14 +97,8 @@ class GenericDeviceController(ElectraOneBase):
             if ccinfo.is_mapped():
                 # update MIDI value on the E1
                 self.send_parameter_using_ccinfo(p,ccinfo)
-                control_id = ccinfo.get_control_id()
-                # update controls wiht Ableton value string when required
-                if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
-                    pstr = str(p)
-                    self._values[control_id] = pstr
-                    self.debug(5,f'Value of {p.original_name} refreshed to {pstr}.')
-                    # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
-                    self.send_value_update(control_id, pstr)
+                # update control with Ableton value string when mapped as such
+                self._send_parameter_valuestr(p, ccinfo, True)
 
     def update_display(self):
         """ Called every 100 ms; used to update values for controls
@@ -95,14 +107,7 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
-                control_id = ccinfo.get_control_id()
-                if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
-                    pstr = str(p)
-                    # check if control value string changed since last refresh/update
-                    if (control_id in self._values) and \
-                       (self._values[control_id] != pstr):
-                        self._values[control_id] = pstr
-                        self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
-                        # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
-                        self.send_value_update(control_id, pstr)
+                # update control with Ableton value string when mapped
+                # as such, and value changed since last update/refresh
+                self._send_parameter_valuestr(p, ccinfo, False)
 

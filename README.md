@@ -164,6 +164,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```DISABLE_MIXER``` controls whether mixer support is enabled. If ```True```only the effect is supported (and active always).
 - ```DISABLE_EFFECT``` controls whether effect support is enabled. If ```True```only the mixer is supported (and active always).
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
+- ```EFFECT_REFRESH_PERIOD``` amount of time (in 100ms increments) between successive refreshes of controls on the E1 whose string values need to be provided by Abelton (default is 2)
 - ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
 - ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LIBDIR```).
 - ```E1_CTRL_PORT``` (default is ```Electra Controller Electra Port 1```), the port to use to upload presets using ```sendmidi```

@@ -245,17 +245,28 @@ def _is_float_str(s):
 # TODO: what is the ":" type???
 NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°', ':']
 
-# Determine whether the parameter is integer
+NON_INT = -1
+SMALL_INT = 0
+BIG_INT = 1
+
 def _is_int_parameter(p):
-    """Return whether parameter has (only) integer values
+    """Return whether parameter has (only) integer values, and if so whether
+       its range is large ( > 64 ) or small  
        - parameter; Live.DeviceParameter.DeviceParameter
+       - result: NON_INT, SMALL_INT or BIG_INT
     """
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
     min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)
     max_number_part = _strip_plusminus(max_number_part)
-    return min_number_part.isnumeric() and max_number_part.isnumeric() and \
-       (min_type not in NON_INT_TYPES) and (max_type not in NON_INT_TYPES)
+    if (not min_number_part.isnumeric()) or \
+       (not max_number_part.isnumeric()) or \
+       (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
+        return NON_INT
+    if int(max_number_part) - int(min_number_part) > 64:
+        return BIG_INT
+    else:
+        return SMALL_INT
 
 def _wants_cc14(p):
     """Return whether a parameter wants a 14bit CC fader or not.
@@ -265,7 +276,7 @@ def _wants_cc14(p):
     # TODO: int parameter with a large range
     # (but smaller than 127) should be mapped to a CC14
     # NON_INT_TYPES partially deals with this
-    return (not p.is_quantized) and (not _is_int_parameter(p))                 # not quantized parameters are always faders
+    return (not p.is_quantized) and (_is_int_parameter(p) != SMALL_INT)
 
 # --- types of faders
 
@@ -635,7 +646,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self._append_json_detune_fader(id,parameter,cc_info)
         elif _is_symmetric_dB(parameter):
             self._append_json_symmetric_dB_fader(id,parameter,cc_info)            
-        elif _is_int_parameter(parameter):
+        elif _is_int_parameter(parameter) != NON_INT:
             self._append_json_int_fader(id,parameter,cc_info)            
         elif _is_untyped_float(parameter):
             self._append_json_float_fader(id,parameter,cc_info)            

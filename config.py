@@ -74,6 +74,10 @@ SWITCH_TO_EFFECT_IMMEDIATELY = True
 
 # === EFFECT/DEVICE CONFIGURATION CONSTANTS
 
+# Length of time (in 100ms increments) between successive refreshes of
+# controls on the E1 whose string values need to be provided by Abelton
+EFFECT_REFRESH_PERIOD = 2
+
 # E1 preset slot where the preset controlling the currently selected device
 # is stored. Specified by bank index (0..5) followed by preset index (0.11)
 EFFECT_PRESET_SLOT = (5,1)
