@@ -97,6 +97,10 @@ function formatPercent (valueObject, value)
   return (string.format("%.1f %%",value/10))
 end
 
+function formatIntPercent (valueObject, value)
+  return (string.format("%.0f %%",value/10))
+end
+
 function formatDegree (valueObject, value)
   return (string.format("%i *",value))
 end
