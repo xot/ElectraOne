@@ -231,10 +231,6 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
-            #also delete eq device value listeners here, becuase we do
-            #not get notified any other way
-            if self._eq_device_controller:
-                self._eq_device_controller.remove_listeners()
 
         
     def _on_mute_changed(self):

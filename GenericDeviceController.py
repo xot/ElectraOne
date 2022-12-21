@@ -23,7 +23,7 @@ from .ElectraOneBase import ElectraOneBase
 
 class GenericDeviceController(ElectraOneBase):
     """Control devices (both selected ones and the ChannelEq devices
-       in the mixer): build MIDI maps, add value listeners, refresh state
+       in the mixer): build MIDI maps, refresh state
     """
 
     def __init__(self, c_instance, device, preset_info):
@@ -106,19 +106,3 @@ class GenericDeviceController(ElectraOneBase):
                         # ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
                         self.send_value_update(control_id, pstr)
 
-    def disconnect(self):
-        """Disconnect the device; remove all listeners.
-        """
-        pass
-
-    # --- Listeners
-    
-    def add_listeners(self):
-        """Add value listeners for all (slider) parameters of the device.
-        """
-        pass
-
-    def remove_listeners(self):
-        """Remove all value listeners added.
-        """
-        pass
