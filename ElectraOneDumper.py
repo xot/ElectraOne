@@ -372,18 +372,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                          )
         self._append(']')
         
-    def _append_json_overlay_item(self, label, index, cc_value):
-        """Append an overlay item.
-           - label: the text to show as value ; str
-           - index: the index of this value; int, 0..no. of items-1
-           - value: the CC value corresponding to this value; int
-        """
-        self._append(f'{{"label":"{ label }"' # {{ = {
-                   , f',"index":{ index }'
-                   , f',"value":{ cc_value }'
-                   ,  '}'
-                   )
-
     def _append_json_overlay_items(self, value_items):
         """Append the overlay items. Corresponding CC values are computed
            based on the length of value_items and the position in this list.
@@ -396,7 +384,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             item_cc_value = cc_value_for_item_idx(idx, value_items)
             assert (0 <= item_cc_value) and (item_cc_value <= 127), f'MIDI CC value out of range { item_cc_value }.'
             flag = self._append_comma(flag)
-            self._append_json_overlay_item(item, idx, item_cc_value)
+            self._append(f'{{"label":"{ item }"' # {{ = {
+                        , f',"index":{ idx }'
+                        , f',"value":{ item_cc_value }'
+                        ,  '}'
+                        )
         self._append(']')
 
     def _append_json_overlay(self, idx, parameter):

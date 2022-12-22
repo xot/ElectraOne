@@ -201,6 +201,8 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
+            if DUMP:
+                self._dump_presetinfo(device,preset_info)
         # check preset integrity; any errors will be reported in the log
         error = preset_info.validate()
         if error:
@@ -268,8 +270,6 @@ class EffectController(ElectraOneBase):
         self.debug(1,f'Uploading device { device_name }')
         preset_info = self._get_preset_info(device)
         self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
-        if DUMP:
-            self._dump_presetinfo(device,preset_info)
         preset = preset_info.get_preset()
         lua_script = preset_info.get_lua_script()
         # upload preset: will also request midi map (which will also refresh state)
