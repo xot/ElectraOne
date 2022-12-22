@@ -1,7 +1,7 @@
 {'Device On': (-1,11,False,14)
 ,'Dry/Wet': (-1,11,True,3)
 ,'Drive': (-1,11,True,2)
-,'Output': (-1,11,True,5)
+,'Output': (8,11,True,5)
 ,'Type': (-1,11,False,16)
 ,'Base': (-1,11,True,0)
 ,'Color': (-1,11,False,13)

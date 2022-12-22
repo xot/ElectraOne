@@ -6,7 +6,7 @@
 ,'Frequency': (9,11,True,3)
 ,'Resonance': (-1,11,True,10)
 ,'Morph': (21,11,False,23)
-,'Drive': (-1,11,True,0)
+,'Drive': (2,11,True,0)
 ,'Env. Modulation': (-1,11,True,14)
 ,'Env. Attack': (3,11,True,1)
 ,'Env. Release': (5,11,True,2)
