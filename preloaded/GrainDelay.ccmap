@@ -1,0 +1,12 @@
+{'Device On': (-1,11,False,10)
+,'Spray': (10,11,True,6)
+,'Frequency': (7,11,True,3)
+,'Pitch': (-1,11,True,4)
+,'Random': (-1,11,True,5)
+,'Feedback': (-1,11,True,2)
+,'DryWet': (-1,11,True,1)
+,'Delay Mode': (-1,11,False,9)
+,'Beat Delay': (-1,11,False,8)
+,'Beat Swing': (-1,11,True,0)
+,'Time Delay': (11,11,True,7)
+}

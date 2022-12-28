@@ -118,8 +118,8 @@ class ElectraOneBase:
     # delay after sending (to prevent overload when refreshing full state
     # which leads to bursts in updates)
     # Global variables because there are different instances of ElectraOneBase!
-    _send_midi_sleep = 0  # 0.005 
-    _send_value_update_sleep = 0 # 0.015
+    _send_midi_sleep = 0  
+    _send_value_update_sleep = 0 
     
     # --- LIBDIR handling
 
@@ -301,9 +301,12 @@ class ElectraOneBase:
            to prevent clogging the E1
         """
         self.debug(5,'MIDI burst on.')
-        # TODO: set proper timings
-        ElectraOneBase._send_midi_sleep = 0.005
-        ElectraOneBase._send_value_update_sleep = 0.035
+        # TODO: set proper timings; note that the current HW has 256k RAM
+        # so the buffers are only 32 entries for sysex, and 128 non-sysex
+        # So really what should be done is wait after filling all buffers in
+        # a burst
+        ElectraOneBase._send_midi_sleep = 0.01 # 0.005
+        ElectraOneBase._send_value_update_sleep = 0.01 # 0.035
         
     def _midi_burst_off(self):
         """Reset the delays, because updates are now individual.
