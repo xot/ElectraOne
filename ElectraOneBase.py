@@ -298,22 +298,35 @@ class ElectraOneBase:
 
     def _midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
-           to prevent clogging the E1
+           to prevent clogging the E1, and hold of window repaints.
         """
         self.debug(5,'MIDI burst on.')
         # TODO: set proper timings; note that the current HW has 256k RAM
         # so the buffers are only 32 entries for sysex, and 128 non-sysex
         # So really what should be done is wait after filling all buffers in
         # a burst
-        ElectraOneBase._send_midi_sleep = 0.01 # 0.005
+        ElectraOneBase._send_midi_sleep = 0.005 # 0.005
         ElectraOneBase._send_value_update_sleep = 0.01 # 0.035
+        # defer drawing
+        # see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
+        sysex_command = (0x00, 0x00)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_command + sysex_close)
         
     def _midi_burst_off(self):
-        """Reset the delays, because updates are now individual.
+        """Reset the delays, because updates are now individual. And allow
+           immediate window updates again. Draw any buffered updates.
         """
         self.debug(5,'MIDI burst off.')
         ElectraOneBase._send_midi_sleep = 0
         ElectraOneBase._send_value_update_sleep = 0 
+        # reenable drawing and update display
+        # see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
+        sysex_command = (0x01, 0x00)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_command + sysex_close)
     
     def send_midi(self, message):
         """Send a MIDI message through Ableton Live (except for longer
