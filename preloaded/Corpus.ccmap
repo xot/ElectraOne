@@ -18,7 +18,7 @@
 ,'LFO On/Off': (-1,11,False,28)
 ,'LFO Shape': (-1,11,False,29)
 ,'LFO Sync': (-1,11,False,31)
-,'LFO Rate': (-1,11,True,8)
+,'LFO Rate': (13,11,True,8)
 ,'LFO Sync Rate': (17,11,True,9)
 ,'LFO Stereo Mode': (-1,11,False,30)
 ,'Spin': (-1,11,True,20)
