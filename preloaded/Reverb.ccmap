@@ -6,7 +6,7 @@
 ,'In Filter Width': (-1,11,True,13)
 ,'ER Spin On': (-1,11,False,24)
 ,'ER Spin Rate': (15,11,True,9)
-,'ER Spin Amount': (-1,11,True,8)
+,'ER Spin Amount': (13,11,True,8)
 ,'ER Shape': (-1,11,True,7)
 ,'HiFilter On': (-1,11,False,27)
 ,'HiFilter Type': (-1,11,False,28)
