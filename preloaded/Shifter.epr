@@ -1517,7 +1517,7 @@
           },
           "min": -24,
           "max": 24,
-          "formatter": "formatSemitone",
+          "formatter": "defaultFormatter",
           "id": "value"
         }
       ]
@@ -1633,7 +1633,7 @@
           },
           "min": 0,
           "max": 24,
-          "formatter": "formatSemitone",
+          "formatter": "defaultFormatter",
           "id": "value"
         }
       ]
