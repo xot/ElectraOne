@@ -1,0 +1,8 @@
+{'Device On': (-1,11,False,4)
+,'Gain': (-1,11,True,1)
+,'Ceiling': (2,11,True,0)
+,'Release time': (7,11,True,2)
+,'Auto': (-1,11,False,3)
+,'Link Channels': (-1,11,False,5)
+,'Lookahead': (-1,11,False,6)
+}
