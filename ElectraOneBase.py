@@ -300,7 +300,7 @@ class ElectraOneBase:
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and hold of window repaints.
         """
-        self.debug(5,'MIDI burst on.')
+        self.debug(4,'MIDI burst on.')
         # TODO: set proper timings; note that the current HW has 256k RAM
         # so the buffers are only 32 entries for sysex, and 128 non-sysex
         # So really what should be done is wait after filling all buffers in
@@ -318,7 +318,8 @@ class ElectraOneBase:
         """Reset the delays, because updates are now individual. And allow
            immediate window updates again. Draw any buffered updates.
         """
-        self.debug(5,'MIDI burst off.')
+        self.debug(4,'MIDI burst off.')
+        time.sleep(0.02) # wait a bit to ensure all MIDI CC messages haev been processed
         ElectraOneBase._send_midi_sleep = 0
         ElectraOneBase._send_value_update_sleep = 0 
         # reenable drawing and update display
@@ -539,7 +540,7 @@ class ElectraOneBase:
         """
         self.debug(3,f'Thread setting timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
         while (not ElectraOneBase.ack_received) and (timeout > 0):
-            self.debug(5,f'Thread waiting for ACK, timeout {timeout}.')
+            self.debug(4,f'Thread waiting for ACK, timeout {timeout}.')
             time.sleep(0.01)
             timeout -= 1
         if ElectraOneBase.ack_received:
