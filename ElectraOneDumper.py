@@ -338,6 +338,24 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if flag:
             self._append(',')
         return True
+
+    def _truncate_parameter_name(self, name):
+        """Truncate the parameter name intelligently
+           - name: string
+           - returns: string of length MAX_NAME_LEN
+        """
+        if len(name) > MAX_NAME_LEN:
+            truncated = ''
+            for i in range(len(name)):
+                # skip lowercase vowels
+                if not name[i] in ['a','e', 'i', 'o', 'u']:
+                    truncated += name[i]
+            truncated = truncated[:MAX_NAME_LEN]
+            self.debug(3,f'Parameter name {name} truncated to {truncated}')
+            return(truncated)
+        else:
+            return(name)
+        
                         
     def _append_json_pages(self, parameters) :
         """Append the necessary number of pages (and their names).
@@ -486,7 +504,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            its MIDI value/position. These min and max values must be
            integers.
         """
-        self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
+        self.debug(4,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append(    ',"type":"fader"')
         if thin: 
@@ -661,7 +679,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         controlset = 1 + ((id % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         pot = 1 + (id % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         self._append( f'{{"id":{ _check_id(id+1) }'
-                  , f',"name":"{ _check_name(parameter.name) }"'
+                  , f',"name":"{ self._truncate_parameter_name(parameter.name) }"'
                   ,  ',"visible":true' 
                   , f',"color":"{ PRESET_COLOR }"' 
                   , f',"pageId":{ _check_pageid(page) }'
@@ -757,14 +775,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         # get the list of parameters to be assigned to 14bit controllers
         cc14pars = [p for p in parameters if _wants_cc14(p)]
-        if MAX_CC14_PARAMETERS != -1:
+        self.debug(4,f'{len(cc14pars)} CC14 parameters found')
+        if (MAX_CC14_PARAMETERS != -1) and (MAX_CC14_PARAMETERS < len(cc14pars)):
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
+            self.debug(4,f'Truncated CC14 parameters to {MAX_CC14_PARAMETERS}.')
         cur_cc14par_idx = 0
         # TODO: consider also including skipped cc14 parameters?
         # get the list of parameters to be assigned to 7bit controllers        
         cc7pars = [p for p in parameters if not _wants_cc14(p)]
-        if MAX_CC7_PARAMETERS != -1:
+        self.debug(4,f'{len(cc7pars)} CC7 parameters found')
+        if (MAX_CC7_PARAMETERS != -1) and (MAX_CC7_PARAMETERS < len(cc7pars)):
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
+            self.debug(4,f'Truncated CC7 parameters to {MAX_CC7_PARAMETERS}.')
         cur_cc7par_idx = 0
         # add parameters per channel; break if all parameters are assigned
         for channel in range(MIDI_EFFECT_CHANNEL,max_channel+1):
@@ -847,12 +869,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
         self.debug(2,f'Dumper for device { device_name } loaded.')
-        # TODO: remove: debuging
+        self.debug(4,'Dumper found the following parameters and their range:')
         for p in device.parameters:
-            value_as_str = p.str_for_value(p.min)
-            self.debug(5,f'Min value {value_as_str} for {p.original_name} ')
-            value_as_str = p.str_for_value(p.max)
-            self.debug(5,f'Max value {value_as_str} for {p.original_name} ')
+            min_value_as_str = p.str_for_value(p.min)
+            max_value_as_str = p.str_for_value(p.max)
+            self.debug(4,f'{p.original_name}: {min_value_as_str} .. {max_value_as_str}.')
         parameters = self._filter_and_order_parameters(device_name, device.parameters)
         self._cc_map = self._construct_ccmap(parameters)
         # this modifes cc_map to set the control indices for parameters that
