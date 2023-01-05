@@ -1,7 +1,7 @@
 {'Device On': (-1,11,False,25)
 ,'Resonance Type': (-1,11,False,61)
 ,'Resonator Quality': (-1,11,False,62)
-,'Tune': (-1,11,True,22)
+,'Tune': (37,11,True,22)
 ,'Transpose': (-1,11,False,63)
 ,'Fine': (-1,11,False,27)
 ,'Spread': (-1,11,True,21)
