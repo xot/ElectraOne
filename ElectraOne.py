@@ -264,7 +264,9 @@ class ElectraOne(ElectraOneBase):
         json_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
         json_str = ''.join(chr(c) for c in json_bytes) # convert bytes to a string
         self.debug(3,f'Request response received: {json_str}' )
-        # json_dict = json.loads(json_str)
+        # get the version
+        json_dict = json.loads(json_str)
+        self.set_version(json_dict["versionText"])
         self._request_response_received = True
 
     def _do_logmessage(self, midi_bytes):

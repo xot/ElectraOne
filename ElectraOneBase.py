@@ -102,6 +102,9 @@ class ElectraOneBase:
     # to open/close E1 remote-script interface. See is_ready()
     E1_connected = None
 
+    # E1 version info as a tuple of integers (major, minor, sub).
+    E1_version = (0,0,0)
+    
     # flag indicating whether the last preset upload was successful
     # TODO: this is not used in rest of script 
     preset_upload_successful = None
@@ -256,6 +259,25 @@ class ElectraOneBase:
         """
         self._c_instance.show_message(m)
 
+    # --- dealing with fimrware versions
+
+    def set_version(self, versionstr):
+        """Set the E1 firmware version.
+           - versionstr: version string as returned by request response; str
+        """
+        # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
+        # format "v<major>.<minor>.<sub>"
+        (majorstr,minorstr,substr) = versionstr[1:].split('.')
+        ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+        self.debug(2,f'E1 version { ElectraOneBase.E1_version }.')
+
+    def version_exceeds(self, version):
+        """test the E1 firmware version.
+           - version: version to test; tuple
+           - result: whether the E1 version is at least at version; bool
+        """
+        return (version <= ElectraOneBase.E1_version)
+        
     # --- Fast MIDI sysex upload handling
 
     def _run_command(self, command):
