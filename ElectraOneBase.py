@@ -191,6 +191,7 @@ class ElectraOneBase:
         # initialising the remote script (see __init.py__). Through
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
+        assert c_instance
         self._c_instance = c_instance
         # (main ElectraOne script must request to setup fast sysex,
         # because this can only be done after the E1 is detected)
@@ -267,8 +268,12 @@ class ElectraOneBase:
         """
         # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
         # format "v<major>.<minor>.<sub>"
-        (majorstr,minorstr,substr) = versionstr[1:].split('.')
-        ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+        try:
+            (majorstr,minorstr,substr) = versionstr[1:].split('.')
+            ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+        except ValueError:
+            self.debug(f'Failed to parse version string { versionstr }.')
+            ElectraOneBase.E1_version = (0,0,0)
         self.debug(2,f'E1 version { ElectraOneBase.E1_version }.')
 
     def version_exceeds(self, version):
@@ -405,17 +410,6 @@ class ElectraOneBase:
         self.send_midi(message1)
         self.send_midi(message2)
 
-    def send_parameter_as_cc14(self, p, channel, cc_no):
-        """Send the value of a Live parameter as a 14bit MIDI CC message 
-           (through Ableton Live).
-           - p : Ableton Live parameter; Live.DeviceParameter.DeviceParameter
-           - channel: MIDI Channel; int (1..16)
-           - cc_no: CC parameter number; int (0..127)
-        """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
-        value = cc_value(p,16383)
-        self.send_midi_cc14(channel, cc_no, value)
-
     def send_parameter_as_cc7(self, p, channel, cc_no):
         """Send the value of a Live parameter as a 7bit MIDI CC message 
            (through Ableton Live)
@@ -430,6 +424,17 @@ class ElectraOneBase:
         else:
             value = cc_value(p,127)
         self.send_midi_cc7(channel, cc_no, value)
+
+    def send_parameter_as_cc14(self, p, channel, cc_no):
+        """Send the value of a Live parameter as a 14bit MIDI CC message 
+           (through Ableton Live).
+           - p : Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - channel: MIDI Channel; int (1..16)
+           - cc_no: CC parameter number; int (0..127)
+        """
+        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
+        value = cc_value(p,16383)
+        self.send_midi_cc14(channel, cc_no, value)
 
     def send_parameter_using_ccinfo(self, p, ccinfo):
         """Send the value of Live a parameter as a MIDI CC message 
@@ -464,6 +469,7 @@ class ElectraOneBase:
            - idx: index of the track (starting at 0); int
            - label: new text; str
         """
+        assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
         command = f'utl({idx},"{label}")'
         self._send_lua_command(command)
         
@@ -473,6 +479,7 @@ class ElectraOneBase:
            - returnidx: index of the return track (starting at 0); int
            - label: new text; str
         """
+        assert returnidx in range(MAX_NO_OF_SENDS), f'Return index {returnidx} out of range.' 
         command = f'ursl({returnidx},"{label}")'
         self._send_lua_command(command)
         
@@ -483,6 +490,8 @@ class ElectraOneBase:
            - tc: track count; int
            - rc: return track count; int
         """
+        assert tc in range(NO_OF_TRACKS+1), f'Track count {tc} out of range.' 
+        assert rc in range(MAX_NO_OF_SENDS+1), f'Return count {rc} out of range.' 
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns')
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
@@ -560,6 +569,7 @@ class ElectraOneBase:
            the timeout, whichever is sooner. Return whether ACK received.
            - timeout: time to wait in 10ms; int
         """
+        assert timeout > 0
         self.debug(3,f'Thread setting timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
         while (not ElectraOneBase.ack_received) and (timeout > 0):
             self.debug(4,f'Thread waiting for ACK, timeout {timeout}.')
@@ -572,7 +582,7 @@ class ElectraOneBase:
         return ElectraOneBase.ack_received
     
     def _upload_preset_thread(self, slot, preset, luascript):
-        """To be called as a thread. Select a slot, tehn upload a preset, and
+        """To be called as a thread. Select a slot, then upload a preset, and
            then upload a lua script for it. In all cases wait (within a timeout) for
            confirmation from the E1. Reactivate the interface when done and
            request to rebuild the midi map.
