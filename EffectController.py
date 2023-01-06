@@ -171,6 +171,7 @@ class EffectController(ElectraOneBase):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton
         """
+        # TODO: may be called before device fully uploaded
         if self._assigned_device_controller and (self._update_ticks == 0):
             self._assigned_device_controller.update_display()
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
