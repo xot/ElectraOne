@@ -115,6 +115,14 @@ end
 
 """
 
+# Note: the EffectController creatas an instance of a GenericDeviceController
+# to manage the currently assigned device. If uploading is delayed,
+# self._assigned_device already points to the newly selected device, but
+# self._assigned_device_controller is still None. Note that device
+# deletion triggers device selection, so
+# self._assigned_device_controller is updated (and no longer points to
+# the now deleted device).
+
 class EffectController(ElectraOneBase):
     """Control the currently selected device.
     """
@@ -146,7 +154,7 @@ class EffectController(ElectraOneBase):
         if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
             # Check that a device is assigned and that assigned_device still exists.
             # (When it gets deleted, the reference to it becomes None.)
-            if self._assigned_device:
+            if self._assigned_device_controller:
                 self.debug(1,'EffCont refreshing state.')
                 self._midi_burst_on()
                 self._assigned_device_controller.refresh_state()
@@ -160,8 +168,8 @@ class EffectController(ElectraOneBase):
     # --- initialise values ---
     
     def update_display(self):
-        """ Called every 100 ms; used to update values of controls whose
-            string representation needs to be sent by Ableton
+        """Called every 100 ms; used to update values of controls whose
+           string representation needs to be sent by Ableton
         """
         if self._assigned_device_controller and (self._update_ticks == 0):
             self._assigned_device_controller.update_display()
@@ -181,7 +189,7 @@ class EffectController(ElectraOneBase):
         self.debug(1,'EffCont building effect MIDI map.')
         # Check that a device is assigned and that assigned_device still exists.
         # (When it gets deleted, the reference to it becomes None.)
-        if self._assigned_device:
+        if self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
         self.debug(1,'EffCont effect MIDI map built.')
         self.refresh_state()
@@ -276,7 +284,6 @@ class EffectController(ElectraOneBase):
         self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT + lua_script)
         self._assigned_device_uploaded = True
         
-            
     def _assign_device(self, device):
         """Assign the device to the E1 effect preset. Upload it immediately if
            the E1 is ready for this, and SWITCH_TO_EFFECT_IMMEDIATELY == True.
@@ -292,6 +299,7 @@ class EffectController(ElectraOneBase):
                     self._upload_assigned_device()
                 else:
                     self._assigned_device_uploaded = False
+                    self._assigned_device_controller = None
                     self.debug(1,'Device upload delayed.')
             else:
                 # Note: even if this is the case, Ableton rebuilds the midi map
@@ -303,6 +311,7 @@ class EffectController(ElectraOneBase):
             # this does not happen (unfortunately)
             self._assigned_device = None
             self._assigned_device_uploaded = False
+            self._assigned_device_controller = None
             self.debug(1,'Assigning an empty device.')
             # TODO: remove device preset from E1
             self._remove_preset_from_slot(EFFECT_PRESET_SLOT)

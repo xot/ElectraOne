@@ -19,8 +19,6 @@ from .CCInfo import CCInfo, UNMAPPED_ID
 from .PresetInfo import PresetInfo
 from .ElectraOneBase import ElectraOneBase 
 
-# --- helper functions
-
 class GenericDeviceController(ElectraOneBase):
     """Control devices (both selected ones and the ChannelEq devices
        in the mixer): build MIDI maps, refresh state
@@ -47,7 +45,9 @@ class GenericDeviceController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        assert self._device
+        # device may already be deleted while this controller still exists
+        if not self._device:
+            return
         assert self._preset_info
         self.debug(3,f'Building MIDI map for device { self._device_name }')
         parameters = self._device.parameters
@@ -90,7 +90,10 @@ class GenericDeviceController(ElectraOneBase):
         """
         # TODO Visibility matters for the displayed values (probably)
         # and whether preset upload finished
-        assert self._device
+        #
+        # device may already be deleted while this controller still exists
+        if not self._device:
+            return
         assert self._preset_info
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
@@ -104,6 +107,9 @@ class GenericDeviceController(ElectraOneBase):
         """ Called every 100 ms; used to update values for controls
             that want Ableton to set their value string
         """
+        # device may already be deleted while this controller still exists
+        if not self._device:
+            return
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
