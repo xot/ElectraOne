@@ -77,6 +77,9 @@ class GenericDeviceController(ElectraOneBase):
         control_id = ccinfo.get_control_id()
         if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
             pstr = str(p)
+            # remove any (significant) UNICODE characters from the string
+            translation = { ord('♯') : ord('#') }
+            pstr = pstr.translate(translation)
             if force or (control_id not in self._values) or \
                         (self._values[control_id] != pstr):
                 self._values[control_id] = pstr
