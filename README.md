@@ -43,6 +43,13 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 *Warning: do NOT remove any controls; this may break the script/mixer preset. The reason is that controls associated with (return) tracks that are not present in Ableton are hidden using their control id; the LUA scripting embedded in the Mixer preset responsible for that assumes these controls exist.*
 
+### Using a second E1 to control the mixer
+
+If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
+
+Simply provide the second E1 with power, and plug it's MIDI 1 Out into the MIDI 1 In of the first E1, and it's MIDI 1 In into the MIDI 1 Out of the first E1. Connect the first E1 with your computer running Ableton using the USB cable, as described below. Manually select the Mixer preset on the second E1 and you are all set. 
+
+
 ## Controlling the currently appointed device
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
