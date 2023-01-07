@@ -452,10 +452,11 @@ class ElectraOneBase:
 
     # --- MIDI SysEx handling ---
 
-    def _ord (self, c ):
+    def _safe_ord (self, c ):
         o = ord(c)
         if o > 127:
             o = ord('?')
+            self.debug(4,f'UNICODE character {c} replaced.')
         return o
     
     def _send_lua_command(self, command):
@@ -466,7 +467,7 @@ class ElectraOneBase:
         # see https://docs.electra.one/developers/luaext.html
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
         # TODO: careful! command is a UNICODE string!
-        sysex_command = tuple([ self._ord(c) for c in command ])
+        sysex_command = tuple([ self._safe_ord(c) for c in command ])
         #sysex_command = tuple([ b for b in command.encode() ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
