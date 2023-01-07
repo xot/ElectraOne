@@ -116,6 +116,7 @@ class ElectraOne(ElectraOneBase):
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             self.setup_fast_sysex()
+            self.enable_logging(E1_LOGGING)
             c_instance = self.get_c_instance()
             if not DISABLE_MIXER:
                 self._mixer_controller = MixerController(c_instance)

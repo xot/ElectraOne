@@ -16,6 +16,9 @@
 # imply more information. 0 means no logging at all.
 DEBUG = 2
 
+# Whether the E1 should send log messages
+E1_LOGGING = False
+
 # Whether created patch info should be dumped (this is useful if you want
 # to create your own custom patches for certain devices)
 DUMP = False

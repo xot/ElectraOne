@@ -42,10 +42,8 @@ function patch.onRequest (device)
   end
 end
 
--- received values for normal faders (see value())
 values =  { }
 
--- default formatter for controls that use Ableton provided value strings
 function defaultFormatter(valueObject, value)
     local control = valueObject:getControl()
     local id = control:getId()
@@ -57,7 +55,6 @@ function defaultFormatter(valueObject, value)
     end
 end
 
---- send Ableton string value update for control id
 function svu(id,valuestring)
     values[id] = valuestring
     local control = controls.get(id)
@@ -147,23 +144,28 @@ class EffectController(ElectraOneBase):
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         self.debug(0,'EffectController loaded.')
 
+    def _assigned_device_is_visible(self):
+        """Test whether the assigned device is actually uploaded and currently
+           selected.
+           - result: whether assigned device is visble; bool
+        """
+        return self._assigned_device and \
+               self._assigned_device_controller and \
+               ElectraOneBase.preset_upload_successful and \
+              (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
+        
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
            (to bring them in sync)
         """
-        if ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT:
-            # Check that a device is assigned and that assigned_device still exists.
-            # (When it gets deleted, the reference to it becomes None.)
-            if self._assigned_device_controller:
-                self.debug(1,'EffCont refreshing state.')
-                self._midi_burst_on()
-                self._assigned_device_controller.refresh_state()
-                self._midi_burst_off()
-                self.debug(1,'EffCont state refreshed.')
-            else:
-                self.debug(1,'EffCont not refreshing state (no effect selected).')
+        if self._assigned_device_is_visible():
+            self.debug(1,'EffCont refreshing state.')
+            self._midi_burst_on()
+            self._assigned_device_controller.refresh_state()
+            self._midi_burst_off()
+            self.debug(1,'EffCont state refreshed.')
         else:
-            self.debug(2,'EffCont not refreshing state (effect not visible).')
+            self.debug(1,'EffCont not refreshing state (no effect selected or visible).')
             
     # --- initialise values ---
     
@@ -171,8 +173,7 @@ class EffectController(ElectraOneBase):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton
         """
-        # TODO: may be called before device fully uploaded
-        if self._assigned_device_controller and (self._update_ticks == 0):
+        if self._assigned_device_is_visible() and (self._update_ticks == 0):
             self._assigned_device_controller.update_display()
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
      

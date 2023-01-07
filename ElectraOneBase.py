@@ -514,7 +514,21 @@ class ElectraOneBase:
         command = f'svu({id},"{valuestr}")'
         self._send_lua_command(command)
         time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
-                          
+        
+    def enable_logging(self, flag):
+        """Enable or disable logging on the E1.
+           - flag: whether to turn logging on or off; bool
+        """
+        self.debug(1,f'Enable logging {flag}.')
+        # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)
+        if flag:
+            sysex_status = ( 0x01, 0x00 )
+        else:
+            sysex_status = ( 0x00, 0x00 )
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_status + sysex_close)
+        
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
