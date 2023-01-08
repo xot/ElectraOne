@@ -520,6 +520,12 @@ class ElectraOneBase:
            - flag: whether to turn logging on or off; bool
         """
         self.debug(1,f'Enable logging {flag}.')
+        # TODO: first set the logging output port
+        #if flag:
+        #    sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7B)
+        #    sysex_port = ( 0x00 ,)
+        #    sysex_close = (0xF7, )
+        #    self.send_midi(sysex_header + sysex_port + sysex_close)
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)
         if flag:
