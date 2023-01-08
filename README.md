@@ -242,6 +242,19 @@ To completely erase the E1 and format the internal SD do the following
 
 After this you need to update the firmware. See the [section on dependencies](##dependencies) on how to do that.
 
+
+## Setting up logging
+
+To log all events (also those that happen on the E1 itself), do the following.
+
+- install MidiPipe, and open the ```E1.mipi``` file with it
+- this should create a ```MidiPipe Output 1```; connect the INPUT of the script in Ableton Live to this, and set the output to ```Electra Controller (Electra Port 1)```
+- set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py```
+
+This should create log messages (including those sent by the E1) into ```~/Library/Preferences/Ableton/Live <version>/Log.txt```. 
+
+If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
+
 ## Bug reports
 
 If you encounter something you believe is a bug, please report it to me by email: [info@xot.nl](mailto:info@xot.nl). You can also create a [Github Issue](https://github.com/xot/ElectraOne/issues).
@@ -252,6 +265,6 @@ In the bug report please include:
 - the firmware version your E1 runs,
 - the version of Ableton Live you are running,
 - the operating system (and version) Live runs on, and 
-- a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see above). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again.
+- a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see above). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again. See above for how to create a useful log.
 
 Before submitting a bug report, please have a look at the [current issues](https://github.com/xot/ElectraOne/issues) to see whether your bug has already been reported on earlier. You can also monitor this page to keep track of how your bug is being resolved.
