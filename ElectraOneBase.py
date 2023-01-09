@@ -554,13 +554,19 @@ class ElectraOneBase:
         ElectraOneBase.current_visible_slot = slot
 
     def _remove_preset_from_slot(self, slot):
-        """Remove the current preset from a slot on the E1.
+        """Remove the current preset (and its lua script) from a slot on the E1.
            - slot: slot to delete preset from; (bank: 0..5, preset: 0..1)
         """
         self.debug(3,f'Removing preset from slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
+        # first remove the LUA script
+        # see https://docs.electra.one/developers/midiimplementation.html#lua-script-remove
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x0C)
+        sysex_select = (bankidx, presetidx)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_select + sysex_close)
         # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
         sysex_select = (bankidx, presetidx)
