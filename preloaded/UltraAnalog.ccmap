@@ -130,7 +130,7 @@
 ,'FEG2 Decay': (-1,12,True,24)
 ,'FEG2 < Vel': (-1,12,True,21)
 ,'FEG2 Sustain': (-1,12,True,27)
-,'FEG2 S Time': (85,12,True,26)
+,'FEG2 S Time': (80,12,True,26)
 ,'FEG2 Rel': (-1,12,True,25)
 ,'AMP2 On/Off': (-1,11,False,73)
 ,'AMP2 < Key': (-1,11,True,24)
