@@ -174,7 +174,7 @@ class MixerController(ElectraOneBase):
         # TODO: height of highlight rectangle is a (small) constant
         # (to ensure opening new song does not scroll to bottom of scene list)
         # Also: return tracks not highlighted
-        self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 10, True)
+        self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         
     def _handle_selected_tracks_change(self):
