@@ -80,9 +80,10 @@ class ElectraOne(ElectraOneBase):
         # 'close' the interface until E1 detected.
         ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         # start a thread to detect the E1, if found thread will complete the
-        # initialisation, setting
-        # self._mixer_controller = MixerController(c_instance) and
-        # self._effect_controller = EffectController(c_instance)
+        # initialisation, setting:
+        # - self._mixer_controller = MixerController(c_instance) and
+        # - self._effect_controller = EffectController(c_instance)
+        # and opening the interface so the remote script becomes active
         self._mixer_controller = None
         self._effect_controller = None
         self.debug(1,'Setting up connection.')
@@ -109,38 +110,33 @@ class ElectraOne(ElectraOneBase):
                     time.sleep(0.5)
                 self.debug(2,'Connection thread: E1 found')
             else:
-                # allow the thread to be interrupted if E1 detection is skipped;
-                # this allows the song to load and any devices to be appointed
-                # if they are present during the call to EffectController()
-                time.sleep(0.1) 
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             self.setup_fast_sysex()
             self.enable_logging(E1_LOGGING)
             c_instance = self.get_c_instance()
+            self.log_message('ElectraOne remote script loaded.')
+            # re-open the interface
+            ElectraOneBase.E1_connected = True                
             if not DISABLE_MIXER:
                 self._mixer_controller = MixerController(c_instance)
-            # TODO: if a device is appointed, this starts the upload thread
-            #   within a thread; be careful with race conditions???
             # The upload thread for the appointed device (if any) will request
             # the MIDI map to be rebuilt
             if not DISABLE_EFFECT:
                 self._effect_controller = EffectController(c_instance)
                 self._device_appointer = DeviceAppointer(c_instance)
+                # if a track and a device is selected it is appointed; a little
+                # sleep allows the thread to be interrupted so the appointed
+                # device listener registered by EffectController picks up this
+                # appointment and sets thge assigned device.
+                time.sleep(0.1) 
             # when opening a song without any devices selected, select
             # the mixer track and make sure the MIDI map is built (see comment above)
             if (not self._effect_controller) or self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
                 if self._mixer_controller:
                     self._select_preset_slot(MIXER_PRESET_SLOT)
-                self.log_message('ElectraOne remote script loaded.')
-                # re-open the interface (unless a preset upload is still running)
-                ElectraOneBase.E1_connected = True
                 self.request_rebuild_midi_map()
-            else:
-                self.log_message('ElectraOne remote script loaded.')
-                # re-open the interface (unless a preset upload is still running)
-                ElectraOneBase.E1_connected = True                
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 
