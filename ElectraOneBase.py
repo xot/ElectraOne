@@ -517,6 +517,7 @@ class ElectraOneBase:
         
     def enable_logging(self, flag):
         """Enable or disable logging on the E1.
+           NOTE: waits for receipt of ACK, so MUST only be called within a thread!
            - flag: whether to turn logging on or off; bool
         """
         if flag:
@@ -536,8 +537,10 @@ class ElectraOneBase:
         else:
             sysex_status = ( 0x00, 0x00 )
         sysex_close = (0xF7, )
+        ElectraOneBase.ack_received = False
         self.send_midi(sysex_header + sysex_status + sysex_close)
-        
+        self._wait_for_ack_or_timeout(5)
+            
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
@@ -624,7 +627,7 @@ class ElectraOneBase:
            then upload a lua script for it. In all cases wait (within a timeout) for
            confirmation from the E1. Reactivate the interface when done and
            request to rebuild the midi map.
-           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
+q           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
            - preset: preset to upload; str (JASON, .epr format)
            - luascript: LUA script to upload; str
         """
@@ -634,16 +637,16 @@ class ElectraOneBase:
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
             self._select_preset_slot(slot)
-            if self._wait_for_ack_or_timeout(100): # timeout 1 second
+            if self._wait_for_ack_or_timeout(10): # timeout 100ms second
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
-                if self._wait_for_ack_or_timeout( int(len(preset)/10) ):
+                if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     ElectraOneBase.ack_received = False
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self._wait_for_ack_or_timeout(100):
+                    if self._wait_for_ack_or_timeout( int(len(luascript)/100) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
