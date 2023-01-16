@@ -323,6 +323,18 @@ class ElectraOneBase:
             
     # --- send MIDI ---
 
+    # Note: many of the commands below use SysExs to control the E1; the E1
+    # typically responds with AKCs/NACKs, but the commands do not catch them because
+    # - this appears to be unnecessary as far as the E1 is concerned
+    # - would therefore slow down the script
+    # - but most importantly: it is hard to catch them because most commands
+    #   are not executed in a thread.
+    #
+    # As a workaround (becuase the commands concerned are used to update the
+    # display of the E1), the _midi_burst_off command waits a bit to ensure that
+    # all possible ACKs will be (silently!) received by the time the
+    # command finished
+
     def _midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and hold of window repaints.
@@ -340,13 +352,18 @@ class ElectraOneBase:
         sysex_command = (0x00, 0x00)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
+        # wait a bit to ensure the command is processed before sending actual
+        # value updates (we cannot wait for the actual ACK)
+        time.sleep(0.01) # 10ms 
         
     def _midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
            immediate window updates again. Draw any buffered updates.
         """
         self.debug(4,'MIDI burst off.')
-        time.sleep(0.02) # wait a bit to ensure all MIDI CC messages haev been processed
+        # wait a bit (100ms) to ensure all MIDI CC messages have been processed
+        # and all ACKs/NACks for LUA commands sent have been received
+        time.sleep(0.1) 
         ElectraOneBase._send_midi_sleep = 0
         ElectraOneBase._send_value_update_sleep = 0 
         # reenable drawing and update display
@@ -355,6 +372,10 @@ class ElectraOneBase:
         sysex_command = (0x01, 0x00)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
+        # wait a bit to ensure the command is processed
+        # (we cannot wait for the actual ACK)
+        time.sleep(0.01) # 10ms 
+        
     
     def send_midi(self, message):
         """Send a MIDI message through Ableton Live (except for longer
@@ -539,7 +560,7 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         ElectraOneBase.ack_received = False
         self.send_midi(sysex_header + sysex_status + sysex_close)
-        self._wait_for_ack_or_timeout(5)
+        self._wait_for_ack_or_timeout(5) # 50ms
             
     def _select_preset_slot(self, slot):
         """Select a slot on the E1.
@@ -637,7 +658,9 @@ q           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
             self._select_preset_slot(slot)
-            if self._wait_for_ack_or_timeout(10): # timeout 100ms second
+            # TODO: a long timeout appears to be neccessary because
+            # the E1 sets up the previous preset still present when selecting the slot
+            if self._wait_for_ack_or_timeout(50): # timeout 500ms second
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
