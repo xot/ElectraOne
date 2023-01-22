@@ -28,7 +28,7 @@ class DeviceAppointer(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
-        # register the track selection listener (will listen to device
+        # register the track selection listener (will in turn listen to device
         # selections)
         view = self.song().view
         view.add_selected_track_listener(self._handle_selected_track_change)
@@ -68,10 +68,6 @@ class DeviceAppointer(ElectraOneBase):
     def _handle_selected_device_change(self):
         """Handle a device selection change: make the currently selected device
            appointed.
-
-           Also called by _handle_selected_track_change, in which case actually
-           no device on the current track happens to be selected. In this case
-           set the appointed device to None
         """
         # get selected device from currently selected track
         track = self.song().view.selected_track

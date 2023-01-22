@@ -112,7 +112,7 @@ end
 
 """
 
-# Note: the EffectController creatas an instance of a GenericDeviceController
+# Note: the EffectController creates an instance of a GenericDeviceController
 # to manage the currently assigned device. If uploading is delayed,
 # self._assigned_device already points to the newly selected device, but
 # self._assigned_device_controller is still None. Note that device
@@ -133,9 +133,10 @@ class EffectController(ElectraOneBase):
         # referrence to the currently assigned device
         # (corresponds typically to the currently appointed device by Ableton
         self._assigned_device = None
-        # record whether assigned device is uploaded to E1
-        self._assigend_device_uploaded = False
         # generic controller associated with assigned device
+        # (only created when preset actually uploaded, so
+        # _assigned_device != None while _assigned_device_controller = None
+        # indicates that the device still needs to be uploaded)
         self._assigned_device_controller = None
         self._assigned_device_locked = False
         # count calls to update_display since last actual update
@@ -146,14 +147,28 @@ class EffectController(ElectraOneBase):
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         self.debug(0,'EffectController loaded.')
 
+    def _assigned_device_is_uploaded(self):
+        """Test whether the assigned device is actually uploaded
+           - result: whether assigned device is uploaded; bool
+        """
+        flag = self._assigned_device and self._assigned_device_controller
+        self.debug(5,f'Assigned device is uploaded: { flag }')
+        return flag
+    
+    def _assigned_device_needs_uploading(self):
+        """Test whether the assigned device still needs to be uploaded
+           - result: whether assigned device needs to be uploaded; bool
+        """
+        flag = self._assigned_device and (self._assigned_device_controller == None)
+        self.debug(5,f'Assigned device needs uploading: { flag }')
+        return flag
+    
     def _assigned_device_is_visible(self):
         """Test whether the assigned device is actually uploaded and currently
            selected.
            - result: whether assigned device is visble; bool
         """
-        return self._assigned_device and \
-               self._assigned_device_controller and \
-               ElectraOneBase.preset_upload_successful and \
+        return self._assigned_device_is_uploaded() and \
               (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
         
     def refresh_state(self):
@@ -175,10 +190,14 @@ class EffectController(ElectraOneBase):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton
         """
+        # Upload the assigned device preset if 
+        if self._assigned_device_needs_uploading():
+            self._upload_assigned_device_if_possible_and_needed()
+        # Update the display after the refresh period
         if self._assigned_device_is_visible() and (self._update_ticks == 0):
             self._assigned_device_controller.update_display()
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
-     
+        
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
@@ -267,7 +286,7 @@ class EffectController(ElectraOneBase):
         """Select the effect preset and upload the currently assigned device
            if necessary.
         """
-        if self._assigned_device and (not self._assigned_device_uploaded):
+        if self._assigned_device_needs_uploading():
             # also selects
             self._upload_assigned_device()
         else:
@@ -286,9 +305,8 @@ class EffectController(ElectraOneBase):
         lua_script = preset_info.get_lua_script()
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT + lua_script)
-        self._assigned_device_uploaded = True
 
-    def _upload_assigned_device_if_needed(self):
+    def _upload_assigned_device_if_possible_and_needed(self):
         """Upload the currently assigned device to the effect preset slot on
            the E1 if needed (and possible) and create a device controller for it.
         """
@@ -296,39 +314,28 @@ class EffectController(ElectraOneBase):
            (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)):
             self._upload_assigned_device()
         else:
-            self._assigned_device_uploaded = False
-            self._assigned_device_controller = None
             self.debug(1,'Device upload delayed.')
         
     
     def _assign_device(self, device):
         """Assign the device to the E1 effect preset. Upload it immediately if
-           the E1 is ready for this, SWITCH_TO_EFFECT_IMMEDIATELY == True or
-           if the effect preset slot is visible. Also upload it if upload
-           was delayed earlier.
+           possible and necessary.
            - device: device to assign; Live.Device.Device
         """
         if device != None:
             device_name = self.get_device_name(device)
             self.debug(1,f'Assigning device { device_name }')
+            # Note: even if this is not the case, Ableton rebuilds the midi map
+            # and initiates a state refresh. As hot-swapping a device
+            # apparently triggers a device appointment of the same device,
+            # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
                 self._assigned_device = device
-                self._upload_assigned_device_if_needed()
-            else:
-                # Note: even if this is the case, Ableton rebuilds the midi map
-                # and initiates a state refresh. As hot-swapping a device
-                # apparently triggers a device appointment of the same device,
-                # this (luckily) triggers the required state refresh
-                #
-                # Upload the device if that didnt happen yet
-                self.debug(1,'Device already assigned.')
-                if not self._assigned_device_uploaded:
-                    self.debug(1,'... but uploading now because upload was delayed.')
-                    self._upload_assigned_device_if_needed()
+                self._assigned_device_controller = None
+                self._upload_assigned_device_if_possible_and_needed()
         else:
             # this does not happen (unfortunately)
             self._assigned_device = None
-            self._assigned_device_uploaded = False
             self._assigned_device_controller = None
             self.debug(1,'Assigning an empty device.')
             # TODO: remove device preset from E1
