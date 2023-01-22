@@ -17,7 +17,7 @@ from .config import *
 from .GenericTrackController import GenericTrackController
 
 # CCs (see DOCUMENTATION.md)
-# These are base values, to which TRACKS_FACTOR is added for each next return track
+# These are base values, to which the track index is added for each track
 PAN_CC = 0
 VOLUME_CC = 5
 MUTE_CC = 116   
@@ -25,27 +25,9 @@ SOLO_CUE_CC = 84
 ARM_CC = 89
 
 # Sends (on MIDI_SENDS_CHANNEL)
-# The code in GenericTrackController assumes all sends are mapped after each
-# other, ie with increments of NO_OF_TRACKS=5
+# The code in GenericTrackController assumes send i for track t
+# is mapped to cc = SENDS_CC+ t + i * NO_OF_TRACKS
 SENDS_CC = 0  
-
-# Change this to manage a different EQ like device on every track
-# TODO: move this to Devices (but this modifying the ./makedevices script)
-#
-# Specify the device.class_name here
-TRACK_EQ_DEVICE_NAME = 'ChannelEq'
-#
-# Specify the CC-map here (like in Devices.py)
-# The only rule is that the actual cc_no for a parameter is obtained
-# by adding the offset to the base defined here
-TRACK_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
-              'Highpass On': (MIDI_TRACKS_CHANNEL, 0, 121)
-            , 'Low Gain'   : (MIDI_TRACKS_CHANNEL, 1, 25)
-            , 'Mid Gain'   : (MIDI_TRACKS_CHANNEL, 1, 20)
-            , 'Mid Freq'   : (MIDI_TRACKS_CHANNEL, 1, 15)
-            , 'High Gain'  : (MIDI_TRACKS_CHANNEL, 1, 10)
-            , 'Gain'       : (MIDI_TRACKS_CHANNEL, 0, 64)
-            }
 
 class TrackController(GenericTrackController):
     """Manage an audio or midi track. Instantiates GenericTrackController
@@ -73,7 +55,7 @@ class TrackController(GenericTrackController):
         self._base_pan_cc = PAN_CC
         self._base_volume_cc = VOLUME_CC
         self._base_cue_volume_cc = None  # not present on a normal track
-        self._sends_cc = 0 
+        self._sends_cc = SENDS_CC
         # buttons
         self._base_mute_cc = MUTE_CC
         if self._track.can_be_armed:

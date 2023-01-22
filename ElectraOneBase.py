@@ -10,6 +10,8 @@
 # Distributed under the MIT License, see LICENSE
 #
 
+import Live
+
 # Python imports
 import threading
 import time
@@ -225,15 +227,17 @@ class ElectraOneBase:
         self.debug(4,'Rebuilding MIDI map requested')
         self._c_instance.request_rebuild_midi_map()
 
-    def get_device_name(self,device):
+    def get_device_name(self, device):
         """Return the (fixed) name of the device (i.e. not the name of the preset)
            - device: the device; Live.Device.Device
            - result: device name; str
         """
         # TODO: adapt to also get an appropriate name for MaxForLive devices
+        # and for plugins
         # (device.name equals the name of the selected preset;
         # device.class_display_name is just a pretyy-printed version of class_name)
         self.debug(5,f'Returning class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }')
+        self.debug(5,f'(has type { type(device)}.) ')
         return device.class_name
 
     # --- Sending/writing debug/log messages ---

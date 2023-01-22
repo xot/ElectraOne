@@ -10,6 +10,10 @@
 # Distributed under the MIT License, see LICENSE
 #
 
+# indicate that control index is not mapped, ie will not listen to Ableton value
+# strings
+UNMAPPED_ID = -1
+
 # === GENERAL CONFIGURATION CONSTANTS 
 
 # How much debugging information should be logged; higher values
@@ -114,11 +118,6 @@ MAX_CC14_PARAMETERS = -1
 # followed by preset index (0.11)
 MIXER_PRESET_SLOT = (5,0)
 
-# E1 preset for the mixer (encoded as a JSON string); if None no mixer preset
-# is uploaded (and it is as assumed a mixer preset is already present)
-# TODO: Not implemented yet
-MIXER_PRESET = None
-
 # The MIXER uses three MIDI channels: MIDI_MASTER_CHANNEL, MIDI_TRACKS_CHANNEL
 # and MIDI_SENDS_CHANNEL.
 # Must be smaller than MIDI_EFFECT_CHANNEL
@@ -128,6 +127,36 @@ MIDI_SENDS_CHANNEL = 9
 
 # Max nr of SENDS
 MAX_NO_OF_SENDS = 6
+
+# Change this to manage a different EQ like device on every track
+# Specify the device.class_name here
+TRACK_EQ_DEVICE_NAME = 'ChannelEq'
+
+# Specify the CC-map here (as in Devices.py)
+# The actual cc_no for a parameter is obtained by adding the track offset
+# to the base defined here. (see _my_cc() )
+TRACK_EQ_CC_MAP = { 
+              'Highpass On': (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 0, 121)
+            , 'Low Gain'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 25)
+            , 'Mid Gain'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 20)
+            , 'Mid Freq'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 15)
+            , 'High Gain'  : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 10)
+            , 'Gain'       : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 0, 64)
+            }
+
+# Change this to manage a different EQ like device on the master track
+# Specify the device.class_name here
+MASTER_EQ_DEVICE_NAME = 'ChannelEq'
+
+# Specify the CC-map here (as in Devices.py)
+MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
+              'Highpass On': (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 0, 8)
+            , 'Low Gain':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 6)
+            , 'Mid Gain':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 5)
+            , 'Mid Freq':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 4)
+            , 'High Gain':   (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 3)
+            , 'Gain':        (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 7)
+            }
 
 # First MIDI channel used when creating effect/device presets on the fly;
 # range of MIDI channels used is

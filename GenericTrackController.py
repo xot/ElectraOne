@@ -123,7 +123,7 @@ class GenericTrackController(ElectraOneBase):
         devices = self._track.devices
         for d in reversed(devices):
             if d.class_name == eq_device_name:
-                self.debug(3,'ChannelEq (or similar) device found')
+                self.debug(3,'Found an equaliser device to be controlled.')
                 return d
         return None
 
@@ -137,11 +137,25 @@ class GenericTrackController(ElectraOneBase):
         """
         cc_map = {}
         for p in eq_cc_map:
-            (channel, is_cc14, cc_no) = eq_cc_map[p]
-            # add the offset to the cc_no present in TRACK_EQ_CC_MAP
-            cc_map[p] = (UNMAPPED_ID, channel, is_cc14, self._my_cc(cc_no))
+            (channel_id, channel, is_cc14, cc_no) = eq_cc_map[p]
+            # adjust the CC
+            cc_map[p] = (channel_id, channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('','',cc_map)
-
+    
+    def add_eq_device(self, eq_device_name, cc_map):
+        """Add a equaliser device to be managed by the mixer preset.
+           - eq_device_name: class name of the equaliser device, used to locate
+             the device on the track; str
+           - cc_map: information about the CC mapping (like in Devices.py); dict of CCInfo
+        """
+        # find the equaliser device on the track
+        device = self._my_channel_eq(eq_device_name)
+        if device:
+            preset_info = self._my_channel_eq_preset_info(cc_map)
+            self._eq_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+        else:
+            self._eq_device_controller = None
+        
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be
            overriden by subclass.
@@ -149,15 +163,6 @@ class GenericTrackController(ElectraOneBase):
         # Overriden by TrackController and ReturnController to rename track names
         pass
 
-    def add_eq_device(self, eq_device_name, cc_map):
-        device = self._my_channel_eq(eq_device_name)
-        if device:
-            preset_info = self._my_channel_eq_preset_info(cc_map)
-            assert preset_info
-            self._eq_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
-        else:
-            self._eq_device_controller = None
-        
     def refresh_state(self):
         """ Send the values of the controlled elements to the E1
            (to bring them in sync). Initiated by MixerController
@@ -345,7 +350,8 @@ class GenericTrackController(ElectraOneBase):
         if self._base_cue_volume_cc != None:  # master track only
             self.debug(3,f'Mapping track { self._track.name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
             Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, self._midichannel-1, self._my_cc(self._base_cue_volume_cc), map_mode, not needs_takeover)
-        # map sends (if present)
+        # map sends (if present): send i for this track is mapped to
+        # cc = base_send_cc (for this track) + i * NO_OF_TRACKS
         if self._sends_cc != None:
             sends = track.mixer_device.sends[:MAX_NO_OF_SENDS] # never map more than MAX_NO_OF_SENDS
             cc_no = self._my_cc(self._sends_cc)
