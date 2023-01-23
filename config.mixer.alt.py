@@ -126,7 +126,7 @@ MIDI_TRACKS_CHANNEL = 8
 MIDI_SENDS_CHANNEL = 9
 
 # Max nr of SENDS
-MAX_NO_OF_SENDS = 6
+MAX_NO_OF_SENDS = 5
 
 # Change this to manage a different EQ like device on every track
 # Specify the device.class_name here
@@ -136,8 +136,7 @@ TRACK_EQ_DEVICE_NAME = 'ChannelEq'
 # The actual cc_no for a parameter is obtained by adding the track offset
 # to the base defined here. (see _my_cc() )
 TRACK_EQ_CC_MAP = { 
-              'Highpass On': (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 0, 121)
-            , 'Low Gain'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 25)
+              'Low Gain'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 25)
             , 'Mid Gain'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 20)
             , 'Mid Freq'   : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 15)
             , 'High Gain'  : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 1, 10)
@@ -149,9 +148,8 @@ TRACK_EQ_CC_MAP = {
 MASTER_EQ_DEVICE_NAME = 'ChannelEq'
 
 # Specify the CC-map here (as in Devices.py)
-MASTER_EQ_CC_MAP = { 
-              'Highpass On': (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 0, 8)
-            , 'Low Gain':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 6)
+MASTER_EQ_CC_MAP = {
+              'Low Gain':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 6)
             , 'Mid Gain':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 5)
             , 'Mid Freq':    (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 4)
             , 'High Gain':   (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 3)
