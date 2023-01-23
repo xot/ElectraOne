@@ -562,11 +562,12 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_status + sysex_close)
         self._wait_for_ack_or_timeout(5) # 50ms
             
-    def _select_preset_slot(self, slot):
-        """Select a slot on the E1.
+    def _activate_preset_slot(self, slot):
+        """Activate a slot on the E1.
+           NOTE: active selects a preset slot and loads a preset stored in it
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
-        self.debug(3,f'Selecting slot {slot}.')
+        self.debug(3,f'Activating slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -577,7 +578,23 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01)); but this will typically be ignored
-        # as the upload thread closes the interface. 
+        # as the upload thread closes the interface.
+        ElectraOneBase.current_visible_slot = slot
+
+    def _select_preset_slot(self, slot):
+        """Select a slot on the E1.
+           NOTE: the preset slot is selected only. Preset is not loaded.
+           - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
+        """
+        self.debug(3,f'Selecting slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
+        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
+        # see https://docs.electra.one/developers/midiimplementation.html
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x08)
+        sysex_select = (bankidx, presetidx)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_select + sysex_close)
         ElectraOneBase.current_visible_slot = slot
 
     def _remove_preset_from_slot(self, slot):

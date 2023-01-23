@@ -271,7 +271,7 @@ class EffectController(ElectraOneBase):
             # also selects
             self._upload_assigned_device()
         else:
-            self._select_preset_slot(EFFECT_PRESET_SLOT)
+            self._activate_preset_slot(EFFECT_PRESET_SLOT)
             
     def _upload_assigned_device(self):
         """Upload the currently assigned device to the effect preset slot on
