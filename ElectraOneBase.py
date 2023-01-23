@@ -530,6 +530,17 @@ class ElectraOneBase:
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
+    def set_channel_eq_visibility(self,idx,flag):
+        """Set the visibility of the eq device for the specified track.
+           - idx: index of the track (starting at 0; 5 for master track); int
+           - flag: whether the eq-device should be visible; bool
+        """
+        if flag:
+          command = f'seqv({idx},true)'
+        else:
+          command = f'seqv({idx},false)'
+        self._send_lua_command(command)
+
     def send_value_update(self, id, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

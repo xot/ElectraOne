@@ -165,7 +165,7 @@ class EffectController(ElectraOneBase):
     
     def _assigned_device_is_visible(self):
         """Test whether the assigned device is actually uploaded and currently
-           selected.
+           visible on the E1.
            - result: whether assigned device is visble; bool
         """
         return self._assigned_device_is_uploaded() and \
@@ -314,6 +314,8 @@ class EffectController(ElectraOneBase):
            (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)):
             self._upload_assigned_device()
         else:
+            # If this happens, update_display will regularly check whether
+            # device currently assigned device still needs uploading.
             self.debug(1,'Device upload delayed.')
         
     
@@ -338,7 +340,6 @@ class EffectController(ElectraOneBase):
             self._assigned_device = None
             self._assigned_device_controller = None
             self.debug(1,'Assigning an empty device.')
-            # TODO: remove device preset from E1
             self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
 
     def _handle_appointed_device_change(self):
