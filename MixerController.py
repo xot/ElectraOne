@@ -189,20 +189,25 @@ class MixerController(ElectraOneBase):
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
+    def set_channel_eq_visibility(self):
+        """Set visibility of the channel eq device controls on the E1.
+        """
+        # set visibility of the channel-eq devices
+        # TODO: alos handle case where eq-device is added later on an
+        # existing track!
+        for t in self._track_controllers:
+            self.set_channel_eq_visibility_on_track(t._offset,t._eq_device_controller != None)
+        if self._master_controller._eq_device_controller:
+            self.set_channel_eq_visibility_on_track(5,True)
+        else:
+            self.set_channel_eq_visibility_on_track(5,False)
+        
     def set_visibility(self):
         """Set visibility of tracks, sends and return tracks on the E1.
         """
         if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT): 
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
-        # set visibility of the channel-eq devices
-        # TODO: alos handle case where eq-device is added later on an
-        # existing track!
-        for t in self._track_controllers:
-            self.set_channel_eq_visibility(t._offset,t._eq_device_controller != None)
-        if self._master_controller._eq_device_controller:
-            self.set_channel_eq_visibility(5,True)
-        else:
-            self.set_channel_eq_visibility(5,False)
+            self.set_channel_eq_visibility()
             
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes

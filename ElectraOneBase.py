@@ -530,7 +530,7 @@ class ElectraOneBase:
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
-    def set_channel_eq_visibility(self,idx,flag):
+    def set_channel_eq_visibility_on_track(self,idx,flag):
         """Set the visibility of the eq device for the specified track.
            - idx: index of the track (starting at 0; 5 for master track); int
            - flag: whether the eq-device should be visible; bool
