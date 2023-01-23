@@ -65,8 +65,6 @@ If no preloaded preset exists, it creates a preset on the fly. The preset is upl
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
-<img>
-
 When constructing presets:
 - On/off parameters are shown as toggles on the E1.
 - Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
@@ -77,7 +75,11 @@ Note that large devices with many parameters may create a preset with several pa
 
 ### Racks
 
-When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1
+When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1.
+
+*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets uploaded to the E1**. This is of course undesirable as the E1 would get swamped with preset uploads. To avoid this, hide the devices on a drum track!*
+
+
 
 ### VST or AU plugins
 
