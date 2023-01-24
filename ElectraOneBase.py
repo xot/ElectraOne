@@ -548,10 +548,10 @@ class ElectraOneBase:
         """
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x0E)
         sysex_controlid = (id % 128 , id // 128)
-        sysex_numval = (0x00,)
+        sysex_valueid = (0x00,) # for ADSRs that contain more than one actual control
         sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
         sysex_close = (0xF7, )
-        self.send_midi(sysex_header + sysex_controlid + sysex_numval + sysex_text + sysex_close)
+        self.send_midi(sysex_header + sysex_controlid + sysex_valueid + sysex_text + sysex_close)
         
     def enable_logging(self, flag):
         """Enable or disable logging on the E1.
