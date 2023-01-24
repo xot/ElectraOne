@@ -39,9 +39,12 @@ When fewer than 5 tracks and fewer than 6 return tracks are present in the Live 
 
 ### Alternative mixer designs
 
-There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are laid out horizontally instead of vertically (such that all track controls are active at the same time).
+There is nothing specific about the design of the mixer apart from the MIDI channel, ELectra One port and CC number assignments of individual controls. This means you can freely redesign the mixer to your own needs, e.g one where tracks are laid out horizontally instead of vertically (such that all track controls are active at the same time). But please make sure that *all* controls retain both their original CC numbers *and* their original control id!
 
 *Warning: do NOT remove any controls; this may break the script/mixer preset. The reason is that controls associated with (return) tracks that are not present in Ableton are hidden using their control id; the LUA scripting embedded in the Mixer preset responsible for that assumes these controls exist.*
+
+As an example, an alternative mixer design is included in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config.mixer.alt.py``` to ```config.py```.
+
 
 ### Using a second E1 to control the mixer
 
@@ -62,8 +65,6 @@ If no preloaded preset exists, it creates a preset on the fly. The preset is upl
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
-<img>
-
 When constructing presets:
 - On/off parameters are shown as toggles on the E1.
 - Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
@@ -74,7 +75,11 @@ Note that large devices with many parameters may create a preset with several pa
 
 ### Racks
 
-When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1
+When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1.
+
+*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets uploaded to the E1**. This is of course undesirable as the E1 would get swamped with preset uploads. To avoid this, hide the devices on a drum track!*
+
+
 
 ### VST or AU plugins
 
@@ -206,6 +211,11 @@ The following constants deal with the mixer preset.
 - ```MAX_NO_OF_SENDS``` sets the maximum number of sends (and return tracks) present on the controller (currently 6).
 - ```NO_OF_TRACKS``` sets the number of tracks present on the controller (currently 5).
 - ```FORW_REW_JUMP_BY_AMOUNT```the number of beats to jump ahead or back when rewinding or moving forward. The default is 1.
+
+The following constants deal with the equaliser devices managed through the mixer preset
+
+- ```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_DEVICE_NAME```: (class)name of the equaliser device (on the normal tracks and the master track respectively) to be managed by the mixer preset.
+- ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP```: CC mapping information describing which equaliser controls are mapped, and through which CC.
 
 ## Current limitations
 

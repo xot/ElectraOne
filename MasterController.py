@@ -20,21 +20,6 @@ MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
 
-# Change this to manage a different EQ like device on the master track
-#
-# Specify the device.class_name here
-MASTER_EQ_DEVICE_NAME = 'ChannelEq'
-#
-# Specify the CC-map here (like in Devices.py)
-MASTER_EQ_CC_MAP = { # 'Device On': (MIDI_TRACKS_CHANNEL,0,-1)
-              'Highpass On': (MIDI_MASTER_CHANNEL, 0, 8)
-            , 'Low Gain':    (MIDI_MASTER_CHANNEL, 1, 6)
-            , 'Mid Gain':    (MIDI_MASTER_CHANNEL, 1, 5)
-            , 'Mid Freq':    (MIDI_MASTER_CHANNEL, 1, 4)
-            , 'High Gain':   (MIDI_MASTER_CHANNEL, 1, 3)
-            , 'Gain':        (MIDI_MASTER_CHANNEL, 1, 7)
-            }
-
 class MasterController(GenericTrackController):
     """Manage the master track. Instantiates GenericTrackController
        with the correct data for the master track.

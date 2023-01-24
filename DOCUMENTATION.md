@@ -378,15 +378,15 @@ The mixer preset controls
 
 The tracks controlled can be switched. Also, each track (audio, MIDI but also the master) can contain a Live Channel EQ device. If present it is automatically mapped to controls on the default E1 mixer preset as well.
 
-The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py``` (see there for details). 
-All that matters is that you do not change the MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
+The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```MASTER_EQ_DEVICE_NAME```/```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_CC_MAP```/```TRACK_EQ_CC_MAP``` constants in ```config.py```.
+All that matters is that you do not change the control id, MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
 
 
 ### Value mapping
 
 For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions). 
 
-We mostly refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface (using the ```p.str_of_value(v)``` approach, see above). In most cases this is unnecessary: for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown, and for simple controls a properly chosen 'formatter' LUA function can be used to display the correct value representation on the E1 . The only 'problematic' controls are the non-linear ones (e.g. volume, and frequency). For such parameters a ```ValueListener``` is added that sends the string representation of the value to the E1 together with the index in the preset of the associated control.
+We mostly refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface (using the ```p.str_of_value(v)``` approach, see above). In most cases this is unnecessary: for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown, and for simple controls a properly chosen 'formatter' LUA function can be used to display the correct value representation on the E1 . 
 
 In the mixer preset, the values to display are interpolated using the tables experimentally established and documented below.
 
@@ -624,7 +624,7 @@ The assignment of identifiers is as follows
 
 #### Main page
 
-- Track labels: *track-offset* + 1 , i.e. 1 .. 5 for the regular tracks, and 6 for the master track.
+- Track labels: *track-offset* + 145 , i.e. 145 .. 149 for the regular tracks, and 150 for the master track.
 - Track controls:
   - Pan: *track-offset* + 1; master: 6.
   - Volume: *track-offset* + 7; master: 12.
@@ -634,7 +634,7 @@ The assignment of identifiers is as follows
  
 #### Channel EQs page
 
-- Track labels: *track-offset* + 9, master: 14.
+- Track labels: *track-offset* + 153, master: 158.
 - Track Channel EQ controls:
   - High: *track-offset* + 37
   - Mid Freq: *track-offset* + 43
@@ -645,7 +645,7 @@ The assignment of identifiers is as follows
   
 #### Sends page
 
-- Track labels: *track-offset* + 15, not for master track.
+- Track labels: *track-offset* + 159, not for master track.
 - Track sends
   - Send A: *track-offset* + 73 (5 controls)
   - Send B: *track-offset* + 79 (5 controls)
@@ -656,7 +656,7 @@ The assignment of identifiers is as follows
 
 #### Returns page
 
-- Return track labels: *return-index* + 20 (6 return tracks maximum)
+- Return track labels: *return-index* + 164 (6 return tracks maximum)
 - Return track controls:
   - Pan: *return-index* + 109
   - Volume: *return-index* + 115
@@ -739,7 +739,13 @@ For non-quantised parameters (think value faders), the MIDI value to send for th
 The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with *n* items, item *i* (starting counting at 0) has MIDI CC control value
 *round*(*i* * 127/(*n*-1)).
 
-When sending MIDI message a small delay is added after each message (see ```send_midi```) to avoid that the Electra One gets clogged and skips or wrongly interprets incoming messages.
+When sending a bunch of MIDI message to update the values of a complete mixer or effect preset (as the ```refresh_state``` does, the script first disables display updates on the E1, and reactivates display updates after all values are sent: this makes the E1 respond faster. See the ```_midi_burst_on()``` and ```_midi_burst_off()``` methods in ```ElectraOneBase```.
+
+For complex Abelton parameters whose display function is hard to derive from the underlying MIDI value (e.g. exponential or logarithmic volume or frequency domains), the remote script uses the ```str_for_value()``` function that Ableton defines for each device parameter. (In fact, for a parameter ```p``` the standard ```str(p)``` call is equivalent to ```p.str_for_value(p.value)```.)
+The resulting string is sent to the E1 by calling the LUA function ```svu``` defined in every effect preset. (See ```ElectraOneBase.py``` and ```DEFAULT_LUASCRIPT``` defined in ```EffectController.py```. The preset must use ```defaultFormatter``` as the formatter function for such controls.
+
+For smoother operation, values for such complex Ableton parameters are not immediately updated whenever their underlying MIDI value changes. Instead the ```update_display()``` function is used to update *all changed* values of such parameters, every ```EFFECT_REFRESH_PERIOD``` times.
+
 
 ## Device control (```EffectController```)
 
@@ -772,25 +778,27 @@ The CC map is yet another dictionary, indexed by parameter names (as returned by
 
 A parameter entry in the CC map is a ```CCInfo``` object containing:
 
+- the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). 
 - the MIDI channel (in the range 1..16),
 - whether the control sends 7bit (```False``` or 0) or 14 bit (```True``` or 1) values, and
-- the actual CC parameter number (between 0..127).
+- the actual CC parameter number (between 0..127, -1 if not mapped).
 
-The constructor for ```CCInfo``` accepts a three tuple as parameter, to allow the definition of a CC map for a preloaded preset to look like 
+The constructor for ```CCInfo``` accepts a four-tuple as parameter, to allow the definition of a CC map for a preloaded preset to look like 
 
 ```
-{'Device On': (11,False,1),'State': (11,False,2),'Feedback': (11,True,3),...
+{'Device On': (-1,11,False,1),'State': (-1,11,False,2),'Feedback': (-1,11,True,3),...
 ```
 
 The full preloaded definition for the Looper device in ```Devices.py``` then looks like this:
 
 ```
 DEVICES = {
-'Looper': PresetInfo('{"version":2,"name":"Looper",...}'),
-    {'Device On': (11,0,1),'State': (11,0,2),'Feedback': (11,1,3),...})
+'Looper': PresetInfo('{"version":2,"name":"Looper v2","projectId":"Jx8aDJ9D5K2sl9iAZnTj",...',
+    """""",
+    {'Device On': (-1,11,False,2),'State': (-1,11,False,7),...}),
 ```
 
-> Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). *However, changing the visible parameter in the Ableton UI does not update the displayed value.*
+> Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). This approach requires the controls to not show any values (because the value ranges of each Ableton parameter is different), so in the actual Echo preset, some LUA functions are used to make allow several controls on the same location, while making some of them visible or invisible.
 
 
 ## Generating presets on the fly
