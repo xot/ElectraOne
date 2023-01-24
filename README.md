@@ -228,7 +228,7 @@ The following constants deal with the equaliser devices managed through the mixe
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1, 11.1.5, 11.2.6, and 11.2.7 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.0.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- E1 firmware version 3.0.12 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors

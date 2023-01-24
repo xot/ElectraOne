@@ -42,26 +42,8 @@ function patch.onRequest (device)
   end
 end
 
-values =  { }
-
 function defaultFormatter(valueObject, value)
-    local control = valueObject:getControl()
-    local id = control:getId()
-    local str = values[id]
-    if str == nil then 
-        return("")
-    else
-        return(str)
-    end
-end
-
-function svu(id,valuestring)
-    values[id] = valuestring
-    local control = controls.get(id)
-    if control:isVisible() then    
-       control:setVisible(false)
-       control:setVisible(true)
-    end
+    return("")
 end
 
 function formatFloat (valueObject, value)

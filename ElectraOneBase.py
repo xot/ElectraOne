@@ -546,9 +546,12 @@ class ElectraOneBase:
            - id: control id in the preset; int
            - valuestr: string representing value to display; str
         """
-        command = f'svu({id},"{valuestr}")'
-        self._send_lua_command(command)
-        time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x0E)
+        sysex_controlid = (id % 128 , id // 128)
+        sysex_numval = (0x00,)
+        sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_controlid + sysex_numval + sysex_text + sysex_close)
         
     def enable_logging(self, flag):
         """Enable or disable logging on the E1.
