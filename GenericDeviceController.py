@@ -62,8 +62,8 @@ class GenericDeviceController(ElectraOneBase):
                     map_mode = Live.MidiMap.MapMode.absolute
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
-                # BUG: this call internally adds 1 to the specified MIDI channel!!!
                 self.debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                # Ableton internally numbers MIDI channels 0..15
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
 
     def _send_parameter_valuestr(self, p, ccinfo, force):
@@ -78,24 +78,27 @@ class GenericDeviceController(ElectraOneBase):
         (control_id,value_id) = control_tuple
         if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
             pstr = str(p)
-            if force or (control_tuple not in self._values) or \
-                        (self._values[control_tuple] != pstr):
+            if force or \
+               (control_tuple not in self._values) or \
+               (self._values[control_tuple] != pstr):
                 self._values[control_tuple] = pstr
                 # translate any (significant) UNICODE characters in the string
                 # to ASCII equivalents (E1 only understands ASCII)
                 translation = { ord('♯') : ord('#') }
                 pstr = pstr.translate(translation)
                 self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
-                # TODO: ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
                 self.send_value_update(control_id,value_id,pstr)
-        
-    def refresh_state(self):
-        """Update both the MIDI CC values and the displayed values for the device
-           on the E1. (Assumes the device is visible!)
+
+    
+    def _refresh(self,full_refresh):
+        """Update the displayed values for controls whose string value
+           must be determined by Ableton, and also their MIDI CC values
+           (if full refresh), for the device on the E1.
+           (Assumes the device is visible!)
+           - full_refresh: whether this is a full refresh: then MIDI CC values
+             need to be refreshed too, and string value updates must always
+             be sent; boolean
         """
-        # TODO Visibility matters for the displayed values (probably)
-        # and whether preset upload finished
-        #
         # device may already be deleted while this controller still exists
         if not self._device:
             return
@@ -103,22 +106,23 @@ class GenericDeviceController(ElectraOneBase):
         for p in self._device.parameters:
             ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
             if ccinfo.is_mapped():
-                # update MIDI value on the E1
-                self.send_parameter_using_ccinfo(p,ccinfo)
-                # update control with Ableton value string when mapped as such
-                self._send_parameter_valuestr(p, ccinfo, True)
-
-    def update_display(self):
-        """ Called every 100 ms; used to update values for controls
-            that want Ableton to set their value string
-        """
-        # device may already be deleted while this controller still exists
-        if not self._device:
-            return
-        for p in self._device.parameters:
-            ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
-            if ccinfo.is_mapped():
+                # update MIDI value on the E1 if full refresh is requested
+                if full_refresh:
+                    self.send_parameter_using_ccinfo(p,ccinfo)
                 # update control with Ableton value string when mapped
-                # as such, and value changed since last update/refresh
-                self._send_parameter_valuestr(p, ccinfo, False)
+                # as such, and if the value changed since last update/refresh
+                self._send_parameter_valuestr(p, ccinfo, full_refresh)
+
+    def refresh_state(self):
+        """Update both the MIDI CC values and the displayed values for the device
+           on the E1. (Assumes the device is visible!)
+        """
+        self._refresh(True)
+        
+    def update_display(self):
+        """Called every 100 ms; used to update values for controls
+           that want Ableton to set their value string.
+           (Assumes the device is visible!)
+        """
+        self._refresh(False)
 
