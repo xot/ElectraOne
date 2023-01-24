@@ -778,7 +778,7 @@ The CC map is yet another dictionary, indexed by parameter names (as returned by
 
 A parameter entry in the CC map is a ```CCInfo``` object containing:
 
-- the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). 
+- the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). This can be either an integer (for normal controls) or a tuple (cid,vid) for complex controls like ADSRs on the E1, where cid indicates the control-id and thevid indicates the value index within the control (in the range 1..10)
 - the MIDI channel (in the range 1..16),
 - whether the control sends 7bit (```False``` or 0) or 14 bit (```True``` or 1) values, and
 - the actual CC parameter number (between 0..127, -1 if not mapped).

@@ -32,10 +32,19 @@ class CCInfo:
            Where is_cc14? is IS_CC7 when the parameter is 7bit, IS_CC14 if 14bit.
            Constructing from a tuple instead of a list of parameters, to allow
            Devices.py to contain plain tuples in the cc_map.
+           control_id is either an integer (for plain controls) or
+           a tuple (control_id,value_id) for controls that are part of an ADSR or
+           similar
         """
         assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
         (self._control_id, self._midi_channel, self._is_cc14, self._cc_no) = v
-        assert self._control_id in range(-1,443), f'Control index {self._control_id} out of range.'
+        if type(self._control_id) is int:
+            assert self._control_id in range(-1,443), f'Control index {self._control_id} out of range.'
+        else:
+            assert type(self._control_id) is tuple, f'{self._control_id} should be a tuple.'
+            (cid,vid) = self._control_id
+            assert cid in range(-1,443), f'Control index {cid} out of range.'
+            assert vid in range(1,11), f'Value index {vid} out of range.'
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
         assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'
         assert self._cc_no in range(-1,128), f'MIDI channel {self._cc_no} out of range.'
@@ -66,9 +75,12 @@ class CCInfo:
 
     def get_control_id(self):
         """Return the E1 preset control id of this object.
-           - result: the control id (-1 if not mapped); int 
+           - result: the control id (-1,dc) if not mapped; tuple (int,int) 
         """
-        return self._control_id
+        if type(self._control_id) is int:
+            return (self._control_id,0)
+        else:
+            return self._control_id
 
     def set_control_id(self,id):
         """Set the E1 preset control id of this object.

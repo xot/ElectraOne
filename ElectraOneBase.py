@@ -540,18 +540,20 @@ class ElectraOneBase:
           command = f'seqv({idx},false)'
         self._send_lua_command(command)
 
-    def send_value_update(self, id, valuestr):
+    def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.
-           - id: control id in the preset; int
+           - cid: control id in the preset; int
+           - vid: value id in the preset; int (0 for simple controls)
            - valuestr: string representing value to display; str
         """
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x0E)
-        sysex_controlid = (id % 128 , id // 128)
-        sysex_valueid = (0x00,) # for ADSRs that contain more than one actual control
+        sysex_controlid = (cid % 128 , cid // 128)
+        sysex_valueid = (vid, ) 
         sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_controlid + sysex_valueid + sysex_text + sysex_close)
+        time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
         
     def enable_logging(self, flag):
         """Enable or disable logging on the E1.

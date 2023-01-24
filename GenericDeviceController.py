@@ -74,18 +74,20 @@ class GenericDeviceController(ElectraOneBase):
            - force: whether to always send the valuestr, or only if changed. Used
                to distinguish a state refresh from a value update; bool
         """
-        control_id = ccinfo.get_control_id()
+        control_tuple = ccinfo.get_control_id()
+        (control_id,value_id) = control_tuple
         if (control_id != UNMAPPED_ID) and USE_ABLETON_VALUES:
             pstr = str(p)
-            if force or (control_id not in self._values) or \
-                        (self._values[control_id] != pstr):
-                self._values[control_id] = pstr
-                # remove any (significant) UNICODE characters from the string
+            if force or (control_tuple not in self._values) or \
+                        (self._values[control_tuple] != pstr):
+                self._values[control_tuple] = pstr
+                # translate any (significant) UNICODE characters in the string
+                # to ASCII equivalents (E1 only understands ASCII)
                 translation = { ord('♯') : ord('#') }
                 pstr = pstr.translate(translation)
                 self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
                 # TODO: ONLY SEND VALUE WHEN DEVICE IS VISIBLE!
-                self.send_value_update(control_id, pstr)
+                self.send_value_update(control_id,value_id,pstr)
         
     def refresh_state(self):
         """Update both the MIDI CC values and the displayed values for the device
