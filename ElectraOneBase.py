@@ -195,9 +195,8 @@ class ElectraOneBase:
         # the current song (and through that all devices and mixers)
         assert c_instance
         self._c_instance = c_instance
-        # (main ElectraOne script must request to setup fast sysex,
-        # because this can only be done after the E1 is detected)
-        #
+        # allow thread to change the debug prefix so its messages stand out
+        self._debugprefix = '-'
         
     def is_ready(self):
         """Return whether the remote script is ready to process requests
@@ -249,7 +248,7 @@ class ElectraOneBase:
             if level == 0:
                 indent = '#'
             else:
-                indent = '-' * level
+                indent = self._debugprefix * level
             # write readable log entries also for multi-line messages
             for l in m.splitlines(keepends=True):
                 self._c_instance.log_message(f'E1 (debug): {indent} {l}')  
@@ -294,7 +293,7 @@ class ElectraOneBase:
            - command: command to run; str
            - result: success?; bool
         """
-        self.debug(4,f'Running external command {command}')
+        self.debug(4,f'Running external command {command[:200]}')
         # TODO: return type is different accross platforms
         return_code = os.system(command)
         self.debug(4,f'External command returned {return_code}')        
@@ -398,7 +397,7 @@ class ElectraOneBase:
                 self.debug(4,'Sending SysEx failed')
         else:
             self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
-            self.debug(5,f'Sending MIDI message: { hexify(message) }.')
+            self.debug(6,f'Sending MIDI message: { hexify(message) }.')
             self._c_instance.send_midi(message)
         time.sleep(ElectraOneBase._send_midi_sleep) # don't overwhelm the E1!
         
@@ -681,10 +680,12 @@ class ElectraOneBase:
            then upload a lua script for it. In all cases wait (within a timeout) for
            confirmation from the E1. Reactivate the interface when done and
            request to rebuild the midi map.
-q           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
+           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
            - preset: preset to upload; str (JASON, .epr format)
            - luascript: LUA script to upload; str
         """
+        # change debug prefix so that thread specific debug messages stand out
+        self._debugprefix = '*'
         # should anything happen inside this thread, make sure we write to debug
         try:
             self.debug(2,'Upload thread starting...')
@@ -718,6 +719,8 @@ q           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
         except:
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured in upload thread {sys.exc_info()}')
+        # restore debug prefix
+        self._debugprefix = '-'
         
     def upload_preset(self, slot, preset, luascript):
         """Select a slot and upload a preset and associated luascript.

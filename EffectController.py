@@ -152,7 +152,7 @@ class EffectController(ElectraOneBase):
            - result: whether assigned device is uploaded; bool
         """
         flag = self._assigned_device and self._assigned_device_controller
-        self.debug(5,f'Assigned device is uploaded: { flag }')
+        self.debug(6,f'Assigned device is uploaded: { flag }')
         return flag
     
     def _assigned_device_needs_uploading(self):
@@ -160,7 +160,7 @@ class EffectController(ElectraOneBase):
            - result: whether assigned device needs to be uploaded; bool
         """
         flag = self._assigned_device and (self._assigned_device_controller == None)
-        self.debug(5,f'Assigned device needs uploading: { flag }')
+        self.debug(6,f'Assigned device needs uploading: { flag }')
         return flag
     
     def _assigned_device_is_visible(self):
