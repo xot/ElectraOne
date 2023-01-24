@@ -117,7 +117,7 @@ class ElectraOneBase:
 
     # slot currently visibile on the E1; used to prevent unneccessary
     # refresh_state for invisible presets (set by _do_preset_changed()
-    # in ElectraOne.py and _select_preset_slot() below).
+    # in ElectraOne.py and _select_slot_only() and activate_preset_slot() below).
     current_visible_slot = None
 
     # delay after sending (to prevent overload when refreshing full state
@@ -577,15 +577,33 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_status + sysex_close)
         self._wait_for_ack_or_timeout(5) # 50ms
             
-    def _select_preset_slot(self, slot):
-        """Select a slot on the E1.
+    def _select_slot_only(self, slot):
+        """Select a slot on the E1 but do not activate the preset already there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
         self.debug(3,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
-        # see https://docs.electra.one/developers/midiimplementation.html
+        # (TODO: not documented yet)
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x08)
+        sysex_select = (bankidx, presetidx)
+        sysex_close = (0xF7, )
+        self.send_midi(sysex_header + sysex_select + sysex_close)
+        # TODO: check this Note: The E1 will in response send a preset changed message (7E 02)
+        # (followed by an ack (7E 01)); but this will typically be ignored
+        # as the upload thread closes the interface. 
+        ElectraOneBase.current_visible_slot = slot
+
+    def activate_preset_slot(self, slot):
+        """Select a slot on the E1 and activate the preset present there.
+           - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
+        """
+        self.debug(3,f'Selecting slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
+        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
+        # see https://docs.electra.one/developers/midiimplementation.html#switch-preset-slot
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x09, 0x08)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
@@ -617,7 +635,7 @@ class ElectraOneBase:
         
     def _upload_lua_script_to_current_slot(self, luascript):
         """Upload the specified LUA script to the currently selected slot on
-           the E1 (use _select_preset_slot to select the desired slot)
+           the E1 (use _select_slot_only to select the desired slot)
            - luascript: LUA script to upload; str
         """
         self.debug(3,f'Uploading LUA script {luascript}.')
@@ -629,7 +647,7 @@ class ElectraOneBase:
 
     def _upload_preset_to_current_slot(self, preset):
         """Upload the specified preset to the currently selected slot on
-           the E1 (use _select_preset_slot to select the desired slot)
+           the E1 (use _select_slot_only to select the desired slot)
            - preset: preset to upload; str (JASON, .epr format)
         """
         self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
@@ -672,10 +690,8 @@ q           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
             self.debug(2,'Upload thread starting...')
             # first select slot and wait for ACK
             ElectraOneBase.ack_received = False
-            self._select_preset_slot(slot)
-            # TODO: a long timeout appears to be neccessary because
-            # the E1 sets up the previous preset still present when selecting the slot
-            if self._wait_for_ack_or_timeout(50): # timeout 500ms second
+            self._select_slot_only(slot)
+            if self._wait_for_ack_or_timeout(10): # timeout 100ms second
                 # slot selected, now upload preset and wait for ACK
                 ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)

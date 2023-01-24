@@ -133,7 +133,7 @@ class MixerController(ElectraOneBase):
     def select(self):
         """Select the mixer preset on the E1
         """
-        self._select_preset_slot(MIXER_PRESET_SLOT)
+        self.activate_preset_slot(MIXER_PRESET_SLOT)
     
     # --- Listeners
                 
