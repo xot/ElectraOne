@@ -10,9 +10,6 @@
 # Distributed under the MIT License, see LICENSE
 #
 
-# Ableton Live imports (TODO: remove, obsolote)
-#from _Generic.util import DeviceAppointer
-
 # Local imports
 from .config import *
 from .CCInfo import CCInfo

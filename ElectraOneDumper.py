@@ -99,50 +99,15 @@ ORDER_SORTED_IGNORE = ['AudioEffectGroupDevice',
                       'InstrumentGroupDevice',
                       'DrumGroupDevice']
 
-# --- output sanity checks
-
-# check/truncate name
-def _check_name(name):
-    # TODO log truncation
-    return name[:MAX_NAME_LEN]
-
-def _check_id(id):
-    assert (1 <= id) and (id <= MAX_ID), f'{ id } exceeds max number of IDs ({ MAX_ID }).'
-    return id
-
-def _check_deviceid(id):
-    assert (1 <= id) and (id <= MAX_DEVICE_ID), f'{ id } exceeds max number of device IDs ({ MAX_DEVICE_ID }).'
-    return id
-
-def _check_midichannel(channel):
-    assert channel in range(1,17), f'MIDI channel { channel } not in range.'
-    return channel
-
-def _check_pageid(id):
-    assert (1 <= id) and (id <= MAX_PAGE_ID), f'{ id } exceeds max number of pages ({ MAX_PAGE_ID }).'
-    return id
-
-def _check_overlayid(id):
-    assert (1 <= id) and (id <= MAX_OVERLAY_ID), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
-    return id
-
-# This is more strict than the Electra One documentation requires
-def _check_controlset(id):
-    assert (1 <= id) and (id <= MAX_CONTROLSET_ID), f'{ id } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).'
-    return id
-
-def _check_pot(id):
-    assert id in range(1,MAX_POT_ID+1), f'{ id } exceeds max number of pots ({ MAX_POT_ID }).'
-    return id
-    
-
 # --- utility functions
 
 def device_idx_for_midi_channel(midi_channel):
     """Return the device id to use in the preset for the specified MIDI channel
        (deviceId 1 contains the first (lowest) MIDI channel).
     """
-    return 1 + midi_channel - MIDI_EFFECT_CHANNEL
+    device_id = 1 + midi_channel - MIDI_EFFECT_CHANNEL
+    assert device_id in range (1,MAX_DEVICE_ID+1), f'{ device_id } exceeds max number of device IDs ({ MAX_DEVICE_ID }).'
+    return device_id
 
 def _is_on_off_parameter(p):
     """Return whether the parameter has the values "Off" and "On" only.
@@ -371,10 +336,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # (Also wrong once we start auto-detecting ADSRs)
         self._append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
+        assert pagecount <=  MAX_PAGE_ID, f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }).'
         flag = False
         for i in range(1,pagecount+1):
             flag = self._append_comma(flag)
-            self._append( f'{{"id":{ _check_pageid(i) },"name":"Page { i }"}}')
+            self._append( f'{{"id":{ i },"name":"Page { i }"}}')
         self._append(']')
 
     def _append_json_devices(self, cc_map):
@@ -385,13 +351,14 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         channels = { c.get_midi_channel() for c in cc_map.values() }
         flag = False
         for channel in channels:
+            assert channel in range(1,17), f'MIDI channel { channel } not in range.'
             flag = self._append_comma(flag)
             device_id = device_idx_for_midi_channel(channel)
             # double {{ to escape { in f-string
-            self._append( f'{{"id":{ _check_deviceid(device_id) }'
+            self._append( f'{{"id":{ device_id }'
                         ,  ',"name":"Generic MIDI"'
                         , f',"port":{ MIDI_PORT }'
-                        , f',"channel":{ _check_midichannel(channel) }'
+                        , f',"channel":{ channel }'
                         ,  '}'
                          )
         self._append(']')
@@ -423,9 +390,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - idx: the index of the overlay to construct
            - parameter; Live.DeviceParameter.DeviceParameter
         """
+        assert idx in range (1,MAX_OVERLAY_ID+1), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
         self._overlay_map[parameter.original_name] = idx
         # {{ to escape { in f string
-        self._append(f'{{"id":{ _check_overlayid(idx) }')
+        self._append(f'{{"id":{ idx }')
         self._append_json_overlay_items(parameter.value_items)
         self._append('}')
 
@@ -493,7 +461,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                    ,                       f',"parameterNumber":{ cc_info.get_cc_no() } '
                    ,                       f',"deviceId":{ device_id }'
                    ,                        '}' 
-                   ,            f',"overlayId":{ _check_overlayid(overlay_idx) }'
+                   ,            f',"overlayId":{ overlay_idx }'
                    ,             ',"id":"value"'
                    ,             '}]'
                    )
@@ -684,16 +652,21 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
              (see GenericDeviceController.py); CCInfo
         """
         self.debug(3,f'Appending JSON control for {parameter.name}.')
+        assert id in range(MAX_ID), f'{ id } exceeds max number of IDs ({ MAX_ID }).'
         page = 1 + (id // PARAMETERS_PER_PAGE)
+        assert page <= MAX_PAGE_ID, f'{ page } exceeds max number of pages ({ MAX_PAGE_ID }).'
         controlset = 1 + ((id % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
+        # This is more strict than the Electra One documentation requires
+        assert controlset <= MAX_CONTROLSET_ID, f'{ controlset } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).'
         pot = 1 + (id % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
-        self._append( f'{{"id":{ _check_id(id+1) }'
+        assert pot <= MAX_POT_ID, f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).'
+        self._append( f'{{"id":{ id+1 }'
                   , f',"name":"{ self._truncate_parameter_name(parameter.name) }"'
                   ,  ',"visible":true' 
                   , f',"color":"{ PRESET_COLOR }"' 
-                  , f',"pageId":{ _check_pageid(page) }'
-                  , f',"controlSetId":{ _check_controlset(controlset) }'
-                  , f',"inputs":[{{"potId":{ _check_pot(pot) },"valueId":"value"}}]'
+                  , f',"pageId":{ page }'
+                  , f',"controlSetId":{ controlset }'
+                  , f',"inputs":[{{"potId":{ pot },"valueId":"value"}}]'
                   )
         self._append_json_bounds(id)
         if _needs_overlay(parameter):
@@ -750,7 +723,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # write everything to the underlying StringIO, a mutable string
         # for efficiency.
         self._append( f'{{"version":{ VERSION }' # {{ = { in f-string
-                   , f',"name":"{ _check_name(device_name) }"'
+                   , f',"name":"{ device_name[:MAX_NAME_LEN] }"'
                    , f',"projectId":"{ project_id }"'
                    )
         self._append_json_pages(parameters)
