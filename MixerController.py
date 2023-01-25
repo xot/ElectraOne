@@ -50,10 +50,8 @@ class MixerController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
-        # TODO: Upload mixer preset if defined
-        #if MIXER_PRESET:
-        #    self.debug(1,'Uploading mixer preset.')
-        #    self.upload_preset(MIXER_PRESET_SLOT,MIXER_PRESET)
+        # mixer preset is assumed to be uploaded by the user in advance
+        # (with configuration constants set accordingly)
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
         # allocate return track controllers (at most two, but take existence into account)
@@ -193,7 +191,7 @@ class MixerController(ElectraOneBase):
         """Set visibility of the channel eq device controls on the E1.
         """
         # set visibility of the channel-eq devices
-        # TODO: alos handle case where eq-device is added later on an
+        # TODO: also handle case where eq-device is added later on an
         # existing track!
         for t in self._track_controllers:
             self.set_channel_eq_visibility_on_track(t._offset,t._eq_device_controller != None)
@@ -267,14 +265,17 @@ class MixerController(ElectraOneBase):
             self.debug(5,f'MixerController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             handler(value)
-        else:
-            # TODO: detect found handler and finish search immediately
-            self._transport_controller.process_midi(midi_channel,cc_no,value)                    
-            self._master_controller.process_midi(midi_channel,cc_no,value)    
-            for retrn in self._return_controllers:
-                retrn.process_midi(midi_channel,cc_no,value)    
-            for track in self._track_controllers:
-                track.process_midi(midi_channel,cc_no,value)    
+            return
+        if self._transport_controller.process_midi(midi_channel,cc_no,value):
+            return
+        if self._master_controller.process_midi(midi_channel,cc_no,value):
+            return
+        for track in self._track_controllers:
+            if track.process_midi(midi_channel,cc_no,value):
+                return
+        for retrn in self._return_controllers:
+            if retrn.process_midi(midi_channel,cc_no,value):
+                return
 
     def build_midi_map(self, script_handle, midi_map_handle):
         """Build a MIDI map for the full mixer, and refresh its state.

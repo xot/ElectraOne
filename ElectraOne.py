@@ -211,7 +211,7 @@ class ElectraOne(ElectraOneBase):
             midi_channel = get_cc_midichannel(status)
             self._mixer_controller.process_midi(midi_channel,cc_no,value)
         else:
-            self.debug(3,'Process MIDI CC ignored because E1 not ready.') 
+            self.debug(3,'Process MIDI CC ignored because E1 not ready or mixer not active.') 
 
     def _do_preset_changed(self, midi_bytes):
         """Handle a preset changed message
