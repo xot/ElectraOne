@@ -787,11 +787,15 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(4,f'{len(cc14pars)} CC14 parameters found')
         if (MAX_CC14_PARAMETERS != -1) and (MAX_CC14_PARAMETERS < len(cc14pars)):
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
+            skipped_cc14pars = cc14pars[MAX_CC14_PARAMETERS:]
             self.debug(4,f'Truncated CC14 parameters to {MAX_CC14_PARAMETERS}.')
+        else:
+            skipped_cc14pars = []
         cur_cc14par_idx = 0
-        # TODO: consider also including skipped cc14 parameters?
         # get the list of parameters to be assigned to 7bit controllers        
         cc7pars = [p for p in parameters if not _wants_cc14(p)]
+        # append parameters that could not be assigned a 14bit controller
+        cc7pars += skipped_cc14pars
         self.debug(4,f'{len(cc7pars)} CC7 parameters found')
         if (MAX_CC7_PARAMETERS != -1) and (MAX_CC7_PARAMETERS < len(cc7pars)):
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
