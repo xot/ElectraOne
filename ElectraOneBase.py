@@ -490,7 +490,6 @@ class ElectraOneBase:
         self.debug(3,f'Sending LUA command {command}.')
         # see https://docs.electra.one/developers/luaext.html
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x08, 0x0D)
-        # TODO: careful! command is a UNICODE string!
         sysex_command = tuple([ self._safe_ord(c) for c in command ])
         #sysex_command = tuple([ b for b in command.encode() ])
         sysex_close = (0xF7, )
@@ -594,9 +593,8 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
-        # TODO: check this Note: The E1 will in response send a preset changed message (7E 02)
-        # (followed by an ack (7E 01)); but this will typically be ignored
-        # as the upload thread closes the interface. 
+        # Unlike activate (see below) the E1 will not send a preset changed
+        # message in response, but only an ACK
         ElectraOneBase.current_visible_slot = slot
 
     def activate_preset_slot(self, slot):
@@ -613,8 +611,7 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # Note: The E1 will in response send a preset changed message (7E 02)
-        # (followed by an ack (7E 01)); but this will typically be ignored
-        # as the upload thread closes the interface. 
+        # (followed by an ack (7E 01))
         ElectraOneBase.current_visible_slot = slot
 
     def _remove_preset_from_slot(self, slot):

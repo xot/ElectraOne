@@ -269,9 +269,11 @@ class EffectController(ElectraOneBase):
            if necessary.
         """
         if self._assigned_device_needs_uploading():
-            # also selects
+            # also rebuilds midi map and causes state refresh
             self._upload_assigned_device()
         else:
+            # will send a preset changed message in response which will trigger
+            # a state refresh
             self.activate_preset_slot(EFFECT_PRESET_SLOT)
             
     def _upload_assigned_device(self):

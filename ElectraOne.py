@@ -135,6 +135,7 @@ class ElectraOne(ElectraOneBase):
             if (not self._effect_controller) or self._effect_controller._assigned_device == None:
                 self.debug(2,'No effect assigned during init.')
                 if self._mixer_controller:
+                    # the E1 will send a preset changed message in response
                     self.activate_preset_slot(MIXER_PRESET_SLOT)
                 self.request_rebuild_midi_map()
         except:
