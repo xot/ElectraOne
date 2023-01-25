@@ -84,7 +84,7 @@ class GenericDeviceController(ElectraOneBase):
                 self._values[control_tuple] = pstr
                 # translate any (significant) UNICODE characters in the string
                 # to ASCII equivalents (E1 only understands ASCII)
-                translation = { ord('♯') : ord('#') }
+                translation = { ord('♯') : ord('#') , ord('°') : ord('*') }
                 pstr = pstr.translate(translation)
                 self.debug(5,f'Value of {p.original_name} updated to {pstr}.')
                 self.send_value_update(control_id,value_id,pstr)
