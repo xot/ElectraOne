@@ -105,21 +105,20 @@ def _needs_overlay(p):
 
 # The only reliable way to determine the type and the range of values for
 # a parameter is to use Ableton's str_for_value function. This function
-# returns a string with the following structure
+# returns a string with (roughly!) the following structure
 #   <valuestring><space><valuetype>.
 # Untyped values only return
 #   <valuestring>.
-# Examples:
+# Sometimes the space separator is missing. Pan values are written
+# 50L.. 50R *without* the space; the same is true for phase parameters,
+# e.g. 360°; I've also seen 22.0k for kHz
+# Other Examples:
 # 100 %
 # -4.00
 # 5 ms
 # On
 # -inf dB
 # 3.7 Hz
-#
-# Note: Sometimes the space separator is missing.
-# Pan values are written 50L.. 50R *without* the space; the same is true
-# for phase parameters, e.g. 360°; I've also seen 22.0k for kHz
 def _get_par_value_info(p,v):
     """ Return the number part and its type for value v of parameter p
         (using the string representation of the value of a parameter as
@@ -166,28 +165,32 @@ def _get_par_min_max(p, factor):
     vmax = int(factor * float(vmax_str))
     return (vmin,vmax)
         
-def _strip_plusminus(v):
-    """Strip any leading plus or minus sign from a value string
-       - v; string
-    """
-    if (len(v) > 0) and (v[0] in [ '-', '+']):
-        return v[1:]
-    else:
-        return v
-
-def _is_float_str(s):
-    """Return whether string represents a float and not an integer
+def _is_int_str(s):
+    """Return whether string represents an integer
        - s; string
     """
-    for c in s:
-        if not c.isdigit() and c != '.':
-            return False
-    return True
-        
+    try:
+        dummy = int(s)
+        return True
+    except:
+        return False
+    
+def _is_float_str(s):
+    """Return whether string represents a float (or an integer)
+       - s; string
+    """
+    try:
+        dummy = float(s)
+        return True
+    except:
+        return False
+    
+  
 # type strings that (typically) indicate a non-integer valued parameter
 # TODO: what is the ":" type???
 NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°', ':']
 
+# return values for _is_int_parameter
 NON_INT = -1
 SMALL_INT = 0
 BIG_INT = 1
@@ -199,11 +202,9 @@ def _is_int_parameter(p):
        - result: NON_INT, SMALL_INT or BIG_INT
     """
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)
-    max_number_part = _strip_plusminus(max_number_part)
-    if (not min_number_part.isnumeric()) or \
-       (not max_number_part.isnumeric()) or \
+    if (not _is_int_str(min_number_part)) or \
+       (not _is_int_str(max_number_part)) or \
        (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
         return NON_INT
     if int(max_number_part) - int(min_number_part) > 64:
@@ -216,9 +217,6 @@ def _wants_cc14(p):
        (Faders that are not mapped to integer parameters want CC14.)
        - parameter; Live.DeviceParameter.DeviceParameter
     """
-    # TODO: int parameter with a large range
-    # (but smaller than 127) should be mapped to a CC14
-    # NON_INT_TYPES partially deals with this
     return (not p.is_quantized) and (_is_int_parameter(p) != SMALL_INT)
 
 # --- types of faders
@@ -245,18 +243,14 @@ def _is_detune(p):
 
 def _is_symmetric_dB(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)    
-    max_number_part = _strip_plusminus(max_number_part)
-    return min_type == 'dB' and (min_number_part == max_number_part)
+    return min_type == 'dB' and (-float(min_number_part) == float(max_number_part))
 
 def _is_untyped_float(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    min_number_part = _strip_plusminus(min_number_part)
     (max_number_part, max_type) = _get_par_value_info(p,p.max)    
-    max_number_part = _strip_plusminus(max_number_part)
     return (min_type == '') and (max_type == '') and \
-           _is_float_str(min_number_part) and _is_float_str(max_number_part)
+           (_is_float_str(min_number_part) and _is_float_str(max_number_part))
 
            
 class ElectraOneDumper(io.StringIO, ElectraOneBase):
