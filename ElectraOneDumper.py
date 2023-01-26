@@ -8,34 +8,6 @@
 # Author: Jaap-henk Hoepman (info@xot.nl)
 #
 # Distributed under the MIT License, see LICENSE
-#
-# DOCUMENTATION:
-#
-# By default all quantized parameters use 7-bit absolute CC values
-# while all non quantized parameters (ie faders) are assigned
-# 14-bit absolute values. This is the way presets are dumped.
-#
-# However, when loading user-cureated presets (eg the ones stored in
-# Devices.py), this assignment can be overridden using the cc-map. 
-#
-# Parameters with only on or off values do not get an overlay and are
-# represented on the ElectraOne as (toggle) pads.
-#
-# Other quantised parameters are represented on the ElectraOne as lists, for
-# which a separate overlay with all possible values is created.
-#
-# Note that the CC map serves two different goals: in a *dumped* preset, you
-# want to have *all* parameters even those without a CC map; but in a preset
-# you *upload* you only want to include parameters that are actually mapped
-# in order not to surprise the users).
-# Currently, the CC-map contains *all* parameters (also unmapped ones,
-# indicated by None) while the on-the-fly constructed preset uploaded to the
-# E1 does not contain them. 
-
-# Note: parameter.name used as the visible name for a parameter, and
-# parameter.original_name used to index cc_map (because .original_name
-# is guaranteed not to change so mappings remain consistent).
-
 
 # Python imports
 import io, random, string
