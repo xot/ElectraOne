@@ -825,7 +825,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         for p in device.parameters:
             min_value_as_str = p.str_for_value(p.min)
             max_value_as_str = p.str_for_value(p.max)
-            self.debug(4,f'{p.original_name}: {min_value_as_str} .. {max_value_as_str}.')
+            self.debug(4,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}.')
         parameters = self._filter_and_order_parameters(device_name, device.parameters)
         self._cc_map = self._construct_ccmap(parameters)
         # this modifes cc_map to set the control indices for parameters that

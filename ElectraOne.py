@@ -15,7 +15,7 @@ import time
 import sys
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte, hexify
+from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte, hexify, ACK_RECEIVED, NACK_RECEIVED
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .DeviceAppointer import DeviceAppointer
@@ -245,15 +245,20 @@ class ElectraOne(ElectraOneBase):
         """Handle an ACK message.
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        self.debug(3,f'ACK received (uploading?: {ElectraOneBase.preset_uploading}).')
-        ElectraOneBase.ack_received = True
+        if ElectraOneBase.acks_pending > 0:
+            ElectraOneBase.acks_pending -= 1
+        ElectraOneBase.ack_or_nack_received = ACK_RECEIVED
+        self.debug(3,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         
     def _do_nack(self, midi_bytes):
         """Handle a NACK message. 
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
         # TODO: handle NACks
-        self.debug(3,f'NACK received (uploading?: {ElectraOneBase.preset_uploading}).')
+        if ElectraOneBase.acks_pending > 0:
+            ElectraOneBase.acks_pending -= 1
+        ElectraOneBase.ack_or_nack_received = NACK_RECEIVED
+        self.debug(3,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
 
     def _do_request_response(self, midi_bytes):
         """Handle a request response message: record it as received

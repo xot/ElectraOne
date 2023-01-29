@@ -79,6 +79,10 @@ def hexify(message):
 
 # --- main class
 
+# possibl;e values for ack_or_nack_received
+ACK_RECEIVED = 0
+NACK_RECEIVED = 1
+
 class ElectraOneBase:
     """E1 base class with common functions
        (interfacing with Live through c_instance).
@@ -111,9 +115,12 @@ class ElectraOneBase:
     # TODO: this is not used in rest of script 
     preset_upload_successful = None
 
-    # flag to inform a thread that a SysEx ACK message was received
-    # (set by _do_ack() in ElectraOne.py).
-    ack_received = False
+    # count number of acks pending
+    acks_pending = 0
+
+    # flag to inform whether an ACK or a NACK was last received
+    # (set by _do_ack() / _do_nack() in ElectraOne.py).
+    ack_or_nack_received = None
 
     # slot currently visibile on the E1; used to prevent unneccessary
     # refresh_state for invisible presets (set by _do_preset_changed()
@@ -270,12 +277,19 @@ class ElectraOneBase:
            - versionstr: version string as returned by request response; str
         """
         # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
-        # format "v<major>.<minor>.<sub>"
+        # format "v<major>.<minor>.<sub>" (sub somtimes missing)
         try:
-            (majorstr,minorstr,substr) = versionstr[1:].split('.')
-            ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+            version_tuple = versionstr[1:].split('.')
+            if len(version_tuple) == 3:
+                (majorstr,minorstr,substr) = version_tuple
+                ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+            elif len(version_tuple) == 2:
+                (majorstr,minorstr) = version_tuple
+                ElectraOneBase.E1_version = (int(majorstr),int(minorstr),0)
+            else:
+                ElectraOneBase.E1_version = (0,0,0)
         except ValueError:
-            self.debug(f'Failed to parse version string { versionstr }.')
+            self.debug(2,f'Failed to parse version string { versionstr }.')
             ElectraOneBase.E1_version = (0,0,0)
         self.debug(2,f'E1 version { ElectraOneBase.E1_version }.')
 
@@ -338,6 +352,14 @@ class ElectraOneBase:
     # all possible ACKs will be (silently!) received by the time the
     # command finished
 
+    def _increment_acks_pending(self):
+        """Increment the number of pending ACKs by 1.
+           (See ACK/NACK received functions in ElectraOne, and
+            _wait_for_ack_or_timeout() below.)
+        """
+        ElectraOneBase.acks_pending += 1
+        self.debug(5,f'ACKS pending incremented to {ElectraOneBase.acks_pending}')
+    
     def _midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and hold of window repaints.
@@ -355,6 +377,7 @@ class ElectraOneBase:
         sysex_command = (0x00, 0x00)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
+        self._increment_acks_pending()
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
         time.sleep(0.01) # 10ms 
@@ -375,16 +398,18 @@ class ElectraOneBase:
         sysex_command = (0x01, 0x00)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
+        self._increment_acks_pending()
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
         time.sleep(0.01) # 10ms 
         
-    
     def send_midi(self, message):
         """Send a MIDI message through Ableton Live (except for longer
            SysEx messages, if fast sending is supported)
            - message: the MIDI message to send; sequence of bytes
         """
+        if message[0] == 0xF0 and message[-1] == 0xF7:
+            self.debug(5,'Sending SysEx.')
         # test whether longer SysEx message, and fast uploading is supported
         if len(message) > 100 and ElectraOneBase._fast_sysex \
            and message[0] == 0xF0 and message[-1] == 0xF7:
@@ -494,7 +519,8 @@ class ElectraOneBase:
         #sysex_command = tuple([ b for b in command.encode() ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
-
+        self._increment_acks_pending()
+        
     def update_track_labels(self, idx, label):
         """Update the label for a track on all relevant pages
            in the currently selected mixer preset.
@@ -552,6 +578,7 @@ class ElectraOneBase:
         sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_controlid + sysex_valueid + sysex_text + sysex_close)
+        self._increment_acks_pending()
         time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
         
     def enable_logging(self, flag):
@@ -578,6 +605,7 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         ElectraOneBase.ack_received = False
         self.send_midi(sysex_header + sysex_status + sysex_close)
+        self._increment_acks_pending()
         self._wait_for_ack_or_timeout(5) # 50ms
             
     def _select_slot_only(self, slot):
@@ -593,6 +621,7 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        self._increment_acks_pending()
         # Unlike activate (see below) the E1 will not send a preset changed
         # message in response, but only an ACK
         ElectraOneBase.current_visible_slot = slot
@@ -610,6 +639,7 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        self._increment_acks_pending()
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01))
         ElectraOneBase.current_visible_slot = slot
@@ -633,6 +663,7 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        self._increment_acks_pending()
         
     def _upload_lua_script_to_current_slot(self, luascript):
         """Upload the specified LUA script to the currently selected slot on
@@ -645,6 +676,7 @@ class ElectraOneBase:
         sysex_script = tuple([ ord(c) for c in luascript ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_script + sysex_close)
+        self._increment_acks_pending()
 
     def _upload_preset_to_current_slot(self, preset):
         """Upload the specified preset to the currently selected slot on
@@ -659,23 +691,30 @@ class ElectraOneBase:
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
         self.send_midi(sysex_header + sysex_preset + sysex_close)
+        self._increment_acks_pending()
 
     def _wait_for_ack_or_timeout(self, timeout):
-        """Wait for the reception of an ACK message from the E1, or
-           the timeout, whichever is sooner. Return whether ACK received.
+        """Wait until all pending ACk or NACK messages from the E1 have
+           been received, or the timeout, whichever is sooner.
+           Return whether last message received was an ACK.
            - timeout: time to wait in 10ms; int
         """
-        assert timeout > 0
-        self.debug(3,f'Thread setting timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
-        while (not ElectraOneBase.ack_received) and (timeout > 0):
-            self.debug(4,f'Thread waiting for ACK, timeout {timeout}.')
-            time.sleep(0.01)
-            timeout -= 1
-        if ElectraOneBase.ack_received:
-            self.debug(3,f'Thread: ACK received within timeout {timeout} (preset uploading: {ElectraOneBase.preset_uploading}).')
+        # timeout between 500ms and 2s
+        timeout = max(50,timeout)
+        timeout = min(timeout,200)
+        start_time = time.time()
+        self.debug(3,f'Thread setting timeout { timeout/100 } seconds at time { start_time } (preset uploading: {ElectraOneBase.preset_uploading}).')
+        while (ElectraOneBase.acks_pending > 0) and \
+              (time.time() < start_time + timeout/100 ):
+            self.debug(4,f'Thread waiting for ACK, current time is {time.time()}.')
+            time.sleep(0.003) # sleep a bit to pause the thread
+        if (ElectraOneBase.acks_pending == 0) and \
+           (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
+            self.debug(3,f'Thread: ACK received within time {time.time() - start_time} (preset uploading: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(3,f'Thread: ACK not received, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
-        return ElectraOneBase.ack_received
+            self.debug(3,f'Thread: ACK not received within time {time.time() - start_time}, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
+        return (ElectraOneBase.acks_pending == 0) and \
+           (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED)
     
     def _upload_preset_thread(self, slot, preset, luascript):
         """To be called as a thread. Select a slot, then upload a preset, and
@@ -691,17 +730,16 @@ class ElectraOneBase:
         # should anything happen inside this thread, make sure we write to debug
         try:
             self.debug(2,'Upload thread starting...')
+            # consume any stray pending ACKs or NACKs
+            self._wait_for_ack_or_timeout(50) # TODO: why such a long timeout?
             # first select slot and wait for ACK
-            ElectraOneBase.ack_received = False
             self._select_slot_only(slot)
             if self._wait_for_ack_or_timeout(10): # timeout 100ms second
                 # slot selected, now upload preset and wait for ACK
-                ElectraOneBase.ack_received = False
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
                 if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
                     # preset uploaded, now upload lua script and wait for ACK
-                    ElectraOneBase.ack_received = False
                     self._upload_lua_script_to_current_slot(luascript)
                     if self._wait_for_ack_or_timeout( int(len(luascript)/100) ):
                         ElectraOneBase.preset_upload_successful = True
