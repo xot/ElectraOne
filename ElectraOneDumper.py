@@ -243,8 +243,14 @@ def _is_detune(p):
 
 def _is_symmetric_dB(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
-    (max_number_part, max_type) = _get_par_value_info(p,p.max)    
-    return min_type == 'dB' and (-float(min_number_part) == float(max_number_part))
+    (max_number_part, max_type) = _get_par_value_info(p,p.max)
+    # strip leading + or -
+    if min_number_part[0] in ['+','-']:
+        min_number_part = min_number_part[1:] 
+    if max_number_part[0] in ['+','-']:
+        max_number_part = max_number_part[1:]
+    # this assumes empty ranges like (-min,-max) or (+min,+max) do not occur
+    return min_type == 'dB' and (min_number_part == max_number_part)
 
 def _is_untyped_float(p):
     (min_number_part, min_type) = _get_par_value_info(p,p.min)
