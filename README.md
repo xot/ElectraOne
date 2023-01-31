@@ -257,11 +257,17 @@ After this you need to update the firmware. See the [section on dependencies](##
 
 To log all events (also those that happen on the E1 itself), do the following.
 
-- install MidiPipe, and open the ```E1.mipi``` file with it
-- this should create a ```MidiPipe Output 1```; connect the INPUT of the script in Ableton Live to this, and set the output to ```Electra Controller (Electra Port 1)```
-- set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py```
+- set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1)
 
 This should create log messages (including those sent by the E1) into ```~/Library/Preferences/Ableton/Live <version>/Log.txt```. 
+
+To actually catch the log messages from the E1 either 
+
+- install MidiPipe, and open the ```E1.mipi``` file with it
+- this should create a ```MidiPipe Output 1```; connect the INPUT of the script in Ableton Live to this, and set the output to ```Electra Controller (Electra Port 1)```
+
+or catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
+for more information.
 
 If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
 
