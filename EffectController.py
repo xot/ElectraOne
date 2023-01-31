@@ -130,7 +130,9 @@ class EffectController(ElectraOneBase):
         """Test whether the assigned device is actually uploaded
            - result: whether assigned device is uploaded; bool
         """
-        flag = self._assigned_device and self._assigned_device_controller
+        flag = self._assigned_device and \
+            self._assigned_device_controller and \
+            ElectraOneBase.preset_upload_successful 
         self.debug(6,f'Assigned device is uploaded: { flag }')
         return flag
     
@@ -138,7 +140,9 @@ class EffectController(ElectraOneBase):
         """Test whether the assigned device still needs to be uploaded
            - result: whether assigned device needs to be uploaded; bool
         """
-        flag = self._assigned_device and (self._assigned_device_controller == None)
+        flag = self._assigned_device and \
+           ((self._assigned_device_controller == None) or \
+            (not ElectraOneBase.preset_upload_successful))
         self.debug(6,f'Assigned device needs uploading: { flag }')
         return flag
     
@@ -174,7 +178,9 @@ class EffectController(ElectraOneBase):
             self._upload_assigned_device_if_possible_and_needed()
         # Update the display after the refresh period
         if self._assigned_device_is_visible() and (self._update_ticks == 0):
+            self.debug(1,'EffCont updating display.')
             self._assigned_device_controller.update_display()
+            self.debug(1,'EffCont display updated.')
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
         
     def disconnect(self):
