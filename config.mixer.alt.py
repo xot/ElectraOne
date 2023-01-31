@@ -23,6 +23,9 @@ DEBUG = 2
 # Whether the E1 should send log messages
 E1_LOGGING = False
 
+# Which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL)
+E1_LOGGING_PORT = 2
+
 # Whether created patch info should be dumped (this is useful if you want
 # to create your own custom patches for certain devices)
 DUMP = False

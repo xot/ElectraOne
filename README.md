@@ -172,6 +172,8 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 
 - ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
+- ```E1_LOGGING``` controls whether the E1 should send log messages, default ```False```.
+- ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
 - ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
 - ```DETECT_E1``` controls whether to detect the E1 at startup, or not.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
@@ -228,7 +230,7 @@ The following constants deal with the equaliser devices managed through the mixe
 This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1, 11.1.5, 11.2.6, and 11.2.7 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.0.12 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- E1 firmware version 3.1 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ## Recovering from errors
@@ -255,18 +257,11 @@ After this you need to update the firmware. See the [section on dependencies](##
 
 ## Setting up logging
 
-To log all events (also those that happen on the E1 itself), do the following.
+To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). This should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt```. 
 
-- set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1)
+To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
 
-This should create log messages (including those sent by the E1) into ```~/Library/Preferences/Ableton/Live <version>/Log.txt```. 
-
-To actually catch the log messages from the E1 either 
-
-- install MidiPipe, and open the ```E1.mipi``` file with it
-- this should create a ```MidiPipe Output 1```; connect the INPUT of the script in Ableton Live to this, and set the output to ```Electra Controller (Electra Port 1)```
-
-or catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
+Alternatively, leave the default ```E1_LOGGING_PORT=2``` as is which direct log messages from the E1 to its CTRL port, and catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
 for more information.
 
 If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.

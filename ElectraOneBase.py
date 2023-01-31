@@ -581,24 +581,28 @@ class ElectraOneBase:
         self._increment_acks_pending()
         time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
         
-    def enable_logging(self, flag):
-        """Enable or disable logging on the E1.
+    def setup_logging(self):
+        """Enable or disable logging on the E1 (based on E1_LOGGING)
+           and set the port over which logging messages are sent (based on
+           E1_LOGGING_PORT).
            NOTE: waits for receipt of ACK, so MUST only be called within a thread!
-           - flag: whether to turn logging on or off; bool
         """
-        if flag:
+        if E1_LOGGING:
             self.debug(1,'Enable logging.')
         else:
             self.debug(1,'Disable logging.')
-        # TODO: first set the logging output port; this doesnt work yet
-        #if flag:
-        #    sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7B)
-        #    sysex_port = ( 0x00 ,)
-        #    sysex_close = (0xF7, )
-        #    self.send_midi(sysex_header + sysex_port + sysex_close)
+        # TODO (check this works now): first set the logging output port
+        if E1_LOGGING:
+            # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
+            sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7D)
+            sysex_port = (E1_LOGGING_PORT, 0x00)
+            sysex_close = (0xF7, )
+            self.send_midi(sysex_header + sysex_port + sysex_close)
+            self._increment_acks_pending()
+            self._wait_for_ack_or_timeout(5) # 50ms
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)
-        if flag:
+        if E1_LOGGING:
             sysex_status = ( 0x01, 0x00 )
         else:
             sysex_status = ( 0x00, 0x00 )
@@ -707,14 +711,17 @@ class ElectraOneBase:
         while (ElectraOneBase.acks_pending > 0) and \
               (time.time() < start_time + timeout/100 ):
             self.debug(4,f'Thread waiting for ACK, current time is {time.time()}.')
-            time.sleep(0.003) # sleep a bit to pause the thread
+            time.sleep(0.01) # sleep a bit to pause the thread
         if (ElectraOneBase.acks_pending == 0) and \
            (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
             self.debug(3,f'Thread: ACK received within time {time.time() - start_time} (preset uploading: {ElectraOneBase.preset_uploading}).')
+            result = True
         else:
             self.debug(3,f'Thread: ACK not received within time {time.time() - start_time}, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
-        return (ElectraOneBase.acks_pending == 0) and \
-           (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED)
+            result = False
+        # clear any pending acks/nacks
+        ElectraOneBase.acks_pending = 0            
+        return result
     
     def _upload_preset_thread(self, slot, preset, luascript):
         """To be called as a thread. Select a slot, then upload a preset, and

@@ -113,7 +113,7 @@ class ElectraOne(ElectraOneBase):
                 self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             self.setup_fast_sysex()
-            self.enable_logging(E1_LOGGING)
+            self.setup_logging()
             c_instance = self.get_c_instance()
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
