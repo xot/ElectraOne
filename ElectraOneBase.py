@@ -519,6 +519,7 @@ class ElectraOneBase:
         #sysex_command = tuple([ b for b in command.encode() ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_command + sysex_close)
+        # LUA commands respond with ACK/NACK
         self._increment_acks_pending()
         
     def update_track_labels(self, idx, label):
@@ -578,6 +579,7 @@ class ElectraOneBase:
         sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_controlid + sysex_valueid + sysex_text + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         time.sleep(ElectraOneBase._send_value_update_sleep) # don't overwhelm the E1!
         
@@ -598,8 +600,7 @@ class ElectraOneBase:
             sysex_port = (E1_LOGGING_PORT, 0x00)
             sysex_close = (0xF7, )
             self.send_midi(sysex_header + sysex_port + sysex_close)
-            self._increment_acks_pending()
-            self._wait_for_ack_or_timeout(5) # 50ms
+            # this SysEx command does NOT repsonds with an ACK/NACK 
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)
         if E1_LOGGING:
@@ -609,7 +610,9 @@ class ElectraOneBase:
         sysex_close = (0xF7, )
         ElectraOneBase.ack_received = False
         self.send_midi(sysex_header + sysex_status + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
+        # wait for it
         self._wait_for_ack_or_timeout(5) # 50ms
             
     def _select_slot_only(self, slot):
@@ -620,11 +623,12 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
-        # (TODO: not documented yet)
+        # (TODO: not documented yet!)
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x08)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         # Unlike activate (see below) the E1 will not send a preset changed
         # message in response, but only an ACK
@@ -643,6 +647,7 @@ class ElectraOneBase:
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_select + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01))
@@ -666,6 +671,7 @@ class ElectraOneBase:
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
+        # this SysEx command repsonds with an ACK/NACK 
         self.send_midi(sysex_header + sysex_select + sysex_close)
         self._increment_acks_pending()
         
@@ -680,6 +686,7 @@ class ElectraOneBase:
         sysex_script = tuple([ ord(c) for c in luascript ])
         sysex_close = (0xF7, )
         self.send_midi(sysex_header + sysex_script + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
 
     def _upload_preset_to_current_slot(self, preset):
@@ -695,6 +702,7 @@ class ElectraOneBase:
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
         self.send_midi(sysex_header + sysex_preset + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
 
     def _wait_for_ack_or_timeout(self, timeout):
