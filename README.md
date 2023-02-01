@@ -164,7 +164,7 @@ Start Ableton
 
 A patch for the appointed  device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the E1
 
-See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS).
+See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS) (again note that ```~``` stands for your home folder).
 
 ## Configuring
 
@@ -257,7 +257,7 @@ After this you need to update the firmware. See the [section on dependencies](##
 
 ## Setting up logging
 
-To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). This should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt```. 
+To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). This should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
 
 To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
 
