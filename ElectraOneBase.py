@@ -17,6 +17,7 @@ import threading
 import time
 import sys
 import os
+import subprocess
 
 # Local imports
 from .config import *
@@ -302,15 +303,20 @@ class ElectraOneBase:
     # --- Fast MIDI sysex upload handling
 
     def _run_command(self, command):
-        """Run the command in a shell, and return whether successful or not.
+        """Run the command in a shell, and return its output when succesful.
            - command: command to run; str
-           - result: success?; bool
+           - result: output string when succesful, None if not; str
         """
         self.debug(4,f'Running external command {command[:200]}')
-        # TODO: return type is different accross platforms
-        return_code = os.system(command)
-        self.debug(4,f'External command returned {return_code}')        
-        return (return_code == 0)
+        try:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            self.debug(4,f'External command returned {result.returncode}')
+            if result.returncode == 0: # success
+                return result.stdout
+            else:
+                return None
+        except subprocess.SubprocessError:
+            return None
 
     def setup_fast_sysex(self):
         """Set up fast sysex upload.
@@ -322,6 +328,10 @@ class ElectraOneBase:
                 self.debug(1,'Testing whether fast uploading of presets is supported.')
                 ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
                 if ElectraOneBase._fast_sysex_cmd:
+                    getversioncommand = f'{ElectraOneBase._fast_sysex_cmd} --version'
+                    result = self._run_command(getversioncommand)
+                    if result:
+                        self.debug(1,f"sendmidi version { result.split('\n')[0] } found.")
                     # if found test if it works
                     testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
                     if self._run_command(testcommand):
