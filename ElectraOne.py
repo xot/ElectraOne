@@ -20,6 +20,7 @@ from .EffectController import EffectController
 from .MixerController import MixerController
 from .DeviceAppointer import DeviceAppointer
 from .config import *
+from .versioninfo import DATE
 
 # SysEx defines and helpers
 
@@ -86,6 +87,7 @@ class ElectraOne(ElectraOneBase):
         # and opening the interface so the remote script becomes active
         self._mixer_controller = None
         self._effect_controller = None
+        self.debug(1,f'ElectraOne Remote Script version { DATE }.')
         self.debug(1,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
