@@ -231,7 +231,7 @@ This project depends on:
 
 - Ableton Live 11, tested with version 11.1.1, 11.1.5, 11.2.6, and 11.2.7 (code relies on Abelton Live supporting Python 3.6).
 - E1 firmware version 3.1 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
-- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
+- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. (Download the right binary [here](https://github.com/gbevin/SendMIDI/releases).)
 
 ## Recovering from errors
 
@@ -257,7 +257,7 @@ After this you need to update the firmware. See the [section on dependencies](##
 
 ## Setting up logging
 
-To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). This should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
+To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). On the MAC, this should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
 
 To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
 

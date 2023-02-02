@@ -112,7 +112,6 @@ class ElectraOneBase:
     E1_version = (0,0,0)
     
     # flag indicating whether the last preset upload was successful
-    # TODO: this is not used in rest of script 
     preset_upload_successful = None
 
     # count number of acks pending
