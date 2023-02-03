@@ -178,9 +178,9 @@ class EffectController(ElectraOneBase):
             self._upload_assigned_device_if_possible_and_needed()
         # Update the display after the refresh period
         if self._assigned_device_is_visible() and (self._update_ticks == 0):
-            self.debug(1,'EffCont updating display.')
+            self.debug(6,'EffCont updating display.')
             self._assigned_device_controller.update_display()
-            self.debug(1,'EffCont display updated.')
+            self.debug(6,'EffCont display updated.')
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
         
     def disconnect(self):
