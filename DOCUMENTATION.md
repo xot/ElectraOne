@@ -368,12 +368,12 @@ And it defines the following core modules:
 - ```__init.py__ ```: package constructor.
 - ```config.py```: defines configuration constants. 
 - ```Devices.py```: stores curated device presets.
-
+- ```versioninfo.py```: stores the date this version was committed
 
 
 ## The mixer (```MixerController```)
 
-The mixer preset controls 
+The mixer preset (in ```Mixer.eporj```) controls 
 
 - the transport (play/stop, record, rewind and forward), 
 - the master track (pan, volume, cue volume, solo), 
@@ -384,7 +384,6 @@ The tracks controlled can be switched. Also, each track (audio, MIDI but also th
 
 The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```MASTER_EQ_DEVICE_NAME```/```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_CC_MAP```/```TRACK_EQ_CC_MAP``` constants in ```config.py```.
 All that matters is that you do not change the control id, MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
-
 
 ### Value mapping
 
@@ -698,6 +697,10 @@ contain a Live Channel EQ device, this one is automatically discovered and mappe
 ```build_midi_map_for_device``` (to map the device parameters to the CC controllers) and ```update_values_for_device``` to initialise the controller values as soon as the device is mapped.
 
 The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
+
+### Alternative mixer design
+
+Alternative mixer designs are possible (provided they adhere to the mappings and constraints outlined above). For example an alternative mixer design is included (```Mixer.alt.eproj```) that shows the track select and transport controls on all pages. As a result, the Channel Eq page no longer shows the 'rumble' filter switch, and only 5 sends are defined. To match this,  ```MAX_NO_OF_SENDS = 5``` and ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP``` have been adjusted in ```config.py```.
 
 
 ## E1 midi CC forwarding

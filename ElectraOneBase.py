@@ -92,10 +92,6 @@ class ElectraOneBase:
 
     # -- CLASS variables (exist exactly once, only inside this class)
     
-    # Command to use for fast sysex upload (to be set during initialisation
-    # using SENDMIDI_CMD and LIBDIR).
-    _fast_sysex_cmd = None
-    
     # Record whether fast uploading of sysex is supported or not.
     # (Initially None to indicate that support not tested yet)
     _fast_sysex = None
@@ -140,9 +136,8 @@ class ElectraOneBase:
     def _get_libdir(self):
         """Determine library path based on LIBDIR.
            Either ~/LIBDIR, /LIBDIR, or the user home directory,
-           the first of these that exist.
-           Home is assumed to always exist.
-           - result: library path that exists ; str
+           the first of these that exist. (Home is assumed to always exist.)
+           - result: library path that exists (without trailing /) ; str
         """
         # sanitise leading and trailing /
         ldir = LIBDIR
@@ -177,21 +172,6 @@ class ElectraOneBase:
             os.mkdir(test)    
         return test
         
-    def _find_in_libdir(self, path):
-        """Find path in library path and return it if found, else return None
-           - path: path to find; str
-           - result: path found, None if not found; str
-        """
-        self.debug(4,f'Looking for {path} in library.')
-        root = self._get_libdir()
-        test = f'{ root }/{ path }'
-        if not os.path.exists(test):
-            self.debug(4,f'Path { test } not found.')
-            return None
-        else:
-            self.debug(4,f'Found as {test}.')
-            return test
-
     # --- INIT
     
     def __init__(self, c_instance):
@@ -323,25 +303,16 @@ class ElectraOneBase:
         """
         # Do this only once.
         if ElectraOneBase._fast_sysex == None:
-            if USE_FAST_SYSEX_UPLOAD:
+            if SENDMIDI_CMD:
                 # find sendmidi
                 self.debug(1,'Testing whether fast uploading of presets is supported.')
-                if (len(SENDMIDI_CMD) > 0) and (SENDMIDI_CMD[0] == '/'):
-                    ElectraOneBase._fast_sysex_cmd = SENDMIDI_CMD
+                testcommand = f"{SENDMIDI_CMD} dev '{E1_CTRL_PORT}'"
+                if self._run_command(testcommand):
+                    self.debug(1,'Fast uploading of presets supported. Great, using that!')
+                    ElectraOneBase._fast_sysex = True
                 else:
-                    ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
-                if ElectraOneBase._fast_sysex_cmd:
-                    # if found test if it works
-                    testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
-                    if self._run_command(testcommand):
-                        self.debug(1,'Fast uploading of presets supported. Great, using that!')
-                        ElectraOneBase._fast_sysex = True
-                    else:
-                        self.debug(1,'Fast uploading of presets not supported (command failed), reverting to slow method.')
-                        ElectraOneBase._fast_sysex = False
-                else:
-                    self.debug(1,'Fast uploading of presets not supported (command not found), reverting to slow method.')
-                    ElectraOneBase._fast_sysex =  False
+                    self.debug(1,'Fast uploading of presets not supported (command failed), reverting to slow method.')
+                    ElectraOneBase._fast_sysex = False
             else:
                 self.debug(1,'Slow uploading of presets configured.')
                 ElectraOneBase._fast_sysex = False
@@ -500,7 +471,7 @@ class ElectraOneBase:
             # (strip first and last byte of SysEx command in bytes parameter
             # because sendmidi syx adds them again)
             bytestr = ' '.join(str(b) for b in message[1:-1])
-            command = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}' syx { bytestr }"
+            command = f"{SENDMIDI_CMD} dev '{E1_CTRL_PORT}' syx { bytestr }"
             if not self._run_command(command):
                 self.debug(4,'Sending SysEx failed')
         else:

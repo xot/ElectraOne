@@ -59,13 +59,10 @@ USE_ABLETON_VALUES = True
 
 # === FAST SYSEX UPLOAD 
 
-# Flag whether to use fast sysex uploading,
-# using the (external) sendmidi package
-# If True, correctly set the following two constants too  
-USE_FAST_SYSEX_UPLOAD = False
+# full path to the sendmidi command. If None, fast sysex upload is not supported
+SENDMIDI_CMD = None
+#SENDMIDI_CMD = '/usr/local/bin/sendmidi'
 
-# path to the sendmidi command, relative to local library directory (see LIBDIR)
-SENDMIDI_CMD = 'lib/sendmidi'
 # name of the Electra One port to which to send the SysEx command
 E1_CTRL_PORT = 'Electra Controller Electra Port 1'
 

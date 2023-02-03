@@ -179,15 +179,13 @@ Download the right binary [here](https://github.com/gbevin/SendMIDI/releases). I
 Set the following constants in the ```config.py``` (this is one of the files you just copied into the new ```ElectraOne``` directory that you created in your local Ableton MIDI Live Scripts folder):
 
 - ```SENDMIDI_CMD = /usr/local/bin/sendmidi```
-- ```USE_FAST_SYSEX_UPLOAD = True```
 - ```E1_CTRL_PORT = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default).
-
 
 ## Configuring
 
 The behaviour of the remote script can be changed by editing ```config.py```:
 
-- ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead (and ```./dumps``` or ```./user-presets``` are not appended).
+- ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
 - ```E1_LOGGING``` controls whether the E1 should send log messages, default ```False```.
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
@@ -198,8 +196,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```DISABLE_EFFECT``` controls whether effect support is enabled. If ```True```only the mixer is supported (and active always).
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
 - ```EFFECT_REFRESH_PERIOD``` amount of time (in 100ms increments) between successive refreshes of controls on the E1 whose string values need to be provided by Abelton (default is 2)
-- ```USE_FAST_SYSEX_UPLOAD``` controls whether (much)  faster uploading of presets is supported. This requires ```sendmidi``` to be installed (see below).
-- ```SENDMIDI_CMD``` the path to the ```sendmidi```command (relative to ```LIBDIR```, or a global path if it starts with '/').
+- ```SENDMIDI_CMD``` full path to the ```sendmidi```command. If ```None```(the default), fast uploading of presets is not supported.
 - ```E1_CTRL_PORT``` (default is ```Electra Controller Electra Port 1```), the port to use to upload presets using ```sendmidi```
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
@@ -235,6 +232,14 @@ The following constants deal with the equaliser devices managed through the mixe
 
 - ```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_DEVICE_NAME```: (class)name of the equaliser device (on the normal tracks and the master track respectively) to be managed by the mixer preset.
 - ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP```: CC mapping information describing which equaliser controls are mapped, and through which CC.
+
+### Configuring Ableton to map AU and VST plugin parameters
+
+To more easily control the parameters of AU and VST plugins in Ableton, you need to tell Ableton to automatically configure and reveal the plugin parameters. This is done by adding the following line to the ```Options.txt``` file (see this [Ableton help document](https://help.ableton.com/hc/en-us/articles/6003224107292-Options-txt-file) on where to find it and how to edit it).
+
+```-_PluginAutoPopulateThreshold=128```
+
+Note the hypen followed by the underscore!
 
 ## Current limitations
 
