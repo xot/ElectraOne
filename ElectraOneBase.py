@@ -117,6 +117,9 @@ class ElectraOneBase:
     # count number of acks pending
     acks_pending = 0
 
+    # time at which acks_pending was last incremented
+    acks_pending_incremented_time = 0.0
+    
     # flag to inform whether an ACK or a NACK was last received
     # (set by _do_ack() / _do_nack() in ElectraOne.py).
     ack_or_nack_received = None
@@ -340,7 +343,7 @@ class ElectraOneBase:
                 self.debug(1,'Slow uploading of presets configured.')
                 ElectraOneBase._fast_sysex = False
             
-    # --- send MIDI ---
+    # --- ACK/NACK queue handling
 
     # Note: many of the commands below use SysExs to control the E1; the E1
     # typically responds with AKCs/NACKs, but the commands do not catch them because
@@ -348,8 +351,7 @@ class ElectraOneBase:
     # - would therefore slow down the script
     # - but most importantly: it is hard to catch them because most commands
     #   are not executed in a thread.
-    #
-    # As a workaround (becuase the commands concerned are used to update the
+    # As a workaround (because the commands concerned are used to update the
     # display of the E1), the _midi_burst_off command waits a bit to ensure that
     # all possible ACKs will be (silently!) received by the time the
     # command finished
@@ -360,7 +362,83 @@ class ElectraOneBase:
             _wait_for_ack_or_timeout() below.)
         """
         ElectraOneBase.acks_pending += 1
-        self.debug(5,f'ACKS pending incremented to {ElectraOneBase.acks_pending}')
+        now = time.time()
+        ElectraOneBase.acks_pending_incremented_time = now
+        self.debug(5,f'ACKS pending incremented to {ElectraOneBase.acks_pending} at time { now }')
+
+    def _adjust_timeout(self,timeout):
+        """Adjust the timeout depending on whether fast sysex sending is
+           suported or not, and whether logging of E1 messages is enabled.
+           - timeout: time to wait (in 'units', ranging from 5-1000), equals
+             the time in 10ms units to wait when fast sysex loading is enabled
+             and no logging takes place on the E1; int
+           result: timeout in (fractional) seconds
+        """
+        # cap timeout to maximum
+        timeout = min(timeout,250)
+        # stretch timeout when no fast sysex uploading
+        if not ElectraOneBase._fast_sysex:
+            timeout = 8 * timeout
+        # also stretch (further) if logging takes place
+        if E1_LOGGING:
+            timeout = 2 * timeout
+        if E1_LOGGING_PORT == 0: # TODO: this assumes E1_CTRL_PORT is set to Port 1
+            timeout = 2 * timeout
+        # minimum timeout is 600ms
+        timeout = max(60,timeout)
+        # convert to (fractional) seconds
+        return timeout/100
+        
+    def _wait_for_pending_acks_until(self,end_time):
+        """Wait if there are any pending acks, until the specified end_time.
+           - end_time: time until which to wait, in (fractional) seconds; float
+           - result: time waited, in (fractional) seconds; float
+        """
+        start_time = time.time()
+        while (ElectraOneBase.acks_pending > 0) and \
+              (time.time() < end_time ):
+            self.debug(4,f'Thread waiting for ACK, current time is {time.time():.3f}.')
+            time.sleep(0.01) # sleep a bit (10ms) to pause the thread
+        return time.time() - start_time
+        
+    def _clear_acks_queue(self):
+        """If any acks are pending, wait until they have been received (until
+           some timeout).
+        """
+        # wait one second since acks_pending was incremented last
+        end_time = ElectraOneBase.acks_pending_incremented_time + 1.0
+        self.debug(3,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending), wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
+        waiting_time = self._wait_for_pending_acks_until(end_time)
+        if (ElectraOneBase.acks_pending == 0):
+            self.debug(3,f'Thread: acks queue cleared within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+        else:
+            # clear any pending acks/nacks
+            ElectraOneBase.acks_pending = 0            
+            self.debug(3,f'Thread: acks queue still not empty within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+        
+    def _wait_for_ack_or_timeout(self, timeout):
+        """Wait until all pending ACk or NACK messages from the E1 have
+           been received, or the timeout, whichever is sooner. The timeout depends
+           on whether fast sysex sending is suported or not, and whether logging
+           of E1 messages is enabled.
+           Return whether last message received was an ACK.
+           - timeout: time to wait (in 'units', ranging from 5-1000); int
+        """
+        timeout = self._adjust_timeout(timeout)
+        end_time = time.time() + timeout
+        self.debug(3,f'Thread waiting for ACK, setting timeout {timeout:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+        waiting_time = self._wait_for_pending_acks_until(end_time)
+        if (ElectraOneBase.acks_pending == 0) and \
+           (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
+            self.debug(3,f'Thread: ACK received within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+            return True
+        else:
+            # clear any pending acks/nacks
+            ElectraOneBase.acks_pending = 0            
+            self.debug(3,f'Thread: ACK not received within {waiting_time:.3f} seconds, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
+            return False
+
+    # --- send MIDI ---
     
     def _midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
@@ -707,44 +785,6 @@ class ElectraOneBase:
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
 
-    def _wait_for_ack_or_timeout(self, timeout):
-        """Wait until all pending ACk or NACK messages from the E1 have
-           been received, or the timeout, whichever is sooner. The timeout depends
-           on whether fast sysex sending is suported or not, and whether logging
-           of E1 messages is enabled.
-           Return whether last message received was an ACK.
-           - timeout: time to wait (in 'units', ranging from 5-1000); int
-        """
-        if ElectraOneBase.acks_pending == 0:
-            self.debug(3,f'Thread: no ACKs pending (preset uploading: {ElectraOneBase.preset_uploading}).')
-            return False
-        # timeout units = 10ms ; stretch when fast systex upload is not supported
-        if ElectraOneBase._fast_sysex:
-            # timeout less than 2s
-            timeout = min(timeout,200)
-        else:
-            # stretch timeout with factor 5, but timeout less than 10s
-            timeout = min(5*timeout,1000)
-        if E1_LOGGING:
-            timeout = 4 * timeout
-        # minimum timeout is 100ms
-        timeout = max(10,timeout)
-        start_time = time.time()
-        self.debug(3,f'Thread waiting for ACK, setting timeout { timeout/100 } seconds at time { start_time } (preset uploading: {ElectraOneBase.preset_uploading}).')
-        while (ElectraOneBase.acks_pending > 0) and \
-              (time.time() < start_time + timeout/100 ):
-            self.debug(4,f'Thread waiting for ACK, current time is {time.time()}.')
-            time.sleep(0.01) # sleep a bit (10ms) to pause the thread
-        if (ElectraOneBase.acks_pending == 0) and \
-           (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
-            self.debug(3,f'Thread: ACK received within time {time.time() - start_time} (preset uploading: {ElectraOneBase.preset_uploading}).')
-            result = True
-        else:
-            self.debug(3,f'Thread: ACK not received within time {time.time() - start_time}, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
-            result = False
-        # clear any pending acks/nacks
-        ElectraOneBase.acks_pending = 0            
-        return result
     
     def _upload_preset_thread(self, slot, preset, luascript):
         """To be called as a thread. Select a slot, then upload a preset, and
@@ -760,8 +800,9 @@ class ElectraOneBase:
         # should anything happen inside this thread, make sure we write to debug
         try:
             self.debug(2,'Upload thread starting...')
-            # consume any stray pending ACKs or NACKs
-            self._wait_for_ack_or_timeout(10) # TODO: why such a long timeout?
+            # consume any stray pending ACKs or NACKs from previous commands
+            # to clear the pending acks queue
+            self._clear_acks_queue()
             # first select slot and wait for ACK
             self._select_slot_only(slot)
             if self._wait_for_ack_or_timeout(10): 
@@ -769,10 +810,10 @@ class ElectraOneBase:
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
                 # patch sizes range from 500 - 100.000 bytes
-                if self._wait_for_ack_or_timeout( int(len(preset)/100) ):
+                if self._wait_for_ack_or_timeout( int(len(preset)/50) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self._wait_for_ack_or_timeout( int(len(luascript)/100) ):
+                    if self._wait_for_ack_or_timeout( int(len(luascript)/50) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
