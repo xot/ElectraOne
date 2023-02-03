@@ -405,8 +405,8 @@ class ElectraOneBase:
         """If any acks are pending, wait until they have been received (until
            some timeout).
         """
-        # wait one second since acks_pending was incremented last
-        end_time = ElectraOneBase.acks_pending_incremented_time + 1.0
+        # wait five seconds since acks_pending was incremented last
+        end_time = ElectraOneBase.acks_pending_incremented_time + 4.0
         self.debug(3,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending), wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self._wait_for_pending_acks_until(end_time)
         if (ElectraOneBase.acks_pending == 0):
