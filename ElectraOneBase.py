@@ -326,7 +326,10 @@ class ElectraOneBase:
             if USE_FAST_SYSEX_UPLOAD:
                 # find sendmidi
                 self.debug(1,'Testing whether fast uploading of presets is supported.')
-                ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
+                if (len(SENDMIDI_CMD) > 0) and (SENDMIDI_CMD[0] == '/'):
+                    ElectraOneBase._fast_sysex_cmd = SENDMIDI_CMD
+                else:
+                    ElectraOneBase._fast_sysex_cmd = self._find_in_libdir(SENDMIDI_CMD)
                 if ElectraOneBase._fast_sysex_cmd:
                     # if found test if it works
                     testcommand = f"{ElectraOneBase._fast_sysex_cmd} dev '{E1_CTRL_PORT}'"
@@ -673,7 +676,6 @@ class ElectraOneBase:
             self.debug(1,'Enable logging.')
         else:
             self.debug(1,'Disable logging.')
-        # TODO (check this works now): first set the logging output port
         if E1_LOGGING:
             # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
             sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7D)

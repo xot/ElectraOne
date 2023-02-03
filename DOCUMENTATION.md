@@ -159,11 +159,6 @@ Ableton actually provides a large collection of basic Python classes that it use
 ## MIDI / Ableton
 
 
-Only the first 32 CC parameters can be assigned to be 14bit controllers (even though there would be space for more starting at slot 64, but unfortunately neither Ableton nor the E1 fully support that).
-
-*(More info to be added)*
-
-
 ### MIDI mapping
 
 Almost all Live *device* parameters (including most buttons, in fact all parameters returned by ```device.parameters```) can be mapped to respond to incoming MIDI CC messages. This is done using:
@@ -182,6 +177,15 @@ where:
 - ```avoid_takeover```: not clear how/if this parameter is honoured.
 
 Once mapped, there is nothing much left to do: incoming MIDI CC messages that match the map are immediately processed by Live and result in the desired parameter update. The remote script does not get to see these MIDI messages. Even better: any change to a mapped Live parameter (either through the Live UI or through another remote controller) is automatically sent out as the mapped MIDI CC parameter straight to the (E1) controller. Again, the remote script does not get to see these MIDI remote messages. There is *one* thing the remote script must do itself unfortunately (but only *once* per mapped parameter): when mapping a parameter to control this way, the current value of the parameter must be sent to the E1 (as a MIDI CC message) to bring the controller on the E1 in sync with the current value of the Live parameter. After that, the remote script is literally out of the loop
+
+
+### 7bit vs 14bit MIDI CC mapping
+
+Only the first 32 CC parameters can be assigned to be 14bit controllers (even though there would be space for more starting at slot 64, but unfortunately neither Ableton nor the E1 fully support that).
+
+*(More info to be added)*
+
+
 
 ### MIDI forwarding
 

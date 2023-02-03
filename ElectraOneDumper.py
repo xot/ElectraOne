@@ -187,7 +187,7 @@ def _is_float_str(s):
     
   
 # type strings that (typically) indicate a non-integer valued parameter
-# TODO: what is the ":" type???
+# (the : occurs as part of a compression ratio...)
 NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°', ':']
 
 # return values for _is_int_parameter
