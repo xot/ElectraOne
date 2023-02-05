@@ -239,7 +239,7 @@ To more easily control the parameters of AU and VST plugins in Ableton, you need
 
 ```-_PluginAutoPopulateThreshold=128```
 
-Note the hypen followed by the underscore!
+Note the hyphen followed by the underscore! Also this is not guaranteed to work for all plugins; I've seen it work for AU plugins but not for VSTs on MacOS.
 
 ## Current limitations
 
