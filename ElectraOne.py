@@ -231,8 +231,6 @@ class ElectraOne(ElectraOneBase):
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 ElectraOneBase.current_visible_slot = selected_slot
-                # E1 does not keep (visibility) state across preset changes
-                self._mixer_controller.set_visibility()
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
@@ -256,7 +254,6 @@ class ElectraOne(ElectraOneBase):
         """Handle a NACK message. 
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        # TODO: handle NACks
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
         ElectraOneBase.ack_or_nack_received = NACK_RECEIVED

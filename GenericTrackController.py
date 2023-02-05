@@ -85,6 +85,7 @@ class GenericTrackController(ElectraOneBase):
         # None indicates a fearture is not present.
         self._track = None
         # EQ device info
+        self._eq_device = None
         self._eq_device_controller = None # if None not present (ie all returns)
         # midi info
         self._midichannel = None
@@ -120,6 +121,7 @@ class GenericTrackController(ElectraOneBase):
             - eq_device_name: ; str
             - result: reference to the device ; Live.Device.Device 
         """
+        self.debug(3,f'Looking for equaliser device with name {eq_device_name}')
         devices = self._track.devices
         for d in reversed(devices):
             if d.class_name == eq_device_name:
@@ -142,20 +144,41 @@ class GenericTrackController(ElectraOneBase):
             cc_map[p] = (channel_id, channel, is_cc14, self._my_cc(cc_no))
         return PresetInfo('','',cc_map)
     
-    def add_eq_device(self, eq_device_name, cc_map):
+    def add_eq_device(self, eq_device_name, eq_cc_map):
         """Add a equaliser device to be managed by the mixer preset.
            - eq_device_name: class name of the equaliser device, used to locate
              the device on the track; str
-           - cc_map: information about the CC mapping (like in Devices.py); dict of CCInfo
+           - eq_cc_map: information about the CC mapping (like in Devices.py); dict of CCInfo
         """
+        # initialise the name and ccmap to use for this type of track; see
+        # _check_eq_device_change
+        self._eq_device_name = eq_device_name
+        self._eq_cc_map = eq_cc_map
         # find the equaliser device on the track
-        device = self._my_channel_eq(eq_device_name)
-        if device:
-            preset_info = self._my_channel_eq_preset_info(cc_map)
-            self._eq_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+        self._eq_device = self._my_channel_eq(eq_device_name)
+        if self._eq_device:
+            preset_info = self._my_channel_eq_preset_info(eq_cc_map)
+            self._eq_device_controller = GenericDeviceController(self._c_instance, self._eq_device, preset_info)
         else:
             self._eq_device_controller = None
         
+    def _check_eq_device_change(self):
+        """Check whether the eq device for this track was changed/added/removed
+           and if so, update the eq device controller and force a MIDI remap
+           and state refresh
+        """
+        self.debug(3,'Testing EQ device change.')
+        # find the equaliser device on the track
+        device = self._my_channel_eq(self._eq_device_name)
+        # and if it changed, force an update
+        # (note: if an existing eq-device is deleted, self._eq_device ALSO
+        # becomes None, so we detect this by testing self._eq_device_controller)
+        if (device != self._eq_device) or \
+           (not device and self._eq_device_controller):
+            self.debug(2,'EQ device change detected.')
+            self.add_eq_device(self._eq_device_name,self._eq_cc_map) # also removes any previous eq device controller
+            self.request_rebuild_midi_map() # also refreshes state
+            
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be
            overriden by subclass.
@@ -220,6 +243,7 @@ class GenericTrackController(ElectraOneBase):
         if self._base_solo_cue_cc != None:
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
+        track.add_devices_listener(self._check_eq_device_change)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -236,8 +260,10 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
+            if track.devices_has_listener(self._refresh_track_name):
+                track.remove_devices_listener(self._check_eq_device_change)
 
-        
+
     def _on_mute_changed(self):
         """Send the new status of the Mute button to the controller using the
            right MIDI CC number (derived from self._base_mute_cc)
