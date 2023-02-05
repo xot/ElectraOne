@@ -201,7 +201,7 @@ The parameters to this call are like the one above, except:
 
 Once mapped, incoming MIDI CC messages that match the map are forwarded to the remote script that registered this mapping by calling its ```receive_midi``` method. The parameter to this call is a python *sequence* (not a list) of all bytes in the message, including the MIDI status byte etc. It is the responsibility of the remote script to process these messages and ensure something happens.
 
-Note: only MIDI events that are forwarded as described above will be actually forwarded by Live to the ```receive_midi``` function when they occur. Other events are simply dropped. The only exception are MIDI SysEx messages that are always passed on to ```receive_midi``` for further processing by the remote script,
+Note: only MIDI events that are forwarded as described above will be actually forwarded by Live to the ```receive_midi``` function when they occur. Other events are simply dropped. The only exception are MIDI SysEx messages that are always passed on to ```receive_midi``` for further processing by the remote script.
 
 
 ### Listeners
@@ -325,9 +325,12 @@ Almost all methods in the ```ElectraOne``` interface test whether the remote scr
 In both cases the remote script has sent a MIDI command to the Electra One and it is waiting for the appropriate response. To implement this waiting period in such a way that the MIDI response sent by the Electra One controller can be forwarded to Live to the remote script through ```receive_midi``` (the only interface method *not* testing readiness of the interface), 
 two *threads* are used. 
 
-One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
+One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts (if ```DETECT_E1=True```).
 
-The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
+The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). See [the section on uploading for more detais](#uploading_a_preset)
+
+
+In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
 The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (see ```EffectController.py```).
 
@@ -749,7 +752,7 @@ The computation of the 7bit MIDI value to send for a quantised parameter works a
 When sending a bunch of MIDI message to update the values of a complete mixer or effect preset (as the ```refresh_state``` does, the script first disables display updates on the E1, and reactivates display updates after all values are sent: this makes the E1 respond faster. See the ```_midi_burst_on()``` and ```_midi_burst_off()``` methods in ```ElectraOneBase```.
 
 For complex Abelton parameters whose display function is hard to derive from the underlying MIDI value (e.g. exponential or logarithmic volume or frequency domains), the remote script uses the ```str_for_value()``` function that Ableton defines for each device parameter. (In fact, for a parameter ```p``` the standard ```str(p)``` call is equivalent to ```p.str_for_value(p.value)```.)
-The resulting string is sent to the E1 by calling the LUA function ```svu``` defined in every effect preset. (See ```ElectraOneBase.py``` and ```DEFAULT_LUASCRIPT``` defined in ```EffectController.py```. The preset must use ```defaultFormatter``` as the formatter function for such controls.
+The resulting string is sent to the E1 by calling the LUA function ```svu``` defined in every effect preset. (See ```ElectraOneBase.py``` and ```DEFAULT_LUASCRIPT``` defined in ```EffectController.py```. The preset must use ```defaultFormatter``` as the formatter function for such controls (to ensure that the E1 itself does not change the value).
 
 For smoother operation, values for such complex Ableton parameters are not immediately updated whenever their underlying MIDI value changes. Instead the ```update_display()``` function is used to update *all changed* values of such parameters, every ```EFFECT_REFRESH_PERIOD``` times.
 
@@ -765,7 +768,7 @@ Module ```EffectController.py``` uses the same method as described above for the
 
 When the selected device changes, ```EffectController``` does the following.
 
-1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixt bank).
+1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixth bank).
    - If a user-defined patch exists, that one is used. 
    - If not, the parameters for the newly selected device are retrieved from Live (using ```device.parameters```) and automatically converted to a Electra One patch (see ```ElectraOneDumper.py```) in the order specified by the configuration constant ```ORDER```. 
 
@@ -785,7 +788,7 @@ The CC map is yet another dictionary, indexed by parameter names (as returned by
 
 A parameter entry in the CC map is a ```CCInfo``` object containing:
 
-- the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). This can be either an integer (for normal controls) or a tuple (cid,vid) for complex controls like ADSRs on the E1, where cid indicates the control-id and thevid indicates the value index within the control (in the range 1..10)
+- the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). This can be either an integer (for normal controls) or a tuple (cid,vid) for complex controls like ADSRs on the E1, where cid indicates the control-id and thevid indicates the value index within the control (in the range 1..10) (*This complex variant is not implemented yet in the current E1 firmware 3.1*)
 - the MIDI channel (in the range 1..16),
 - whether the control sends 7bit (```False``` or 0) or 14 bit (```True``` or 1) values, and
 - the actual CC parameter number (between 0..127, -1 if not mapped).
@@ -805,7 +808,7 @@ DEVICES = {
     {'Device On': (-1,11,False,2),'State': (-1,11,False,7),...}),
 ```
 
-> Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). This approach requires the controls to not show any values (because the value ranges of each Ableton parameter is different), so in the actual Echo preset, some LUA functions are used to make allow several controls on the same location, while making some of them visible or invisible.
+> Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). This approach requires the controls to not show any values (because the value ranges of each Ableton parameter is different), so in the actual Echo preset, some LUA functions are used to allow several controls on the same location, while making some of them visible or invisible.
 
 
 ## Generating presets on the fly
@@ -859,8 +862,21 @@ Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` 
 
 ### Uploading a preset
 
-The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, set ```USE_FAST_SYSEX_UPLOAD``` to true, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set
-```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+
+### Dealing with ACKs and NACKs
+
+For allmost all SysEx commands, the E1 returns whether they were successfully executed or not by sending back an [ACK](https://docs.electra.one/developers/midiimplementation.html#ack) or [NACK](https://docs.electra.one/developers/midiimplementation.html#nack). 
+
+The way Ableton implements control scripts makes it hard to wait for them in a normal fashion. An incoming ACK or NACK will be passed by Ableton Live to the ```receive_midi()``` function, which is the only way for the remote script to learn about receipt of an ACK/NACK. But ```receive_midi()``` can only be called if the remote script is not active, which is *not* the case if the remote script is busy waiting for an ACK/NACK after sending a SysEx message!
+
+The ElectraOne remotescript solves this as follows.
+
+After sending a SysEx message for which an ACK/NACK is expected, the script calls ```_increment_acks_pending()``` which increments ```ElectraOneBase.acks_pending``` by 1 and records the current time. This creates a virtual ACk/NACK queue (representing the actual ACKs/NACKs sent by the E1 that still need to be consumed by the remote script).
+
+The upload thread subsequently first consumes all pending ACKs/NACks by calling
+ ```_clear_acks_queue()```. This is a loop that waits for some timeout and sleeps inbetween (to release the thread and to allows Live to call ```receive_midi()``` to process and register incoming ACKs and NACKs, decrementing ```ElectraOneBase.acks_pending```. The select slot, upload preset and upload lua script (each a SysEx command) then wait for confirmation by calling ```_wait_for_ack_or_timeout()```.
+
 
 This has only be tested on MacOs.
 

@@ -322,7 +322,9 @@ class ElectraOne(ElectraOneBase):
     def receive_midi(self, midi_bytes):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map' using
-           Live.MidiMap.forward_midi_cc().
+           Live.MidiMap.forward_midi_cc(). Incoming SysExs are always passed
+           to this function
+           - midi_bytes: the MIDI message; sequence of bytes
         """
         self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midi_bytes[:10]) }')
         if is_cc_statusbyte(midi_bytes[0]) and (len(midi_bytes) == 3):
