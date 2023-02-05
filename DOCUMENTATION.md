@@ -156,6 +156,11 @@ Using Python's ```dir()``` function we can obtain the full signature of ```c_ins
 
 Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices, the Electra One remote script does not make use of these.
 
+### Memory management
+
+Note: there is something strange going on with memory management in Ableton. Consider for example the memory allocated to Device objects. ```song().appointed_device``` returns alternating memory locations for the same device (e.g. ```<Device.Device object at 0x11da5bed0>``` and ```<Device.Device object at 0x11da5be00>```). When copying such an object to a local variable in the remote script (e.g. ```self._assigned_device``` this then refers to ```<Device.Device object at 0x11da5bf38>```). If the underlying device is deleted from Live, then testing ```self._assigned_device != None``` returns ```False``` (because by deleting the device also ```self._assigned_device``` is considered equal to ```None```.
+
+
 ## MIDI / Ableton
 
 
