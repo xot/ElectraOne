@@ -9,20 +9,6 @@
 #
 # Distributed under the MIT License, see LICENSE
 #
-# DOCUMENTATION
-#
-# This part is considerably messier than EffectController, as Ableton
-# unfortunately does not consider all potentially MIDI mappable controls as
-# 'parameters' that can be passed to Live.MidiMap.map_midi_cc (after which all
-# handling of control updates on the E1 or changes to controls in  Live itself
-# (through the GUI or the another remote controller) are synced automatically :-( 
-#
-# This assumes a mixer preset with controls assigned to channel
-# MIDI_MASTER_CHANNEL and MIDI_TRACKS_CHANNEL with CC assignments as detailed
-# in DOCUMENTATION.md
-
-# Python imports
-import time
 
 # Ableton Live imports
 import Live
@@ -74,7 +60,11 @@ class MixerController(ElectraOneBase):
            - idx: proposal for new first track index; int
            - result: corrected new first track index; int
         """
-        idx = min(idx, len(self.song().visible_tracks) - NO_OF_TRACKS)
+        # index of first tracj should always be a multiple of 5: moving
+        # forward/backward then always shows the same block of tracks
+        # in the mixer
+        no_of_tracks = len(self.song().visible_tracks)
+        idx = min(idx, 5 * (no_of_tracks // 5))
         idx = max(idx, 0)            
         return idx
 
