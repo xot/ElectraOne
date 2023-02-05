@@ -553,7 +553,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         (vmin,vmax) = _get_par_min_max(p,1)
         if USE_ABLETON_VALUES:
-            self._append_json_generic_fader(cc_info, True, vmin, vmax, "defaultFormatter")
+            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
             cc_info.set_control_id(id+1)
         else:
             self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
