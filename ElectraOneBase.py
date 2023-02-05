@@ -224,10 +224,14 @@ class ElectraOneBase:
         # and for plugins
         # (device.name equals the name of the selected preset;
         # device.class_display_name is just a pretyy-printed version of class_name)
-        self.debug(5,f'Returning class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }')
-        self.debug(5,f'(has type { type(device)}.) ')
-        return device.class_name
-
+        self.debug(5,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
+        if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
+            name = device.name
+        else:
+            name = device.class_name
+        self.debug(5,f'Returning name { name }.')
+        return name
+    
     # --- Sending/writing debug/log messages ---
         
     def debug(self, level, m):
