@@ -285,6 +285,8 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(3,f'Patch request received')
+            # Note: if DISABLE_MIXER set, then _mixer_controller == None
+            # Same for DISABLE_EFFETC, so patch request will be ignored 
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT) \
                    and self._effect_controller:
                 # will set ElectraOneBase.current_visible_slot

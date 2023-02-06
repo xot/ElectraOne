@@ -28,7 +28,6 @@ from .GenericDeviceController import GenericDeviceController
 #
 # Also contains formatter functions used by presets generated on the fly
 #
-# TODO: remove patch.onRequest code when DISABLE_MIXER
 DEFAULT_LUASCRIPT = """
 info.setText("by www.xot.nl")
 
@@ -233,27 +232,29 @@ class EffectController(ElectraOneBase):
         device_name = self.get_device_name(device)
         # determine path to store the dumps in (created if it doesnt exist)
         path = self._ensure_in_libdir('dumps')
-        # dump the preset JSON string 
-        fname = f'{ path }/{ device_name }.epr'
-        self.debug(2,f'dumping device: { device_name } in { fname }.')
-        s = preset_info.get_preset()
-        with open(fname,'w') as f:            
-            f.write(s)
-        # dump the cc-map
-        fname = f'{ path }/{ device_name }.ccmap'
-        with open(fname,'w') as f:
-            f.write('{')
-            comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
-            for p in device.parameters:
-                if comma:
-                    f.write(',')
-                comma = True
-                ccinfo = preset_info.get_ccinfo_for_parameter(p)
-                if ccinfo.is_mapped():
-                    f.write(f"'{ p.original_name }': { ccinfo }\n")
-                else:
-                    f.write(f"'{ p.original_name }': None\n")
-            f.write('}')
+        # stop if path could not be created
+        if path != '':
+            # dump the preset JSON string 
+            fname = f'{ path }/{ device_name }.epr'
+            self.debug(2,f'dumping device: { device_name } in { fname }.')
+            s = preset_info.get_preset()
+            with open(fname,'w') as f:            
+                f.write(s)
+            # dump the cc-map
+            fname = f'{ path }/{ device_name }.ccmap'
+            with open(fname,'w') as f:
+                f.write('{')
+                comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
+                for p in device.parameters:
+                    if comma:
+                        f.write(',')
+                    comma = True
+                    ccinfo = preset_info.get_ccinfo_for_parameter(p)
+                    if ccinfo.is_mapped():
+                        f.write(f"'{ p.original_name }': { ccinfo }\n")
+                    else:
+                        f.write(f"'{ p.original_name }': None\n")
+                f.write('}')
 
     # --- handle device selection ---
     
@@ -292,7 +293,10 @@ class EffectController(ElectraOneBase):
         lua_script = preset_info.get_lua_script()
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT + lua_script)
-
+        # if this upload fails, ElectraOneBase.preset_upload_successful will be
+        # false; then update_display will try to upload again every 100ms (when
+        # the E1 is ready, of course).
+        
     def _upload_assigned_device_if_possible_and_needed(self):
         """Upload the currently assigned device to the effect preset slot on
            the E1 if needed (and possible) and create a device controller for it.

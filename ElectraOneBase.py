@@ -167,9 +167,11 @@ class ElectraOneBase:
         self.debug(4,f'Ensure {path} exists in library.')
         root = self._get_libdir()
         test = f'{ root }/{ path }'
-        if not os.path.isdir(test):
-            # TODO: what if test exists, but is not a directory
-            os.mkdir(test)    
+        # create if path does not exist
+        if not os.path.exists(test):
+            os.mkdir(test)
+        elif not os.path.isdir(test):
+                return ''
         return test
         
     # --- INIT
