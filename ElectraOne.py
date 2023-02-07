@@ -74,6 +74,7 @@ class ElectraOne(ElectraOneBase):
          and sends, as well as the global transports and master volume. 
     """
 
+            
     def __init__(self, c_instance):
         # make sure that all configuration constants make sense
         check_configuration()

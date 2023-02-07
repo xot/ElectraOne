@@ -783,7 +783,7 @@ When the selected device changes, ```EffectController``` does the following.
 
 ## Preloaded presets
 
-Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device, so at the moment, presets for Max for Live devices cannot be preloaded. The same holds for racks.
+Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting_the_name_of_a_plugin_or_Max_device) for how the script somewhat solves this.
 
 Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, and CC map.
 
@@ -815,6 +815,11 @@ DEVICES = {
 
 > Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). This approach requires the controls to not show any values (because the value ranges of each Ableton parameter is different), so in the actual Echo preset, some LUA functions are used to allow several controls on the same location, while making some of them visible or invisible.
 
+### Getting the name of a plugin or Max device
+
+For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify preloaded presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so uses the rack (preset) name to lookup a preloaded preset.
+
+So, if you want to make your own preloaded presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it.
 
 ## Generating presets on the fly
 

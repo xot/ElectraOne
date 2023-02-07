@@ -222,13 +222,23 @@ class ElectraOneBase:
            - device: the device; Live.Device.Device
            - result: device name; str
         """
-        # TODO: adapt to also get an appropriate name for MaxForLive devices
-        # and for plugins
-        # (device.name equals the name of the selected preset;
-        # device.class_display_name is just a pretyy-printed version of class_name)
+        # For native devices and instruments, device.class_name is the name of
+        # the device/instrument, and device.name equals the selected preset
+        # (or the device/instrumetn name).
+        # For plugins and max devices, device.class_name is useless
+        # To reliably identify preloaded presets by name for such devices
+        # as well, embed them into a audio/instrument rack and give that rack
+        # the name of the device. 
         self.debug(5,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
-            name = device.name
+            cp = device.canonical_parent
+            if isinstance(cp,Live.Chain.Chain):
+                cp = cp.canonical_parent
+                self.debug(5,'Enclosing rack found, using its name.')
+                name = cp.name
+            else:
+                self.debug(5,'No enclosing rack found, using my own name (unreliable).')
+                name = device.name
         else:
             name = device.class_name
         self.debug(5,f'Returning name { name }.')
