@@ -132,15 +132,15 @@ class ElectraOne(ElectraOneBase):
                 # sleep allows the thread to be interrupted so the appointed
                 # device listener registered by EffectController picks up this
                 # appointment and sets thge assigned device.
-                time.sleep(0.1) 
-            # when opening a song without any devices selected, select
-            # the mixer track and make sure the MIDI map is built (see comment above)
-            if (not self._effect_controller) or self._effect_controller._assigned_device == None:
-                self.debug(2,'No effect assigned during init.')
-                if self._mixer_controller:
-                    # the E1 will send a preset changed message in response
-                    self.activate_preset_slot(MIXER_PRESET_SLOT)
-                self.request_rebuild_midi_map()
+                time.sleep(0.1)
+            # initialise the visible prest
+            # (the E1 will send a preset changed message in response; this will
+            # refresh the state but not rebuild the midi map)
+            if self._mixer_controller:
+                self.activate_preset_slot(MIXER_PRESET_SLOT)
+            else:
+                self.activate_preset_slot(EFFECT_PRESET_SLOT)
+            self.request_rebuild_midi_map()
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
 
