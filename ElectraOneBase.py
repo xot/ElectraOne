@@ -309,9 +309,9 @@ class ElectraOneBase:
            - result: return whether succesful; bool
         """
         self.debug(4,f'Running external command {command[:200]}')
-        # TODO: return type is different accross platforms
+        # os,system returns 0 for success on both MacOS and Windows
         return_code = os.system(command)
-        self.debug(4,f'External command returned {return_code}')        
+        self.debug(4,f'External command on OS {os.name} returned {return_code}')        
         return (return_code == 0)
 
     def setup_fast_sysex(self):
