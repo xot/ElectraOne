@@ -17,6 +17,7 @@
 ,'Env Attack': (8,11,True,6)
 ,'Env Release': (10,11,True,7)
 ,'Ph/Fl Mode': (-1,11,False,29)
+,'Mode': (-1,11,False,29)
 ,'Notches': (24,11,False,28)
 ,'Flange Time': (13,11,True,9)
 ,'Doubler Time': (4,11,True,2)

@@ -792,6 +792,8 @@ The E1 JSON preset format is described [here](https://docs.electra.one/developer
 
 The CC map is yet another dictionary, indexed by parameter names (as returned by ```parameter.original_name```). For every control defined in the JSON preset, a corresponding entry (with the same MIDI information) must be present in the CC map (or else the control will not control an actual parameter in Live). The other way around, a preset may be simplified and not contain controls for all the parameters in the CC map. Note that the preset does not (need to) know the parameter name (although for presets constructed on the fly the parameter name is in fact used as the label of the control).
 
+(*Note: should a parameter name in Live change across version updates (yes, I've seen this happen, argh) then keep the dictionary entry in the CC map for the original name, and duplicate it to add another dictionary entry for the new parameter name. This way the preloaded preset works for both versions of Live.*)
+
 A parameter entry in the CC map is a ```CCInfo``` object containing:
 
 - the E1 preset identifier for the control (-1 if updating values can be done completely by sending MIDI CC values). This can be either an integer (for normal controls) or a tuple (cid,vid) for complex controls like ADSRs on the E1, where cid indicates the control-id and thevid indicates the value index within the control (in the range 1..10) (*This complex variant is not implemented yet in the current E1 firmware 3.1*)
