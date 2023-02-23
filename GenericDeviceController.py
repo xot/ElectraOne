@@ -65,6 +65,8 @@ class GenericDeviceController(ElectraOneBase):
                 self.debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
                 # Ableton internally numbers MIDI channels 0..15
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
+            else:
+                self.debug(5,f'{ p.original_name } not mapped.')
 
     def _send_parameter_valuestr(self, p, ccinfo, force):
         """Send the Ableton value string for the parameter to the E1, if needed

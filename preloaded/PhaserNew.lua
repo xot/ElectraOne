@@ -5,11 +5,11 @@ function modsync(valueObject, value)
     if value == 0 then
         mfreq:setVisible(true)
         mrate:setVisible(false)
-	    return("Mod Sync")
+	return("Mod Sync")
     else
         mfreq:setVisible(false)
         mrate:setVisible(true)
-	    return("Mod Sync")
+	return("Mod Sync")
     end
 end
 
@@ -20,11 +20,11 @@ function spinsync(valueObject, value)
     if value == 0 then
         phase:setVisible(true)
         spin:setVisible(false)
-	    return("Phase/Spin")
+	return("Phase/Spin")
     else
         phase:setVisible(false)
         spin:setVisible(true)
-	    return("Phase/Spin")
+	return("Phase/Spin")
     end
 end
 
@@ -35,10 +35,10 @@ function modsync2(valueObject, value)
     if value == 0 then
         mfreq2:setVisible(true)
         mrate2:setVisible(false)
-	    return("Mod Sync")
+	return("Mod Sync")
     else
         mfreq2:setVisible(false)
         mrate2:setVisible(true)
-	    return("Mod Sync")
+	return("Mod Sync")
     end
 end

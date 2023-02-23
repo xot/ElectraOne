@@ -35,8 +35,9 @@ class PresetInfo:
              UNMAPPED_CCINFO if not mapped.
         """
         assert self._cc_map != None, 'Empty cc-map'
-        # look up through parameter original_name which is guaranteed (?) not
-        # to change over time.
+        # look up through parameter original_name which is should not change over
+        # time (this is _Not_ guaranteed however: add entries to CC-map whenever
+        # a parameter name does change
         if parameter.original_name in self._cc_map:
             v = self._cc_map[parameter.original_name]
             if type(v) is tuple:
