@@ -76,11 +76,11 @@ def remap_pages(d):
     elif ('pageId' in d) and ('name' in d):
         if d['name'] in remap_data:
             new_page = remap_data[d['name']]
-            print(f"! - Moving {d['name']} to page {new_page}. ")            
+            print(f"! - Moving {d['name']} (control id {d['id']}) to page {new_page}. ")            
             d['pageId'] = new_page
-        if str(d['id']) in remap_data:
+        elif str(d['id']) in remap_data:
             new_page = remap_data[str(d['id'])]
-            print(f"! - Moving {d['id']} to page {new_page}. ")            
+            print(f"! - Moving {d['name']} (control id {d['id']}) to page {new_page}. ")            
             d['pageId'] = new_page
     return(d)
 

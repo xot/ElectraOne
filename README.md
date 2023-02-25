@@ -108,6 +108,14 @@ Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which
 - whether it is a 14bit controler (1/True: yes, 0/False: no), and
 - the CC parameter number (between 0 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
 
+For example, dumping the Echo device could create the following CC map entry:
+
+```
+'L Time': (25,11,True,14)
+```
+
+Meaning that the Echo device parameter ```L Time``` has a control with identifier 25, and is mapped on Midi channel 11 as a 14-bit control on CC parameter number 14.
+
 Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher. (This means the constructed map may appear to have holes in the 32-63 range.)
 
 The construction of presets is controlled by several constants defined in ```config.py```. Dumps are written in the folder ```<LIBDIR>/dumps```.
@@ -121,6 +129,7 @@ Preloaded presets are stored in ```Devices.py```. The Python script ```makedevic
 - ```<devicename>.epr```, the preset in JSON format, as [documented here](https://docs.electra.one/developers/presetformat.html#preset-json-format); it is minified by the script, 
 - ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
 - ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
+- ```<devicename>.remap``` containing information about remapping controls to different pages (this file is also optional). 
 
 See [further documentation here](./makedevices-README.md)
 
