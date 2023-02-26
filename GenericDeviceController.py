@@ -17,7 +17,7 @@ import Live
 from .config import USE_ABLETON_VALUES
 from .CCInfo import CCInfo, UNMAPPED_ID
 from .PresetInfo import PresetInfo
-from .ElectraOneBase import ElectraOneBase 
+from .ElectraOneBase import ElectraOneBase
 
 class GenericDeviceController(ElectraOneBase):
     """Control devices (both selected ones and the ChannelEq devices
@@ -62,11 +62,11 @@ class GenericDeviceController(ElectraOneBase):
                     map_mode = Live.MidiMap.MapMode.absolute
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
-                self.debug(4,f'Mapping { p.original_name } to CC { cc_no } on MIDI channel { midi_channel }')
+                self.debug(4,f'Mapping { p.original_name } ({p.name}) to CC { cc_no } on MIDI channel { midi_channel }')
                 # Ableton internally numbers MIDI channels 0..15
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
             else:
-                self.debug(5,f'{ p.original_name } not mapped.')
+                self.debug(5,f'{ p.original_name } ({p.name}) not mapped.')
 
     def _send_parameter_valuestr(self, p, ccinfo, force):
         """Send the Ableton value string for the parameter to the E1, if needed
@@ -88,7 +88,7 @@ class GenericDeviceController(ElectraOneBase):
                 # to ASCII equivalents (E1 only understands ASCII)
                 translation = { ord('♯') : ord('#') , ord('°') : ord('*') }
                 pstr = pstr.translate(translation)
-                self.debug(5,f'Value of {p.original_name} (of parameter {id(p)}) updated to {pstr}.')
+                self.debug(5,f'Value of {p.original_name} ({p.name}) (of parameter {id(p)}) updated to {pstr}.')
                 self.send_value_update(control_id,value_id,pstr)
 
     

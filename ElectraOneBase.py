@@ -536,7 +536,7 @@ class ElectraOneBase:
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
+        self.debug(3,f'Sending value for {p.original_name} ({p.name}) over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
