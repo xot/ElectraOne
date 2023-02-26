@@ -92,34 +92,40 @@ function algotype(valueObject, value)
 	tivis(false)
 	prvis(false)
 	dhvis(true)
-        return("Dark Hall")
     elseif value == 1.0 then
 	dhvis(false)
 	shvis(false)
 	tivis(false)
 	prvis(false)
 	qzvis(true)
-        return("Quartz")    
     elseif value == 2.0 then
 	dhvis(false)
 	qzvis(false)
 	tivis(false)
 	prvis(false)
 	shvis(true)
-        return("Shimmer")    
     elseif value == 3.0 then
 	dhvis(false)
 	qzvis(false)
 	shvis(false)
 	prvis(false)
 	tivis(true)
-        return("Tides")
     else
 	dhvis(false)
 	qzvis(false)
 	shvis(false)
 	tivis(false)
 	prvis(true)
+    end
+    if value == 0.0 then
+        return("DarkHall")
+    elseif value == 1.0 then
+        return("Quartz")    
+    elseif value == 2.0 then
+        return("Shimmer")    
+    elseif value == 3.0 then
+        return("Tides")
+    else
         return("Prism")
     end
 end

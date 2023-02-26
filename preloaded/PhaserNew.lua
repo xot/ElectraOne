@@ -42,3 +42,37 @@ function modsync2(valueObject, value)
 	return("Mod Sync")
     end
 end
+
+flangetime = controls.get(13)
+doublertime = controls.get(4)
+
+notches = controls.get(24)
+center = controls.get(2)
+spread = controls.get(30)
+blend = controls.get(15)
+
+function phvis(flag)
+    notches:setVisible(flag)
+    center:setVisible(flag)
+    spread:setVisible(flag)
+    blend:setVisible(flag)
+end
+
+function phasermode(valueObject, value)
+    if value == 0 then
+        phvis(true)
+        flangetime:setVisible(false)
+        doublertime:setVisible(false)
+        return("Phaser")
+    elseif value == 1 then
+        phvis(false)
+        flangetime:setVisible(true)
+        doublertime:setVisible(false)
+        return("Flanger")
+    else
+        phvis(false)
+        flangetime:setVisible(false)
+        doublertime:setVisible(true)
+        return("Doubler")
+    end
+end
