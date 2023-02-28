@@ -1,0 +1,11 @@
+{'Device On': (-1,11,False,7)
+,'Sample Rate': (10,11,True,4)
+,'Jitter': (-1,11,True,1)
+,'Bit Depth': (1,11,False,5)
+,'Quantizer Shape': (-1,11,True,3)
+,'DC Shift': (-1,11,False,6)
+,'Pre-Filter On': (-1,11,False,9)
+,'Post-Filter On': (-1,11,False,8)
+,'Post-Filter': (-1,11,True,2)
+,'Dry/Wet': (-1,11,True,0)
+}
