@@ -1,0 +1,7 @@
+{'Device On': (-1,11,False,2)
+,'Cabinet Type': (-1,11,False,1)
+,'Microphone Type': (-1,11,False,5)
+,'Microphone Position': (-1,11,False,4)
+,'Dual Mono': (-1,11,False,3)
+,'Dry/Wet': (-1,11,True,0)
+}
