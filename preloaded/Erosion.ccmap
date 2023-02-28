@@ -1,0 +1,6 @@
+{'Device On': (-1,11,False,3)
+,'Mode': (-1,11,False,4)
+,'Frequency': (3,11,True,1)
+,'Amount': (-1,11,True,0)
+,'Width': (-1,11,True,2)
+}
