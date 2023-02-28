@@ -565,12 +565,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
            - cc_info: CC information for the parameter/control; CCInfo
         """
-        (vmin,vmax) = _get_par_min_max(p,100)
-        if vmax > 1000:
-            self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat")
-        else:
-            self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat")
-        
+        try: # vmin/vmax may be too large to turn into an int (eg if "inf")
+            (vmin,vmax) = _get_par_min_max(p,100)
+            if vmax > 1000:
+                self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat")
+            else:
+                self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat")
+        except:
+            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
+            cc_info.set_control_id(id+1)
+            
     def _append_json_plain_fader(self, id, p, cc_info):
         """Append a plain fader, showing no values.
            - id: id of the control
