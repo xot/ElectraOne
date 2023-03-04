@@ -1,0 +1,71 @@
+{'Device On': 69
+,'Reverse': 70
+,'Snap': 71
+,'Sample Selector': 72
+,'Osc On': 73
+,'Spread': 74
+,'Key Zone Shift': 129
+,'Glide Mode': 75
+,'Glide Time': 130
+,'Time': 76
+,'Time < Key': 77
+,'Transpose': 131
+,'Detune': 132
+,'Pitch < LFO': 133
+,'Pe On': 78
+,'Volume': 134
+,'Vol < Vel': 135
+,'Vol < LFO': 136
+,'Pan': 137
+,'Pan < Rnd': 138
+,'Pan < LFO': 139
+,'Ve Attack': 140
+,'Ve Init': 141
+,'Ve A Slope': 79
+,'Ve Decay': 142
+,'Ve Peak': 143
+,'Ve D Slope': 80
+,'Ve Sustain': 144
+,'Ve Release': 145
+,'Ve R Slope': 81
+,'Ve Mode': 82
+,'Ve Loop': 146
+,'Ve Retrig': 147
+,'Ve R < Vel': 83
+,'Fade In': 148
+,'Trigger Mode': 84
+,'Fade Out': 149
+,'F On': 85
+,'Filter Type': 86
+,'Filter Circuit - LP/HP': 87
+,'Filter Circuit - BP/NO/Morph': 88
+,'Filter Slope': 89
+,'Filter Freq': 150
+,'Filter Res': 151
+,'Filter Morph': 90
+,'Filter Drive': 152
+,'Fe On': 91
+,'Fe < Env': 92
+,'Fe Attack': 153
+,'Fe Init': 154
+,'Fe A Slope': 93
+,'Fe Decay': 155
+,'Fe Peak': 156
+,'Fe D Slope': 94
+,'Fe Sustain': 157
+,'Fe Release': 158
+,'Fe End': 159
+,'Fe R Slope': 95
+,'Fe Mode': 96
+,'Fe Loop': 160
+,'Fe Retrig': 193
+,'Fe R < Vel': 101
+,'Filt < Key': 194
+,'Filt < Vel': 195
+,'Filt < LFO': 196
+,'Shaper On': 102
+,'L 1 On': 103
+,'L 2 On': 104
+,'L 3 On': 105
+,'Ae On': 106
+}
