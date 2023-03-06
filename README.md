@@ -50,8 +50,12 @@ As an example, an alternative mixer design is included in the distribution that 
 
 If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
 
-Simply provide the second E1 with power, and plug it's MIDI 1 Out into the MIDI 1 In of the first E1, and it's MIDI 1 In into the MIDI 1 Out of the first E1. Connect the first E1 with your computer running Ableton using the USB cable, as described below. Manually select the Mixer preset on the second E1 and you are all set. 
+Use a USB cable to connect the second E1 to the USB Host port on the first E1. Make sure that in the USB Host configuration on the first E1, Port 1 is selected for the second connected E1. See [these instructions](https://docs.electra.one/userinterface.html#menu). Finally, in
+```config.py``` set ```CONTROL_MODE = CONTROL_BOTH```.
 
+Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is selected on the first E1, and the mixer preset is uploaded and selected (bank 6, slot 1) in the second E1. 
+
+(Note: this mostly works, except that due to limitations in the current firmware 3.1, the visibility of controls and the names of track labels is not updated on the mixer preset in this setup.)
 
 ## Controlling the currently appointed device
 
