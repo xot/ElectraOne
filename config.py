@@ -47,11 +47,15 @@ LIBDIR = 'ElectraOne'
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)
 
-# When true, mixer support is disabled
-DISABLE_MIXER = False
+# Configure whether the remote script controls both mixer and effect, the mixer
+# or the effect only, or if two E!s are connected each controlling one of them
 
-# When true, effect support is disabled
-DISABLE_EFFECT = False
+CONTROL_EITHER = 0
+CONTROL_EFFECT_ONLY = 1
+CONTROL_MIXER_ONLY = 2
+CONTROL_BOTH = 3 # dual E1 mode
+
+CONTROL_MODE = CONTROL_EITHER
 
 # Whether to use the exact value strings Ableton generates for faders
 # whose value cannot be easily computed by the E1 itself.

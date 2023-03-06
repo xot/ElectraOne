@@ -79,8 +79,8 @@ class MixerController(ElectraOneBase):
         """
         if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
             self.debug(1,'MixCont refreshing state.')
-            self.set_visibility()
-            self._midi_burst_on()
+            self._set_visibility()
+            self.midi_burst_on()
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
             # refresh tracks
@@ -89,7 +89,7 @@ class MixerController(ElectraOneBase):
             # refresh return tracks
             for retrn in self._return_controllers:
                 retrn.refresh_state()
-            self._midi_burst_off()
+            self.midi_burst_off()
             self.debug(1,'MixCont state refreshed.')
         else:
             self.debug(1,'MixCont not refreshing state (mixer not visible).')
@@ -161,7 +161,7 @@ class MixerController(ElectraOneBase):
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
         # make the right controls and group labels visible 
-        self.set_visibility()
+        self._set_visibility()
         # highlight the tracks currently controlled in Live too
         self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
@@ -176,7 +176,7 @@ class MixerController(ElectraOneBase):
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
-    def set_visibility(self):
+    def _set_visibility(self):
         """Set visibility of eq devices, tracks, sends and returns on the E1.
         """
         if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):

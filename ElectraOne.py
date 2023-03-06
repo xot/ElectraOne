@@ -121,11 +121,11 @@ class ElectraOne(ElectraOneBase):
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
             ElectraOneBase.E1_connected = True                
-            if not DISABLE_MIXER:
+            if CONTROL_MODE != CONTROL_EFFECT_ONLY:
                 self._mixer_controller = MixerController(c_instance)
             # The upload thread for the appointed device (if any) will request
             # the MIDI map to be rebuilt
-            if not DISABLE_EFFECT:
+            if CONTROL_MODE != CONTROL_MIXER_ONLY:
                 self._effect_controller = EffectController(c_instance)
                 self._device_appointer = DeviceAppointer(c_instance)
                 # if a track and a device is selected it is appointed; a little
@@ -137,9 +137,11 @@ class ElectraOne(ElectraOneBase):
             # (the E1 will send a preset changed message in response; this will
             # refresh the state but not rebuild the midi map)
             if self._mixer_controller:
-                self.activate_preset_slot(MIXER_PRESET_SLOT)
+                self._mixer_controller.select()
+            elif self._effect_controller:
+                self._effect_controller.select()
             else:
-                self.activate_preset_slot(EFFECT_PRESET_SLOT)
+                self.debug(1,'Error: both mixer and effect controller undefined!')
             self.request_rebuild_midi_map()
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
@@ -235,6 +237,11 @@ class ElectraOne(ElectraOneBase):
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
+                # TODO: if device not uploaded yet (eg initially)
+                # then state not refreshed; somehow code assumes that this
+                # function is only called in response to a preset changed
+                # message sent after a patch request message (which
+                # selects the preset slot and uploads a preset if needed)
                 ElectraOneBase.current_visible_slot = selected_slot
                 self._effect_controller.refresh_state()
             else:

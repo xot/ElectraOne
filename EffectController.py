@@ -159,9 +159,9 @@ class EffectController(ElectraOneBase):
         """
         if self._assigned_device_is_visible():
             self.debug(1,'EffCont refreshing state.')
-            self._midi_burst_on()
+            self.midi_burst_on()
             self._assigned_device_controller.refresh_state()
-            self._midi_burst_off()
+            self.midi_burst_off()
             self.debug(1,'EffCont state refreshed.')
         else:
             self.debug(1,'EffCont not refreshing state (no effect selected or visible).')

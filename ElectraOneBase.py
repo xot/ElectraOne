@@ -79,7 +79,7 @@ def hexify(message):
 
 # --- main class
 
-# possibl;e values for ack_or_nack_received
+# possible values for ack_or_nack_received
 ACK_RECEIVED = 0
 NACK_RECEIVED = 1
 
@@ -342,7 +342,7 @@ class ElectraOneBase:
     # - but most importantly: it is hard to catch them because most commands
     #   are not executed in a thread.
     # As a workaround (because the commands concerned are used to update the
-    # display of the E1), the _midi_burst_off command waits a bit to ensure that
+    # display of the E1), the midi_burst_off command waits a bit to ensure that
     # all possible ACKs will be (silently!) received by the time the
     # command finished
 
@@ -430,7 +430,7 @@ class ElectraOneBase:
 
     # --- send MIDI ---
     
-    def _midi_burst_on(self):
+    def midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and hold of window repaints.
         """
@@ -452,7 +452,7 @@ class ElectraOneBase:
         # value updates (we cannot wait for the actual ACK)
         time.sleep(0.01) # 10ms 
         
-    def _midi_burst_off(self):
+    def midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
            immediate window updates again. Draw any buffered updates.
         """
