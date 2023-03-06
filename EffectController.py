@@ -108,6 +108,8 @@ class EffectController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
+        # set visibility False initially
+        self._visible = False
         # referrence to the currently assigned device
         # (corresponds typically to the currently appointed device by Ableton
         self._assigned_device = None
@@ -150,8 +152,7 @@ class EffectController(ElectraOneBase):
            visible on the E1.
            - result: whether assigned device is visble; bool
         """
-        return self._assigned_device_is_uploaded() and \
-              (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
+        return self._assigned_device_is_uploaded() and self._visible
         
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
@@ -268,10 +269,17 @@ class EffectController(ElectraOneBase):
             self._assigned_device_locked = False
             self._assign_device(self.song().appointed_device)
 
+    def setvisible(self):
+        """Mark the effect preset as visible on the E1, without actually
+           selecting it.
+        """
+        self._visible = True
+        
     def select(self):
         """Select the effect preset and upload the currently assigned device
            if necessary.
         """
+        self._visible = True
         if self._assigned_device_needs_uploading():
             # also rebuilds midi map and causes state refresh
             self._upload_assigned_device()
@@ -280,6 +288,11 @@ class EffectController(ElectraOneBase):
             # a state refresh
             self.activate_preset_slot(EFFECT_PRESET_SLOT)
             
+    def deselect(self):
+        """Deselect the effect preset on the E1
+        """
+        self._visible = False
+        
     def _upload_assigned_device(self):
         """Upload the currently assigned device to the effect preset slot on
            the E1 and create a device controller for it.
@@ -301,8 +314,7 @@ class EffectController(ElectraOneBase):
         """Upload the currently assigned device to the effect preset slot on
            the E1 if needed (and possible) and create a device controller for it.
         """
-        if self.is_ready() and (SWITCH_TO_EFFECT_IMMEDIATELY or \
-           (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)):
+        if self.is_ready() and (SWITCH_TO_EFFECT_IMMEDIATELY or self._visible):
             self._upload_assigned_device()
         else:
             # If this happens, update_display will regularly check whether

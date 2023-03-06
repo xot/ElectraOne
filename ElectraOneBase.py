@@ -120,11 +120,6 @@ class ElectraOneBase:
     # (set by _do_ack() / _do_nack() in ElectraOne.py).
     ack_or_nack_received = None
 
-    # slot currently visibile on the E1; used to prevent unneccessary
-    # refresh_state for invisible presets (set by _do_preset_changed()
-    # in ElectraOne.py and _select_slot_only() and activate_preset_slot() below).
-    current_visible_slot = None
-
     # delay after sending (to prevent overload when refreshing full state
     # which leads to bursts in updates)
     # Global variables because there are different instances of ElectraOneBase!
@@ -709,7 +704,6 @@ class ElectraOneBase:
         self._increment_acks_pending()
         # Unlike activate (see below) the E1 will not send a preset changed
         # message in response, but only an ACK
-        ElectraOneBase.current_visible_slot = slot
 
     def activate_preset_slot(self, slot):
         """Select a slot on the E1 and activate the preset present there.
@@ -728,7 +722,6 @@ class ElectraOneBase:
         self._increment_acks_pending()
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01))
-        ElectraOneBase.current_visible_slot = slot
 
     def _remove_preset_from_slot(self, slot):
         """Remove the current preset (and its lua script) from a slot on the E1.

@@ -36,6 +36,8 @@ class MixerController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
+        # set visibility False initially
+        self._visible = False
         # mixer preset is assumed to be uploaded by the user in advance
         # (with configuration constants set accordingly)
         self._transport_controller = TransportController(c_instance)        
@@ -68,6 +70,8 @@ class MixerController(ElectraOneBase):
         idx = max(idx, 0)            
         return idx
 
+    # --- interface ---
+
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
            (to bring them in sync); hide controls for non existing
@@ -77,9 +81,9 @@ class MixerController(ElectraOneBase):
            (Called whenever the mixer preset is selected or tracks
            added or deleted.)
         """
-        if ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT:
+        if self._visible:
             self.debug(1,'MixCont refreshing state.')
-            self._set_visibility()
+            self._set_controls_visibility()
             self.midi_burst_on()
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
@@ -119,11 +123,23 @@ class MixerController(ElectraOneBase):
         for track in self._track_controllers:
             track.disconnect()    
 
+    def setvisible(self):
+        """Mark the mixer preset as visible on the E1, without actually
+           selecting it.
+        """
+        self._visible = True
+        
     def select(self):
         """Select the mixer preset on the E1
         """
+        self._visible = True
         self.activate_preset_slot(MIXER_PRESET_SLOT)
-    
+
+    def deselect(self):
+        """Deselect the mixer preset on the E1
+        """
+        self._visible = False
+        
     # --- Listeners
                 
     def _add_listeners(self):
@@ -161,7 +177,7 @@ class MixerController(ElectraOneBase):
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
         # make the right controls and group labels visible 
-        self._set_visibility()
+        self._set_controls_visibility()
         # highlight the tracks currently controlled in Live too
         self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
@@ -176,10 +192,10 @@ class MixerController(ElectraOneBase):
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
-    def _set_visibility(self):
+    def _set_controls_visibility(self):
         """Set visibility of eq devices, tracks, sends and returns on the E1.
         """
-        if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+        if self._visible:
             # set visibility of the (return) tracks and sends
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # set visibility of the channel-eq devices

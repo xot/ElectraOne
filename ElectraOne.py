@@ -136,12 +136,13 @@ class ElectraOne(ElectraOneBase):
             # initialise the visible prest
             # (the E1 will send a preset changed message in response; this will
             # refresh the state but not rebuild the midi map)
-            if self._mixer_controller:
+            if CONTROL_MODE == CONTROL_EITHER:
                 self._mixer_controller.select()
-            elif self._effect_controller:
+            elif CONTROL_MODE == CONTROL_EFFECT_ONLY:
                 self._effect_controller.select()
-            else:
-                self.debug(1,'Error: both mixer and effect controller undefined!')
+            elif CONTROL_MODE == CONTROL_BOTH:
+                self._effect_controller.select()
+                self._mixer_controller.setvisible()
             self.request_rebuild_midi_map()
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
@@ -223,17 +224,18 @@ class ElectraOne(ElectraOneBase):
         """Handle a preset changed message
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
+        # TODO: deal with selecting slots different than mixer/preset
+        # and when in CONTROL_BOTH mode
         selected_slot = midi_bytes[6:8]
         self.debug(3,f'Preset {selected_slot} selected on the E1')
         # process resets even when not ready
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
-            ElectraOneBase.current_visible_slot = selected_slot
             self._reset()
         elif self.is_ready():
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
-                ElectraOneBase.current_visible_slot = selected_slot
+                self._mixer_controller.setvisible()
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
@@ -242,7 +244,7 @@ class ElectraOne(ElectraOneBase):
                 # function is only called in response to a preset changed
                 # message sent after a patch request message (which
                 # selects the preset slot and uploads a preset if needed)
-                ElectraOneBase.current_visible_slot = selected_slot
+                self._effect_controller.setvisible()
                 self._effect_controller.refresh_state()
             else:
                 self.debug(3,'Other preset selected (ignoring)')                
@@ -291,21 +293,21 @@ class ElectraOne(ElectraOneBase):
         """Handle a patch request pressed message: swap the visible preset
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        if self.is_ready():
+        if self.is_ready() and (CONTROL_MODE == CONTROL_EITHER):
+            # if CONTROL_MODE == CONTROL_EITHER both _mixer_controller()
+            # and _effect_controller() are guaranteed to exist
             self.debug(3,f'Patch request received')
-            # Note: if DISABLE_MIXER set, then _mixer_controller == None
-            # Same for DISABLE_EFFETC, so patch request will be ignored 
-            if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT) \
-                   and self._effect_controller:
-                # will set ElectraOneBase.current_visible_slot
-                # and E1 will send a preset change message in response which will
+            if self._mixer_controller._visible:
+                # E1 will send a preset change message in response which will
                 # trigger do_preset_changed() and hence cause a state refresh.
                 # We use that as an implicit ACK.
                 self._effect_controller.select()
-            elif self._mixer_controller:
+                self._mixer_controller.deselect()                
+            else:
                 self._mixer_controller.select()
+                self._effect_controller.deselect()
         else:
-            self.debug(3,'Patch request ignored because E1 not ready.')
+            self.debug(3,'Patch request ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.')
         
     def _process_midi_sysex(self, midi_bytes):
         """Process incoming MIDI SysEx message.
