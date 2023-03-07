@@ -262,18 +262,14 @@ class ElectraOne(ElectraOneBase):
         """Handle a preset changed message
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
-        # TODO: deal with selecting slots different than mixer/preset
-        # and when in CONTROL_BOTH mode
         selected_slot = midi_bytes[6:8]
         self.debug(3,f'Preset {selected_slot} selected on the E1')
         # premeptively make both controllers invisible when using only one E1
-        # (TODO: doesn't work because preset change message is sent on CTRL)
         if self._mixer_controller and (CONTROL_MODE != CONTROL_BOTH): 
             self._mixer_controller.visible = False
         if self._effect_controller and (CONTROL_MODE != CONTROL_BOTH): 
             self._effect_controller.visible = False
         # process resets even when not ready
-        # (TODO: doesn't work because preset change message is sent on CTRL)
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
