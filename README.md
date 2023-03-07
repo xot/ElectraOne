@@ -55,7 +55,7 @@ Use a USB cable to connect the second E1 to the USB Host port on the first E1. M
 
 Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is selected on the first E1, and the mixer preset is uploaded and selected (bank 6, slot 1) in the second E1. 
 
-(Note: this mostly works, except that due to limitations in the current firmware 3.1, the visibility of controls and the names of track labels is not updated on the mixer preset in this setup.)
+(Note: this mostly works, except that due to limitations in the current firmware 3.1.4, the visibility of controls and the names of track labels is not updated on the mixer preset in this setup. *Also, both controllers apparently need to run firmware 3.1.4. for this to work at all.*)
 
 ## Controlling the currently appointed device
 
