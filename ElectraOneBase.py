@@ -652,12 +652,16 @@ class ElectraOneBase:
         """Enable or disable logging on the E1 (based on E1_LOGGING)
            and set the port over which logging messages are sent (based on
            E1_LOGGING_PORT).
+           Also ensure controller events like preset slot changes are
+           sent back over the E1_CTRL_PORT so the remote script can listen
+           and respond to them.
            NOTE: waits for receipt of ACK, so MUST only be called within a thread!
         """
         if E1_LOGGING:
             self.debug(1,'Enable logging.')
         else:
             self.debug(1,'Disable logging.')
+        # Set the logging port
         if E1_LOGGING:
             # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
             sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7D)
@@ -673,6 +677,7 @@ class ElectraOneBase:
             if (self.version_exceeds((3,1,2)) and (E1_LOGGING_PORT == 0)) or \
                 self.version_exceeds((3,1,3)):
                 self._increment_acks_pending()
+        # Enable/disable logging
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)
         if E1_LOGGING:
@@ -685,7 +690,20 @@ class ElectraOneBase:
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         # wait for it
-        self._wait_for_ack_or_timeout(5) 
+        self._wait_for_ack_or_timeout(5)
+        # set the MIDI port for Controller events (to catch slot switching events)
+        # https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-controller-events
+        # TODO: check against E1_CTRL_PORT and the ports reported by
+        # suggest_input/output_port
+        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7B)
+        sysex_port = ( 0x00, )
+        sysex_close = (0xF7, )
+        ElectraOneBase.ack_received = False
+        self.send_midi(sysex_header + sysex_port + sysex_close)
+        # this SysEx command repsonds with an ACK/NACK 
+        self._increment_acks_pending()
+        # wait for it
+        self._wait_for_ack_or_timeout(5)
             
     def _select_slot_only(self, slot):
         """Select a slot on the E1 but do not activate the preset already there.
