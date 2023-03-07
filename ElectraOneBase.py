@@ -317,7 +317,7 @@ class ElectraOneBase:
             if SENDMIDI_CMD:
                 # find sendmidi
                 self.debug(1,'Testing whether fast uploading of presets is supported.')
-                testcommand = f"{SENDMIDI_CMD} dev '{E1_CTRL_PORT}'"
+                testcommand = f"{SENDMIDI_CMD} dev '{E1_PORT_NAME}'"
                 if self._run_command(testcommand):
                     self.debug(1,'Fast uploading of presets supported. Great, using that!')
                     ElectraOneBase._fast_sysex = True
@@ -367,7 +367,7 @@ class ElectraOneBase:
         # also stretch (further) if logging takes place
         if E1_LOGGING:
             timeout = 2 * timeout
-        if E1_LOGGING_PORT == 0: # TODO: this assumes E1_CTRL_PORT is set to Port 1
+        if E1_LOGGING_PORT == E1_PORT:
             timeout = 2 * timeout
         # minimum timeout is 600ms
         timeout = max(60,timeout)
@@ -482,7 +482,7 @@ class ElectraOneBase:
             # (strip first and last byte of SysEx command in bytes parameter
             # because sendmidi syx adds them again)
             bytestr = ' '.join(str(b) for b in message[1:-1])
-            command = f"{SENDMIDI_CMD} dev '{E1_CTRL_PORT}' syx { bytestr }"
+            command = f"{SENDMIDI_CMD} dev '{E1_PORT_NAME}' syx { bytestr }"
             if not self._run_command(command):
                 self.debug(4,'Sending SysEx failed')
         else:
@@ -653,7 +653,7 @@ class ElectraOneBase:
            and set the port over which logging messages are sent (based on
            E1_LOGGING_PORT).
            Also ensure controller events like preset slot changes are
-           sent back over the E1_CTRL_PORT so the remote script can listen
+           sent back over the E1_PORT so the remote script can listen
            and respond to them.
            NOTE: waits for receipt of ACK, so MUST only be called within a thread!
         """
@@ -672,9 +672,7 @@ class ElectraOneBase:
             # for firmware versions < 3.1.3); firmware 3.1.3 sends ACK over
             # port to which logging is set ; frimware 3.1.4 sends ACK over
             # port back on port used to send command
-            # TODO: check against E1_CTRL_PORT and the ports reported by
-            # suggest_input/output_port
-            if (self.version_exceeds((3,1,2)) and (E1_LOGGING_PORT == 0)) or \
+            if (self.version_exceeds((3,1,2)) and (E1_LOGGING_PORT == E1_PORT)) or \
                 self.version_exceeds((3,1,3)):
                 self._increment_acks_pending()
         # Enable/disable logging
@@ -693,10 +691,8 @@ class ElectraOneBase:
         self._wait_for_ack_or_timeout(5)
         # set the MIDI port for Controller events (to catch slot switching events)
         # https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-controller-events
-        # TODO: check against E1_CTRL_PORT and the ports reported by
-        # suggest_input/output_port
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7B)
-        sysex_port = ( 0x00, )
+        sysex_port = ( E1_PORT, )
         sysex_close = (0xF7, )
         ElectraOneBase.ack_received = False
         self.send_midi(sysex_header + sysex_port + sysex_close)

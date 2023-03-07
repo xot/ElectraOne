@@ -67,8 +67,10 @@ USE_ABLETON_VALUES = True
 SENDMIDI_CMD = None
 #SENDMIDI_CMD = '/usr/local/bin/sendmidi'
 
-# name of the Electra One port to which to send the SysEx command
-E1_CTRL_PORT = 'Electra Controller Electra Port 1'
+# Remote script input/output port number (0: Port 1, 1: Port 2, 2: CTRL)
+E1_PORT = 0
+# Name of this port as used by SENDMIDI_CMD
+E1_PORT_NAME = 'Electra Controller Electra Port 1'
 
 # === DEVICE APPOINTMENT OPTIONS
 
