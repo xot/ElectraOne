@@ -1,0 +1,10 @@
+{'Device On': (-1,11,False,6)
+,'Trigger Mode': (-1,11,False,8)
+,'Sync On': (-1,11,False,7)
+,'Synced Length': (7,11,True,4)
+,'Time Length': (8,11,True,5)
+,'Gate': (-1,11,True,2)
+,'On/Off-Balance': (-1,11,True,3)
+,'Decay Time': (2,11,True,1)
+,'Decay Key Scale': (-1,11,True,0)
+}
