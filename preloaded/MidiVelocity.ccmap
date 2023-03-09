@@ -1,0 +1,11 @@
+{'Device On': (-1,11,False,6)
+,'Drive': (-1,11,True,1)
+,'Compand': (-1,11,True,0)
+,'Random': (9,11,False,9)
+,'Mode': (-1,11,False,7)
+,'Operation': (-1,11,False,8)
+,'Out Hi': (7,11,True,3)
+,'Out Low': (8,11,True,4)
+,'Range': (10,11,True,5)
+,'Lowest': (4,11,True,2)
+}
