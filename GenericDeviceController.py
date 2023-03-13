@@ -105,15 +105,22 @@ class GenericDeviceController(ElectraOneBase):
         if not self._device:
             return
         assert self._preset_info
+        # WARNING! Some devices have name clashes in their parameter list
+        # so make sure only the first one is refreshed (to avoid continually
+        # refreshing two parameters with the same name but different values)
+        # TODO: fix this in a more rigorous manner
+        refreshed = {}
         for p in self._device.parameters:
-            ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
-            if ccinfo.is_mapped():
-                # update MIDI value on the E1 if full refresh is requested
-                if full_refresh:
-                    self.send_parameter_using_ccinfo(p,ccinfo)
-                # update control with Ableton value string when mapped
-                # as such, and if the value changed since last update/refresh
-                self._send_parameter_valuestr(p, ccinfo, full_refresh)
+            if not p.original_name in refreshed:
+                refreshed[p.original_name] = True
+                ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
+                if ccinfo.is_mapped():
+                    # update MIDI value on the E1 if full refresh is requested
+                    if full_refresh:
+                        self.send_parameter_using_ccinfo(p,ccinfo)
+                    # update control with Ableton value string when mapped
+                    # as such, and if the value changed since last update/refresh
+                    self._send_parameter_valuestr(p, ccinfo, full_refresh)
 
     def refresh_state(self):
         """Update both the MIDI CC values and the displayed values for the device
