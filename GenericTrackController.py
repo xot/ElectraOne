@@ -260,7 +260,7 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
-            if track.devices_has_listener(self._refresh_track_name):
+            if track.devices_has_listener(self._check_eq_device_change):
                 track.remove_devices_listener(self._check_eq_device_change)
 
 

@@ -24,6 +24,22 @@ class GenericDeviceController(ElectraOneBase):
        in the mixer): build MIDI maps, refresh state
     """
 
+    def _mappingcheck(self):
+        """Warn for any unmapped or badly mapped parameters;
+           this may (for example) indicate that Live added or renamed
+          parameters the last time a preset was constructed keep track
+           of values that changed since last refresh_state / update_dsiplay
+        """
+        pnames = [p.original_name for p in self._device.parameters]
+        ccnames = self._preset_info._cc_map.keys()
+        for name in pnames:
+            if not name in ccnames:
+                self.warning(f'Unmapped parameter {name} found for {self._device_name}!')
+        for name in ccnames:
+            if not name in pnames:
+                self.warning(f'Mapped parameter {name} does not exist for {self._device_name}!')
+        
+    
     def __init__(self, c_instance, device, preset_info):
         """Create a new device controller for the device and the
            associated preset information. It is assumed the preset is already
@@ -37,7 +53,8 @@ class GenericDeviceController(ElectraOneBase):
         self._device = device
         self._device_name = self.get_device_name(self._device)
         self._preset_info = preset_info
-        # keep track of values that changed since last refresh_state / update_dsiplay
+        # check the parameter mappings
+        self._mappingcheck()
         self._values = { }
 
     def build_midi_map(self, midi_map_handle):

@@ -253,6 +253,13 @@ class ElectraOneBase:
             for l in m.splitlines(keepends=True):
                 self._c_instance.log_message(f'E1 (debug): {indent} {l}')  
 
+    def warning(self, m):
+        """Write a warning message to the log.
+        """
+        # write readable log entries also for multi-line messages
+        for l in m.splitlines(keepends=True):
+            self._c_instance.log_message(f'E1 (warning): ! {l}')
+                
     def log_message(self, m):
         """Write a log message to the log.
         """

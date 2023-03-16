@@ -295,7 +295,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 if not name[i] in ['a','e', 'i', 'o', 'u']:
                     truncated += name[i]
             truncated = truncated[:MAX_NAME_LEN]
-            self.debug(3,f'Parameter name {name} truncated to {truncated}')
+            self.warning(f'Parameter name {name} truncated to {truncated}!')
             return(truncated)
         else:
             return(name)
@@ -713,10 +713,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # return the string constructed within the StringIO object
         return self.getvalue()
 
-    def _construct_ccmap(self, parameters):
+    def _construct_ccmap(self, device_name, parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters
            then specified by MAX_CC7_PARAMETERS and MAX_CC14_PARAMETERS and use
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
+           - device_name: name of the device (for warnings); str
            - parameters:  parameter list; list of Live.DeviceParameter.DeviceParameter
            - result: ccmap; dict of CCInfo
         """
@@ -738,7 +739,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if (MAX_CC14_PARAMETERS != -1) and (MAX_CC14_PARAMETERS < len(cc14pars)):
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
             skipped_cc14pars = cc14pars[MAX_CC14_PARAMETERS:]
-            self.debug(4,f'Truncated CC14 parameters to {MAX_CC14_PARAMETERS}.')
+            self.warning(f'Truncated CC14 parameters to {MAX_CC14_PARAMETERS}!')
         else:
             skipped_cc14pars = []
         cur_cc14par_idx = 0
@@ -749,7 +750,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(4,f'{len(cc7pars)} CC7 parameters found')
         if (MAX_CC7_PARAMETERS != -1) and (MAX_CC7_PARAMETERS < len(cc7pars)):
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
-            self.debug(4,f'Truncated CC7 parameters to {MAX_CC7_PARAMETERS}.')
+            self.warning(f'Truncated CC7 parameters to {MAX_CC7_PARAMETERS}!')
         cur_cc7par_idx = 0
         # add parameters per channel; break if all parameters are assigned
         for channel in range(MIDI_EFFECT_CHANNEL,max_channel+1):
@@ -760,6 +761,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 if cur_cc14par_idx >= len(cc14pars):
                     break
                 p = cc14pars[cur_cc14par_idx]
+                if p.original_name in cc_map:
+                    self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
                 cc_map[p.original_name] = CCInfo((UNMAPPED_ID,channel,IS_CC14,i))
                 cur_cc14par_idx += 1
                 free[i] = False
@@ -771,11 +774,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     cc_no += 1
                 if cc_no < 128: # free slot in current channel found
                     p = cc7pars[cur_cc7par_idx]
+                    if p.original_name in cc_map:
+                        self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
                     cc_map[p.original_name] = CCInfo((UNMAPPED_ID,channel,IS_CC7,cc_no))
                     cur_cc7par_idx += 1
                     cc_no += 1
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
-            self.debug(1,'Not all parameters could be mapped.')
+            self.warning('Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(5,f'CC map constructed: { cc_map }')
         return cc_map
@@ -838,7 +843,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             max_value_as_str = p.str_for_value(p.max)
             self.debug(4,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}.')
         parameters = self._filter_and_order_parameters(device_name, device.parameters)
-        self._cc_map = self._construct_ccmap(parameters)
+        self._cc_map = self._construct_ccmap(device_name, parameters)
         # this modifes cc_map to set the control indices for parameters that
         # need to use Ableton generated value strings.
         self._preset_json = self._construct_json_preset(device_name, parameters, self._cc_map)
