@@ -112,9 +112,9 @@ class ElectraOne(ElectraOneBase):
                     self.send_midi(E1_SYSEX_REQUEST)
                     time.sleep(0.5)
                 self.debug(2,'Connection thread: E1 found')
-                if not self.version_exceeds((3,1,0)):
-                    self.debug(1,f'Version {ElectraOneBase.E1_version} older than 3.1.0. Disabling ElectraOne control surface.')
-                    self.show_message(f'Version {ElectraOneBase.E1_version} older than 3.1.0. Disabling ElectraOne control surface.')
+                if not self.version_exceeds((3,1,5)):
+                    self.debug(1,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
+                    self.show_message(f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
                     return
                 else:
                     self.show_message(f'Version {ElectraOneBase.E1_version} detected.')
