@@ -31,13 +31,6 @@ from .GenericDeviceController import GenericDeviceController
 DEFAULT_LUASCRIPT = """
 info.setText("by www.xot.nl")
 
-function patch.onRequest (device)
-  print ("Patch Request pressed");
-  if device.id == 1
-    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
-  end
-end
-
 function defaultFormatter(valueObject, value)
     return("")
 end
@@ -89,6 +82,67 @@ function formatDetune (valueObject, value)
 end
 
 """
+
+PATCH_REQUEST_SCRIPT = """
+function patch.onRequest (device)
+  print ("Patch Request pressed");
+  if device.id == 1
+    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
+  end
+end
+
+"""
+
+MIXER_FORWARDING_SCRIPT = """
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward('aa')
+end
+
+function zz()
+  forward('zz')
+end
+
+function utl(idx,label)
+  forward2('utl', tostring(idx), '"'..label..'"')
+end
+
+function ursl(idx,label)
+  forward2('ursl', tostring(idx), '"'..label..'"')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2('seqv',tostring(idx),'true')
+  else
+    forward('seqv',tostring(idx),'false')
+  end
+end
+
+function smv(tc,rc)
+  forward2('smv', tostring(tc), tostring(rc))
+end
+
+"""
+
+EMPTY_PRESET = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","pages":[],"groups":[],"devices":[],"overlays":[],"controls":[]}'
 
 # Note: the EffectController creates an instance of a GenericDeviceController
 # to manage the currently assigned device. If uploading is delayed,
@@ -186,7 +240,7 @@ class EffectController(ElectraOneBase):
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
-        self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
+        self.remove_preset_from_slot(EFFECT_PRESET_SLOT)
         self.song().remove_appointed_device_listener(self._handle_appointed_device_change)
 
     # --- MIDI ---
@@ -292,9 +346,15 @@ class EffectController(ElectraOneBase):
         preset_info = self._get_preset_info(device)
         self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
         preset = preset_info.get_preset()
-        lua_script = preset_info.get_lua_script()
+        # construct the LUA script
+        script = DEFAULT_LUASCRIPT
+        if CONTROL_MODE == CONTROL_BOTH:
+            script += MIXER_FORWARDING_SCRIPT
+        if CONTROL_MODE == CONTROL_EITHER:
+            script += PATCH_REQUEST_SCRIPT
+        script += preset_info.get_lua_script() 
         # upload preset: will also request midi map (which will also refresh state)
-        self.upload_preset(EFFECT_PRESET_SLOT,preset,DEFAULT_LUASCRIPT + lua_script)
+        self.upload_preset(EFFECT_PRESET_SLOT,preset,script)
         # if this upload fails, ElectraOneBase.preset_upload_successful will be
         # false; then update_display will try to upload again every 100ms (when
         # the E1 is ready, of course).
@@ -328,12 +388,17 @@ class EffectController(ElectraOneBase):
                 self._assigned_device_controller = None
                 self._upload_assigned_device_if_possible_and_needed()
         else:
-            # this does not happen (unfortunately)
             self._assigned_device = None
             self._assigned_device_controller = None
             self.debug(1,'Assigning an empty device.')
-            self._remove_preset_from_slot(EFFECT_PRESET_SLOT)
-
+            #self.remove_preset_from_slot(EFFECT_PRESET_SLOT)
+            if CONTROL_MODE == CONTROL_BOTH:
+                script = MIXER_FORWARDING_SCRIPT
+            if CONTROL_MODE == CONTROL_EITHER:
+                script = PATCH_REQUEST_SCRIPT
+            # upload preset: will also request midi map (which will also refresh state)
+            self.upload_preset(EFFECT_PRESET_SLOT,EMPTY_PRESET,script)
+            
     def _handle_appointed_device_change(self):
         """Handle an appointed device change: change the currently assigned
            device unless it is locked.

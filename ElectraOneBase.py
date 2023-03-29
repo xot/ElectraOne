@@ -444,11 +444,12 @@ class ElectraOneBase:
         ElectraOneBase._send_midi_sleep = 0 # 0.005
         ElectraOneBase._send_value_update_sleep = 0 # 0.035
         # defer drawing
-        # see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
-        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
-        sysex_command = (0x00, 0x00)
-        sysex_close = (0xF7, )
-        self.send_midi(sysex_header + sysex_command + sysex_close)
+        ## see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
+        #sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
+        #sysex_command = (0x00, 0x00)
+        #sysex_close = (0xF7, )
+        #self.send_midi(sysex_header + sysex_command + sysex_close)
+        self._send_lua_command('aa()')
         self._increment_acks_pending()
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
@@ -465,11 +466,12 @@ class ElectraOneBase:
         ElectraOneBase._send_midi_sleep = 0
         ElectraOneBase._send_value_update_sleep = 0 
         # reenable drawing and update display
-        # see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
-        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
-        sysex_command = (0x01, 0x00)
-        sysex_close = (0xF7, )
-        self.send_midi(sysex_header + sysex_command + sysex_close)
+        ## see https://docs.electra.one/developers/midiimplementation.html#control-the-window-repaint-process
+        #sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7A)
+        #sysex_command = (0x01, 0x00)
+        #sysex_close = (0xF7, )
+        #self.send_midi(sysex_header + sysex_command + sysex_close)
+        self._send_lua_command('zz()')
         self._increment_acks_pending()
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
@@ -739,7 +741,7 @@ class ElectraOneBase:
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01))
 
-    def _remove_preset_from_slot(self, slot):
+    def remove_preset_from_slot(self, slot):
         """Remove the current preset (and its lua script) from a slot on the E1.
            - slot: slot to delete preset from; (bank: 0..5, preset: 0..1)
         """
@@ -747,12 +749,12 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
-        # first remove the LUA script
-        # see https://docs.electra.one/developers/midiimplementation.html#lua-script-remove
-        sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x0C)
-        sysex_select = (bankidx, presetidx)
-        sysex_close = (0xF7, )
-        self.send_midi(sysex_header + sysex_select + sysex_close)
+        # first remove the LUA script; TODO: this happens automatically when deleting a preset, apparently
+        ## see https://docs.electra.one/developers/midiimplementation.html#lua-script-remove
+        #sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x0C)
+        #sysex_select = (bankidx, presetidx)
+        #sysex_close = (0xF7, )
+        #self.send_midi(sysex_header + sysex_select + sysex_close)
         # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
         sysex_select = (bankidx, presetidx)
