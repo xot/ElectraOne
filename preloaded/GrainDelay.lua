@@ -8,11 +8,9 @@ function sync(valueObject, value)
         time:setVisible(true)
         beatswing:setVisible(false)
         beatdelay:setVisible(false)
-	return("Time")
     else
         time:setVisible(false)
         beatswing:setVisible(true)
         beatdelay:setVisible(true)
-	return("Sync")
     end
 end

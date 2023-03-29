@@ -8,11 +8,9 @@ function sync1(valueObject, value)
     if value == 0 then
         freq1:setVisible(true)
         rate1:setVisible(false)
-        return("Free")
     else
         freq1:setVisible(false)
         rate1:setVisible(true)
-        return("Sync")
     end
 end
 
@@ -20,11 +18,9 @@ function sync2(valueObject, value)
     if value == 0 then
         freq2:setVisible(true)
         rate2:setVisible(false)
-        return("Free")
     else
         freq2:setVisible(false)
         rate2:setVisible(true)
-        return("Sync")
     end
 end
 
@@ -46,21 +42,6 @@ function type1(valueObject, value)
         radius1:setVisible(true)
         opening1:setVisible(true)
     end
-    if value == 0 then
-      return("Beam")
-    elseif value == 1 then
-      return("Marimba")
-    elseif value == 2 then
-      return("String")
-    elseif value == 3 then
-      return("Membrane")
-    elseif value == 4 then
-      return("Plate")
-    elseif value == 5 then
-      return("Pipe")
-    else 
-      return("Tube")
-    end
 end
 
 material2 = controls.get(113)
@@ -79,20 +60,5 @@ function type2(valueObject, value)
         inharmonics2:setVisible(false)
         radius2:setVisible(true)
         opening2:setVisible(true)
-    end
-    if value == 0 then
-      return("Beam")
-    elseif value == 1 then
-      return("Marimba")
-    elseif value == 2 then
-      return("String")
-    elseif value == 3 then
-      return("Membrane")
-    elseif value == 4 then
-      return("Plate")
-    elseif value == 5 then
-      return("Pipe")
-    else 
-      return("Tube")
     end
 end

@@ -18,13 +18,11 @@ function lsync(valueObject, value)
 	lshowtime = true
         l16th:setVisible(false)
         ldiv:setVisible(false)
-	return("Time")
     else
         ltime:setVisible(false)
 	lshowtime = false
         l16th:setVisible(lshow16th)
         ldiv:setVisible(not lshow16th)
-	return("Sync")
     end
 end
 
@@ -34,13 +32,11 @@ function rsync(valueObject, value)
 	rshowtime = true
 	r16th:setVisible(false)
         rdiv:setVisible(false)
-	return("Time")
     else
         rtime:setVisible(false)
 	rshowtime = false
         r16th:setVisible(rshow16th)
         rdiv:setVisible(not rshow16th)
-	return("Sync")
     end
 end
 
@@ -52,7 +48,6 @@ if value == 0 then
         modfreq:setVisible(false)
         modrate:setVisible(true)
     end
-    return("Mod sync")
 end
 
 function lmode(valueObject, value)
@@ -65,15 +60,6 @@ function lmode(valueObject, value)
         l16th:setVisible(lshow16th)
         ldiv:setVisible(not lshow16th)
     end
-    if value == 0.0 then
-        return("Notes")
-    elseif value == 1.0 then
-        return("Triplet")
-    elseif value == 2.0 then
-            return("Dotted")
-    else
-        return("16th")
-    end
 end
 
 function rmode(valueObject, value)
@@ -85,14 +71,5 @@ function rmode(valueObject, value)
     if not rshowtime then
         r16th:setVisible(rshow16th)
         rdiv:setVisible(not rshow16th)
-    end
-    if value == 0.0 then
-        return("Notes")
-    elseif value == 1.0 then
-        return("Triplet")
-    elseif value == 2.0 then
-            return("Dotted")
-    else
-        return("16th")
     end
 end

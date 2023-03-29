@@ -675,13 +675,8 @@ class ElectraOneBase:
             sysex_port = (E1_LOGGING_PORT, 0x00)
             sysex_close = (0xF7, )
             self.send_midi(sysex_header + sysex_port + sysex_close)
-            # this SysEx command does NOT repsonds with an ACK/NACK
-            # for firmware versions < 3.1.3); firmware 3.1.3 sends ACK over
-            # port to which logging is set ; frimware 3.1.4 sends ACK over
-            # port back on port used to send command
-            if (self.version_exceeds((3,1,2)) and (E1_LOGGING_PORT == E1_PORT)) or \
-                self.version_exceeds((3,1,3)):
-                self._increment_acks_pending()
+            # this SysEx command repsonds with an ACK/NACK over the correct post since 3.1.4
+            self._increment_acks_pending()
         # Enable/disable logging
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x7F, 0x7D)

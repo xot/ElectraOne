@@ -20,11 +20,4 @@ function mode(valueObject, value)
         feedback:setVisible(false)
         feedbackinv:setVisible(false)  
     end
-    if value == 0 then
-        return("Classic")
-    elseif value == 1 then
-        return("Ensemble")
-    else
-        return("Vibrato")
-    end
 end

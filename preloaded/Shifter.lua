@@ -25,7 +25,6 @@ function mode(valueObject, value)
         lfoamountst:setVisible(true)
         envamounthz:setVisible(false)
         envamountst:setVisible(true)
-        return("Pitch")
     elseif value == 1.0 then
         pcoarse:setVisible(false)
         fcoarse:setVisible(true)
@@ -37,7 +36,6 @@ function mode(valueObject, value)
         lfoamountst:setVisible(false)
         envamounthz:setVisible(true)
         envamountst:setVisible(false)
-        return("Freq")
     else
         pcoarse:setVisible(false)
         fcoarse:setVisible(false)
@@ -49,7 +47,6 @@ function mode(valueObject, value)
         lfoamountst:setVisible(false)
         envamounthz:setVisible(true)
         envamountst:setVisible(false)
-        return("Ring")
     end
 end
 
@@ -60,11 +57,9 @@ function delaysync(valueObject, value)
     if value == 0 then
         dtime:setVisible(true)
         dsync:setVisible(false)
-	    return("Delay Sync")
     else
         dtime:setVisible(false)
         dsync:setVisible(true)
-	    return("Delay Sync")
     end
 end
 
@@ -77,11 +72,9 @@ function lfosync(valueObject, value)
         lfofreq:setVisible(true)
         lforate:setVisible(false)
         lfooffset:setVisible(false)
-	    return("LFO Sync")
     else
         lfofreq:setVisible(false)
         lforate:setVisible(true)
         lfooffset:setVisible(true)
-	    return("LFO Sync")
     end
 end
