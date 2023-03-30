@@ -19,14 +19,16 @@ from .ElectraOneBase import ElectraOneBase
 from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
 
-# Default LUA script to send along an effect preset. Programs the PATCH REQUEST
+# Default LUA scripts to send along an effect preset.
+# - DEFAULT_LUASCRIPT contains all formatting functions used by the dumper
+# - PATCH_REQUEST_SCRIPT programs the PATCH REQUEST
 # button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
 # received by ElectraOne to swap the visible preset. As complex presets may have
 # more than one device defined (an patch.onRequest sends a message out for
 # every device), we use device.id to diversify the outgoing message.
 # (Effect presets always have device.id = 1 as the first device)
-#
-# Also contains formatter functions used by presets generated on the fly
+# - MIXER_FORWARDING_SCRIPT contains code to forward calls to LUA functions
+# to a second E1 running the Mixer preset
 #
 DEFAULT_LUASCRIPT = """
 info.setText("by www.xot.nl")

@@ -219,11 +219,13 @@ class ElectraOneBase:
         """
         # For native devices and instruments, device.class_name is the name of
         # the device/instrument, and device.name equals the selected preset
-        # (or the device/instrumetn name).
+        # (or the device/instrumettn name).
         # For plugins and max devices, device.class_name is useless
         # To reliably identify preloaded presets by name for such devices
         # as well, embed them into a audio/instrument rack and give that rack
-        # the name of the device. 
+        # the name of the device.
+        # For racks themselves, device.class_name is also useless, so use
+        # device.name instead
         self.debug(5,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent
@@ -234,6 +236,9 @@ class ElectraOneBase:
             else:
                 self.debug(5,'No enclosing rack found, using my own name (unreliable).')
                 name = device.name
+        elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
+            self.debug(5,'I am a rack, using my own name (unreliable).')
+            name = device.name
         else:
             name = device.class_name
         self.debug(5,f'Returning name { name }.')
@@ -749,13 +754,8 @@ class ElectraOneBase:
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
-        # first remove the LUA script; TODO: this happens automatically when deleting a preset, apparently
-        ## see https://docs.electra.one/developers/midiimplementation.html#lua-script-remove
-        #sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x0C)
-        #sysex_select = (bankidx, presetidx)
-        #sysex_close = (0xF7, )
-        #self.send_midi(sysex_header + sysex_select + sysex_close)
         # see https://docs.electra.one/developers/midiimplementation.html#preset-remove
+        # Note: this also removes any lua script associated with the slot
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x05, 0x01)
         sysex_select = (bankidx, presetidx)
         sysex_close = (0xF7, )
