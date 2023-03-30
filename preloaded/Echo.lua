@@ -4,6 +4,10 @@ l16th = controls.get(20)
 r16th = controls.get(39)
 ldiv = controls.get(21)
 rdiv = controls.get(40)
+
+rs = controls.get(42)
+rm = controls.get(43)
+
 modrate = controls.get(32)
 modfreq = controls.get(30)
 
@@ -71,5 +75,26 @@ function rmode(valueObject, value)
     if not rshowtime then
         r16th:setVisible(rshow16th)
         rdiv:setVisible(not rshow16th)
+    end
+end
+
+function lrlink(valueObject, value)
+    if value == 0 then
+        rtime:setVisible(rshowtime)
+        if rshowtime then
+            r16th:setVisible(false)
+            rdiv:setVisible(false)
+        else
+            r16th:setVisible(rshow16th)
+            rdiv:setVisible(not rshow16th)
+        end
+        rs:setVisible(true)
+        rm:setVisible(true)
+    else
+        rtime:setVisible(false)
+        r16th:setVisible(false)
+        rdiv:setVisible(false)
+        rs:setVisible(false)
+        rm:setVisible(false)
     end
 end
