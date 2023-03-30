@@ -11,41 +11,35 @@ rm = controls.get(43)
 modrate = controls.get(32)
 modfreq = controls.get(30)
 
-lshow16th = false
-rshow16th = false
-lshowtime = false
-rshowtime = false
+islsync = true
+isl16th = false
+isrsync = true
+isr16th = false
+islinked = false
+
+function setvisibility()
+    ltime:setVisible(not islsync)
+    l16th:setVisible(islsync and isl16th)
+    ldiv:setVisible(islsync and not isl16th)
+    rtime:setVisible(not islinked and not isrsync)
+    r16th:setVisible(not islinked and (isrsync and isr16th))
+    rdiv:setVisible(not islinked and (isrsync and not isr16th))
+    rs:setVisible(not islinked)
+    rm:setVisible(not islinked)
+end
 
 function lsync(valueObject, value)
-    if value == 0 then
-        ltime:setVisible(true)
-	lshowtime = true
-        l16th:setVisible(false)
-        ldiv:setVisible(false)
-    else
-        ltime:setVisible(false)
-	lshowtime = false
-        l16th:setVisible(lshow16th)
-        ldiv:setVisible(not lshow16th)
-    end
+    islsync = (value ~= 0)
+    setvisibility()
 end
 
 function rsync(valueObject, value)
-    if value == 0 then
-        rtime:setVisible(true)
-	rshowtime = true
-	r16th:setVisible(false)
-        rdiv:setVisible(false)
-    else
-        rtime:setVisible(false)
-	rshowtime = false
-        r16th:setVisible(rshow16th)
-        rdiv:setVisible(not rshow16th)
-    end
+    isrsync = (value ~= 0)
+    setvisibility()
 end
 
 function modsync(valueObject, value)
-if value == 0 then
+    if value == 0 then
         modfreq:setVisible(true)
         modrate:setVisible(false)
     else
@@ -55,46 +49,16 @@ if value == 0 then
 end
 
 function lmode(valueObject, value)
-    if value == 3.0 then
-        lshow16th = true
-    else
-        lshow16th = false
-    end
-    if not lshowtime then
-        l16th:setVisible(lshow16th)
-        ldiv:setVisible(not lshow16th)
-    end
+    isl16th = (value == 3.0)    
+    setvisibility()
 end
 
 function rmode(valueObject, value)
-    if value == 3.0 then
-        rshow16th = true
-    else
-        rshow16th = false
-    end
-    if not rshowtime then
-        r16th:setVisible(rshow16th)
-        rdiv:setVisible(not rshow16th)
-    end
+    isr16th = (value == 3.0)    
+    setvisibility()
 end
 
 function lrlink(valueObject, value)
-    if value == 0 then
-        rtime:setVisible(rshowtime)
-        if rshowtime then
-            r16th:setVisible(false)
-            rdiv:setVisible(false)
-        else
-            r16th:setVisible(rshow16th)
-            rdiv:setVisible(not rshow16th)
-        end
-        rs:setVisible(true)
-        rm:setVisible(true)
-    else
-        rtime:setVisible(false)
-        r16th:setVisible(false)
-        rdiv:setVisible(false)
-        rs:setVisible(false)
-        rm:setVisible(false)
-    end
+    islinked = (value ~= 0)
+    setvisibility()
 end
