@@ -83,6 +83,14 @@ function formatDetune (valueObject, value)
   return (string.format("%i ct",value))
 end
 
+function a()
+  window.stop()
+end
+
+function z()
+  window.resume()
+end
+
 """
 
 PATCH_REQUEST_SCRIPT = """
@@ -115,10 +123,12 @@ function forward2(f,p1,p2)
 end
 
 function aa()
+  window.stop()
   forward('aa')
 end
 
 function zz()
+  window.resume()
   forward('zz')
 end
 
@@ -216,9 +226,9 @@ class EffectController(ElectraOneBase):
         """
         if self._assigned_device_is_visible():
             self.debug(1,'EffCont refreshing state.')
-            self.midi_burst_on()
+            self.midi_burst_on(False)
             self._assigned_device_controller.refresh_state()
-            self.midi_burst_off()
+            self.midi_burst_off(False)
             self.debug(1,'EffCont state refreshed.')
         else:
             self.debug(1,'EffCont not refreshing state (no effect selected or visible).')
