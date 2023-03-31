@@ -144,7 +144,7 @@ function seqv(idx,flag)
   if flag then
     forward2('seqv',tostring(idx),'true')
   else
-    forward('seqv',tostring(idx),'false')
+    forward2('seqv',tostring(idx),'false')
   end
 end
 
