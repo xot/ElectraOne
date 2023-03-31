@@ -437,10 +437,9 @@ class ElectraOneBase:
 
     # --- send MIDI ---
     
-    def midi_burst_on(self,flag):
+    def midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and disable window repaints.
-           - flag: whether to disable mxier (true) or effect (false) preset repaints
         """
         self.debug(4,'MIDI burst on.')
         # TODO: set proper timings; note that the current HW has 256k RAM
@@ -450,19 +449,15 @@ class ElectraOneBase:
         ElectraOneBase._send_midi_sleep = 0 # 0.005
         ElectraOneBase._send_value_update_sleep = 0 # 0.035
         # defer drawing
-        if flag:
-            self._send_lua_command('aa()')
-        else:
-            self._send_lua_command('a()')
+        self._send_lua_command('aa()')
         self._increment_acks_pending()
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
         time.sleep(0.01) # 10ms 
         
-    def midi_burst_off(self,flag):
+    def midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
            immediate window updates again. Draw any buffered window repaints.
-           - flag: whether to enable mixer (true) or effect (false) preset repaints
         """
         self.debug(4,'MIDI burst off.')
         # wait a bit (100ms) to ensure all MIDI CC messages have been processed
@@ -471,10 +466,7 @@ class ElectraOneBase:
         ElectraOneBase._send_midi_sleep = 0
         ElectraOneBase._send_value_update_sleep = 0 
         # reenable drawing and update display
-        if flag:
-            self._send_lua_command('zz()')
-        else:
-            self._send_lua_command('z()')
+        self._send_lua_command('zz()')
         self._increment_acks_pending()
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
