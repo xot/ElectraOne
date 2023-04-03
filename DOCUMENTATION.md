@@ -419,7 +419,7 @@ The tracks controlled can be switched. Also, each track (audio, MIDI but also th
 The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```MASTER_EQ_DEVICE_NAME```/```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_CC_MAP```/```TRACK_EQ_CC_MAP``` constants in ```config.py```.
 All that matters is that you do not change the control id, MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
 
-In fact, an alternative mixer preset (```Mixer.alt.epoj``) is present in the repository that sacrifices one return tracks to allow each page to show the transport buttons.
+In fact, an alternative mixer preset (```Mixer.alt.epoj``) is present in the repository that sacrifices one return track to allow *every* page to show the transport and track change buttons.
 
 ### Value mapping
 
@@ -825,7 +825,7 @@ If *no* device is currently selected (e.g. initially, after deleting a device), 
 - ensure that in ```CONTROL_BOTH``` mode (when a second E1 is connected to the USB Host input that controls the mixer) the necessary SysEx commands are forwarded to the second E1.
  
 
-## Preloaded presets
+### Preloaded presets
 
 Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
 
@@ -862,17 +862,17 @@ DEVICES = {
 
 > Note: for user-defined patches it is possible to assign *several different device parameters* to the same MIDI CC; this is e.g. useful in devices like Echo that have one visible dial in the UI for the left (and right) delay time, but that actually corresponds to three different device parameters (depending on the Sync and Sync Mode settings); this allows one to save on controls in the Electra One patch *and* makes the UI there more intuitive (as it corresponds to what you see in Ableton itself). This approach requires the controls to not show any values (because the value ranges of each Ableton parameter is different), so in the actual Echo preset, some LUA functions are used to allow several controls on the same location, while making some of them visible or invisible.
 
-### Getting the name of a plugin or Max device
+#### Getting the name of a plugin or Max device
 
 For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify preloaded presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so uses the rack (preset) name to lookup a preloaded preset.
 
 So, if you want to make your own preloaded presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it.
 
-## Getting the name for a rack device
+#### Getting the name for a rack device
 
 For rack devices (audio, MIDI, drum or instruments), the remote script also uses the (unreliable) method of using ```device.name``` to determine the name to use to lookup a predefined preset.
 
-## Generating presets on the fly
+### Generating presets on the fly
 
 To generate a preset on the fly, an instance of ```ElectraOneDumper``` is created passing it the device name and its list of parameters. The resulting object is queried for the generated preset through ```get_preset()```.
 
@@ -882,7 +882,7 @@ Internally creating an instance (and hence the preset) proceeds through the foll
 2. [Construct a CC map for the resulting list of parameters](#constructing-a-cc-map), and
 3. [Generate a JSON encoded E1 preset as a string](#generating-an-e1-preset).
 
-### Sorting and filter parameters
+#### Sorting and filter parameters
 
 Sorting and filtering the parameter list is controlled through the configuration constant ```ORDER```. The parameters can be 
 
@@ -892,7 +892,7 @@ Sorting and filtering the parameter list is controlled through the configuration
 
 The third option uses ```DEVICE_DICT``` defined in ```_Generic.Devices```. This 'system wide' preferred order actually only contains the most important parameters, and thus reduces the complexity of the generated patch.
 
-### Constructing a CC map
+#### Constructing a CC map
 
 Each parameter in the list is assigned a MIDI channel and CC parameter number. Depending on the type of parameter, it is assigned either a 7bit or 14bit controller. Essentially this means that most faders (i.e. non-quantised and non-integer valued parameters, see ```wants_cc14()``` and also the [discussion below](#generating-an-e1-preset)) are considered 14bit. 
 
@@ -904,7 +904,7 @@ Note: Only the first 32 CC parameters (i.e numbered 0..31) can be used to map 14
 
 The first MIDI channel assigned for a preset is ```MIDI_EFFECT_CHANNEL```. When no more valid or free CC parameters are available, the next MIDI channel is claimed (up to a maximum of ```MAX_MIDI_EFFECT_CHANNELS```). Large devices like Analog require 4 MIDI channels to allow all of its many (14 bit) faders to be mapped.
 
-### Generating an E1 preset
+#### Generating an E1 preset
 
 Using the information in the just created CC map, ```construct_json_preset``` proceeds to generate the E1 preset. Given the number of parameters it counts the required number of pages. For each assigned MIDI channel in the CC map it creates a corresponding E1 MIDI device. 
 
@@ -921,11 +921,24 @@ then the parameter is considered not an integer, and is assigned a 14 bit CC (al
 
 Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` to make the incremental construction of the preset string efficient. In Python strings are constants, so appending a string essentially means copying the old string to the new string and then appending the new part (some Python interpreters may catch this and optimise for this case, but we cannot rely on that). We use the ```write``` method of ```io.StringIO``` to define an ```append``` method that takes varying number of elements as parameter and writes (i.e. appends) their string representation to the output string. 
 
+
+
 ### Uploading a preset
 
 The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
 
-### Dealing with ACKs and NACKs
+### Preset LUA script
+
+Whenever a preset is uploaded, some default LUA scripts are sent along. These are defined in ```EffectController.py```:
+
+- ```DEFAULT_LUASCRIPT```: Defines some formatting functions to format parameters with decibel values, frequency values, pan controllers, etc, that are used in both the preloaded presets and the presets generated on the fly.
+
+- ```PATCH_REQUEST_SCRIPT```: Defines the function ```patch.onRequest``` that is called whenever the patch request button (top right) is pressed. It sends a special MIDI SysEx command back to the remote script that then toggles between mixer and effect control. Is only uploaded (and active) when ```CONTROL_MODE = CONTROL_EITEHR```
+  
+- ```MIXER_FORWARDING_SCRIPT```: Defines variants for the mixer display control functions (```aa()```, ```zz()```, ```utl()```, ```ursl()```, ```seqv()``` and ```smv()```) to forward them when ```CONTROL_MODE = CONTROL_BOTH```.
+
+
+## Dealing with ACKs and NACKs
 
 For allmost all SysEx commands, the E1 returns whether they were successfully executed or not by sending back an [ACK](https://docs.electra.one/developers/midiimplementation.html#ack) or [NACK](https://docs.electra.one/developers/midiimplementation.html#nack). 
 
