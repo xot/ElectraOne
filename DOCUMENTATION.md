@@ -804,7 +804,11 @@ For smoother operation, values for such complex Ableton parameters are not immed
 
 The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely.
 
-The ```EffectController.py``` module handles this, with the help of ```ElectraOneDumper.py``` (that creates device presets on the fly based on the information it can obtain from Live about the parameters of the device, see [further below](#generating-an-e1-preset)) and ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices).
+The ```EffectController.py``` module handles this, with the help of
+- ```ElectraOneDumper.py``` (that creates device presets on the fly based on the information it can obtain from Live about the parameters of the device, see [further below](#generating-an-e1-preset)),
+- ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices), and
+- ```GenericDeviceController.py``` that contains the code to update midi maps and refresh state (that is also used to control the Eq devices in the mixer preset).
+
 
 Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. (Note that unfortunately certain devices omit certain controls from their parameter list.) The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
 
@@ -926,6 +930,15 @@ Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` 
 ### Uploading a preset
 
 The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+
+
+Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
+
+- the mixer preset is visible and we are in ```CONTROL_EITHER``` mode, or
+- the E1 is not yet ready for it (e.g. when a previous upload hasn't completed yet), or 
+- it may not even be necessary to do so (e.g. because a device appointment change should not immediately trigger  an upload, see the ```SWITCH_TO_EFFECT_IMMEDIATELY``` configuration option)
+
+In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
 
 ### Preset LUA script
 

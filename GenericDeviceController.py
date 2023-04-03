@@ -27,8 +27,8 @@ class GenericDeviceController(ElectraOneBase):
     def _mappingcheck(self):
         """Warn for any unmapped or badly mapped parameters;
            this may (for example) indicate that Live added or renamed
-          parameters the last time a preset was constructed keep track
-           of values that changed since last refresh_state / update_dsiplay
+           parameters the last time a preset was constructed keep track
+           of values that changed since last refresh_state / update_display
         """
         pnames = [p.original_name for p in self._device.parameters]
         ccnames = self._preset_info._cc_map.keys()
@@ -122,6 +122,10 @@ class GenericDeviceController(ElectraOneBase):
         if not self._device:
             return
         assert self._preset_info
+        if full_refresh:
+            self.debug(3,f'Full state refresh for device { self._device_name }')
+        else:
+            self.debug(3,f'Partial state refresh for device { self._device_name }')            
         # WARNING! Some devices have name clashes in their parameter list
         # so make sure only the first one is refreshed (to avoid continually
         # refreshing two parameters with the same name but different values)
@@ -149,6 +153,8 @@ class GenericDeviceController(ElectraOneBase):
         """Called every 100 ms; used to update values for controls
            that want Ableton to set their value string.
            (Assumes the device is visible!)
+           This way we do not need to register value change listeners for every
+           parameter.
         """
         self._refresh(False)
 

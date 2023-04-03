@@ -48,22 +48,22 @@ class PresetInfo:
             return UNMAPPED_CCINFO
         
     def get_preset(self):
-        """Retrun the JSON preset as a string
+        """Return the JSON preset as a string
            - result: preset; str
         """
         assert self._json_preset != None, 'Empty JSON preset'
         return self._json_preset
 
     def get_lua_script(self):
-        """Retrun the LUA script as a string
+        """Return the LUA script as a string
            - result: lua_script; str
         """
         return self._lua_script
     
     def validate(self):
-        """ Check for internal consistency; return first found error as string.
-            (Note that there are actually valid reasons to have several device
-             parameters mapped to the same control/CC)
+        """Check for internal consistency; return first found error as string.
+           (Note that there are actually valid reasons to have several device
+            parameters mapped to the same control/CC)
         """
         seen = []
         duplicates = set()

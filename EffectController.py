@@ -154,7 +154,7 @@ end
 
 """
 
-# Empty preset needs to define a device for the pathc request lua code to work
+# Empty preset; needs to define a device for the patch request lua code to work
 # (See PATCH_REQUEST_SCRIPT)
 EMPTY_PRESET = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","pages":[],"groups":[],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[],"controls":[]}'
 

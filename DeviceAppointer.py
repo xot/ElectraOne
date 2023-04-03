@@ -61,7 +61,9 @@ class DeviceAppointer(ElectraOneBase):
                 track.view.add_selected_device_listener(self._handle_selected_device_change)
                 # appoint device if needed
                 if APPOINT_ON_TRACK_CHANGE:
-                    self._handle_selected_device_change()            
+                    self._handle_selected_device_change()
+                else:
+                    self.debug(3,'No device appointment when selected track changes.')
             else:
                 self.debug(3,f'Track { track.name } already selected. Ignoring.')
             
