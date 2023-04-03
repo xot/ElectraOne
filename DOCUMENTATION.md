@@ -11,7 +11,7 @@ The remote script essentially supports two control surfaces
 - a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1 (```MIXER_PRESET_SLOT```), and
 - a [current device](#device-control) with a E1 preset in bank 6 slot 2 (```EFFECT_PRESET_SLOT```).
 
-Their implementation is described further below, after a brief introduction on 
+(It also supports two interconnected E1s where one controls the current device and the other controls the mixer.) Their implementation is described further below, after a brief introduction on 
 remote scripts and MIDI.
 
 # Some background
@@ -315,6 +315,32 @@ Others:
 - Wavetable Sync rate: ```8```..```1/64```.
 - Analog Noise Balance: ```F2```..```50/50```..```F1```.
 
+## Bugs/anomalies in Live
+
+While developing the remote script it became clear there are certain bugs and anomalies in the interface between Live and the remote script.
+
+First of all, some devices or instruments have internal names that are completely different from their name in the Live UI. For example SpectralResonator is called Transmute, Wavetable is called InstrumentVector, and Electric is called LounceLizzard.
+
+For certain devices, Live does not allow mapping of parameters to the remote script even though they *are* MIDI mappable manually. The problem is that ```device.parameters``` does not contain these parameters. For example:
+
+- Saturator: DC not mapped
+- Wavetable/InstrumentVector: missing some global parameters
+- SpectralResonator: resonator type is not a parameter; many MIDI input controls not mapped as parameter.
+- Impulse: Soft, Sat, Filter, M, and S buttons cannot be mapped
+
+For certain devices, Live reports the same name for different parameters in the list ```device.parameters```:
+
+- Saturator patch on the fly: Dry/Wet output twice
+- Compressor patch on the fly: S/C Gain twice
+- Collision: 2x Panorama controlling Pan L and Pan R together
+- Emit: several parameters with the same name, eg Attack!
+- LFO Modulator: two parameters "Rate": one for Hz one for synced!
+
+For certain devices, Live exposes parameters that are not visible in the Live UI, for example: 
+
+- Hybrid Reverb: exposes parameters not in the Live UI (Eg Pr Sixth)
+
+
 
 # The main E1 remote script
 
@@ -393,11 +419,13 @@ The tracks controlled can be switched. Also, each track (audio, MIDI but also th
 The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed. You can even remove certain controls from the preset to simplify it. If you are really adventurous you can replace the default EQ controls based on Live's Channel EQ with a different default device on the audio, MIDI and master tracks by changing the ```MASTER_EQ_DEVICE_NAME```/```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_CC_MAP```/```TRACK_EQ_CC_MAP``` constants in ```config.py```.
 All that matters is that you do not change the control id, MIDI channel assignments (ie the E1 devices), the CC parameter numbers, the CC minimum and maximum values, and whether it is a 7bit or 14bit controller.
 
+In fact, an alternative mixer preset (```Mixer.alt.epoj``) is present in the repository that sacrifices one return tracks to allow each page to show the transport buttons.
+
 ### Value mapping
 
 For certain controls, the default mixer preset contains some additional formatting instructions (using the E1 LUA based formatting functions). 
 
-We mostly refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface (using the ```p.str_of_value(v)``` approach, see above). In most cases this is unnecessary: for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown, and for simple controls a properly chosen 'formatter' LUA function can be used to display the correct value representation on the E1 . 
+For the mixer preset, we refrain from using the method used by almost all other remotes scripts to correctly display the values as shown by Live also on the remote control surface (using the ```p.str_of_value(v)``` approach, see above). In most cases this is unnecessary: for enumerated controls the overlay system supported by the Electra One already makes sure the correct values are shown, and for simple controls a properly chosen 'formatter' LUA function can be used to display the correct value representation on the E1. (It tuns out this also makes it much easier to connect two E1's in series, where the second one always contains the mixer preset.)
 
 In the mixer preset, the values to display are interpolated using the tables experimentally established and documented below.
 
@@ -706,6 +734,10 @@ contain a Live Channel EQ device, this one is automatically discovered and mappe
 
 The device mapped can relatively easily be changed by changing the definitions of ```EQ_DEVICE_NAME``` and ```EQ_CC_MAP``` in ```MasterController.py``` and ```TrackController.py```. Of course, the E1 mixer preset must also be updated then.
 
+If a track currently managed by the mixer preset does not contain an EQ device (or if it gets deleted), the associated controls are made invisible on the mixer preset. It uses the following LUA function defined in the mixer preset for that:
+
+- ```seqv(idx,flag)```: update the EQ controls visibility for the track with index idx (starting at 0).
+
 ### Alternative mixer design
 
 Alternative mixer designs are possible (provided they adhere to the mappings and constraints outlined above). For example an alternative mixer design is included (```Mixer.alt.eproj```) that shows the track select and transport controls on all pages. As a result, the Channel Eq page no longer shows the 'rumble' filter switch, and only 5 sends are defined. To match this,  ```MAX_NO_OF_SENDS = 5``` and ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP``` have been adjusted in ```config.py```.
@@ -734,7 +766,7 @@ The ```process_midi``` function in the same class (called by the global ```recei
 
 Live UI elements cannot be mapped to MIDI CCs automatically also need to be monitored for any changes, to send these changes to the E1 as well.
 
-In the E1 remote script, each class defines a ```_add_listeners()``` and ```_ remove_listeners()``` method that handle this for any such parameters/listeners this class is responsible for.
+In the E1 remote script, each class defines a ```_add_listeners()``` and ```_remove_listeners()``` method that handle this for any such parameters/listeners this class is responsible for.
 
 
 ## Value updates 
@@ -754,7 +786,13 @@ For non-quantised parameters (think value faders), the MIDI value to send for th
 The computation of the 7bit MIDI value to send for a quantised parameter works as follows. Quantized parameters have a fixed list of values. For such a list with *n* items, item *i* (starting counting at 0) has MIDI CC control value
 *round*(*i* * 127/(*n*-1)).
 
-When sending a bunch of MIDI message to update the values of a complete mixer or effect preset (as the ```refresh_state``` does, the script first disables display updates on the E1, and reactivates display updates after all values are sent: this makes the E1 respond faster. See the ```_midi_burst_on()``` and ```_midi_burst_off()``` methods in ```ElectraOneBase```.
+When sending a bunch of MIDI message to update the values of a complete mixer or effect preset (as the ```refresh_state``` does, the script first disables display updates on the E1, and reactivates display updates after all values are sent: this makes the E1 respond faster. See the ```_midi_burst_on()``` and ```_midi_burst_off()``` methods in ```ElectraOneBase```. These functions rely on the following two LUA functions to be implemented on the mixer preset (the same holds for the effect preset as well):
+
+- ```aa()```: delay updating the display of the preset.
+- ```zz()```: resume updating the display of the preset, and force a redraw now. 
+
+
+
 
 For complex Abelton parameters whose display function is hard to derive from the underlying MIDI value (e.g. exponential or logarithmic volume or frequency domains), the remote script uses the ```str_for_value()``` function that Ableton defines for each device parameter. (In fact, for a parameter ```p``` the standard ```str(p)``` call is equivalent to ```p.str_for_value(p.value)```.)
 The resulting string is sent to the E1 by calling the LUA function ```svu``` defined in every effect preset. (See ```ElectraOneBase.py``` and ```DEFAULT_LUASCRIPT``` defined in ```EffectController.py```. The preset must use ```defaultFormatter``` as the formatter function for such controls (to ensure that the E1 itself does not change the value).
@@ -781,12 +819,18 @@ When the selected device changes, ```EffectController``` does the following.
 
 3. After this mapping the values of the controller are initialised once (after a small delay to ensure the patch on the E1 is ready to receive them) all is set: Ableton will forward incoming MIDI CC changes to the mapped parameter, and will also *send* MIDI CC messages whenever the parameter is changed through the Ableton GUI or another control surface.
 
+If *no* device is currently selected (e.g. initially, after deleting a device), a special empty device is uploaded. This allows the script to store some LUA script at the effect preset slot, which serves two purposes
+
+- ensure that the patch request button keeps on working, and
+- ensure that in ```CONTROL_BOTH``` mode (when a second E1 is connected to the USB Host input that controls the mixer) the necessary SysEx commands are forwarded to the second E1.
+ 
+
 ## Preloaded presets
 
 Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
 
 
-Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, and CC map.
+Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, a CC map, and some LUA scripting special to the preset. Certain presets use this to hide/show certain parts of the preset depending on the value of certain parameters (e.g. to show either a synchronised rate control or a free frequency control to control the speed of an LFO, depending on a 'sync' toggle button).
 
 The E1 JSON preset format is described [here](https://docs.electra.one/developers/presetformat.html#preset-json-format). A control in the preset is assigned a CC parameter number, a MIDI channel, a type and whether it transmits/listens to 7bit or 14 bit CC values. (All controls are CC type.)
 
@@ -823,6 +867,10 @@ DEVICES = {
 For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify preloaded presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so uses the rack (preset) name to lookup a preloaded preset.
 
 So, if you want to make your own preloaded presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it.
+
+## Getting the name for a rack device
+
+For rack devices (audio, MIDI, drum or instruments), the remote script also uses the (unreliable) method of using ```device.name``` to determine the name to use to lookup a predefined preset.
 
 ## Generating presets on the fly
 

@@ -137,7 +137,7 @@ class ElectraOne(ElectraOneBase):
                 # if a track and a device is selected it is appointed; a little
                 # sleep allows the thread to be interrupted so the appointed
                 # device listener registered by EffectController picks up this
-                # appointment and sets thge assigned device.
+                # appointment and sets the assigned device.
                 time.sleep(0.1)
             # initialise the visible prest
             # (the E1 will send a preset changed message in response; this will
