@@ -937,6 +937,7 @@ Whenever a preset is uploaded, some default LUA scripts are sent along. These ar
   
 - ```MIXER_FORWARDING_SCRIPT```: Defines variants for the mixer display control functions (```aa()```, ```zz()```, ```utl()```, ```ursl()```, ```seqv()``` and ```smv()```) to forward them when ```CONTROL_MODE = CONTROL_BOTH```.
 
+Some preloaded presets define preset specific LUA scripts in ```Devices.py```; those are also sent along when that preset is uploaded.
 
 ## Dealing with ACKs and NACKs
 
