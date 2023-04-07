@@ -364,7 +364,7 @@ class EffectController(ElectraOneBase):
             self.debug(1,'Uploading empty device')
             preset = EMPTY_PRESET
             script = ""
-        # construct the LUA script
+        # extend the LUA script where necessary
         if CONTROL_MODE == CONTROL_BOTH:
             script += MIXER_FORWARDING_SCRIPT
         if CONTROL_MODE == CONTROL_EITHER:

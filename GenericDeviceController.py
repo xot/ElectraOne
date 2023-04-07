@@ -24,11 +24,12 @@ class GenericDeviceController(ElectraOneBase):
        in the mixer): build MIDI maps, refresh state
     """
 
+    # TODO: does not  belong here; should be part of PresetInfo and called
+    # when loading Devices.py (this check is only relevant for preloaded presets)
     def _mappingcheck(self):
         """Warn for any unmapped or badly mapped parameters;
            this may (for example) indicate that Live added or renamed
-           parameters the last time a preset was constructed keep track
-           of values that changed since last refresh_state / update_display
+           parameters the last time a preset was constructed 
         """
         pnames = [p.original_name for p in self._device.parameters]
         ccnames = self._preset_info._cc_map.keys()
