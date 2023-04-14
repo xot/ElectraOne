@@ -124,9 +124,6 @@ class ElectraOne(ElectraOneBase):
             self.setup_fast_sysex()
             self.setup_logging()
             c_instance = self.get_c_instance()
-            self.log_message('ElectraOne remote script loaded.')
-            # re-open the interface
-            ElectraOneBase.E1_connected = True                
             if CONTROL_MODE != CONTROL_EFFECT_ONLY:
                 self._mixer_controller = MixerController(c_instance)
             # The upload thread for the appointed device (if any) will request
@@ -138,10 +135,17 @@ class ElectraOne(ElectraOneBase):
                 # sleep allows the thread to be interrupted so the appointed
                 # device listener registered by EffectController picks up this
                 # appointment and sets the assigned device.
+                # Note: the interface is still closed, so no actual uploading
+                # will take place yet.
                 time.sleep(0.1)
+            self.log_message('ElectraOne remote script loaded.')
+            # re-open the interface
+            ElectraOneBase.E1_connected = True                
             # initialise the visible prest
             # (the E1 will send a preset changed message in response; this will
             # refresh the state but not rebuild the midi map)
+            # TODO: even if SWITCH_TO_EFFECT_IMMEDIATELY = True, this will
+            # always load the mixer first, even if an effect is appointed
             if CONTROL_MODE == CONTROL_EITHER:
                 self._mixer_controller.select()
             elif CONTROL_MODE == CONTROL_EFFECT_ONLY:

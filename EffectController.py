@@ -337,7 +337,7 @@ class EffectController(ElectraOneBase):
 
     def select(self):
         """Select the effect preset and upload the currently assigned device
-           if necessary.
+           if necessary. (Warning: assumes E1 is ready)
         """
         self.visible = True
         if not self._assigned_device_is_uploaded():

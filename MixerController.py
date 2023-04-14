@@ -124,7 +124,7 @@ class MixerController(ElectraOneBase):
             track.disconnect()    
 
     def select(self):
-        """Select the mixer preset on the E1
+        """Select the mixer preset on the E1. (Warning: assumes E1 is ready)
         """
         self.visible = True
         self.activate_preset_slot(MIXER_PRESET_SLOT)

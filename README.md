@@ -176,9 +176,9 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
 
-2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created
+2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
 
-3. Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below. See:
+3. Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes. This is what it looks like on MacOS:
 
 ![Ableton Preferences](./images/ableton.png "Ableton Preferences")
 
