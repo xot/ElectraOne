@@ -174,7 +174,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows. Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
+1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
 
 2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created
 
