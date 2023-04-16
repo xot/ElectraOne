@@ -110,6 +110,9 @@ class ElectraOneBase:
     # flag indicating whether the last preset upload was successful
     preset_upload_successful = None
 
+    # recording which slot is currently visibel on the E1
+    current_visible_slot = (0,0)
+    
     # count number of acks pending
     acks_pending = 0
 
@@ -598,6 +601,7 @@ class ElectraOneBase:
            - label: new text; str
         """
         assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
+        self.debug(3,f'Update label for track {idx} to {label}.')
         command = f'utl({idx},"{label}")'
         self._send_lua_command(command)
         
@@ -608,6 +612,7 @@ class ElectraOneBase:
            - label: new text; str
         """
         assert returnidx in range(MAX_NO_OF_SENDS), f'Return index {returnidx} out of range.' 
+        self.debug(3,f'Update label for return track {returnidx} to {label}.')
         command = f'ursl({returnidx},"{label}")'
         self._send_lua_command(command)
         
@@ -620,7 +625,7 @@ class ElectraOneBase:
         """
         assert tc in range(NO_OF_TRACKS+1), f'Track count {tc} out of range.' 
         assert rc in range(MAX_NO_OF_SENDS+1), f'Return count {rc} out of range.' 
-        self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns')
+        self.debug(3,f'Setting mixer preset visibility: {tc} tracks and {rc} returns.')
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
@@ -629,6 +634,9 @@ class ElectraOneBase:
            - idx: index of the track (starting at 0; 5 for master track); int
            - flag: whether the eq-device should be visible; bool
         """
+        # TODO:  master track index should be NO_OF_TRACKS+1, not 5)
+        assert idx in range(NO_OF_TRACKS+1), f'Track index {idx} out of range.' 
+        self.debug(3,f'Setting channel equaliser visibility for track {idx} to {flag}.')
         if flag:
           command = f'seqv({idx},true)'
         else:
@@ -642,6 +650,7 @@ class ElectraOneBase:
            - vid: value id in the preset; int (0 for simple controls)
            - valuestr: string representing value to display; str
         """
+        self.debug(3,f'Send value update {valuestr} for control ({cid},{vid}).')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x0E)
         sysex_controlid = (cid % 128 , cid // 128)
         sysex_valueid = (vid, ) 
@@ -690,6 +699,7 @@ class ElectraOneBase:
         self._wait_for_ack_or_timeout(5)
         # set the MIDI port for Controller events (to catch slot switching events)
         # https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-controller-events
+        self.debug(1,f'Set E1 controller events port to {E1_PORT}.')
         sysex_header = (0xF0, 0x00, 0x21, 0x45, 0x14, 0x7B)
         sysex_port = ( E1_PORT, )
         sysex_close = (0xF7, )
@@ -715,6 +725,7 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
+        ElectraOneBase.current_visible_slot = slot
         # Unlike activate (see below) the E1 will not send a preset changed
         # message in response, but only an ACK
 
@@ -722,7 +733,7 @@ class ElectraOneBase:
         """Select a slot on the E1 and activate the preset present there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
-        self.debug(3,f'Selecting slot {slot}.')
+        self.debug(3,f'Activating slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -733,6 +744,7 @@ class ElectraOneBase:
         self.send_midi(sysex_header + sysex_select + sysex_close)
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
+        ElectraOneBase.current_visible_slot = slot
         # Note: The E1 will in response send a preset changed message (7E 02)
         # (followed by an ack (7E 01))
 

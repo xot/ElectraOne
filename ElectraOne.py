@@ -146,13 +146,10 @@ class ElectraOne(ElectraOneBase):
             # refresh the state but not rebuild the midi map)
             # TODO: even if SWITCH_TO_EFFECT_IMMEDIATELY = True, this will
             # always load the mixer first, even if an effect is appointed
-            if CONTROL_MODE == CONTROL_EITHER:
+            if (CONTROL_MODE == CONTROL_EITHER) or (CONTROL_MODE == CONTROL_MIXER_ONLY) :
                 self._mixer_controller.select()
-            elif CONTROL_MODE == CONTROL_EFFECT_ONLY:
+            else:
                 self._effect_controller.select()
-            elif CONTROL_MODE == CONTROL_BOTH:
-                self._effect_controller.select()
-                self._mixer_controller.visible = True
             self.request_rebuild_midi_map()
         except:
             self.debug(1,f'Exception occured {sys.exc_info()}')
@@ -274,21 +271,27 @@ class ElectraOne(ElectraOneBase):
         """
         selected_slot = midi_bytes[6:8]
         self.debug(3,f'Preset {selected_slot} selected on the E1')
+        ElectraOneBase.current_visible_slot = selected_slot
         # premeptively make both controllers invisible when using only one E1
-        if self._mixer_controller and (CONTROL_MODE != CONTROL_BOTH): 
-            self._mixer_controller.visible = False
-        if self._effect_controller and (CONTROL_MODE != CONTROL_BOTH): 
-            self._effect_controller.visible = False
+        # TODO: why is this a good idea? if E1 not ready this marks
+        # both invisible forever
+        ##if self._mixer_controller and (CONTROL_MODE != CONTROL_BOTH): 
+        ##    self._mixer_controller.visible = False
+        ##if self._effect_controller and (CONTROL_MODE != CONTROL_BOTH): 
+        ##    self._effect_controller.visible = False
         # process resets even when not ready
+        # TODO: does this still work?
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
         # ignore preset switches in CONTROL_BOTH mode
-        elif self.is_ready() and (CONTROL_MODE != CONTROL_BOTH):
+        elif (CONTROL_MODE != CONTROL_BOTH):
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
-                self._mixer_controller.visible = True
-                self._mixer_controller.refresh_state()
+                if self.is_ready():
+                    self._mixer_controller.refresh_state()
+                else:
+                    self.debug(3,'Preset change refresh ignored because E1 not ready.')
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
                 # TODO: if device not uploaded yet (eg initially)
@@ -296,12 +299,14 @@ class ElectraOne(ElectraOneBase):
                 # function is only called in response to a preset changed
                 # message sent after a patch request message (which
                 # selects the preset slot and uploads a preset if needed)
-                self._effect_controller.visible = True
-                self._effect_controller.refresh_state()
+                if self.is_ready():
+                    self._effect_controller.refresh_state()
+                else:
+                    self.debug(3,'Preset change refresh ignored because E1 not ready.')
             else:
-                self.debug(3,'Other preset selected (ignoring)')                
+                self.debug(3,'Other preset selected (ignoring)')
         else:
-            self.debug(3,'Preset changed ignored because E1 not ready  or CONTROL_MODE != CONTROL_EITHER.') 
+            self.debug(3,'Preset changed ignored because CONTROL_MODE != CONTROL_EITHER.') 
 
     def _do_sysex_patch_request_pressed(self):
         """Handle a patch request pressed message: swap the visible preset
@@ -312,15 +317,13 @@ class ElectraOne(ElectraOneBase):
             # if CONTROL_MODE == CONTROL_EITHER both _mixer_controller()
             # and _effect_controller() are guaranteed to exist
             self.debug(3,f'Patch request received')
-            if self._mixer_controller.visible:
+            if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT): 
                 # E1 will send a preset change message in response which will
                 # trigger do_preset_changed() and hence cause a state refresh.
                 # We use that as an implicit ACK.
                 self._effect_controller.select()
-                self._mixer_controller.visible = False
             else:
                 self._mixer_controller.select()
-                self._effect_controller.visible = False
         else:
             self.debug(3,'Patch request ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.')
         

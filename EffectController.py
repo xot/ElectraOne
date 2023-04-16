@@ -180,8 +180,6 @@ class EffectController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
-        # set visibility False initially
-        self.visible = False
         # referrence to the currently assigned device
         # (corresponds typically to the currently appointed device by Ableton)
         self._assigned_device = None
@@ -203,6 +201,14 @@ class EffectController(ElectraOneBase):
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         self.debug(0,'EffectController loaded.')
 
+    def is_visible(self):
+        """Returh whether the effect preset slot is currently visible on the E1
+        """
+        visible = (CONTROL_MODE == CONTROL_BOTH) or \
+             (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
+        self.debug(6,f'Effect controller is visible: {visible}')
+        return visible
+        
     def _assigned_device_is_uploaded(self):
         """Test whether the assigned device is actually uploaded
            - result: whether assigned device is uploaded; bool
@@ -218,7 +224,8 @@ class EffectController(ElectraOneBase):
            - result: whether assigned device is visble; bool
         """
         return self._assigned_device and \
-            self._assigned_device_is_uploaded() and self.visible
+            self._assigned_device_is_uploaded() and \
+            self.is_visible()
         
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
@@ -239,6 +246,7 @@ class EffectController(ElectraOneBase):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton
         """
+        self.debug(6,'EffCont update display; checkig upload status.')
         # Upload the assigned device preset if 
         if not self._assigned_device_is_uploaded():
             self._upload_assigned_device_if_possible_and_needed()
@@ -339,7 +347,7 @@ class EffectController(ElectraOneBase):
         """Select the effect preset and upload the currently assigned device
            if necessary. (Warning: assumes E1 is ready)
         """
-        self.visible = True
+        self.debug(2,'Select Effect')
         if not self._assigned_device_is_uploaded():
             # also rebuilds midi map and causes state refresh
             self._upload_assigned_device()
@@ -380,7 +388,8 @@ class EffectController(ElectraOneBase):
         """Upload the currently assigned device to the effect preset slot on
            the E1 if needed (and possible) and create a device controller for it.
         """
-        if self.is_ready() and (SWITCH_TO_EFFECT_IMMEDIATELY or self.visible):
+        if self.is_ready() and \
+           (SWITCH_TO_EFFECT_IMMEDIATELY or self.is_visible()):
             self._upload_assigned_device()
         else:
             # If this happens, update_display will regularly check whether
@@ -397,12 +406,13 @@ class EffectController(ElectraOneBase):
         # If device == None then  no device appointed
         if device != None:
             device_name = self.get_device_name(device)
-            self.debug(1,f'Assigning device { device_name }')
+            self.debug(1,f'Assignment of device { device_name } detected')
             # Note: even if this is not the case, Ableton rebuilds the midi map
             # and initiates a state refresh. As hot-swapping a device
             # apparently triggers a device appointment of the same device,
             # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
+                self.debug(1,f'Assigning new device { device_name }')
                 self._assigned_device = device
                 self._assigned_device_controller = None
                 self._upload_assigned_device_if_possible_and_needed()

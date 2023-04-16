@@ -36,8 +36,6 @@ class MixerController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
-        # set visibility False initially
-        self.visible = False
         # mixer preset is assumed to be uploaded by the user in advance
         # (with configuration constants set accordingly)
         self._transport_controller = TransportController(c_instance)        
@@ -70,6 +68,14 @@ class MixerController(ElectraOneBase):
         idx = max(idx, 0)            
         return idx
 
+    def is_visible(self):
+        """Returh whether the mixer preset slot is currently visible on the E1
+        """
+        visible = (CONTROL_MODE == CONTROL_BOTH) or \
+            (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT)
+        self.debug(6,f'Mixer controller is visible: {visible}')
+        return visible
+    
     # --- interface ---
 
     def refresh_state(self):
@@ -81,7 +87,7 @@ class MixerController(ElectraOneBase):
            (Called whenever the mixer preset is selected or tracks
            added or deleted.)
         """
-        if self.visible:
+        if self.is_visible():
             self.debug(1,'MixCont refreshing state.')
             self._set_controls_visibility()
             self.midi_burst_on()
@@ -126,9 +132,8 @@ class MixerController(ElectraOneBase):
     def select(self):
         """Select the mixer preset on the E1. (Warning: assumes E1 is ready)
         """
-        self.visible = True
+        self.debug(2,'Select Mixer')
         self.activate_preset_slot(MIXER_PRESET_SLOT)
-
         
     # --- Listeners
                 
@@ -185,7 +190,7 @@ class MixerController(ElectraOneBase):
     def _set_controls_visibility(self):
         """Set visibility of eq devices, tracks, sends and returns on the E1.
         """
-        if self.visible:
+        if self.is_visible():
             # set visibility of the (return) tracks and sends
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # set visibility of the channel-eq devices
