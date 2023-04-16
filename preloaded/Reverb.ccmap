@@ -1,5 +1,6 @@
 {'Device On': (-1,11,False,23)
 ,'PreDelay': (29,11,True,16)
+,'Predelay': (29,11,True,16)
 ,'In LowCut On': (-1,11,False,30)
 ,'In HighCut On': (-1,11,False,29)
 ,'In Filter Freq': (22,11,True,12)
@@ -19,6 +20,7 @@
 ,'Chorus Rate': (3,11,True,1)
 ,'Chorus Amount': (-1,11,True,0)
 ,'DecayTime': (5,11,True,2)
+,'Decay Time': (5,11,True,2)
 ,'Diffusion': (-1,11,True,4)
 ,'Scale': (-1,11,True,18)
 ,'Freeze On': (-1,11,False,26)
@@ -29,6 +31,7 @@
 ,'Stereo Image': (-1,11,True,19)
 ,'Density': (-1,11,False,22)
 ,'ER Level': (11,11,True,6)
+,'Reflect Level': (11,11,True,6)
 ,'Diffuse Level': (8,11,True,3)
 ,'Dry/Wet': (-1,11,True,5)
 }
