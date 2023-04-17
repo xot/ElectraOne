@@ -272,41 +272,22 @@ class ElectraOne(ElectraOneBase):
         selected_slot = midi_bytes[6:8]
         self.debug(3,f'Preset {selected_slot} selected on the E1')
         ElectraOneBase.current_visible_slot = selected_slot
-        # premeptively make both controllers invisible when using only one E1
-        # TODO: why is this a good idea? if E1 not ready this marks
-        # both invisible forever
-        ##if self._mixer_controller and (CONTROL_MODE != CONTROL_BOTH): 
-        ##    self._mixer_controller.visible = False
-        ##if self._effect_controller and (CONTROL_MODE != CONTROL_BOTH): 
-        ##    self._effect_controller.visible = False
-        # process resets even when not ready
         # TODO: does this still work?
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
         # ignore preset switches in CONTROL_BOTH mode
-        elif (CONTROL_MODE != CONTROL_BOTH):
+        elif self.is_ready() and (CONTROL_MODE != CONTROL_BOTH):
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
-                if self.is_ready():
-                    self._mixer_controller.refresh_state()
-                else:
-                    self.debug(3,'Preset change refresh ignored because E1 not ready.')
+                self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
                 self.debug(3,'Effect preset selected: starting refresh.')
-                # TODO: if device not uploaded yet (eg initially)
-                # then state not refreshed; somehow code assumes that this
-                # function is only called in response to a preset changed
-                # message sent after a patch request message (which
-                # selects the preset slot and uploads a preset if needed)
-                if self.is_ready():
-                    self._effect_controller.refresh_state()
-                else:
-                    self.debug(3,'Preset change refresh ignored because E1 not ready.')
+                self._effect_controller.refresh_state()
             else:
                 self.debug(3,'Other preset selected (ignoring)')
         else:
-            self.debug(3,'Preset changed ignored because CONTROL_MODE != CONTROL_EITHER.') 
+            self.debug(3,'Preset changed ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.') 
 
     def _do_sysex_patch_request_pressed(self):
         """Handle a patch request pressed message: swap the visible preset

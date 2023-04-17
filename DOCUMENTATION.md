@@ -743,7 +743,7 @@ If a track currently managed by the mixer preset does not contain an EQ device (
 Alternative mixer designs are possible (provided they adhere to the mappings and constraints outlined above). For example an alternative mixer design is included (```Mixer.alt.eproj```) that shows the track select and transport controls on all pages. As a result, the Channel Eq page no longer shows the 'rumble' filter switch, and only 5 sends are defined. To match this,  ```MAX_NO_OF_SENDS = 5``` and ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP``` have been adjusted in ```config.py```.
 
 
-## E1 midi CC forwarding
+## E1 MIDI CC forwarding
 
 Recall that certain Live UI elements cannot be mapped to MIDI CCs automatically. For those, incoming MIDI CC messages must be registered and, when received, be handled.
 
@@ -966,7 +966,7 @@ The upload thread subsequently first consumes all pending ACKs/NACks by calling
  ```_clear_acks_queue()```. This is a loop that waits for some timeout and sleeps inbetween (to release the thread and to allows Live to call ```receive_midi()``` to process and register incoming ACKs and NACKs, decrementing ```ElectraOneBase.acks_pending```. The select slot, upload preset and upload lua script (each a SysEx command) then wait for confirmation by calling ```_wait_for_ack_or_timeout()```.
 
 
-This has only be tested on MacOs.
+
 
 
 
