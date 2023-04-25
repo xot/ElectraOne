@@ -55,7 +55,7 @@ Use a USB cable to connect the second E1 to the USB Host port on the first E1. M
 
 Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is selected on the first E1, and the mixer preset is uploaded and selected (bank 6, slot 1) in the second E1. 
 
-(*Both controllers apparently need to run firmware 3.1.5. for this to work.*)
+(*Both controllers apparently need to run firmware 3.1.5. or larger for this to work.*)
 
 ## Controlling the currently appointed device
 
@@ -124,6 +124,13 @@ Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+
 
 The construction of presets is controlled by several constants defined in ```config.py```. Dumps are written in the folder ```<LIBDIR>/dumps```.
 See [documentation of configuration options](#configuring) below.)
+
+
+### Names used for plugins and Max devices
+
+There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device, when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or defining preloaded presets (see below).
+
+The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name.
 
 
 ### Preloaded presets
@@ -267,7 +274,7 @@ The following constants deal with the equaliser devices managed through the mixe
 
 This project depends on:
 
-- Ableton Live 11, tested with version 11.1.1, 11.1.5, 11.2.6, and 11.2.7 (code relies on Abelton Live supporting Python 3.6).
+- Ableton Live 11, tested with version 11.1.1 upto 11.2.11 (code relies on Abelton Live supporting Python 3.6).
 - E1 firmware version 3.1.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 

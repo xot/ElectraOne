@@ -26,4 +26,19 @@ def get_capabilities():
      PORTS_KEY: [inport(props=[NOTES_CC, REMOTE]),
                  inport(props=[NOTES_CC, REMOTE, SCRIPT]),
                  outport(props=[NOTES_CC, SYNC]),
-                 outport(props=[SCRIPT])]}
+                 outport(props=[SCRIPT])]
+    }
+
+# Push2
+#def get_capabilities():
+#    from ableton.v2.control_surface import capabilities as caps
+#    return {caps.CONTROLLER_ID_KEY: caps.controller_id(vendor_id=10626, product_ids=[6503], model_name=u'Ableton Push 2'),
+#     caps.PORTS_KEY: [caps.inport(props=[caps.HIDDEN, caps.NOTES_CC, caps.SCRIPT]),
+#                      caps.inport(props=[]),
+#                      caps.outport(props=[caps.HIDDEN,
+#                       caps.NOTES_CC,
+#                       caps.SYNC,
+#                       caps.SCRIPT]),
+#                      caps.outport(props=[])],
+#     caps.TYPE_KEY: u'push2',
+#     caps.AUTO_LOAD_KEY: True}

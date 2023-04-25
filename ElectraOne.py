@@ -15,21 +15,14 @@ import time
 import sys
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase, get_cc_midichannel, is_cc_statusbyte, hexify, ACK_RECEIVED, NACK_RECEIVED
+from .ElectraOneBase import ElectraOneBase, E1_SYSEX_PREFIX, SYSEX_TERMINATE, get_cc_midichannel, is_cc_statusbyte, hexify, ACK_RECEIVED, NACK_RECEIVED
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .DeviceAppointer import DeviceAppointer
 from .config import *
 from .versioninfo import COMMITDATE
 
-# SysEx defines and helpers
-
-SYSEX_TERMINATE = 0xF7
-
-# SysEx incoming commands (as defined by the E1 firmware)
-# All SysEx commands start with E1_SYSEX_PREFIX and are terminated by SYSEX_TERMINATE
-
-E1_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x45)
+# SysEx responses
 
 E1_SYSEX_LOGMESSAGE = (0x7F, 0x00) # followed by json data 
 E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
@@ -42,10 +35,6 @@ E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data
 
 E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # no data
 
-# SysEx outgoing commands (as defined by the E1 firmware)
-
-E1_SYSEX_REQUEST = (0xF0, 0x00, 0x21, 0x45, 0x02, 0x7F, 0xF7)
-
 def _match_sysex(midi_bytes,pattern):
     """Match (byte 4 and 5 of) an incoming sysex message with a
        pattern (see constants defined above) to determine its type.
@@ -53,9 +42,7 @@ def _match_sysex(midi_bytes,pattern):
        - pattern: pattern to match; sequence of exactly two bytes
        - result: true if matched; bool
     """
-    return (midi_bytes[4:6] == pattern) and \
-           (midi_bytes[len(midi_bytes)-1] == SYSEX_TERMINATE)
-
+    return (midi_bytes[4:6] == pattern) 
 
 # --- ElectraOne class
 
@@ -104,22 +91,22 @@ class ElectraOne(ElectraOneBase):
         # should anything happen inside this thread, make sure we write to debug
         try:
             if DETECT_E1:
-                self.debug(2,'Connection thread: detecting E1...')
+                self.debug(2,'Connection thread: detecting E1...','*')
                 self._request_response_received = False
                 # repeatedly request response until it is received 
                 # (E1_SYSEX_REQUEST_RESPONSE, see _do_request_response called)
                 while not self._request_response_received:
-                    self.send_midi(E1_SYSEX_REQUEST)
+                    self.send_e1_request()
                     time.sleep(0.5)
-                self.debug(2,'Connection thread: E1 found')
+                self.debug(2,'Connection thread: E1 found','*')
                 if not self.version_exceeds((3,1,5)):
-                    self.debug(1,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
+                    self.debug(1,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.','*')
                     self.show_message(f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
                     return
                 else:
                     self.show_message(f'Version {ElectraOneBase.E1_version} detected.')
             else:
-                self.debug(2,'Connection thread skipping detection.')
+                self.debug(2,'Connection thread skipping detection.','*')
             # complete the initialisation
             self.setup_fast_sysex()
             self.setup_logging()
@@ -355,6 +342,8 @@ class ElectraOne(ElectraOneBase):
                 self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
         else:
             self.debug(1,'Main build midi map ignored because E1 not ready.')
+            # TODO: make sure request is processed at some point
+
         
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the

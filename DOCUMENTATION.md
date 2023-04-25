@@ -154,6 +154,16 @@ Using Python's ```dir()``` function we can obtain the full signature of ```c_ins
 'velocity_levels']
 ```
 
+Some additional fields are exposed/accessible depending on what ```get_capabilities()``` in ```__init__.py``` returns!!! E.g. this is what Push2 has available through ```c_instance```: 
+
+```
+['launch_external_process',
+'process_connected', 
+'real_time_mapper', 
+'send_model_update',
+'set_firmware_version']
+``` 
+ 
 Ableton actually provides a large collection of basic Python classes that it uses for the remote scripts officially supported by Live in modules called ```_Framework``` and ```_Generic```. Apart from the definition of 'best-of-bank' parameter sets of devices, the Electra One remote script does not make use of these.
 
 ### Memory management
