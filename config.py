@@ -107,9 +107,13 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
 ORDER = ORDER_DEVICEDICT
 
-# List of parameter names to ignore when generating presets on the fly
-# e.g. PARAMETERS_TO_IGNORE = ["Device On"]
-PARAMETERS_TO_IGNORE = []
+# A dictionary, keyed by device name, containing for each device a list of
+# names of parameters to ignore when constructing presets on the fly.
+# The list with key "ALL" contains the names of parameters to ignore for all
+# presets constructed on the fly. Can e.g. be used to exclude the "Device On"
+# button normally included.
+# e.g. PARAMETERS_TO_IGNORE = {"ALL": ["Device On"]}
+PARAMETERS_TO_IGNORE = {}
 
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;

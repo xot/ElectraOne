@@ -796,8 +796,15 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
              list of Live.DeviceParameter.DeviceParameter
         """
         self.debug(2,'Filter and order parameters')
-        parameters = [p for p in parameters \
-                      if p.name not in PARAMETERS_TO_IGNORE]
+        # first filter using PARAMETERS_TO_IGNORE
+        ignore = []
+        if "ALL" in PARAMETERS_TO_IGNORE:
+            ignore = PARAMETERS_TO_IGNORE["ALL"]
+        if device_name in PARAMETERS_TO_IGNORE:
+            ignore = ignore + PARAMETERS_TO_IGNORE[device_name] # duplicates do not matter
+        self.debug(4,f'Ignoring parameters: {ignore}')
+        parameters = [p for p in parameters if p.name not in ignore]
+        # now sort (and filter if ORDER_DEVICE_DICT)
         if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and \
            (device_name not in ORDER_DEVICEDICT_IGNORE):
             banks = DEVICE_DICT[device_name] # tuple of tuples
@@ -810,16 +817,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             for name in parlist:
                 if name in parameters_dict:
                     parameters_copy.append(parameters_dict[name])
-            return parameters_copy
+            result = parameters_copy
         elif (ORDER == ORDER_SORTED) and \
              (device_name not in ORDER_SORTED_IGNORE):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
             parameters_copy.sort(key=lambda p: p.name)
-            return parameters_copy
+            result = parameters_copy
         else: 
-            return parameters
+            result = parameters
+        self.debug(4,f'Filtered and order parameters: {[p.name for p in result]}')
+        return result
 
     def __init__(self, c_instance, device): 
         """Construct an Electra One JSON preset and a corresponding
