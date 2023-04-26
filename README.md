@@ -6,7 +6,7 @@ Ableton Live MIDI Remote Script for the Electra One.
 
 This Ableton Live MIDI Remote script allows you to [control the session mixer]((#the-mixer)) and the parameters of the [currently selected device](#controlling-the-currently-appointed-device) in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
 
-It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments, which can be used to craft ones own preset designs to control these devices.
+It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments, which can be used to craft your own preset designs to control these devices.
 
 The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks, together with an [E1 mixer preset](#the-mixer) (```Mixer.eproj```) to control it.
 
@@ -14,7 +14,7 @@ The remote script comes with a default Ableton Live template (```Live template.a
 
 ## The mixer
 
-The mixer preset is included in the distribution (```Mixer.eproj```), and should be uploaded to a bank 6, first slot. *Please make sure to upload the latest version each time you upgrade the script.*
+The mixer preset is included in the distribution (```Mixer.eproj```), and should be uploaded to bank 6, first slot. *Please make sure to upload the latest version each time you upgrade the script.*
 
 It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, rewind, and forward.
 
@@ -29,7 +29,7 @@ The return track corresponding to each send can be managed using the controls on
 
 ![Returns](./images/returns.png "Returns")
 
-Finally a separate 'Channel EQs' page contains controls to control the parameters of a Channel EQ device, when present on an audio/midi track or the master track. (When more than one ChannelEq device is present, the last, rightmost ChannelEq device will be controlled.)
+Finally a separate 'Channel EQs' page contains controls the parameters of an equaliser device (by defauklt the Channel EQ device), when present on an audio/midi track or the master track. (When more than one ChannelEq device is present, the last, rightmost ChannelEq device will be controlled.)
 
 ![Channel EQs](./images/channeleqs.png "Channel EQs")
 
@@ -93,7 +93,7 @@ Depending on the plugin, *first* create an audio or instrument rack. Then add th
 
 ### Configuring Ableton to map AU and VST plugin parameters
 
-To more easily control the parameters of AU and VST plugins in Ableton, you need to tell Ableton to automatically configure and reveal the plugin parameters. This is done by adding the following line to the ```Options.txt``` file (see this [Ableton help document](https://help.ableton.com/hc/en-us/articles/6003224107292-Options-txt-file) on where to find it and how to edit it).
+To more easily control the parameters of AU and VST plugins in Ableton, you need to tell Ableton to automatically configure and reveal the plugin parameters. This is done by adding the following line to Ableton Live's ```Options.txt``` file (see this [Ableton help document](https://help.ableton.com/hc/en-us/articles/6003224107292-Options-txt-file) on where to find it and how to edit it).
 
 ```-_PluginAutoPopulateThreshold=128```
 
@@ -128,7 +128,7 @@ See [documentation of configuration options](#configuring) below.)
 
 ### Names used for plugins and Max devices
 
-There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device, when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or defining preloaded presets (see below).
+There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or defining preloaded presets (see below).
 
 The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name.
 
@@ -156,7 +156,8 @@ Apart from that, anything goes. This means you can freely change controller name
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
 
-There is a faster way however. Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
+There is a faster way however, when ```CONTROL_MODE=CONTROL_EITHER```.
+Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
 
 ## Resetting the remote script
 
@@ -181,7 +182,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on Windows 10)
+1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions)
 
 2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
 
@@ -201,7 +202,7 @@ See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error mes
 
 ### Installing SendMidi
 
-Although not strictly necessary, the remote script becomes much more responsive (and usable) if you install [SendMidi](https://github.com/gbevin/SendMIDI).
+Although not strictly necessary, the remote script becomes much more responsive (and usable) under MacOS if you install [SendMidi](https://github.com/gbevin/SendMIDI). (*It seems that sending larger MIDI messages natively through Live under Windows is faster than MacOS; SendMidi isn't necessary in that case, and is harder to install under Windows because it requires shared access to the MIDI port with which to communicate with the E1, which the default Windows MIDI driver does not support.*)
 
 Here are the instructions for installing sendmidi 1.2.0 under MacOS.
 
@@ -217,7 +218,7 @@ Set the following constants in the ```config.py``` (this is one of the files you
 The behaviour of the remote script can be changed by editing ```config.py```:
 
 - ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
-- ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` (the default) to create no log entries and to speed up the script.
+- ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```E1_LOGGING``` controls whether the E1 should send log messages, default ```False```.
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
 - ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
