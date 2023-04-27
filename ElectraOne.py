@@ -146,14 +146,13 @@ class ElectraOne(ElectraOneBase):
     def _reset(self):
         """Reset the remote script.
         """
-        # TODO: get a device selected...
         ElectraOneBase.E1_connected = True
         ElectraOneBase.preset_uploading = False
         if self._effect_controller:
             self._effect_controller._assigned_device_locked = False
             self._effect_controller._assigned_device = None
             self._effect_controller._preset_info = None
-            self._effect_controller._set_appointed_device(self.song().appointed_device)
+            self._effect_controller._handle_appointed_device_change()
      
     def suggest_input_port(self):
         """Tell Live the name of the preferred input port name.
@@ -262,7 +261,6 @@ class ElectraOne(ElectraOneBase):
         selected_slot = midi_bytes[6:8]
         self.debug(3,f'Preset {selected_slot} selected on the E1')
         ElectraOneBase.current_visible_slot = selected_slot
-        # TODO: does this still work?
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
