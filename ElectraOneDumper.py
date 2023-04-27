@@ -144,8 +144,6 @@ def _get_par_value_info(p,v):
     elif number_part[-1] == 'k':
         return (number_part[:-1],'kHz')
     elif (len(type) > 0) and (type[0]==':'):
-        # TODO: for Tree Tone this is wrong (it has '1.00 :1' and '2.00 :1'
-        # as value strings)
         return (number_part,':')
     else:
         return (number_part,type)
