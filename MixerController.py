@@ -60,11 +60,11 @@ class MixerController(ElectraOneBase):
            - idx: proposal for new first track index; int
            - result: corrected new first track index; int
         """
-        # index of first tracj should always be a multiple of 5: moving
+        # index of first track should always be a multiple of NO_OF_TRACKS: moving
         # forward/backward then always shows the same block of tracks
         # in the mixer
         no_of_tracks = len(self.song().visible_tracks)
-        idx = min(idx, 5 * (no_of_tracks // 5))
+        idx = min(idx, NO_OF_TRACKS * (no_of_tracks // NO_OF_TRACKS))
         idx = max(idx, 0)            
         return idx
 
@@ -197,9 +197,9 @@ class MixerController(ElectraOneBase):
             for t in self._track_controllers:
                 self.set_channel_eq_visibility_on_track(t._offset,t._eq_device_controller != None)
             if self._master_controller._eq_device_controller:
-                self.set_channel_eq_visibility_on_track(5,True)
+                self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,True)
             else:
-                self.set_channel_eq_visibility_on_track(5,False)
+                self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,False)
             
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes

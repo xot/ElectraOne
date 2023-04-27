@@ -629,10 +629,9 @@ class ElectraOneBase(Log):
 
     def set_channel_eq_visibility_on_track(self,idx,flag):
         """Set the visibility of the eq device for the specified track.
-           - idx: index of the track (starting at 0; 5 for master track); int
+           - idx: index of the track (starting at 0; NO_OF_TRACKS for master track); int
            - flag: whether the eq-device should be visible; bool
         """
-        # TODO:  master track index should be NO_OF_TRACKS+1, not 5)
         assert idx in range(NO_OF_TRACKS+1), f'Track index {idx} out of range.' 
         self.debug(4,f'Setting channel equaliser visibility for track {idx} to {flag}.')
         if flag:
