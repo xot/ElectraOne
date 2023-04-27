@@ -121,11 +121,11 @@ class GenericTrackController(ElectraOneBase):
             - eq_device_name: ; str
             - result: reference to the device ; Live.Device.Device 
         """
-        self.debug(3,f'Looking for equaliser device with name {eq_device_name}')
+        self.debug(4,f'Looking for equaliser device with name {eq_device_name}')
         devices = self._track.devices
         for d in reversed(devices):
             if d.class_name == eq_device_name:
-                self.debug(3,'Found an equaliser device to be controlled.')
+                self.debug(4,'Found an equaliser device to be controlled.')
                 return d
         return None
 
@@ -175,7 +175,7 @@ class GenericTrackController(ElectraOneBase):
         # becomes None, so we detect this by testing self._eq_device_controller)
         if (device != self._eq_device) or \
            (not device and self._eq_device_controller):
-            self.debug(2,'EQ device change detected.')
+            self.debug(3,'EQ device change detected.')
             self.add_eq_device(self._eq_device_name,self._eq_cc_map) # also removes any previous eq device controller
             self.request_rebuild_midi_map() # also refreshes state
             
@@ -190,7 +190,7 @@ class GenericTrackController(ElectraOneBase):
         """ Send the values of the controlled elements to the E1
            (to bring them in sync). Initiated by MixerController
         """
-        self.debug(2,f'Refreshing state of track { self._track.name }.')
+        self.debug(3,f'Refreshing state of track { self._track.name }.')
         track = self._track
         self._refresh_track_name()
         if self._base_mute_cc != None:
@@ -312,7 +312,7 @@ class GenericTrackController(ElectraOneBase):
         """Default handler for Mute button
            - value: incoming MIDI CC value; int
         """
-        self.debug(2,f'Track { self._track.name } activation button action.')
+        self.debug(4,f'Track { self._track.name } activation button action.')
         if self._base_mute_cc != None:
             self._track.mute = (value < 64)
 
@@ -320,7 +320,7 @@ class GenericTrackController(ElectraOneBase):
         """Default handler for Arm button
            - value: incoming MIDI CC value; int
         """
-        self.debug(2,f'Track { self._track.name } arm button action.')
+        self.debug(4,f'Track { self._track.name } arm button action.')
         if self._base_arm_cc != None:
             self._track.arm = (value > 63)
 
@@ -328,7 +328,7 @@ class GenericTrackController(ElectraOneBase):
         """Default handler for Solo/Cue button
            - value: incoming MIDI CC value; int
         """
-        self.debug(2,f'Track { self._track.name } solo/cue button action.')
+        self.debug(4,f'Track { self._track.name } solo/cue button action.')
         if self._base_solo_cue_cc != None:
             self._track.solo = (value > 63)
 
@@ -361,7 +361,7 @@ class GenericTrackController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(2,f'Building MIDI map of track { self._track.name }.')
+        self.debug(3,f'Building MIDI map of track { self._track.name }.')
         # Map button CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
@@ -371,12 +371,12 @@ class GenericTrackController(ElectraOneBase):
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
         track = self._track
-        self.debug(3,f'Mapping track { self._track.name } pan to CC { self._my_cc(self._base_pan_cc) } on MIDI channel { self._midichannel }')
+        self.debug(4,f'Mapping track { self._track.name } pan to CC { self._my_cc(self._base_pan_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, self._midichannel-1, self._my_cc(self._base_pan_cc), map_mode, not needs_takeover)
-        self.debug(3,f'Mapping track { self._track.name } volume to CC { self._my_cc(self._base_volume_cc) } on MIDI channel { self._midichannel }')
+        self.debug(4,f'Mapping track { self._track.name } volume to CC { self._my_cc(self._base_volume_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, self._midichannel-1, self._my_cc(self._base_volume_cc), map_mode, not needs_takeover)
         if self._base_cue_volume_cc != None:  # master track only
-            self.debug(3,f'Mapping track { self._track.name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
+            self.debug(4,f'Mapping track { self._track.name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
             Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, self._midichannel-1, self._my_cc(self._base_cue_volume_cc), map_mode, not needs_takeover)
         # map sends (if present): send i for this track is mapped to
         # cc = base_send_cc (for this track) + i * NO_OF_TRACKS
@@ -384,7 +384,7 @@ class GenericTrackController(ElectraOneBase):
             sends = track.mixer_device.sends[:MAX_NO_OF_SENDS] # never map more than MAX_NO_OF_SENDS
             cc_no = self._my_cc(self._sends_cc)
             for send in sends:
-                self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
+                self.debug(4,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_SENDS_CHANNEL-1, cc_no, map_mode, not needs_takeover)
                 cc_no += NO_OF_TRACKS
         # map ChannelEq (if present)

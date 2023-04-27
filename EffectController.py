@@ -189,8 +189,10 @@ class EffectController(ElectraOneBase):
         # indicates that the device still needs to be uploaded)
         self._assigned_device_controller = None
         # set when device uploading is delayed (and upload most be done at
-        # a later suitable time)
-        self._assigned_device_upload_delayed = False
+        # a later suitable time); initially true because the effect slot
+        # initially does not have a preset uploaded (and may get selected
+        # before any upload)
+        self._assigned_device_upload_delayed = True
         # record if device is locked
         self._assigned_device_locked = False
         # count calls to update_display since last actual update
@@ -232,13 +234,13 @@ class EffectController(ElectraOneBase):
            (to bring them in sync)
         """
         if self._assigned_device_is_visible():
-            self.debug(1,'EffCont refreshing state.')
+            self.debug(2,'EffCont refreshing state.')
             self.midi_burst_on()
             self._assigned_device_controller.refresh_state()
             self.midi_burst_off()
-            self.debug(1,'EffCont state refreshed.')
+            self.debug(2,'EffCont state refreshed.')
         else:
-            self.debug(1,'EffCont not refreshing state (no effect selected or visible).')
+            self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
             
     # --- initialise values ---
     
@@ -268,12 +270,12 @@ class EffectController(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
-        self.debug(1,'EffCont building effect MIDI map.')
+        self.debug(2,'EffCont building effect MIDI map.')
         # Check that a device is assigned and that assigned_device still exists.
         # (When it gets deleted, the reference to it becomes None.)
         if self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
-        self.debug(1,'EffCont effect MIDI map built.')
+        self.debug(2,'EffCont effect MIDI map built.')
         self.refresh_state()
         
     # === Others ===
@@ -363,13 +365,13 @@ class EffectController(ElectraOneBase):
         device = self._assigned_device
         if device:
             device_name = self.get_device_name(device)
-            self.debug(1,f'Uploading device { device_name }')
+            self.debug(2,f'Uploading device { device_name }')
             preset_info = self._get_preset_info(device)
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
             preset = preset_info.get_preset()
             script = DEFAULT_LUASCRIPT + preset_info.get_lua_script() 
         else:
-            self.debug(1,'Uploading empty device')
+            self.debug(2,'Uploading empty device')
             preset = EMPTY_PRESET
             script = ""
         # extend the LUA script where necessary
@@ -394,10 +396,9 @@ class EffectController(ElectraOneBase):
         else:
             # If this happens, update_display will regularly check whether
             # device currently assigned device still needs uploading.
-            self.debug(1,'Device upload delayed.')
+            self.debug(2,'Device upload delayed.')
             self._assigned_device_upload_delayed = True
         
-    
     def _assign_device(self, device):
         """Assign the device to the E1 effect preset. Upload it immediately if
            possible and necessary.
@@ -406,13 +407,13 @@ class EffectController(ElectraOneBase):
         # If device == None then  no device appointed
         if device != None:
             device_name = self.get_device_name(device)
-            self.debug(1,f'Assignment of device { device_name } detected')
+            self.debug(2,f'Assignment of device { device_name } detected')
             # Note: even if this is not the case, Ableton rebuilds the midi map
             # and initiates a state refresh. As hot-swapping a device
             # apparently triggers a device appointment of the same device,
             # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
-                self.debug(1,f'Assigning new device { device_name }')
+                self.debug(2,f'Assigning new device { device_name }')
                 self._assigned_device = device
                 self._assigned_device_controller = None
                 self._upload_assigned_device_if_possible_and_needed()
@@ -422,7 +423,7 @@ class EffectController(ElectraOneBase):
             # in CONTROL_BOTH_MODE 
             self._assigned_device = None
             self._assigned_device_controller = None
-            self.debug(1,'Assigning an empty device.')
+            self.debug(2,'Assigning an empty device.')
             # upload preset: will also request midi map (which will also refresh state)
             self._upload_assigned_device_if_possible_and_needed()
             
@@ -434,5 +435,5 @@ class EffectController(ElectraOneBase):
         if not self._assigned_device_locked:
             self._assign_device(device)
         else:
-            self.debug(1,'Device appointment ignored because device locked.')
+            self.debug(2,'Device appointment ignored because device locked.')
             

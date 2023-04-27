@@ -75,11 +75,11 @@ class ElectraOne(ElectraOneBase):
         # and opening the interface so the remote script becomes active
         self._mixer_controller = None
         self._effect_controller = None
-        self.debug(1,f'ElectraOne Remote Script version of { COMMITDATE }.')
-        self.debug(1,'Setting up connection.')
+        self.debug(0,f'ElectraOne Remote Script version of { COMMITDATE }.')
+        self.debug(0,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
-        self.debug(1,'Waiting for connection...')
+        self.debug(0,'Waiting for connection...')
         # connection thread still running of course, so any calls to refresh the
         # state or to rebuild the MIDI map are ignored.
         
@@ -91,22 +91,22 @@ class ElectraOne(ElectraOneBase):
         # should anything happen inside this thread, make sure we write to debug
         try:
             if DETECT_E1:
-                self.debug(2,'Connection thread: detecting E1...','*')
+                self.debug(2,'Connection thread: detecting E1...')
                 self._request_response_received = False
                 # repeatedly request response until it is received 
                 # (E1_SYSEX_REQUEST_RESPONSE, see _do_request_response called)
                 while not self._request_response_received:
                     self.send_e1_request()
                     time.sleep(0.5)
-                self.debug(2,'Connection thread: E1 found','*')
+                self.debug(2,'Connection thread: E1 found')
                 if not self.version_exceeds((3,1,5)):
-                    self.debug(1,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.','*')
+                    self.debug(0,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
                     self.show_message(f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
                     return
                 else:
                     self.show_message(f'Version {ElectraOneBase.E1_version} detected.')
             else:
-                self.debug(2,'Connection thread skipping detection.','*')
+                self.debug(2,'Connection thread skipping detection.')
             # complete the initialisation
             self.setup_fast_sysex()
             self.setup_logging()
@@ -121,7 +121,8 @@ class ElectraOne(ElectraOneBase):
                 # if a track and a device is selected it is appointed; a little
                 # sleep allows the thread to be interrupted so the appointed
                 # device listener registered by EffectController picks up this
-                # appointment and sets the assigned device.
+                # appointment and sets the assigned device. TODO: this does
+                # not always work!
                 # Note: the interface is still closed, so no actual uploading
                 # will take place yet.
                 time.sleep(0.1)
@@ -131,9 +132,10 @@ class ElectraOne(ElectraOneBase):
             # initialise the visible prest
             # (the E1 will send a preset changed message in response; this will
             # refresh the state but not rebuild the midi map)
-            # TODO: even if SWITCH_TO_EFFECT_IMMEDIATELY = True, this will
-            # always load the mixer first, even if an effect is appointed
-            if (CONTROL_MODE == CONTROL_EITHER) or (CONTROL_MODE == CONTROL_MIXER_ONLY) :
+            if (CONTROL_MODE == CONTROL_MIXER_ONLY) or \
+               ((CONTROL_MODE == CONTROL_EITHER) and \
+                not (SWITCH_TO_EFFECT_IMMEDIATELY and \
+                    (self._effect_controller._assigned_device != None))):
                 self._mixer_controller.select()
             else:
                 self._effect_controller.select()
@@ -207,6 +209,7 @@ class ElectraOne(ElectraOneBase):
            Ignore if interface not ready.
            - midi_bytes: incoming MIDI CC message; sequence of bytes
         """
+        self.debug(2,'Processing incoming CC.')
         if self.is_ready() and self._mixer_controller:
             (status,cc_no,value) = midi_bytes
             midi_channel = get_cc_midichannel(status)
@@ -299,6 +302,7 @@ class ElectraOne(ElectraOneBase):
         """Process incoming MIDI SysEx message.
            - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
+        self.debug(2,'Processing incoming SysEx.')
         if _match_sysex(midi_bytes,E1_SYSEX_PRESET_CHANGED):
             self._do_preset_changed(midi_bytes)
         elif _match_sysex(midi_bytes,E1_SYSEX_NACK):
@@ -321,6 +325,7 @@ class ElectraOne(ElectraOneBase):
            to this function
            - midi_bytes: the MIDI message; sequence of bytes
         """
+        self.debug(1,'Main receive MIDI called.')
         self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midi_bytes[:10]) }')
         if is_cc_statusbyte(midi_bytes[0]) and (len(midi_bytes) == 3):
             # is a CC

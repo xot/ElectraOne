@@ -88,7 +88,7 @@ class MixerController(ElectraOneBase):
            added or deleted.)
         """
         if self.is_visible():
-            self.debug(1,'MixCont refreshing state.')
+            self.debug(2,'MixCont refreshing state.')
             self._set_controls_visibility()
             self.midi_burst_on()
             self._transport_controller.refresh_state()
@@ -100,9 +100,9 @@ class MixerController(ElectraOneBase):
             for retrn in self._return_controllers:
                 retrn.refresh_state()
             self.midi_burst_off()
-            self.debug(1,'MixCont state refreshed.')
+            self.debug(2,'MixCont state refreshed.')
         else:
-            self.debug(1,'MixCont not refreshing state (mixer not visible).')
+            self.debug(2,'MixCont not refreshing state (mixer not visible).')
             
     def update_display(self):
         """Update the dispay (called every 100ms).
@@ -279,7 +279,7 @@ class MixerController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(1,'MixCont building mixer MIDI map.')
+        self.debug(2,'MixCont building mixer MIDI map.')
         # Map CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
@@ -289,7 +289,7 @@ class MixerController(ElectraOneBase):
             retrn.build_midi_map(script_handle,midi_map_handle)
         for track in self._track_controllers:
             track.build_midi_map(script_handle,midi_map_handle)
-        self.debug(1,'MixCont mixer MIDI map built.')
+        self.debug(2,'MixCont mixer MIDI map built.')
         self.refresh_state()
 
 

@@ -220,7 +220,7 @@ class ElectraOneBase(Log):
         """Request that the MIDI map is rebuilt.
            (The old mapping is (apparently) destroyed.)
         """
-        self.debug(4,'Rebuilding MIDI map requested')
+        self.debug(2,'Rebuilding MIDI map requested')
         self._c_instance.request_rebuild_midi_map()
 
     def get_device_name(self, device):
@@ -240,22 +240,22 @@ class ElectraOneBase(Log):
         # To distinguish names for plugins/max devices (for which we derive
         # the name from the enclosing rack) from the name of the enclosing
         # rack itself, append a hypen to the name to the derived plugin/max name
-        self.debug(5,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
+        self.debug(6,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent
             if isinstance(cp,Live.Chain.Chain):
                 cp = cp.canonical_parent
-                self.debug(5,'Enclosing rack found, using its name.')
+                self.debug(6,'Enclosing rack found, using its name.')
                 name = cp.name + '-'
             else:
-                self.debug(5,'No enclosing rack found, using my own name (unreliable).')
+                self.debug(6,'No enclosing rack found, using my own name (unreliable).')
                 name = device.name
         elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
-            self.debug(5,'I am a rack, using my own name (unreliable).')
+            self.debug(6,'I am a rack, using my own name (unreliable).')
             name = device.name
         else:
             name = device.class_name
-        self.debug(5,f'Returning name { name }.')
+        self.debug(5,f'Device name is { name }.')
         return name
     
     # --- dealing with fimrware versions
@@ -298,10 +298,11 @@ class ElectraOneBase(Log):
            - command: command to run; str
            - result: return whether succesful; bool
         """
-        self.debug(4,f'Running external command {command[:200]}')
+        self.debug(5,f'Running external command {command[:40]}')
+        self.debug(6,f'Running external command {command[:200]}')
         # os,system returns 0 for success on both MacOS and Windows
         return_code = os.system(command)
-        self.debug(4,f'External command on OS {os.name} returned {return_code}')        
+        self.debug(5,f'External command on OS {os.name} returned {return_code}')        
         return (return_code == 0)
 
     def setup_fast_sysex(self):
@@ -344,7 +345,7 @@ class ElectraOneBase(Log):
         ElectraOneBase.acks_pending += 1
         now = time.time()
         ElectraOneBase.acks_pending_incremented_time = now
-        self.debug(5,f'ACKS pending incremented to {ElectraOneBase.acks_pending} at time { now }')
+        self.debug(4,f'ACKS pending incremented to {ElectraOneBase.acks_pending} at time { now }')
 
     def _adjust_timeout(self,timeout):
         """Adjust the timeout depending on whether fast sysex sending is
@@ -378,7 +379,7 @@ class ElectraOneBase(Log):
         start_time = time.time()
         while (ElectraOneBase.acks_pending > 0) and \
               (time.time() < end_time ):
-            self.debug(4,f'Thread waiting for ACK, current time is {time.time():.3f}.','*')
+            self.debug(4,f'Thread waiting for ACK, current time is {time.time():.3f}.')
             time.sleep(0.01) # sleep a bit (10ms) to pause the thread
         return time.time() - start_time
         
@@ -389,14 +390,14 @@ class ElectraOneBase(Log):
         """
         # wait five seconds since acks_pending was incremented last
         end_time = ElectraOneBase.acks_pending_incremented_time + 4.0
-        self.debug(3,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending), wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+        self.debug(4,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending), wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self.__wait_for_pending_acks_until(end_time)
         if (ElectraOneBase.acks_pending == 0):
-            self.debug(3,f'Thread: acks queue cleared within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+            self.debug(4,f'Thread: acks queue cleared within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
         else:
             # clear any pending acks/nacks
             ElectraOneBase.acks_pending = 0            
-            self.debug(3,f'Thread: acks queue still not empty within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+            self.debug(4,f'Thread: acks queue still not empty within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
         
     def __wait_for_ack_or_timeout(self, timeout):
         """Wait until all pending ACk or NACK messages from the E1 have
@@ -409,16 +410,16 @@ class ElectraOneBase(Log):
         """
         timeout = self._adjust_timeout(timeout)
         end_time = time.time() + timeout
-        self.debug(3,f'Thread waiting for ACK, setting timeout {timeout:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+        self.debug(4,f'Thread waiting for ACK, setting timeout {timeout:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self.__wait_for_pending_acks_until(end_time)
         if (ElectraOneBase.acks_pending == 0) and \
            (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
-            self.debug(3,f'Thread: ACK received within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+            self.debug(4,f'Thread: ACK received within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
             return True
         else:
             # clear any pending acks/nacks
             ElectraOneBase.acks_pending = 0            
-            self.debug(3,f'Thread: ACK not received within {waiting_time:.3f} seconds, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).','*')
+            self.debug(4,f'Thread: ACK not received within {waiting_time:.3f} seconds, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
             return False
 
     # --- send MIDI ---
@@ -427,7 +428,7 @@ class ElectraOneBase(Log):
         """Send a MIDI message through Ableton Live.
            - message: the MIDI message to send; sequence of bytes
         """
-        self.debug(4,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
+        self.debug(5,f'Sending MIDI message (first 10): { hexify(message[:10]) }')
         self.debug(6,f'Sending MIDI message: { hexify(message) }.')
         self._c_instance.send_midi(message)
         time.sleep(ElectraOneBase._send_midi_sleep) # don't overwhelm the E1!
@@ -472,7 +473,7 @@ class ElectraOneBase(Log):
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
-        self.debug(3,f'Sending value for {p.original_name} ({p.name}) over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
+        self.debug(4,f'Sending value for {p.original_name} ({p.name}) over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
@@ -487,7 +488,7 @@ class ElectraOneBase(Log):
            - channel: MIDI Channel; int (1..16)
            - cc_no: CC parameter number; int (0..127)
         """
-        self.debug(3,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
+        self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
         value = cc_value(p,16383)
         self.send_midi_cc14(channel, cc_no, value)
 
@@ -497,7 +498,7 @@ class ElectraOneBase(Log):
            - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
            - ccinfo: CC information (channel, cc, bits) about the parameter; CCInfo
         """
-        self.debug(3,f'Sending value for {p.original_name} over {ccinfo}.')
+        self.debug(4,f'Sending value for {p.original_name} over {ccinfo}.')
         channel = ccinfo.get_midi_channel()
         cc_no = ccinfo.get_cc_no()
         if ccinfo.is_cc14():
@@ -511,7 +512,7 @@ class ElectraOneBase(Log):
         o = ord(c)
         if o > 127:
             o = ord('?')
-            self.debug(4,f'UNICODE character {c} replaced.')
+            self.debug(5,f'UNICODE character {c} replaced.')
         return o
     
     def _E1_sysex(self, message):
@@ -540,7 +541,7 @@ class ElectraOneBase(Log):
     def send_e1_request(self):
         """Send a sysex request to the E1.
         """
-        self.debug(3,f'Sending E1 sysex request.')
+        self.debug(4,f'Sending E1 sysex request.')
         # see https://docs.electra.one/developers/???
         sysex_command = (0x02, 0x7F)
         self._send_midi_sysex(sysex_command)
@@ -550,7 +551,7 @@ class ElectraOneBase(Log):
         """Send a LUA command to the E1.
            - command: the command to send; str
         """
-        self.debug(3,f'Sending LUA command {command}.')
+        self.debug(4,f'Sending LUA command {command}.')
         # see https://docs.electra.one/developers/luaext.html
         sysex_command = (0x08, 0x0D)
         sysex_lua = tuple([ self._safe_ord(c) for c in command ])
@@ -598,7 +599,7 @@ class ElectraOneBase(Log):
            - label: new text; str
         """
         assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
-        self.debug(3,f'Update label for track {idx} to {label}.')
+        self.debug(4,f'Update label for track {idx} to {label}.')
         command = f'utl({idx},"{label}")'
         self._send_lua_command(command)
         
@@ -609,7 +610,7 @@ class ElectraOneBase(Log):
            - label: new text; str
         """
         assert returnidx in range(MAX_NO_OF_SENDS), f'Return index {returnidx} out of range.' 
-        self.debug(3,f'Update label for return track {returnidx} to {label}.')
+        self.debug(4,f'Update label for return track {returnidx} to {label}.')
         command = f'ursl({returnidx},"{label}")'
         self._send_lua_command(command)
         
@@ -622,7 +623,7 @@ class ElectraOneBase(Log):
         """
         assert tc in range(NO_OF_TRACKS+1), f'Track count {tc} out of range.' 
         assert rc in range(MAX_NO_OF_SENDS+1), f'Return count {rc} out of range.' 
-        self.debug(3,f'Setting mixer preset visibility: {tc} tracks and {rc} returns.')
+        self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns.')
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
@@ -633,7 +634,7 @@ class ElectraOneBase(Log):
         """
         # TODO:  master track index should be NO_OF_TRACKS+1, not 5)
         assert idx in range(NO_OF_TRACKS+1), f'Track index {idx} out of range.' 
-        self.debug(3,f'Setting channel equaliser visibility for track {idx} to {flag}.')
+        self.debug(4,f'Setting channel equaliser visibility for track {idx} to {flag}.')
         if flag:
           command = f'seqv({idx},true)'
         else:
@@ -647,7 +648,7 @@ class ElectraOneBase(Log):
            - vid: value id in the preset; int (0 for simple controls)
            - valuestr: string representing value to display; str
         """
-        self.debug(3,f'Send value update {valuestr} for control ({cid},{vid}).')
+        self.debug(4,f'Send value update {valuestr} for control ({cid},{vid}).')
         sysex_command = (0x14, 0x0E)
         sysex_controlid = (cid % 128 , cid // 128)
         sysex_valueid = (vid, ) 
@@ -707,7 +708,7 @@ class ElectraOneBase(Log):
         """Select a slot on the E1 but do not activate the preset already there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
-        self.debug(3,f'Selecting slot {slot}.')
+        self.debug(4,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -725,7 +726,7 @@ class ElectraOneBase(Log):
         """Select a slot on the E1 and activate the preset present there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
-        self.debug(3,f'Activating slot {slot}.')
+        self.debug(4,f'Activating slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -743,7 +744,7 @@ class ElectraOneBase(Log):
         """Remove the current preset (and its lua script) from a slot on the E1.
            - slot: slot to delete preset from; (bank: 0..5, preset: 0..1)
         """
-        self.debug(3,f'Removing preset from slot {slot}.')
+        self.debug(4,f'Removing preset from slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), 'Bank index out of range.'
         assert presetidx in range(12), 'Preset index out of range.'
@@ -760,7 +761,7 @@ class ElectraOneBase(Log):
            the E1 (use _select_slot_only to select the desired slot)
            - luascript: LUA script to upload; str
         """
-        self.debug(3,f'Uploading LUA script {luascript}.')
+        self.debug(4,f'Uploading LUA script {luascript}.')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_command = (0x01, 0x0C)
         sysex_script = tuple([ ord(c) for c in luascript ])
@@ -773,7 +774,7 @@ class ElectraOneBase(Log):
            the E1 (use _select_slot_only to select the desired slot)
            - preset: preset to upload; str (JASON, .epr format)
         """
-        self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
+        self.debug(4,f'Uploading preset (size {len(preset)} bytes).')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
         sysex_command = (0x01, 0x01)
         sysex_preset = tuple([ ord(c) for c in preset ])
@@ -795,7 +796,7 @@ class ElectraOneBase(Log):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(2,'Upload thread starting...','*')
+            self.debug(2,'Upload thread starting...')
             # consume any stray pending ACKs or NACKs from previous commands
             # to clear the pending acks queue
             self.__clear_acks_queue()
@@ -812,18 +813,18 @@ class ElectraOneBase(Log):
                     if self.__wait_for_ack_or_timeout( int(len(luascript)/50) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
-                        self.debug(3,'Upload thread: lua script upload failed. Aborted','*')
+                        self.debug(3,'Upload thread: lua script upload failed. Aborted')
                 else: # preset upload timeout
-                    self.debug(3,'Upload thread: preset upload failed. Aborted','*')
+                    self.debug(3,'Upload thread: preset upload failed. Aborted')
             else: # slot selection timed out
-                self.debug(2,'Upload thread failed to select slot. Aborted.','*')
+                self.debug(2,'Upload thread failed to select slot. Aborted.')
             # reopen interface
             ElectraOneBase.preset_uploading = False
             if ElectraOneBase.preset_upload_successful == True:
                 # rebuild midi map (will also refresh state) (this is why interface needs to be reactivated first ;-)
-                self.debug(2,'Upload thread requesting MIDI map to be rebuilt.','*')
+                self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
-                self.debug(2,'Upload thread done.','*')
+                self.debug(2,'Upload thread done.')
         except:
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured in upload thread {sys.exc_info()}')
