@@ -128,12 +128,12 @@ def _get_par_value_info(p,v):
         - result: tuple of the number (int or float) part and the type,
           both as strings; (str,str)
     """
-    value_as_str = p.str_for_value(v)                                         # get value as a string
+    value_as_str = p.str_for_value(v) # get value as a string
     i = 0
     # skip leading spaces (string guaranteed not to be empty)
     while value_as_str[i] == ' ':
         i += 1
-    (number_part,sep,type) = value_as_str[i:].partition(' ')                      # split at the first space
+    (number_part,sep,type) = value_as_str[i:].partition(' ') # split at the first space
     # detect special cases:
     if number_part[-1] == '°':
         return (number_part[:-1],'°')
@@ -144,8 +144,9 @@ def _get_par_value_info(p,v):
     elif number_part[-1] == 'k':
         return (number_part[:-1],'kHz')
     elif (len(type) > 0) and (type[0]==':'):
-        # TODO: for Tree Tone this is wrong
-        return (type[2:],':')
+        # TODO: for Tree Tone this is wrong (it has '1.00 :1' and '2.00 :1'
+        # as value strings)
+        return (number_part,':')
     else:
         return (number_part,type)
 
