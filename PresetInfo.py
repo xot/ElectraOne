@@ -59,32 +59,43 @@ class PresetInfo:
            - result: lua_script; str
         """
         return self._lua_script
-    
-    def validate(self):
-        """Check for internal consistency; return first found error as string.
+
+    def validate(self, device, device_name, warning):
+        """Check for internal consistency of ccmap and warn for any unmapped
+           or badly mapped parameters;
+           this may (for example) indicate that Live added or renamed
+           parameters the last time a preset was constructed 
            (Note that there are actually valid reasons to have several device
             parameters mapped to the same control/CC)
+           - device: device to which this PresetInfo belongs
+           - device_name: name of the device
+           - warning: function to call to write any warnings
         """
-        seen = []
-        duplicates = set()
         assert self._cc_map !=  None, 'Validate expects a non-empty CC map'
         assert self._json_preset != None, 'Validate expects a non-empty JSON preset'
+        # check CC map consistency
+        seen = []
         for cc_info in self._cc_map.values():
             # remember, for preloaded presets the cc_map actually contains tuples...
             if type(cc_info) is tuple:
                 cc_info = CCInfo(cc_info)
             channel = cc_info.get_midi_channel()
             if channel not in range(1,17):
-                return f'Bad MIDI channel {channel} in CC map.'
+                warning(f'Bad MIDI channel {channel} in CC map.')
             cc_no = cc_info.get_cc_no()
             if cc_no not in range(0,128):
-                return f'Bad MIDI CC parameter {cc_no} in CC map.'
+                warning(f'Bad MIDI CC parameter {cc_no} in CC map.')
             seeing = (channel, cc_no)
             if seeing in seen:
-                duplicates.add(seeing)
+                warning(f'Duplicate {seeing} in CC map.')
             else:
                 seen.append(seeing)
-        if len(duplicates) > 0:
-            return f'Warning: Duplicates { duplicates } in CC map.'
-        else:
-            return None
+        # check parameter mappings
+        pnames = [p.original_name for p in device.parameters]
+        ccnames = self._cc_map.keys()
+        for name in pnames:
+            if not name in ccnames:
+                self.warning(f'Unmapped parameter {name} found for {device_name}!')
+        for name in ccnames:
+            if not name in pnames:
+                self.warning(f'Mapped parameter {name} does not exist for {device_name}!')

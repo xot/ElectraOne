@@ -401,6 +401,7 @@ For the transport, as well as each currently controlled track and each currently
 It also defines the following other, generic, classes:
 
 - ```ElectraOneBase```: Base class with common functions: debugging, sending MIDI. (interfacing with Live through ```c_instance```). 
+- ```Log```: Defines logging and debug functions.
 - ```PresetInfo```: Stores the E1 JSON preset and the associated CC-map for a device.
 - ```CCInfo```: Channel and parameter number of a CC mapping, and
        whether the associated controller on the E1 is 14bit or 7bit. Also records the control index of the associated control in the E1 preset (if necessary for sending the exact Ableton string representation of its value).
@@ -414,6 +415,17 @@ And it defines the following core modules:
 - ```Devices.py```: stores curated device presets.
 - ```versioninfo.py```: stores the date this version was committed
 
+
+The remote script outputs various debug messages, with different 'importance' levels:
+
+0: initialisations
+1: main E1 events (except ones that happen frequently)
+2: main subclass events
+3: external events
+4: sending values; handling acks queue
+5: actual midi messages
+
+Setting ```DEBUG=x``` will show all log messages whose level is lower or equal to x.
 
 ## The mixer (```MixerController```)
 

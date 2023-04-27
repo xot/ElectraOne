@@ -24,23 +24,6 @@ class GenericDeviceController(ElectraOneBase):
        in the mixer): build MIDI maps, refresh state
     """
 
-    # TODO: does not  belong here; should be part of PresetInfo and called
-    # when loading Devices.py (this check is only relevant for preloaded presets)
-    def _mappingcheck(self):
-        """Warn for any unmapped or badly mapped parameters;
-           this may (for example) indicate that Live added or renamed
-           parameters the last time a preset was constructed 
-        """
-        pnames = [p.original_name for p in self._device.parameters]
-        ccnames = self._preset_info._cc_map.keys()
-        for name in pnames:
-            if not name in ccnames:
-                self.warning(f'Unmapped parameter {name} found for {self._device_name}!')
-        for name in ccnames:
-            if not name in pnames:
-                self.warning(f'Mapped parameter {name} does not exist for {self._device_name}!')
-        
-    
     def __init__(self, c_instance, device, preset_info):
         """Create a new device controller for the device and the
            associated preset information. It is assumed the preset is already
@@ -54,8 +37,7 @@ class GenericDeviceController(ElectraOneBase):
         self._device = device
         self._device_name = self.get_device_name(self._device)
         self._preset_info = preset_info
-        # check the parameter mappings
-        self._mappingcheck()
+        # dictionary to keep track of string value updates
         self._values = { }
 
     def build_midi_map(self, midi_map_handle):
@@ -129,8 +111,10 @@ class GenericDeviceController(ElectraOneBase):
             self.debug(3,f'Partial state refresh for device { self._device_name }')            
         # WARNING! Some devices have name clashes in their parameter list
         # so make sure only the first one is refreshed (to avoid continually
-        # refreshing two parameters with the same name but different values)
-        # TODO: fix this in a more rigorous manner
+        # refreshing two parameters with the same name but different values;
+        # the problem being that the CC map has only *one* entry for this para
+        # meter name, so both parameters are mapped to the same control)
+        # TODO: fix this in a more rigorous manner (seems to be hard...)
         refreshed = {}
         for p in self._device.parameters:
             if not p.original_name in refreshed:

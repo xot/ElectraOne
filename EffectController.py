@@ -295,10 +295,8 @@ class EffectController(ElectraOneBase):
             preset_info = dumper.get_preset()
             if DUMP:
                 self._dump_presetinfo(device,preset_info)
-        # check preset integrity; any errors will be reported in the log
-        error = preset_info.validate()
-        if error:
-            self.debug(2,f'Issues in preset found: {error}.')
+        # check preset integrity; any warnings will be reported in the log
+        preset_info.validate(device, device_name, self.warning)
         return preset_info
     
     # --- handling presets  ----
