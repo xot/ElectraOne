@@ -75,6 +75,7 @@ The remote script object should define the following methods (although if a meth
 
 - ```suggest_input_port(self)``` to tell Live the name of the preferred input port name (returned as string).
 - ```suggest_output_port(self)``` to tell Live the name of the preferred output port name (returned as string).
+- ```suggest_map_mode(self, cc_no, channel)```: Live can ask the script to suggest a map mode for the given CC.
 - ```can_lock_to_devices(self)``` to tell Live whether the remote script can be locked to devices (returned as a boolean).
 - ```lock_to_device(self, device)``` tells the remote script to lock to a given device (passed as a reference of type ```Live.Device.Device```).
 - ```unlock_from_device(self, device)``` tells the remote script to unlock from the given device (passed as a reference of type ```Live.Device.Device```).

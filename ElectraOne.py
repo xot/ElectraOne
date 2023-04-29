@@ -166,6 +166,12 @@ class ElectraOne(ElectraOneBase):
         """
         return 'Electra Controller (Electra Port 1)'
 
+    def suggest_map_mode(self, cc_no, channel):
+        """Live can ask the script to suggest a map mode for the given CC
+        """
+        self.debug(5,f'Asking MIDI map mode suggestion for {channel}:{cc_no}.')
+        return Live.MidiMap.MapMode.absolute
+    
     def can_lock_to_devices(self):
         """Live can ask the script whether it can be locked to devices
            result: bool
