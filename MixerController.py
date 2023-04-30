@@ -68,7 +68,7 @@ class MixerController(ElectraOneBase):
         idx = max(idx, 0)            
         return idx
 
-    def is_visible(self):
+    def _slot_is_visible(self):
         """Returh whether the mixer preset slot is currently visible on the E1
         """
         visible = (CONTROL_MODE == CONTROL_BOTH) or \
@@ -87,7 +87,7 @@ class MixerController(ElectraOneBase):
            (Called whenever the mixer preset is selected or tracks
            added or deleted.)
         """
-        if self.is_visible():
+        if self._slot_is_visible():
             self.debug(2,'MixCont refreshing state.')
             self._set_controls_visibility()
             self.midi_burst_on()
@@ -171,8 +171,6 @@ class MixerController(ElectraOneBase):
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
-        # make the right controls and group labels visible 
-        self._set_controls_visibility()
         # highlight the tracks currently controlled in Live too
         self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
@@ -190,7 +188,7 @@ class MixerController(ElectraOneBase):
     def _set_controls_visibility(self):
         """Set visibility of eq devices, tracks, sends and returns on the E1.
         """
-        if self.is_visible():
+        if self._slot_is_visible():
             # set visibility of the (return) tracks and sends
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # set visibility of the channel-eq devices
@@ -211,7 +209,6 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
-        # this also sets the visible tracks and return tracks on the E1
         self._remap_tracks()
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)

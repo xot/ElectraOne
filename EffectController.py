@@ -203,7 +203,7 @@ class EffectController(ElectraOneBase):
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         self.debug(0,'EffectController loaded.')
 
-    def is_visible(self):
+    def _slot_is_visible(self):
         """Returh whether the effect preset slot is currently visible on the E1
         """
         visible = (CONTROL_MODE == CONTROL_BOTH) or \
@@ -227,7 +227,7 @@ class EffectController(ElectraOneBase):
         """
         return self._assigned_device and \
             self._assigned_device_is_uploaded() and \
-            self.is_visible()
+            self._slot_is_visible()
         
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
@@ -389,7 +389,7 @@ class EffectController(ElectraOneBase):
            the E1 if needed (and possible) and create a device controller for it.
         """
         if self.is_ready() and \
-           (SWITCH_TO_EFFECT_IMMEDIATELY or self.is_visible()):
+           (SWITCH_TO_EFFECT_IMMEDIATELY or self._slot_is_visible()):
             self._upload_assigned_device()
         else:
             # If this happens, update_display will regularly check whether
@@ -402,7 +402,7 @@ class EffectController(ElectraOneBase):
            possible and necessary.
            - device: device to assign; Live.Device.Device
         """
-        # If device == None then  no device appointed
+        # If device == None then no device appointed
         if device != None:
             device_name = self.get_device_name(device)
             self.debug(2,f'Assignment of device { device_name } detected')
@@ -414,9 +414,10 @@ class EffectController(ElectraOneBase):
                 self.debug(2,f'Assigning new device { device_name }')
                 self._assigned_device = device
                 self._assigned_device_controller = None
+                # upload preset: will also request midi map (which will also refresh state)                
                 self._upload_assigned_device_if_possible_and_needed()
         else:
-            # assigns the EMPTY_DEVICE (needed to install some LAU script
+            # assigns the EMPTY_DEVICE (needed to install some LUA script
             # when comamnds need to be forwarded to a mixer when
             # in CONTROL_BOTH_MODE 
             self._assigned_device = None

@@ -164,7 +164,10 @@ class TransportController(ElectraOneBase):
             self.debug(5,f'TransportController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             handler(value)
-        return (midi_channel,cc_no) in self._CC_HANDLERS
+            return True
+        else:
+            return False
+    
     def build_midi_map(self, script_handle, midi_map_handle):
         """Map all track controls on their associated MIDI CC numbers; either
            map them completely (Live handles all MIDI automatically) or make sure
