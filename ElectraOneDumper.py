@@ -802,7 +802,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if device_name in PARAMETERS_TO_IGNORE:
             ignore = ignore + PARAMETERS_TO_IGNORE[device_name] # duplicates do not matter
         self.debug(4,f'Ignoring parameters: {ignore}')
-        parameters = [p for p in parameters if p.name not in ignore]
+        parameters = [p for p in parameters if p.original_name not in ignore]
         # now sort (and filter if ORDER_DEVICE_DICT)
         if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and \
            (device_name not in ORDER_DEVICEDICT_IGNORE):
@@ -811,7 +811,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             # order parameters as in parlist, skip parameters that are not
             # listed in parlist
             parameters_copy = []
-            parameters_dict = { p.name: p for p in parameters }
+            # TODO: does DEVICE_DICT use p.name or p.original_name? 
+            parameters_dict = { p.original_name: p for p in parameters }
             # copy in the order in which parameters appear in parlist
             for name in parlist:
                 if name in parameters_dict:
@@ -822,11 +823,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
+            # sort by name, not original_name
             parameters_copy.sort(key=lambda p: p.name)
             result = parameters_copy
         else: 
             result = parameters
-        self.debug(4,f'Filtered and order parameters: {[p.name for p in result]}')
+        self.debug(4,f'Filtered and order parameters: {[p.original_name for p in result]}')
         return result
 
     def __init__(self, c_instance, device): 
