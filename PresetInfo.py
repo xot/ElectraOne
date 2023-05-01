@@ -95,7 +95,7 @@ class PresetInfo:
         ccnames = self._cc_map.keys()
         for name in pnames:
             if not name in ccnames:
-                self.warning(f'Unmapped parameter {name} found for {device_name}!')
+                warning(f'Unmapped parameter {name} found for {device_name}!')
         for name in ccnames:
             if not name in pnames:
-                self.warning(f'Mapped parameter {name} does not exist for {device_name}!')
+                warning(f'Mapped parameter {name} does not exist for {device_name}!')
