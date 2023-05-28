@@ -524,8 +524,8 @@ class ElectraOneBase(Log):
            supported.
            - message: the MIDI message to send; sequence of bytes
         """
-        self.debug(4,'Sending SysEx.')
         sysex_message = self._E1_sysex(message)
+        self.debug(4,f'Sending SysEx ({len(sysex_message)} bytes).')
         # test whether longer SysEx message, and fast uploading is supported
         if len(sysex_message) > 100 and ElectraOneBase._fast_sysex: 
             # convert bytes sequence to its string representation.
@@ -558,6 +558,10 @@ class ElectraOneBase(Log):
         self._send_midi_sysex(sysex_command + sysex_lua)
         # LUA commands respond with ACK/NACK
         self._increment_acks_pending()
+        # in CONTROL_BOTH mode BOTH E1s send an ACK! (if the first E1 is at version 3.2.0
+        # and this only affects all calls to _send_lua_command
+        if ((CONTROL_MODE == CONTROL_BOTH) and self.version_exceeds((3,2,0))):
+            self._increment_acks_pending()
 
     def midi_burst_on(self):
         """Prepare the script for a burst of updates; set a small delay
