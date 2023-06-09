@@ -356,7 +356,7 @@ class ElectraOneBase(Log):
            result: timeout in (fractional) seconds
         """
         # cap timeout to maximum
-        timeout = min(timeout,250)
+        timeout = min(timeout,1000) # was 250 for mkI
         # stretch timeout when no fast sysex uploading
         if not ElectraOneBase._fast_sysex:
             timeout = 8 * timeout
@@ -578,7 +578,7 @@ class ElectraOneBase(Log):
         self._send_lua_command('aa()')
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
-        time.sleep(0.01) # 10ms 
+        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
         
     def midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
@@ -594,7 +594,7 @@ class ElectraOneBase(Log):
         self._send_lua_command('zz()')
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
-        time.sleep(0.01) # 10ms 
+        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
         
     def update_track_labels(self, idx, label):
         """Update the label for a track on all relevant pages
@@ -810,10 +810,10 @@ class ElectraOneBase(Log):
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
                 # patch sizes range from 500 - 100.000 bytes
-                if self.__wait_for_ack_or_timeout( int(len(preset)/50) ):
+                if self.__wait_for_ack_or_timeout( int(len(preset)/24) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self.__wait_for_ack_or_timeout( int(len(luascript)/50) ):
+                    if self.__wait_for_ack_or_timeout( int(len(luascript)/25) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
