@@ -361,8 +361,8 @@ class ElectraOneBase(Log):
         if not ElectraOneBase._fast_sysex:
             timeout = 8 * timeout
         # also stretch (further) if logging takes place
-        if E1_LOGGING:
-            timeout = 2 * timeout
+        if E1_LOGGING >=0 :
+            timeout = (1 + E1_LOGGING) * timeout
         if E1_LOGGING_PORT == E1_PORT:
             timeout = 2 * timeout
         # minimum timeout is 600ms
@@ -670,12 +670,12 @@ class ElectraOneBase(Log):
            and respond to them.
            NOTE: waits for receipt of ACK, so MUST only be called within a thread!
         """
-        if E1_LOGGING:
+        if E1_LOGGING >= 0:
             self.debug(1,'Enable logging.')
         else:
             self.debug(1,'Disable logging.')
         # Set the logging port
-        if E1_LOGGING:
+        if E1_LOGGING >= 0 :
             # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
             sysex_command = (0x14, 0x7D)
             sysex_port = (E1_LOGGING_PORT, 0x00)
@@ -685,8 +685,8 @@ class ElectraOneBase(Log):
         # Enable/disable logging
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_command = (0x7F, 0x7D)
-        if E1_LOGGING:
-            sysex_status = ( 0x01, 0x00 )
+        if E1_LOGGING >=0 :
+            sysex_status = ( 0x01, E1_LOGGING )
         else:
             sysex_status = ( 0x00, 0x00 )
         ElectraOneBase.ack_received = False

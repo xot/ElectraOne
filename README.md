@@ -219,7 +219,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 
 - ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
-- ```E1_LOGGING``` controls whether the E1 should send log messages, default ```False```.
+- ```E1_LOGGING``` controls whether the E1 should send log messages, and if so how detailed. Default ```-1``` (which means no logging). Other possible levels: ```0``` (critical messages and errors only), ```1``` (warning messages), ```2``` (informative messages), or ```3``` (tracing messages).
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
 - ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
 - ```DETECT_E1``` controls whether to detect the E1 at startup, or not.

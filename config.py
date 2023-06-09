@@ -20,8 +20,9 @@ UNMAPPED_ID = -1
 # imply more information. 0 means no logging at all.
 DEBUG = 2
 
-# Whether the E1 should send log messages
-E1_LOGGING = False
+# Whether the E1 should send log messages, and if so at which levek of detail
+# (-1 is no logging)
+E1_LOGGING = -1
 
 # Which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL)
 E1_LOGGING_PORT = 2
