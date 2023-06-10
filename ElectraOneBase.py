@@ -356,7 +356,7 @@ class ElectraOneBase(Log):
            result: timeout in (fractional) seconds
         """
         # cap timeout to maximum
-        timeout = min(timeout,1000) # was 250 for mkI
+        timeout = min(timeout,250)
         # stretch timeout when no fast sysex uploading
         if not ElectraOneBase._fast_sysex:
             timeout = 8 * timeout
@@ -366,7 +366,7 @@ class ElectraOneBase(Log):
         if E1_LOGGING_PORT == E1_PORT:
             timeout = 2 * timeout
         # minimum timeout is 600ms
-        timeout = max(60,timeout)
+        timeout = max(60,timeout) 
         # convert to (fractional) seconds
         return timeout/100
         
@@ -388,16 +388,18 @@ class ElectraOneBase(Log):
            some timeout).
            (Can only be called inside a thread.)
         """
-        # wait five seconds since acks_pending was incremented last
+        # wait four seconds since acks_pending was incremented last
+        start_time = time.time()
         end_time = ElectraOneBase.acks_pending_incremented_time + 4.0
-        self.debug(4,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending), wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
+        self.debug(4,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending) on {start_time:.3f}, wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self.__wait_for_pending_acks_until(end_time)
+        now = time.time()
         if (ElectraOneBase.acks_pending == 0):
-            self.debug(4,f'Thread: acks queue cleared within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'Thread: acks queue cleared at {now:.3f} within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
         else:
             # clear any pending acks/nacks
             ElectraOneBase.acks_pending = 0            
-            self.debug(4,f'Thread: acks queue still not empty within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'Thread: acks queue still not empty at {now:.3f} after {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
         
     def __wait_for_ack_or_timeout(self, timeout):
         """Wait until all pending ACk or NACK messages from the E1 have
@@ -409,17 +411,19 @@ class ElectraOneBase(Log):
            - timeout: time to wait (in 'units', ranging from 5-1000); int
         """
         timeout = self._adjust_timeout(timeout)
-        end_time = time.time() + timeout
-        self.debug(4,f'Thread waiting for ACK, setting timeout {timeout:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+        start_time = time.time()
+        end_time = start_time + timeout
+        self.debug(4,f'Thread waiting for ACK, setting timeout {timeout:.3f} seconds at time {start_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self.__wait_for_pending_acks_until(end_time)
+        now = time.time()
         if (ElectraOneBase.acks_pending == 0) and \
            (ElectraOneBase.ack_or_nack_received == ACK_RECEIVED):
-            self.debug(4,f'Thread: ACK received within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'Thread: ACK received at {now:.3f} within {waiting_time:.3f} seconds (preset uploading: {ElectraOneBase.preset_uploading}).')
             return True
         else:
             # clear any pending acks/nacks
             ElectraOneBase.acks_pending = 0            
-            self.debug(4,f'Thread: ACK not received within {waiting_time:.3f} seconds, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'Thread: ACK not received at {now:.3f} after {waiting_time:.3f} seconds, operation may have failed (preset uploading: {ElectraOneBase.preset_uploading}).')
             return False
 
     # --- send MIDI ---
@@ -572,13 +576,13 @@ class ElectraOneBase(Log):
         # so the buffers are only 32 entries for sysex, and 128 non-sysex
         # So really what should be done is wait after filling all buffers in
         # a burst
-        ElectraOneBase._send_midi_sleep = 0 # 0.005
+        ElectraOneBase._send_midi_sleep = 0 # 0.005 
         ElectraOneBase._send_value_update_sleep = 0 # 0.035
         # defer drawing
         self._send_lua_command('aa()')
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
-        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
+        time.sleep(0.01) # 10ms 
         
     def midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
@@ -594,7 +598,7 @@ class ElectraOneBase(Log):
         self._send_lua_command('zz()')
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
-        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
+        time.sleep(0.01) # 10ms 
         
     def update_track_labels(self, idx, label):
         """Update the label for a track on all relevant pages
@@ -810,10 +814,10 @@ class ElectraOneBase(Log):
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
                 # patch sizes range from 500 - 100.000 bytes
-                if self.__wait_for_ack_or_timeout( int(len(preset)/24) ):
+                if self.__wait_for_ack_or_timeout( int(len(preset)/50) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self.__wait_for_ack_or_timeout( int(len(luascript)/25) ):
+                    if self.__wait_for_ack_or_timeout( int(len(luascript)/50) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
