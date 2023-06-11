@@ -123,7 +123,7 @@ class GenericDeviceController(ElectraOneBase):
         if full_refresh:
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
-            self.debug(3,f'Partial state refresh for device { self._device_name }')            
+            self.debug(6,f'Partial state refresh for device { self._device_name }')            
         # WARNING! Some devices have name clashes in their parameter list
         # so make sure only the first one is refreshed (to avoid continually
         # refreshing two parameters with the same name but different values;

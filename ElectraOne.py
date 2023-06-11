@@ -98,15 +98,11 @@ class ElectraOne(ElectraOneBase):
                 while not self._request_response_received:
                     self.send_e1_request()
                     time.sleep(0.5)
-                self.debug(2,'Connection thread: E1 found')
-                if not self.version_exceeds((3,1,5)):
-                    self.debug(0,f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
-                    self.show_message(f'Version {ElectraOneBase.E1_version} older than 3.1.5. Disabling ElectraOne control surface.')
-                    return
-                else:
-                    self.show_message(f'Version {ElectraOneBase.E1_version} detected.')
             else:
                 self.debug(2,'Connection thread skipping detection.')
+            if not ElectraOneBase.E1_version_supported:
+                return
+            self.debug(2,'Connection thread: supported E1 found')
             # complete the initialisation
             self.setup_fast_sysex()
             self.setup_logging()
@@ -249,7 +245,7 @@ class ElectraOne(ElectraOneBase):
         self.debug(3,f'Request response received: {json_str}' )
         # get the version
         json_dict = json.loads(json_str)
-        self.set_version(json_dict["versionText"])
+        self.set_version(json_dict["versionText"],json_dict["hwRevision"])
         self._request_response_received = True
 
     def _do_logmessage(self, midi_bytes):

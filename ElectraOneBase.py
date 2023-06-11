@@ -22,6 +22,7 @@ import threading
 import time
 import sys
 import os
+import string
 
 # Local imports
 from .config import *
@@ -115,9 +116,6 @@ class ElectraOneBase(Log):
     # to open/close E1 remote-script interface. See is_ready()
     E1_connected = None
 
-    # E1 version info as a tuple of integers (major, minor, sub).
-    E1_version = (0,0,0)
-    
     # flag indicating whether the last preset upload was successful
     preset_upload_successful = None
 
@@ -260,33 +258,53 @@ class ElectraOneBase(Log):
     
     # --- dealing with fimrware versions
 
-    def set_version(self, versionstr):
+    # E1 version info as a tuple of integers (major, minor, sub).
+    _E1_version = (0,0,0)
+
+    # Record whether attached version of E1 is supported by the remote script
+    E1_version_supported = False
+
+    # Record whether E1 will forward ACKs from anotehr E1 attached to it
+    E1_FORWARDS_ACK = False
+
+    def configure_for_version(self, version):
+        """Configure the remote script depending on the version of E1 attached
+        """
+        ElectraOneBase._E1_version = version
+        if version < (3,1,5):
+            ElectraOneBase.E1_version_supported = False
+            self.debug(0,f'Version {version} older than 3.1.5. Disabling ElectraOne control surface.')
+            self.show_message(f'Version {version} older than 3.1.5. Disabling ElectraOne control surface.')
+        else:
+            ElectraOneBase.E1_version_supported = True
+            self.show_message(f'Version {version} detected.')
+            ElectraOneBase.E1_FORWARDS_ACK = (version >= (3,2,0))
+                
+    def set_version(self, sw_versionstr, hw_versionstr):
         """Set the E1 firmware version.
-           - versionstr: version string as returned by request response; str
+           - sw_versionstr: software version string as returned by request response; str
+           - hw_versionstr: software version string as returned by request response; str
         """
         # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
-        # format "v<major>.<minor>.<sub>" (sub somtimes missing)
+        # sw_versionstr format "v<major>.<minor>.<sub>" (sub somtimes missing; sub sometimes including trailing letter)
         try:
-            version_tuple = versionstr[1:].split('.')
+            version_tuple = sw_versionstr[1:].split('.')
             if len(version_tuple) == 3:
                 (majorstr,minorstr,substr) = version_tuple
-                ElectraOneBase.E1_version = (int(majorstr),int(minorstr),int(substr))
+                # remove any trailing letters from version string
+                if substr[-1] not in string.digits:
+                    substr = substr[:-1]
+                version = (int(majorstr),int(minorstr),int(substr))
             elif len(version_tuple) == 2:
                 (majorstr,minorstr) = version_tuple
-                ElectraOneBase.E1_version = (int(majorstr),int(minorstr),0)
+                version = (int(majorstr),int(minorstr),0)
             else:
-                ElectraOneBase.E1_version = (0,0,0)
+                version = (0,0,0)
+            self.configure_for_version(version)
         except ValueError:
-            self.debug(2,f'Failed to parse version string { versionstr }.')
-            ElectraOneBase.E1_version = (0,0,0)
-        self.debug(2,f'E1 version { ElectraOneBase.E1_version }.')
-
-    def version_exceeds(self, version):
-        """test the E1 firmware version.
-           - version: version to test; tuple
-           - result: whether the E1 version is at least at version; bool
-        """
-        return (version <= ElectraOneBase.E1_version)
+            self.debug(2,f'Failed to parse version string { sw_versionstr }.')
+            ElectraOneBase._E1_version = (0,0,0)
+        self.debug(2,f'E1 version { version }.')
         
     # --- Fast MIDI sysex upload handling
 
@@ -567,7 +585,7 @@ class ElectraOneBase(Log):
         self._increment_acks_pending()
         # in CONTROL_BOTH mode BOTH E1s send an ACK! (if the first E1 is at version 3.2.0
         # and this only affects all calls to _send_lua_command
-        if ((CONTROL_MODE == CONTROL_BOTH) and self.version_exceeds((3,2,0))):
+        if (CONTROL_MODE == CONTROL_BOTH) and ElectraOneBase.E1_FORWARDS_ACK:
             self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_lua)
 
@@ -580,7 +598,7 @@ class ElectraOneBase(Log):
         # so the buffers are only 32 entries for sysex, and 128 non-sysex
         # So really what should be done is wait after filling all buffers in
         # a burst
-        ElectraOneBase._send_midi_sleep = 0.05 # 0 worked fine for mkI
+        ElectraOneBase._send_midi_sleep = 0.1 # 0 worked fine for mkI
         ElectraOneBase._send_value_update_sleep = 0 # 0 worked fine for mkI
         # defer drawing
         self._send_lua_command('aa()')
@@ -596,7 +614,7 @@ class ElectraOneBase(Log):
         # wait a bit (100ms) to ensure all MIDI CC messages have been processed
         # and all ACKs/NACks for LUA commands sent have been received
         time.sleep(0.1) 
-        ElectraOneBase._send_midi_sleep = 0.05 # 0 worked fine for mkI
+        ElectraOneBase._send_midi_sleep = 0.1 # 0 worked fine for mkI
         ElectraOneBase._send_value_update_sleep = 0 # 0 worked fine for mkI
         # reenable drawing and update display
         self._send_lua_command('zz()')

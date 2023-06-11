@@ -35,16 +35,17 @@ CONTROLSETS_PER_PAGE = 3
 SLOTS_PER_ROW = 6
 
 # Bounds constants: the width and height of a control on the ElectraOne display
+# for FW below 3.0.5
+#WIDTH = 146
+#HEIGHT = 56
+#XCOORDS = [0,170,340,510,680,850]
+#YCOORDS = [40,128,216,304,392,480]
+
+# Bounds constants for FW 3.0.5 and higher (FW lower than 3.0.5 not supported anymore anyway)
 WIDTH = 146
 HEIGHT = 56
-XCOORDS = [0,170,340,510,680,850]
-YCOORDS = [40,128,216,304,392,480]
-
-# Bounds constants for FW 3.0.5 and higher
-WIDTH_v2 = 146
-HEIGHT_v2 = 56
-XCOORDS_v2 = [20,187,354,521,688,855]
-YCOORDS_v2 = [28,118,208,298,388,478]
+XCOORDS = [20,187,354,521,688,855]
+YCOORDS = [28,118,208,298,388,478]
 
 # maximum values in a preset
 MAX_NAME_LEN = 14
@@ -399,11 +400,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # (0,0) is top left slot; layout controls left -> right, top -> bottom
         x = idx % SLOTS_PER_ROW
         y = idx // SLOTS_PER_ROW
-        # Use different bounds for firmware >= 3.0.5
-        if self.version_exceeds((3,0,5)):
-            self._append( f',"bounds":[{ XCOORDS_v2[x] },{ YCOORDS_v2[y] },{ WIDTH_v2 },{ HEIGHT_v2 }]' )            
-        else:
-            self._append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
+        self._append( f',"bounds":[{ XCOORDS[x] },{ YCOORDS[y] },{ WIDTH },{ HEIGHT }]' )
 
     def _append_json_toggle(self, cc_info):
         """Append a toggle pad for an on/off valued list.
