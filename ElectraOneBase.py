@@ -258,8 +258,11 @@ class ElectraOneBase(Log):
     
     # --- dealing with fimrware versions
 
-    # E1 version info as a tuple of integers (major, minor, sub).
-    _E1_version = (0,0,0)
+    # E1 software version info as a tuple of integers (major, minor, sub).
+    _E1_sw_version = (0,0,0)
+
+    # E1 hardware version info as a tuple of integers (major, minor).
+    _E1_hw_version = (0,0)
 
     # Record whether attached version of E1 is supported by the remote script
     E1_version_supported = False
@@ -267,18 +270,57 @@ class ElectraOneBase(Log):
     # Record whether E1 will forward ACKs from anotehr E1 attached to it
     E1_FORWARDS_ACK = False
 
-    def configure_for_version(self, version):
+    # Minimum and maximum timeouts to wait for an ACK
+    MIN_TIMEOUT = 0
+    MAX_TIMEOUT = 0
+
+    # Time to sleep between MIDI CC and LUA value update messages in normal mode
+    MIDI_SLEEP = 0
+    VALUE_UPDATE_SLEEP = 0
+
+    # Time to sleep between MIDI CC and LUA value update messages in burst mode
+    BURST_MIDI_SLEEP = 0
+    BURST_VALUE_UPDATE_SLEEP = 0 
+
+    # Time to sleep after turning on/off burst mode
+    BURST_ON_OFF_SLEEP = 0
+
+    # Factor to divide patch/lua-script length to compute lenght dependent timeout
+    TIMEOUT_LENGTH_FACTOR = 1
+    
+    def configure_for_version(self, sw_version, hw_version):
         """Configure the remote script depending on the version of E1 attached
         """
-        ElectraOneBase._E1_version = version
-        if version < (3,1,5):
+        ElectraOneBase._E1_sw_version = sw_version
+        ElectraOneBase._E1_hw_version = hw_version
+        if sw_version < (3,1,5):
             ElectraOneBase.E1_version_supported = False
-            self.debug(0,f'Version {version} older than 3.1.5. Disabling ElectraOne control surface.')
-            self.show_message(f'Version {version} older than 3.1.5. Disabling ElectraOne control surface.')
+            self.debug(0,f'Version {sw_version} older than 3.1.5. Disabling ElectraOne control surface.')
+            self.show_message(f'Version {sw_version} older than 3.1.5. Disabling ElectraOne control surface.')
         else:
             ElectraOneBase.E1_version_supported = True
-            self.show_message(f'Version {version} detected.')
-            ElectraOneBase.E1_FORWARDS_ACK = (version >= (3,2,0))
+            ElectraOneBase.E1_FORWARDS_ACK = (sw_version >= (3,2,0))
+            # set hwardware dependent options
+            if hw_version >= (3,0): # mkII
+                ElectraOneBase.MIN_TIMEOUT = 200
+                ElectraOneBase.MAX_TIMEOUT = 2000
+                ElectraOneBase.MIDI_SLEEP = 0.1 
+                ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
+                ElectraOneBase.BURST_MIDI_SLEEP = 0.1 
+                ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
+                ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
+                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 25
+                self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
+            else: # mkI
+                ElectraOneBase.MIN_TIMEOUT = 60
+                ElectraOneBase.MAX_TIMEOUT = 250                 
+                ElectraOneBase.MIDI_SLEEP = 0
+                ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
+                ElectraOneBase.BURST_MIDI_SLEEP = 0
+                ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0 
+                ElectraOneBase.BURST_ON_OFF_SLEEP = 0.01                 
+                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 50
+                self.show_message(f'E1, with firmware {sw_version} detected.')
                 
     def set_version(self, sw_versionstr, hw_versionstr):
         """Set the E1 firmware version.
@@ -286,6 +328,7 @@ class ElectraOneBase(Log):
            - hw_versionstr: software version string as returned by request response; str
         """
         # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
+        # parse software version string
         # sw_versionstr format "v<major>.<minor>.<sub>" (sub somtimes missing; sub sometimes including trailing letter)
         try:
             version_tuple = sw_versionstr[1:].split('.')
@@ -294,17 +337,29 @@ class ElectraOneBase(Log):
                 # remove any trailing letters from version string
                 if substr[-1] not in string.digits:
                     substr = substr[:-1]
-                version = (int(majorstr),int(minorstr),int(substr))
+                sw_version = (int(majorstr),int(minorstr),int(substr))
             elif len(version_tuple) == 2:
                 (majorstr,minorstr) = version_tuple
-                version = (int(majorstr),int(minorstr),0)
+                sw_version = (int(majorstr),int(minorstr),0)
             else:
-                version = (0,0,0)
-            self.configure_for_version(version)
+                sw_version = (0,0,0)
         except ValueError:
-            self.debug(2,f'Failed to parse version string { sw_versionstr }.')
-            ElectraOneBase._E1_version = (0,0,0)
-        self.debug(2,f'E1 version { version }.')
+            self.debug(2,f'Failed to parse software version string { sw_versionstr }.')
+            ElectraOneBase._E1_sw_version = (0,0,0)
+        # parse hardware version string
+        # hw_versionstr format "<major>.<minor>": "3.0" = mkII}
+        try:
+            version_tuple = hw_versionstr.split('.')
+            if len(version_tuple) == 2:
+                (majorstr,minorstr) = version_tuple
+                hw_version = (int(majorstr),int(minorstr))
+            else:
+                hw_version = (0,0)
+        except ValueError:
+            self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
+            ElectraOneBase._E1_hw_version = (0,0)
+        self.configure_for_version(sw_version,hw_version)
+        self.debug(2,f'E1 version {sw_version} (software) { hw_version } (hardware).')
         
     # --- Fast MIDI sysex upload handling
 
@@ -378,7 +433,7 @@ class ElectraOneBase(Log):
            result: timeout in (fractional) seconds
         """
         # cap timeout to maximum
-        timeout = min(timeout,2000) # was 250 for mkI
+        timeout = min(timeout,ElectraOneBase.MAX_TIMEOUT) 
         # stretch timeout when no fast sysex uploading
         if not ElectraOneBase._fast_sysex:
             timeout = 8 * timeout
@@ -388,7 +443,7 @@ class ElectraOneBase(Log):
         if E1_LOGGING_PORT == E1_PORT:
             timeout = 2 * timeout
         # minimum timeout is 1000ms
-        timeout = max(200,timeout) # 60 (=600ms) was fine for mkI
+        timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
         # convert to (fractional) seconds
         return timeout/100
         
@@ -598,13 +653,13 @@ class ElectraOneBase(Log):
         # so the buffers are only 32 entries for sysex, and 128 non-sysex
         # So really what should be done is wait after filling all buffers in
         # a burst
-        ElectraOneBase._send_midi_sleep = 0.1 # 0 worked fine for mkI
-        ElectraOneBase._send_value_update_sleep = 0 # 0 worked fine for mkI
+        ElectraOneBase._send_midi_sleep = ElectraOneBase.BURST_MIDI_SLEEP
+        ElectraOneBase._send_value_update_sleep = ElectraOneBase.BURST_VALUE_UPDATE_SLEEP 
         # defer drawing
         self._send_lua_command('aa()')
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
-        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
+        time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
         
     def midi_burst_off(self):
         """Reset the delays, because updates are now individual. And allow
@@ -613,14 +668,14 @@ class ElectraOneBase(Log):
         self.debug(4,'MIDI burst off.')
         # wait a bit (100ms) to ensure all MIDI CC messages have been processed
         # and all ACKs/NACks for LUA commands sent have been received
-        time.sleep(0.1) 
-        ElectraOneBase._send_midi_sleep = 0.1 # 0 worked fine for mkI
-        ElectraOneBase._send_value_update_sleep = 0 # 0 worked fine for mkI
+        time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
+        ElectraOneBase._send_midi_sleep = ElectraOneBase.BURST_MIDI_SLEEP
+        ElectraOneBase._send_value_update_sleep = ElectraOneBase.BURST_VALUE_UPDATE_SLEEP
         # reenable drawing and update display
         self._send_lua_command('zz()')
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
-        time.sleep(0.1) # 0.01 = 10ms (worked for the mkI)
+        time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
         
     def update_track_labels(self, idx, label):
         """Update the label for a track on all relevant pages
@@ -836,10 +891,10 @@ class ElectraOneBase(Log):
                 self._upload_preset_to_current_slot(preset)
                 # timeout depends on patch complexity
                 # patch sizes range from 500 - 100.000 bytes
-                if self.__wait_for_ack_or_timeout( int(len(preset)/25) ):
+                if self.__wait_for_ack_or_timeout( int(len(preset)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self.__wait_for_ack_or_timeout( int(len(luascript)/25) ):
+                    if self.__wait_for_ack_or_timeout( int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
