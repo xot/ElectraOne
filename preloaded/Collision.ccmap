@@ -59,8 +59,10 @@
 ,'Res 1 Hit < Random': (-1,12,True,21)
 ,'Res 1 Listening L': (-1,12,True,24)
 ,'Res 1 Listening R': (-1,12,True,25)
-,'Panorama': (-1,12,True,14)
-,'Pan < Key': (-1,12,True,12)
+,'Panorama': (-1,12,True,14) # Live 11.2 (duplicate later on)
+,'Res 1 Pan': (-1,12,True,14) # new name for Panorama in Live 11.3
+,'Pan < Key': (-1,12,True,12) # Live 11.2 (duplicate later on)
+,'Res 1 Pan < Key': (-1,12,True,12) # new name for Pan < Key in Live 11.3
 ,'Res 1 Volume': (100,13,True,8)
 ,'Res 2 On/Off': (-1,11,False,92)
 ,'Res 2 Type': (-1,11,False,95)
@@ -92,8 +94,10 @@
 ,'Res 2 Hit < Random': (-1,13,True,15)
 ,'Res 2 Listening L': (-1,13,True,18)
 ,'Res 2 Listening R': (-1,13,True,19)
-,'Panorama': (-1,12,True,14)
-,'Pan < Key': (-1,12,True,12)
+#,'Panorama': (-1,12,True,14) # duplicate Live 11.2
+,'Res 2 Pan': (-1,12,True,13) # new name for Panorama in Live 11.3
+#,'Pan < Key': (-1,12,True,12) # duplicate Live 11.2
+,'Res 2 Pan < Key': (-1,12,True,11) # new name for Pan < Key in Live 11.3
 ,'Res 2 Volume': (131,14,True,2)
 ,'LFO 1 On/Off': (-1,11,False,69)
 ,'LFO 1 Shape': (-1,11,False,71)
@@ -105,10 +109,14 @@
 ,'LFO 1 Offset': (-1,11,True,6)
 ,'LFO 1 Depth': (-1,11,True,2)
 ,'LFO 1 Depth < Vel': (-1,11,True,3)
-,'LFO 1 Destination A': (-1,11,False,67)
-,'LFO 1 Destination A Amount': (-1,11,True,4)
-,'LFO 1 Destination B': (-1,11,False,68)
-,'LFO 1 Destination B Amount': (-1,11,True,5)
+,'LFO 1 Destination A': (-1,11,False,67) # Live 11.2
+,'LFO 1 Dest A': (-1,11,False,67) # Live 11.3
+,'LFO 1 Destination A Amount': (-1,11,True,4) # Live 11.2
+,'LFO 1 Amt A': (-1,11,True,4) # Live 11.3
+,'LFO 1 Destination B': (-1,11,False,68) # Live 11.2
+,'LFO 1 Dest B': (-1,11,False,68) # Live 11.3
+,'LFO 1 Destination B Amount': (-1,11,True,5) # Live 11.2
+,'LFO 1 Amt B': (-1,11,True,5) # Live 11.3
 ,'LFO 2 On/Off': (-1,11,False,75)
 ,'LFO 2 Shape': (-1,11,False,77)
 ,'LFO 2 Retrigger': (-1,11,False,76)
@@ -119,18 +127,36 @@
 ,'LFO 2 Offset': (-1,11,True,14)
 ,'LFO 2 Depth': (-1,11,True,10)
 ,'LFO 2 Depth < Vel': (-1,11,True,11)
-,'LFO 2 Destination A': (-1,11,False,73)
-,'LFO 2 Destination A Amount': (-1,11,True,12)
-,'LFO 2 Destination B': (-1,11,False,74)
-,'LFO 2 Destination B Amount': (-1,11,True,13)
-,'PB Destination A': (-1,11,False,84)
-,'PB Destination A Amount': (-1,12,True,10)
-,'MW Destination A': (-1,11,False,79)
-,'MW Destination A Amount': (-1,11,True,18)
-,'MW Destination B': (-1,11,False,80)
-,'MW Destination B Amount': (-1,11,True,19)
-,'AT Destination A': (-1,11,False,64)
-,'AT Destination A Amount': (-1,11,True,0)
-,'AT Destination B': (-1,11,False,65)
-,'AT Destination B Amount': (-1,11,True,1)
+,'LFO 2 Destination A': (-1,11,False,73) # Live 11.2
+,'LFO 2 Dest A': (-1,11,False,73) # Live 11.3
+,'LFO 2 Destination A Amount': (-1,11,True,12) # Live 11.2
+,'LFO 2 Amt A': (-1,11,True,12) # Live 11.3
+,'LFO 2 Destination B': (-1,11,False,74) # Live 11.2
+,'LFO 2 Dest B': (-1,11,False,74) # Live 11.3
+,'LFO 2 Destination B Amount': (-1,11,True,13) # Live 11.2
+,'LFO 2 Amt B': (-1,11,True,13) # Live 11.3
+,'PB Destination A': (-1,11,False,84) # Live 11.2
+,'PB Dest A': (-1,11,False,84) # Live 11.3
+,'PB Destination A Amount': (-1,12,True,10) # Live 11.2
+,'PB Amt A': (-1,12,True,10) # Live 11.3
+,'MW Destination A': (-1,11,False,79) # Live 11.2
+,'MW Dest A': (-1,11,False,79) # Live 11.3
+,'MW Destination A Amount': (-1,11,True,18) # Live 11.2
+,'MW Amt A': (-1,11,True,18) # Live 11.3
+,'MW Destination B': (-1,11,False,80) # Live 11.2
+,'MW Dest B': (-1,11,False,80) # Live 11.3
+,'MW Destination B Amount': (-1,11,True,19) # Live 11.2
+,'MW Amt B': (-1,11,True,19) # Live 11.3
+,'AT Destination A': (-1,11,False,64) # Live 11.2
+,'Press Dest A': (-1,11,False,64) # Live 11.3
+,'AT Destination A Amount': (-1,11,True,0) # Live 11.2
+,'Press Amt A': (-1,11,True,0) # Live 11.3 
+,'AT Destination B': (-1,11,False,65) # Live 11.2
+,'Press Dest B': (-1,11,False,65) # Live 11.3
+,'AT Destination B Amount': (-1,11,True,1) # Live 11.2
+,'Press Amt B': (-1,11,True,1) # Live 11.3
+,'Slide Dest A': (-1,14,False,4) # new in Live 11.3
+,'Slide Amt A': (-1,14,True,5) # new in Live 11.3
+,'Slide Dest B': (-1,14,False,6) # new in Live 11.3
+,'Slide Amt B': (-1,14,True,7) # new in Live 11.3
 }

@@ -142,8 +142,9 @@ with open(DEVICES,'w') as outf:
             #print('- Loading CCMAP.')
             ccmap = inf.read()
             # Remove newlines from ccmap
-            filter_newlines = str.maketrans({ '\n': None})
-            ccmap = ccmap.translate(filter_newlines)
+            # TODO: commented out to allow comments in CC-maps
+            #filter_newlines = str.maketrans({ '\n': None})
+            #ccmap = ccmap.translate(filter_newlines)
         # write the preset information to the output
         outf.write(f"'{ device_name }': PresetInfo('")
         outf.write(json_preset)

@@ -304,9 +304,9 @@ class ElectraOneBase(Log):
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.MIN_TIMEOUT = 200
                 ElectraOneBase.MAX_TIMEOUT = 2000
-                ElectraOneBase.MIDI_SLEEP = 0.1 
+                ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
-                ElectraOneBase.BURST_MIDI_SLEEP = 0.1 
+                ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
                 ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 25
