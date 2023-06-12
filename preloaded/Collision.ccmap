@@ -1,6 +1,7 @@
 {'Device On': (-1,11,False,66)
 ,'Structure': (-1,11,False,97)
 ,'PB Range': (-1,11,False,85)
+,'Note PB Range': (-1,14,False,8) # new in Live 11.3
 ,'Voices': (-1,11,False,98)
 ,'Retrigger': (-1,11,False,96)
 ,'Volume': (135,14,True,3)
