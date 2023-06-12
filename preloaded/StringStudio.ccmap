@@ -1,6 +1,8 @@
 {'Device On': (-1,11,False,70)
 ,'Voices': (-1,11,False,92)
-,'PB Depth': (63,11,False,82)
+,'PB Depth': (63,11,False,82) # Live 11.2
+,'PB Range': (63,11,False,82) # Live 11.3
+,'Note PB Range': (-1,11,False,97) # new in Live 11.3
 ,'Octave': (62,11,False,81)
 ,'Semitone': (-1,11,False,87)
 ,'Fine Tune': (-1,12,True,4)
@@ -97,4 +99,12 @@
 ,'Body High-Cut': (-1,11,True,1)
 ,'Volume': (99,13,True,5)
 ,'Body Mix': (-1,11,True,3)
+,'Press Dest A': (-1,11,False,93) # new in Live 11.3
+,'Press Amt A': (-1,13,True,6) # new in Live 11.3
+,'Press Dest B': (-1,11,False,94) # new in Live 11.3
+,'Press Amt B': (-1,13,True,7) # new in Live 11.3
+,'Slide Dest A': (-1,11,False,95) # new in Live 11.3
+,'Slide Amt A': (-1,13,True,8) # new in Live 11.3
+,'Slide Dest B': (-1,11,False,96) # new in Live 11.3
+,'Slide Amt B': (-1,13,True,9) # new in Live 11.3
 }
