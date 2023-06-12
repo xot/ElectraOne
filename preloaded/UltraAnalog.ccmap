@@ -1,6 +1,7 @@
 {'Device On': (-1,11,False,74)
 ,'Voices': (-1,11,False,118)
 ,'PB Range': (-1,13,True,30)
+,'Note PB Range': (-1,11,False,119) # new in Live 11.3
 ,'Volume': (163,14,True,11)
 ,'Octave': (144,11,False,113)
 ,'Semitone': (-1,11,False,114)
@@ -161,4 +162,12 @@
 ,'LFO2 Phase': (-1,13,True,8)
 ,'LFO2 Delay': (104,13,True,5)
 ,'LFO2 Fade In': (105,13,True,6)
+,'Press Dest A': (-1,11,False,120) # new in Live 11.3
+,'Press Amt A': (-1,14,True,12)  # new in Live 11.3
+,'Press Dest B': (-1,11,False,121) # new in Live 11.3
+,'Press Amt B': (-1,14,True,13) # new in Live 11.3
+,'Slide Dest A': (-1,11,False,122) # new in Live 11.3
+,'Slide Amt A': (-1,14,True,14) # new in Live 11.3
+,'Slide Dest B': (-1,11,False,123) # new in Live 11.3
+,'Slide Amt B': (-1,14,True,15) # new in Live 11.3
 }
