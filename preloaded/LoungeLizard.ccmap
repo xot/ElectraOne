@@ -1,6 +1,7 @@
 {'Device On': (-1,11,False,29)
 ,'Voices': (-1,11,False,61)
 ,'PB Range': (-1,11,True,27)
+,'Note PB Range': (-1,11,False,62) # New in Live 11.3
 ,'Volume': (33,11,True,28)
 ,'Semitone': (-1,11,False,31)
 ,'Detune': (-1,11,True,3)
