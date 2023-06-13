@@ -302,14 +302,14 @@ class ElectraOneBase(Log):
             ElectraOneBase.E1_FORWARDS_ACK = (sw_version >= (3,2,0))
             # set hwardware dependent options
             if hw_version >= (3,0): # mkII
-                ElectraOneBase.MIN_TIMEOUT = 200
-                ElectraOneBase.MAX_TIMEOUT = 2000
+                ElectraOneBase.MIN_TIMEOUT = 30
+                ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
-                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 25
+                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 100
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
                 ElectraOneBase.MIN_TIMEOUT = 60
@@ -894,7 +894,7 @@ class ElectraOneBase(Log):
                 if self.__wait_for_ack_or_timeout( int(len(preset)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
                     # preset uploaded, now upload lua script and wait for ACK
                     self._upload_lua_script_to_current_slot(luascript)
-                    if self.__wait_for_ack_or_timeout( int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
+                    if self.__wait_for_ack_or_timeout( 10*int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
                         ElectraOneBase.preset_upload_successful = True
                     else: # lua script upload timeout
                         self.debug(3,'Upload thread: lua script upload failed. Aborted')
