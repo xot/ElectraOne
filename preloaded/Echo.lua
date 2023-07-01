@@ -6,6 +6,7 @@ ldiv = controls.get(21)
 rdiv = controls.get(40)
 
 rs = controls.get(42)
+lm =  controls.get(24)
 rm = controls.get(43)
 
 modrate = controls.get(32)
@@ -25,7 +26,8 @@ function setvisibility()
     r16th:setVisible(not islinked and (isrsync and isr16th))
     rdiv:setVisible(not islinked and (isrsync and not isr16th))
     rs:setVisible(not islinked)
-    rm:setVisible(not islinked)
+    rm:setVisible((not islinked) and isrsync)
+    lm:setVisible(islsync)    
 end
 
 function lsync(valueObject, value)
