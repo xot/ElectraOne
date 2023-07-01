@@ -332,14 +332,14 @@ While developing the remote script it became clear there are certain bugs and an
 
 First of all, some devices or instruments have internal names that are completely different from their name in the Live UI. For example SpectralResonator is called Transmute, Wavetable is called InstrumentVector, and Electric is called LounceLizzard.
 
-For certain devices, Live does not allow mapping of parameters to the remote script even though they *are* MIDI mappable manually. The problem is that ```device.parameters``` does not contain these parameters. For example:
+For certain devices, Live does not allow mapping of parameters to the remote script even though they *are* MIDI mappable manually. The problem is that ```device.parameters``` does not contain these parameters. For example (in Live 11.2):
 
 - Saturator: DC not mapped
 - Wavetable/InstrumentVector: missing some global parameters
 - SpectralResonator: resonator type is not a parameter; many MIDI input controls not mapped as parameter.
 - Impulse: Soft, Sat, Filter, M, and S buttons cannot be mapped
 
-For certain devices, Live reports the same name for different parameters in the list ```device.parameters```:
+For certain devices, Live reports the same name for different parameters in the list ```device.parameters``` (again in Live 11.2):
 
 - Saturator patch on the fly: Dry/Wet output twice
 - Compressor patch on the fly: S/C Gain twice
