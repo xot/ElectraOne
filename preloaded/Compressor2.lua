@@ -14,15 +14,54 @@ function model(valueObject, value)
     end
 end
 
+scison = false
+
+sclisten = controls.get(20)
+scgain = controls.get(19)
+scmix = controls.get(21)
+
+function setscvisibility()
+    sclisten:setVisible(scison)
+    scgain:setVisible(scison)
+    scmix:setVisible(scison)
+end
+
+function scon(valueObject, value)
+    scison = (value ~= 0)
+    setscvisibility()
+end
+
+sceqison = true
+eqisshelf = true
+
+eqtp = controls.get(18)
+eqfreq = controls.get(14)
 eqgain = controls.get(15)
 eqq = controls.get(17)
 
+function seteqvisibility()
+   eqtp:setVisible(sceqison)
+   eqfreq:setVisible(sceqison)   
+   eqgain:setVisible(sceqison and eqisshelf)
+   eqq:setVisible(sceqison and (not eqisshelf))
+end
+
+function sceqon(valueObject, value)
+    sceqison = (value ~= 0)
+    seteqvisibility()
+end
+
 function eqtype(valueObject, value)
-    if value < 3 then
-        eqgain:setVisible(true)
-        eqq:setVisible(false)
+    eqisshelf = (value < 3)
+    seteqvisibility()
+end
+
+release = controls.get(13)
+
+function autorelease(valueObject, value)
+    if (value == 0) then
+       release:setVisible(true)
     else
-        eqgain:setVisible(false)
-        eqq:setVisible(true)
+       release:setVisible(false)
     end
 end
