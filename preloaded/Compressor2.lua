@@ -31,7 +31,7 @@ function scon(valueObject, value)
     setscvisibility()
 end
 
-sceqison = true
+sceqison = false
 eqisshelf = true
 
 eqtp = controls.get(18)
