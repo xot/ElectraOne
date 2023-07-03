@@ -1,3 +1,15 @@
+hpffreq = controls.get(8)
+
+function hpf(valueObject, value)
+    if value == 0 then
+       hpffreq:setVisible(false)
+    else
+       hpffreq:setVisible(true)
+    end
+end
+
+
+
 width = controls.get(14)
 offset = controls.get(10)
 shaping = controls.get(12)
@@ -6,7 +18,6 @@ feedbackinv = controls.get(4)
 
 
 function mode(valueObject, value)
-    print(value)
     if value < 2 then
         width:setVisible(true)
         offset:setVisible(false)
