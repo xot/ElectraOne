@@ -1,3 +1,9 @@
+mode = 0
+delaysync = 0
+lfosync = 0
+spin = 0
+wave = 0
+
 pcoarse = controls.get(1)
 fcoarse = controls.get(3)
 rcoarse = controls.get(5)
@@ -10,71 +16,67 @@ mfine = controls.get(4)
 lfoamounthz = controls.get(22)
 lfoamountst = controls.get(25)
 
-envamounthz = controls.get(12)
-envamountst = controls.get(11)
-
-function mode(valueObject, value)
-    if value == 0.0 then
-        pcoarse:setVisible(true)
-        fcoarse:setVisible(false)
-        rcoarse:setVisible(false)
-        pwindow:setVisible(true)
-        pfine:setVisible(true)
-        mfine:setVisible(false)
-        lfoamounthz:setVisible(false)
-        lfoamountst:setVisible(true)
-        envamounthz:setVisible(false)
-        envamountst:setVisible(true)
-    elseif value == 1.0 then
-        pcoarse:setVisible(false)
-        fcoarse:setVisible(true)
-        rcoarse:setVisible(false)
-        pwindow:setVisible(false)
-        pfine:setVisible(false)
-        mfine:setVisible(true)
-        lfoamounthz:setVisible(true)
-        lfoamountst:setVisible(false)
-        envamounthz:setVisible(true)
-        envamountst:setVisible(false)
-    else
-        pcoarse:setVisible(false)
-        fcoarse:setVisible(false)
-        rcoarse:setVisible(true)
-        pwindow:setVisible(false)
-        pfine:setVisible(false)
-        mfine:setVisible(true)
-        lfoamounthz:setVisible(true)
-        lfoamountst:setVisible(false)
-        envamounthz:setVisible(true)
-        envamountst:setVisible(false)
-    end
-end
-
-dtime = controls.get(31)
-dsync = controls.get(32)
-
-function delaysync(valueObject, value)
-    if value == 0 then
-        dtime:setVisible(true)
-        dsync:setVisible(false)
-    else
-        dtime:setVisible(false)
-        dsync:setVisible(true)
-    end
-end
-
 lfofreq = controls.get(21)
 lforate = controls.get(24)
 lfooffset = controls.get(17)
 
-function lfosync(valueObject, value)
-    if value == 0 then
-        lfofreq:setVisible(true)
-        lforate:setVisible(false)
-        lfooffset:setVisible(false)
-    else
-        lfofreq:setVisible(false)
-        lforate:setVisible(true)
-        lfooffset:setVisible(true)
-    end
+lfophase = controls.get(14)
+lfosetspin = controls.get(18)
+lfospin = controls.get(19)
+
+lfowidth = controls.get(16)
+lfoduty = controls.get(15)
+
+envamounthz = controls.get(12)
+envamountst = controls.get(11)
+
+dtime = controls.get(31)
+dsync = controls.get(32)
+
+function setvisibility()
+    pcoarse:setVisible(mode == 0)
+    fcoarse:setVisible(mode == 1)
+    rcoarse:setVisible(mode == 2)
+    pwindow:setVisible(mode == 0)
+    pfine:setVisible(mode == 0)
+    mfine:setVisible(mode ~= 0)
+    lfoamounthz:setVisible(mode ~= 0)
+    lfoamountst:setVisible(mode == 0)
+    envamounthz:setVisible(mode ~= 0)
+    envamountst:setVisible(mode == 0)
+    dtime:setVisible(delaysync == 0)
+    dsync:setVisible(delaysync ~= 0)
+    lfofreq:setVisible(lfosync == 0)
+    lforate:setVisible(lfosync ~= 0)
+    lfooffset:setVisible(lfosync ~= 0)
+    lfosetspin:setVisible((lfosync == 0) and (wave < 8))
+    lfophase:setVisible((wave == 8) or ((wave < 8) and ((lfosync ~= 0) or (spin == 0))))
+    lfospin:setVisible((wave < 8 ) and (lfosync == 0) and (spin ~= 0))
+    lfowidth:setVisible(wave == 9)
+    lfoduty:setVisible(wave < 8)
+end
+
+function setwave(valueObject, value)
+    wave = value
+    setvisibility()
+end
+
+function setmode(valueObject, value)
+    mode = value
+    setvisibility()
+end
+
+function setdelaysync(valueObject, value)
+    delaysync = value
+    setvisibility()
+end
+
+function setspin(valueObject, value)
+    spin = value
+    setvisibility()
+end
+
+function setlfosync(valueObject, value)
+    lfosync = value
+    setvisibility()
 end
