@@ -67,3 +67,4 @@ function phasermode(valueObject, value)
         doublertime:setVisible(true)
     end
 end
+
