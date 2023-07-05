@@ -3,6 +3,8 @@ delaysync = 0
 lfosync = 0
 spin = 0
 wave = 0
+delayison = false
+envison = false
 
 pcoarse = controls.get(1)
 fcoarse = controls.get(3)
@@ -29,9 +31,13 @@ lfoduty = controls.get(15)
 
 envamounthz = controls.get(12)
 envamountst = controls.get(11)
+envattack = controls.get(8)
+envrelease = controls.get(9)
 
 dtime = controls.get(31)
 dsync = controls.get(32)
+dfeedback = controls.get(37)
+dsetsync = controls.get(36)
 
 function setvisibility()
     pcoarse:setVisible(mode == 0)
@@ -42,10 +48,14 @@ function setvisibility()
     mfine:setVisible(mode ~= 0)
     lfoamounthz:setVisible(mode ~= 0)
     lfoamountst:setVisible(mode == 0)
-    envamounthz:setVisible(mode ~= 0)
-    envamountst:setVisible(mode == 0)
-    dtime:setVisible(delaysync == 0)
-    dsync:setVisible(delaysync ~= 0)
+    envamounthz:setVisible(envison and (mode ~= 0))
+    envamountst:setVisible(envison and (mode == 0))
+    envattack:setVisible(envison)
+    envrelease:setVisible(envison)
+    dtime:setVisible(delayison and (delaysync == 0))
+    dsync:setVisible(delayison and (delaysync ~= 0))
+    dfeedback:setVisible(delayison)
+    dsetsync:setVisible(delayison)    
     lfofreq:setVisible(lfosync == 0)
     lforate:setVisible(lfosync ~= 0)
     lfooffset:setVisible(lfosync ~= 0)
@@ -78,5 +88,15 @@ end
 
 function setlfosync(valueObject, value)
     lfosync = value
+    setvisibility()
+end
+
+function delayon(valueObject, value)
+    delayison = (value ~= 0 )
+    setvisibility()
+end
+
+function envon(valueObject, value)
+    envison = (value ~= 0)
     setvisibility()
 end

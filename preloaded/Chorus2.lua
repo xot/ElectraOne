@@ -15,7 +15,7 @@ offset = controls.get(10)
 shaping = controls.get(12)
 feedback = controls.get(5)
 feedbackinv = controls.get(4)
-
+drywet = controls.get(3)
 
 function mode(valueObject, value)
     if value < 2 then
@@ -24,11 +24,13 @@ function mode(valueObject, value)
         shaping:setVisible(false)
         feedback:setVisible(true)
         feedbackinv:setVisible(true)
+	drywet:setVisible(true)
     else
         width:setVisible(false)
         offset:setVisible(true)
         shaping:setVisible(true)
         feedback:setVisible(false)
         feedbackinv:setVisible(false)  
+	drywet:setVisible(false)
     end
 end
