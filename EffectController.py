@@ -79,6 +79,10 @@ function formatSemitone (valueObject, value)
   return (string.format("%i st",value))
 end
 
+function formatFineSemitone (valueObject, value)
+  return (string.format("%.2f st",value/100))
+end
+
 function formatDetune (valueObject, value)
   return (string.format("%i ct",value))
 end
