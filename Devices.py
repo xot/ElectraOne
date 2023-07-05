@@ -31,16 +31,8 @@ DEVICES = {
 xratio = controls.get(6)
 
 function model(valueObject, value)
-    if value == 0.0 then
-        ratio:setVisible(true)
-        xratio:setVisible(false)
-    elseif value == 1.0 then
-        ratio:setVisible(true)
-        xratio:setVisible(false)
-    else
-        ratio:setVisible(false)
-        xratio:setVisible(true)
-    end
+    ratio:setVisible(value < 2)
+    xratio:setVisible(value > 1)
 end
 
 scison = false
@@ -88,11 +80,7 @@ end
 release = controls.get(13)
 
 function autorelease(valueObject, value)
-    if (value == 0) then
-       release:setVisible(true)
-    else
-       release:setVisible(false)
-    end
+    release:setVisible(value == 0)
 end""",
     {'Device On': (-1,11,False,14)
 ,'Threshold': (23,11,True,12)
@@ -140,13 +128,8 @@ end""",
 rate = controls.get(12)
 
 function sync(valueObject, value)
-    if value == 0 then
-        freq:setVisible(true)
-        rate:setVisible(false)
-    else
-        freq:setVisible(false)
-        rate:setVisible(true)
-    end
+    freq:setVisible(value == 0)
+    rate:setVisible(value ~= 0)
 end
 """,
     {'Device On': (-1,11,False,7)
@@ -174,11 +157,7 @@ end
     """pfdial = controls.get(6)
 
 function postfilter(valueObject, value)
-   if (value == 0) then
-       pfdial:setVisible(false)
-   else
-       pfdial:setVisible(true)
-   end
+    pfdial:setVisible(value ~= 0)
 end
 """,
     {'Device On': (-1,11,False,7)
@@ -192,22 +171,15 @@ end
 ,'Post-Filter': (-1,11,True,2)
 ,'Dry/Wet': (-1,11,True,0)
 }),
-'GrainDelay': PresetInfo('{"version":2,"name":"GrainDelay","projectId":"lGS1I5Nw6AcPyPkB7E7o","pages":[{"id":1,"name":"Page 1"}],"groups":[{"id":12,"pageId":1,"name":"DELAY TIME","color":"FFF029","bounds":[14,6,325,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"1","index":0,"value":0},{"label":"2","index":1,"value":18},{"label":"3","index":2,"value":36},{"label":"4","index":3,"value":54},{"label":"5","index":4,"value":73},{"label":"6","index":5,"value":91},{"label":"8","index":6,"value":109},{"label":"16","index":7,"value":127}]},{"id":2,"items":[{"value":0,"label":"Time","index":0},{"value":127,"label":"Sync","index":1}]}],"controls":[{"id":1,"type":"list","visible":true,"name":"BEAT DELAY","color":"FFF029","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":8,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":10,"type":"fader","visible":true,"variant":"thin","name":"SPRAY","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":8,"type":"fader","visible":true,"variant":"thin","name":"PITCH","color":"FFFFFF","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":-360,"max":120,"formatter":"formatLargeFloat","id":"value"}]},{"id":6,"type":"fader","mode":"","visible":true,"variant":"thin","name":"FEEDBACK","color":"168D7C","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":3,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"FFF029","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":9},"function":"sync","overlayId":2,"id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"BEAT SWING","color":"FFF029","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":-333,"max":333,"formatter":"formatPercent","id":"value"}]},{"id":7,"type":"fader","visible":true,"variant":"thin","name":"FREQUENCY","color":"FFFFFF","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"RANDOM","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1610,"formatter":"formatLargeFloat","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRYWET","color":"1791E9","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":4,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":10,"deviceId":1},"id":"value"}]},{"id":11,"type":"fader","mode":"","visible":true,"variant":"thin","name":"TIME DELAY","color":"FFF029","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
+'GrainDelay': PresetInfo('{"version":2,"name":"GrainDelay","projectId":"lGS1I5Nw6AcPyPkB7E7o","pages":[{"id":1,"name":"Page 1"}],"groups":[{"id":12,"pageId":1,"name":"DELAY TIME","color":"FFF029","bounds":[14,6,325,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"1","index":0,"value":0},{"label":"2","index":1,"value":18},{"label":"3","index":2,"value":36},{"label":"4","index":3,"value":54},{"label":"5","index":4,"value":73},{"label":"6","index":5,"value":91},{"label":"8","index":6,"value":109},{"label":"16","index":7,"value":127}]},{"id":2,"items":[{"value":0,"label":"Time","index":0},{"value":127,"label":"Sync","index":1}]}],"controls":[{"id":1,"type":"list","visible":true,"name":"BEAT DELAY","color":"FFF029","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":8,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":10,"type":"fader","visible":true,"variant":"thin","name":"SPRAY","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":8,"type":"fader","visible":true,"variant":"thin","name":"PITCH","color":"FFFFFF","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":-360,"max":120,"formatter":"formatLargeFloat","id":"value"}]},{"id":6,"type":"fader","mode":"","visible":true,"variant":"thin","name":"FEEDBACK","color":"168D7C","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":3,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"FFF029","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":9},"function":"sync","overlayId":2,"id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"BEAT SWING","color":"FFF029","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":-333,"max":333,"formatter":"formatPercent","id":"value"}]},{"id":7,"type":"fader","visible":true,"variant":"thin","name":"FREQUENCY","color":"FFFFFF","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"RANDOM","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1610,"formatter":"formatLargeFloat","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRYWET","color":"1791E9","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":4,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":10,"deviceId":1},"id":"value"}]},{"id":11,"type":"fader","mode":"","visible":true,"variant":"thin","name":"TIME DELAY","color":"FFF029","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
     """time = controls.get(11)
 beatswing = controls.get(2)
 beatdelay = controls.get(1)
 
-
 function sync(valueObject, value)
-    if value == 0 then
-        time:setVisible(true)
-        beatswing:setVisible(false)
-        beatdelay:setVisible(false)
-    else
-        time:setVisible(false)
-        beatswing:setVisible(true)
-        beatdelay:setVisible(true)
-    end
+    time:setVisible(value == 0)
+    beatswing:setVisible(value ~= 0)
+    beatdelay:setVisible(value ~= 0)
 end""",
     {'Device On': (-1,11,False,10)
 ,'Spray': (10,11,True,6)
@@ -230,21 +202,12 @@ damp = controls.get(12)
 period = controls.get(16)
 
 function curvetype(valueObject, value)
-    if (value == 6) then
-        drive:setVisible(true)
-        curve:setVisible(true)
-        depth:setVisible(true)
-        lin:setVisible(true)
-        damp:setVisible(true)
-        period:setVisible(true)
-    else
-        drive:setVisible(false)
-        curve:setVisible(false)
-        depth:setVisible(false)
-        lin:setVisible(false)
-        damp:setVisible(false)
-        period:setVisible(false)
-    end
+    drive:setVisible(value == 6)
+    curve:setVisible(value == 6)
+    depth:setVisible(value == 6)
+    lin:setVisible(value == 6)
+    damp:setVisible(value == 6)
+    period:setVisible(value == 6)
 end
 """,
     {'Device On': (-1,11,False,14)
@@ -373,70 +336,41 @@ end
 mrate = controls.get(19)
 
 function modsync(valueObject, value)
-    if value == 0 then
-        mfreq:setVisible(true)
-        mrate:setVisible(false)
-    else
-        mfreq:setVisible(false)
-        mrate:setVisible(true)
-    end
+    mfreq:setVisible(value == 0)
+    mrate:setVisible(value ~= 0)
 end
 
 spin = controls.get(28)
 phase = controls.get(18)
 
 function spinsync(valueObject, value)
-    if value == 0 then
-        phase:setVisible(true)
-        spin:setVisible(false)
-    else
-        phase:setVisible(false)
-        spin:setVisible(true)
-    end
+    phase:setVisible(value == 0)
+    spin:setVisible(value ~= 0)
 end
 
 mfreq2 = controls.get(17)
 mrate2 = controls.get(20)
 
 function modsync2(valueObject, value)
-    if value == 0 then
-        mfreq2:setVisible(true)
-        mrate2:setVisible(false)
-    else
-        mfreq2:setVisible(false)
-        mrate2:setVisible(true)
-    end
+    mfreq2:setVisible(value == 0)
+    mrate2:setVisible(value ~= 0)
 end
-
-flangetime = controls.get(13)
-doublertime = controls.get(4)
 
 notches = controls.get(24)
 center = controls.get(2)
 spread = controls.get(30)
 blend = controls.get(15)
+flangetime = controls.get(13)
+doublertime = controls.get(4)
 
-function phvis(flag)
-    notches:setVisible(flag)
-    center:setVisible(flag)
-    spread:setVisible(flag)
-    blend:setVisible(flag)
-end
 
 function phasermode(valueObject, value)
-    if value == 0 then
-        phvis(true)
-        flangetime:setVisible(false)
-        doublertime:setVisible(false)
-    elseif value == 1 then
-        phvis(false)
-        flangetime:setVisible(true)
-        doublertime:setVisible(false)
-    else
-        phvis(false)
-        flangetime:setVisible(false)
-        doublertime:setVisible(true)
-    end
+    notches:setVisible(value == 0)
+    center:setVisible(value == 0)
+    spread:setVisible(value == 0)
+    blend:setVisible(value == 0)
+    flangetime:setVisible(value == 1)
+    doublertime:setVisible(value == 2)
 end
 
 """,
@@ -614,26 +548,17 @@ end
 ,'Width (Random)': (-1,11,True,7)
 ,'Invert': (-1,11,False,9)
 }),
-'Hybrid': PresetInfo('{"version":2,"name":"Hybrid","projectId":"HkslgI0VOwL5GclGFOK5","pages":[{"id":1,"name":"Reverb"},{"id":2,"name":"EQ"}],"groups":[{"id":59,"pageId":1,"name":"PREDELAY","color":"ffffff","bounds":[14,276,158,261]},{"id":55,"pageId":2,"name":"LO","color":"ffffff","bounds":[181,6,158,16]},{"id":56,"pageId":2,"name":"2","color":"ffffff","bounds":[348,6,158,16]},{"id":57,"pageId":2,"name":"3","color":"ffffff","bounds":[515,6,158,16]},{"id":58,"pageId":2,"name":"HI","color":"ffffff","bounds":[682,6,158,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11},{"id":2,"name":"Generic MIDI","port":1,"channel":12}],"overlays":[{"id":1,"items":[{"label":"Serial","index":0,"value":0},{"label":"Parallel","index":1,"value":42},{"label":"Algorithm","index":2,"value":85},{"label":"Convolution","index":3,"value":127}]},{"id":2,"items":[{"label":"Dark Hall","index":0,"value":0},{"label":"Quartz","index":1,"value":32},{"label":"Shimmer","index":2,"value":64},{"label":"Tides","index":3,"value":95},{"label":"Prism","index":4,"value":127}]},{"id":3,"items":[{"label":"Cut","index":0,"value":0},{"label":"Shelf","index":1,"value":127}]}],"controls":[{"id":44,"type":"list","visible":true,"name":"ROUTING","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":75,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":2,"type":"list","visible":true,"name":"ALGO TYPE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":64,"deviceId":1},"function":"algotype","overlayId":2}]},{"id":29,"type":"pad","mode":"toggle","visible":true,"name":"FREEZE","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":71,"deviceId":1},"id":"value"}]},{"id":1,"type":"fader","visible":true,"variant":"thin","name":"ALGO DELAY","color":"FFFFFF","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":31,"type":"fader","visible":true,"variant":"thin","name":"MODULATION","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":4,"type":"fader","visible":true,"variant":"thin","name":"BLEND","color":"FFFFFF","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"DECAY","color":"FFFFFF","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":48,"type":"fader","visible":true,"variant":"thin","name":"SIZE","color":"FFFFFF","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":8,"type":"fader","visible":true,"variant":"thin","name":"DAMPING","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":45,"type":"fader","mode":"","visible":true,"variant":"thin","name":"SEND GAIN","color":"FFFFFF","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":30,"type":"pad","mode":"toggle","visible":true,"name":"FREEZE IN","color":"FFFFFF","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"id":"value"}]},{"id":54,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO WIDTH","color":"1791E9","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":2,"min":0,"max":16383},"min":0,"max":2000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"fader","mode":"","visible":true,"variant":"thin","name":"P.DLY TIME","color":"1791E9","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":53,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VINTAGE","color":"FFFFFF","bounds":[688,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","deviceId":2,"parameterNumber":8,"min":0,"max":127},"formatter":"defaultFormatter"}]},{"id":35,"type":"pad","mode":"toggle","visible":true,"name":"P.DLY SYNC","color":"1791E9","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":74,"deviceId":1},"defaultValue":"off","function":"sync"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"BASS MONO","color":"FFFFFF","bounds":[688,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":34,"type":"fader","mode":"","visible":true,"variant":"thin","name":"P.DLY FB TIME","color":"1791E9","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":23,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":12,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY/WET","color":"1791E9","bounds":[688,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":10,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":66,"deviceId":1},"id":"value"}]},{"id":21,"type":"pad","mode":"toggle","visible":true,"name":"EQ ON","color":"FFFFFF","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":69,"deviceId":1},"id":"value"}]},{"id":20,"type":"list","visible":true,"name":"EQ LOW TYPE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":68,"deviceId":1},"overlayId":3,"id":"value"}]},{"id":16,"type":"list","visible":true,"name":"EQ HIGH TYPE","color":"FFFFFF","bounds":[688,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":67,"deviceId":1},"overlayId":3,"id":"value"}]},{"id":28,"type":"pad","mode":"toggle","visible":true,"name":"EQ PRE ALGO","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":70,"deviceId":1},"id":"value"}]},{"id":17,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW FREQ","color":"FFFFFF","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":12,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 FREQ","color":"FFFFFF","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":25,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 FREQ","color":"FFFFFF","bounds":[521,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":13,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH FREQ","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":19,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW SLOPE","color":"FFFFFF","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":14,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":23,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 GAIN","color":"FFFFFF","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":26,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 GAIN","color":"FFFFFF","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":19,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":15,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH SLOPE","color":"FFFFFF","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":18,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW GAIN","color":"FFFFFF","bounds":[187,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":24,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 Q","color":"FFFFFF","bounds":[354,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"min":10,"max":400,"formatter":"formatFloat","id":"value"}]},{"id":27,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 Q","color":"FFFFFF","bounds":[521,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"min":10,"max":400,"formatter":"formatFloat","id":"value"}]},{"id":14,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH GAIN","color":"FFFFFF","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":32,"type":"fader","visible":true,"variant":"thin","name":"P.DLY 16TH","color":"FFFFFF","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":73,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":33,"type":"fader","visible":true,"variant":"thin","name":"P.DLY FB 16TH","color":"FFFFFF","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","visible":true,"variant":"thin","name":"DH BASS X","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DH SHAPE","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatLargeFloat","id":"value"}]},{"id":6,"type":"fader","visible":true,"variant":"thin","name":"DH BASSMULT","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"min":250,"max":4000,"formatter":"formatPercent","id":"value"}]},{"id":11,"type":"fader","visible":true,"variant":"thin","name":"DIFFUSION","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":43,"type":"fader","visible":true,"variant":"thin","name":"QZ LOW DAMP","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":31,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":42,"type":"fader","visible":true,"variant":"thin","name":"QZ DISTANCE","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":46,"type":"fader","visible":true,"variant":"thin","name":"SH PITCH SHIFT","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":2,"min":0,"max":16383},"min":-12,"max":12,"formatter":"formatSemitone","id":"value"}]},{"id":47,"type":"fader","visible":true,"variant":"thin","name":"SH SHIMMER","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":52,"type":"fader","visible":true,"variant":"thin","name":"TI WAVEFORM","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","visible":true,"variant":"thin","name":"TI PHASE","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":2,"min":0,"max":16383},"min":0,"max":180,"formatter":"formatDegree","id":"value"}]},{"id":51,"type":"fader","visible":true,"variant":"thin","name":"TI TIDE","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":50,"type":"fader","visible":true,"variant":"thin","name":"TI RATE","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":40,"type":"fader","visible":true,"variant":"thin","name":"PR SIXTH","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":39,"type":"fader","visible":true,"variant":"thin","name":"PR SEVENTH","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":38,"type":"fader","visible":true,"variant":"thin","name":"PR LOW MULT","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":100,"max":5000,"formatter":"formatPercent","id":"value"}]},{"id":37,"type":"fader","visible":true,"variant":"thin","name":"PR HIGH MULT","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"min":100,"max":5000,"formatter":"formatPercent","id":"value"}]},{"id":41,"type":"fader","visible":true,"variant":"thin","name":"PR X OVER","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
+'Hybrid': PresetInfo('{"version":2,"name":"Hybrid","projectId":"HkslgI0VOwL5GclGFOK5","pages":[{"id":1,"name":"Reverb"},{"id":2,"name":"EQ"}],"groups":[{"id":59,"pageId":1,"name":"PREDELAY","color":"ffffff","bounds":[14,276,158,261]},{"id":55,"pageId":2,"name":"LO","color":"ffffff","bounds":[181,6,158,16]},{"id":56,"pageId":2,"name":"2","color":"ffffff","bounds":[348,6,158,16]},{"id":57,"pageId":2,"name":"3","color":"ffffff","bounds":[515,6,158,16]},{"id":58,"pageId":2,"name":"HI","color":"ffffff","bounds":[682,6,158,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11},{"id":2,"name":"Generic MIDI","port":1,"channel":12}],"overlays":[{"id":1,"items":[{"label":"Serial","index":0,"value":0},{"label":"Parallel","index":1,"value":42},{"label":"Algorithm","index":2,"value":85},{"label":"Convolution","index":3,"value":127}]},{"id":2,"items":[{"label":"Dark Hall","index":0,"value":0},{"label":"Quartz","index":1,"value":32},{"label":"Shimmer","index":2,"value":64},{"label":"Tides","index":3,"value":95},{"label":"Prism","index":4,"value":127}]},{"id":3,"items":[{"value":0,"label":"Time","index":0},{"value":127,"label":"Sync","index":1}]},{"id":4,"items":[{"label":"Cut","index":0,"value":0},{"label":"Shelf","index":1,"value":127}]}],"controls":[{"id":44,"type":"list","visible":true,"name":"ROUTING","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":75,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":2,"type":"list","visible":true,"name":"ALGO TYPE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":64,"deviceId":1},"function":"algotype","overlayId":2}]},{"id":29,"type":"pad","mode":"toggle","visible":true,"name":"FREEZE","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":71,"deviceId":1},"id":"value"}]},{"id":1,"type":"fader","visible":true,"variant":"thin","name":"ALGO DELAY","color":"FFFFFF","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":31,"type":"fader","visible":true,"variant":"thin","name":"MODULATION","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":4,"type":"fader","visible":true,"variant":"thin","name":"BLEND","color":"FFFFFF","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"DECAY","color":"FFFFFF","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":48,"type":"fader","visible":true,"variant":"thin","name":"SIZE","color":"FFFFFF","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":8,"type":"fader","visible":true,"variant":"thin","name":"DAMPING","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":45,"type":"fader","mode":"","visible":true,"variant":"thin","name":"SEND GAIN","color":"FFFFFF","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":30,"type":"pad","mode":"toggle","visible":true,"name":"FREEZE IN","color":"FFFFFF","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"id":"value"}]},{"id":54,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO WIDTH","color":"1791E9","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":2,"min":0,"max":16383},"min":0,"max":2000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"fader","mode":"","visible":true,"variant":"thin","name":"P.DLY TIME","color":"1791E9","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":53,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VINTAGE","color":"FFFFFF","bounds":[688,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","deviceId":2,"parameterNumber":8,"min":0,"max":127},"formatter":"defaultFormatter"}]},{"id":35,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"1791E9","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":74},"function":"sync","overlayId":3,"id":"value"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"BASS MONO","color":"FFFFFF","bounds":[688,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":34,"type":"fader","mode":"","visible":true,"variant":"thin","name":"P.DLY FB TIME","color":"1791E9","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":23,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":12,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY/WET","color":"1791E9","bounds":[688,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":10,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":66,"deviceId":1},"id":"value"}]},{"id":21,"type":"pad","mode":"toggle","visible":true,"name":"EQ ON","color":"FFFFFF","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":69,"deviceId":1},"id":"value"}]},{"id":20,"type":"list","visible":true,"name":"EQ LOW TYPE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":68,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":16,"type":"list","visible":true,"name":"EQ HIGH TYPE","color":"FFFFFF","bounds":[688,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":67,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":28,"type":"pad","mode":"toggle","visible":true,"name":"EQ PRE ALGO","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":70,"deviceId":1},"id":"value"}]},{"id":17,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW FREQ","color":"FFFFFF","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":12,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 FREQ","color":"FFFFFF","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":25,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 FREQ","color":"FFFFFF","bounds":[521,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":13,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH FREQ","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":19,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW SLOPE","color":"FFFFFF","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":14,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":23,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 GAIN","color":"FFFFFF","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":26,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 GAIN","color":"FFFFFF","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":19,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":15,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH SLOPE","color":"FFFFFF","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":18,"type":"fader","visible":true,"variant":"thin","name":"EQ LOW GAIN","color":"FFFFFF","bounds":[187,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":24,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P2 Q","color":"FFFFFF","bounds":[354,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"min":10,"max":400,"formatter":"formatFloat","id":"value"}]},{"id":27,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ P3 Q","color":"FFFFFF","bounds":[521,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"min":10,"max":400,"formatter":"formatFloat","id":"value"}]},{"id":14,"type":"fader","visible":true,"variant":"thin","name":"EQ HIGH GAIN","color":"FFFFFF","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"min":-120,"max":120,"formatter":"formatdB","id":"value"}]},{"id":32,"type":"fader","visible":true,"variant":"thin","name":"P.DLY 16TH","color":"FFFFFF","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":73,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":33,"type":"fader","visible":true,"variant":"thin","name":"P.DLY FB 16TH","color":"FFFFFF","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"min":0,"max":950,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","visible":true,"variant":"thin","name":"DH BASS X","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DH SHAPE","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatLargeFloat","id":"value"}]},{"id":6,"type":"fader","visible":true,"variant":"thin","name":"DH BASSMULT","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"min":250,"max":4000,"formatter":"formatPercent","id":"value"}]},{"id":11,"type":"fader","visible":true,"variant":"thin","name":"DIFFUSION","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":43,"type":"fader","visible":true,"variant":"thin","name":"QZ LOW DAMP","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":31,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":42,"type":"fader","visible":true,"variant":"thin","name":"QZ DISTANCE","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":46,"type":"fader","visible":true,"variant":"thin","name":"SH PITCH SHIFT","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":2,"min":0,"max":16383},"min":-12,"max":12,"formatter":"formatSemitone","id":"value"}]},{"id":47,"type":"fader","visible":true,"variant":"thin","name":"SH SHIMMER","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":52,"type":"fader","visible":true,"variant":"thin","name":"TI WAVEFORM","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","visible":true,"variant":"thin","name":"TI PHASE","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":2,"min":0,"max":16383},"min":0,"max":180,"formatter":"formatDegree","id":"value"}]},{"id":51,"type":"fader","visible":true,"variant":"thin","name":"TI TIDE","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":50,"type":"fader","visible":true,"variant":"thin","name":"TI RATE","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":40,"type":"fader","visible":true,"variant":"thin","name":"PR SIXTH","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":39,"type":"fader","visible":true,"variant":"thin","name":"PR SEVENTH","color":"FFFFFF","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":38,"type":"fader","visible":true,"variant":"thin","name":"PR LOW MULT","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":100,"max":5000,"formatter":"formatPercent","id":"value"}]},{"id":37,"type":"fader","visible":true,"variant":"thin","name":"PR HIGH MULT","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"min":100,"max":5000,"formatter":"formatPercent","id":"value"}]},{"id":41,"type":"fader","visible":true,"variant":"thin","name":"PR X OVER","color":"FFFFFF","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
     """delaytime = controls.get(36)
 fbtime = controls.get(34)
 delayrate = controls.get(32)
 fbrate = controls.get(33)
 
 function sync(valueObject, value)
-    if value == 0 then
-        delaytime:setVisible(true)
-        fbtime:setVisible(true)
-        delayrate:setVisible(false)
-        fbrate:setVisible(false)
-        return("Free")
-    else
-        delaytime:setVisible(false)
-        fbtime:setVisible(false)
-        delayrate:setVisible(true)
-        fbrate:setVisible(true)
-        return("Sync")
-    end
+    delaytime:setVisible(value == 0)
+    fbtime:setVisible(value == 0)
+    delayrate:setVisible(value ~= 0)
+    fbrate:setVisible(value ~= 0)
 end
 
 modulation = controls.get(31) 
@@ -701,50 +626,12 @@ function prvis(flag)
     prx:setVisible(flag)    
 end
 
-
 function algotype(valueObject, value)
-    if value == 0.0 then
-	qzvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(false)
-	dhvis(true)
-    elseif value == 1.0 then
-	dhvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(false)
-	qzvis(true)
-    elseif value == 2.0 then
-	dhvis(false)
-	qzvis(false)
-	tivis(false)
-	prvis(false)
-	shvis(true)
-    elseif value == 3.0 then
-	dhvis(false)
-	qzvis(false)
-	shvis(false)
-	prvis(false)
-	tivis(true)
-    else
-	dhvis(false)
-	qzvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(true)
-    end
-    if value == 0.0 then
-        return("DarkHall")
-    elseif value == 1.0 then
-        return("Quartz")    
-    elseif value == 2.0 then
-        return("Shimmer")    
-    elseif value == 3.0 then
-        return("Tides")
-    else
-        return("Prism")
-    end
+    dhvis(value == 0)
+    qzvis(value == 1)
+    shvis(value == 2)
+    tivis(value == 3)
+    prvis(value == 4)
 end
 
 """,
@@ -844,17 +731,10 @@ afreq = controls.get(3)
 amulti = controls.get(4)
 
 function afixed(valueObject, value)
-    if value == 0 then
-        acoarse:setVisible(true)
-        afine:setVisible(true)
-        afreq:setVisible(false)
-        amulti:setVisible(false)
-    else
-        acoarse:setVisible(false)
-        afine:setVisible(false)
-        afreq:setVisible(true)
-        amulti:setVisible(true)
-    end
+    acoarse:setVisible(value == 0)
+    afine:setVisible(value == 0)
+    afreq:setVisible(value ~= 0)
+    amulti:setVisible(value ~= 0)
 end
 
 bcoarse = controls.get(19)
@@ -863,17 +743,10 @@ bfreq = controls.get(21)
 bmulti = controls.get(22)
 
 function bfixed(valueObject, value)
-    if value == 0 then
-        bcoarse:setVisible(true)
-        bfine:setVisible(true)
-        bfreq:setVisible(false)
-        bmulti:setVisible(false)
-    else
-        bcoarse:setVisible(false)
-        bfine:setVisible(false)
-        bfreq:setVisible(true)
-        bmulti:setVisible(true)
-    end
+    bcoarse:setVisible(value == 0)
+    bfine:setVisible(value == 0)
+    bfreq:setVisible(value ~= 0)
+    bmulti:setVisible(value ~=0)
 end
 
 ccoarse = controls.get(36)
@@ -882,17 +755,10 @@ cfreq = controls.get(38)
 cmulti = controls.get(39)
 
 function cfixed(valueObject, value)
-    if value == 0 then
-        ccoarse:setVisible(true)
-        cfine:setVisible(true)
-        cfreq:setVisible(false)
-        cmulti:setVisible(false)
-    else
-        ccoarse:setVisible(false)
-        cfine:setVisible(false)
-        cfreq:setVisible(true)
-        cmulti:setVisible(true)
-    end
+    ccoarse:setVisible(value == 0)
+    cfine:setVisible(value == 0)
+    cfreq:setVisible(value ~= 0)
+    cmulti:setVisible(value ~= 0)
 end
 
 dcoarse = controls.get(53)
@@ -901,17 +767,10 @@ dfreq = controls.get(55)
 dmulti = controls.get(56)
 
 function dfixed(valueObject, value)
-    if value == 0 then
-        dcoarse:setVisible(true)
-        dfine:setVisible(true)
-        dfreq:setVisible(false)
-        dmulti:setVisible(false)
-    else
-        dcoarse:setVisible(false)
-        dfine:setVisible(false)
-        dfreq:setVisible(true)
-        dmulti:setVisible(true)
-    end
+    dcoarse:setVisible(value == 0)
+    dfine:setVisible(value == 0)
+    dfreq:setVisible(value ~= 0)
+    dmulti:setVisible(value ~= 0)
 end
 
 -- retrig/loop visibility
@@ -920,64 +779,32 @@ aeretrig = controls.get(16)
 aeloop = controls.get(11)
 
 function aemode(valueObject, value)
-    if value == 1 then
-        aeretrig:setVisible(false)
-        aeloop:setVisible(true)
-    elseif (value == 2) or (value == 3) then
-        aeretrig:setVisible(true)
-        aeloop:setVisible(false)
-    else
-        aeretrig:setVisible(false)
-        aeloop:setVisible(false)
-    end
+    aeretrig:setVisible((value == 2) or (value == 3))
+    aeloop:setVisible(value == 1)
 end
 
 beretrig = controls.get(34)
 beloop = controls.get(29)
 
 function bemode(valueObject, value)
-    if value == 1 then
-        beretrig:setVisible(false)
-        beloop:setVisible(true)
-    elseif (value == 2) or (value == 3) then
-        beretrig:setVisible(true)
-        beloop:setVisible(false)
-    else
-        beretrig:setVisible(false)
-        beloop:setVisible(false)
-    end
+    beretrig:setVisible((value == 2) or (value == 3))
+    beloop:setVisible(value == 1)
 end
 
 ceretrig = controls.get(51)
 celoop = controls.get(46)
 
 function cemode(valueObject, value)
-    if value == 1 then
-        ceretrig:setVisible(false)
-        celoop:setVisible(true)
-    elseif (value == 2) or (value == 3) then
-        ceretrig:setVisible(true)
-        celoop:setVisible(false)
-    else
-        ceretrig:setVisible(false)
-        celoop:setVisible(false)
-    end
+    ceretrig:setVisible((value == 2) or (value == 3))
+    celoop:setVisible(value == 1)
 end
 
 deretrig = controls.get(68)
 deloop = controls.get(63)
 
 function demode(valueObject, value)
-    if value == 1 then
-        deretrig:setVisible(false)
-        deloop:setVisible(true)
-    elseif (value == 2) or (value == 3) then
-        deretrig:setVisible(true)
-        deloop:setVisible(false)
-    else
-        deretrig:setVisible(false)
-        deloop:setVisible(false)
-    end
+    deretrig:setVisible((value == 2) or (value == 3))
+    deloop:setVisible(value == 1)
 end
 
 -- phase/feedback visibility
@@ -986,52 +813,32 @@ aphase = controls.get(131)
 afeedback = controls.get(126)
 
 function aretrig(valueObject, value)
-    if value == 0 then
-        aphase:setVisible(false)
-	afeedback:setVisible(true)
-    else
-        aphase:setVisible(true)
-	afeedback:setVisible(false)
-    end
+    aphase:setVisible(value ~= 0)
+    afeedback:setVisible(value == 0)
 end
 
 bphase = controls.get(141)
 bfeedback = controls.get(136)
 
 function bretrig(valueObject, value)
-    if value == 0 then
-        bphase:setVisible(false)
-	bfeedback:setVisible(true)
-    else
-        bphase:setVisible(true)
-	bfeedback:setVisible(false)
-    end
+    bphase:setVisible(value ~= 0)
+    bfeedback:setVisible(value == 0)
 end
 
 cphase = controls.get(151)
 cfeedback = controls.get(146)
 
 function cretrig(valueObject, value)
-    if value == 0 then
-        cphase:setVisible(false)
-	cfeedback:setVisible(true)
-    else
-        cphase:setVisible(true)
-	cfeedback:setVisible(false)
-    end
+    cphase:setVisible(value ~= 0)
+    cfeedback:setVisible(value == 0)
 end
 
 dphase = controls.get(161)
 dfeedback = controls.get(156)
 
 function dretrig(valueObject, value)
-    if value == 0 then
-        dphase:setVisible(false)
-	dfeedback:setVisible(true)
-    else
-        dphase:setVisible(true)
-	dfeedback:setVisible(false)
-    end
+    dphase:setVisible(value ~= 0)
+    dfeedback:setVisible(value == 0)
 end
 """,
     {'Device On': (-1,11,False,81)
@@ -1421,15 +1228,8 @@ end
 ,'HighOn': (-1,11,False,6)
 ,'Slope': (-1,11,False,9)
 }),
-'Amp': PresetInfo('{"version":2,"name":"Amp","projectId":"BneVx00IEY9smtkM37C8","pages":[{"id":1,"name":"Page 1"}],"groups":[{"id":11,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[181,96,659,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"Clean","index":0,"value":0},{"label":"Boost","index":1,"value":21},{"label":"Blues","index":2,"value":42},{"label":"Rock","index":3,"value":64},{"label":"Lead","index":4,"value":85},{"label":"Heavy","index":5,"value":106},{"label":"Bass","index":6,"value":127}]}],"controls":[{"id":1,"type":"list","visible":true,"name":"AMP TYPE","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":7,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":5,"type":"pad","mode":"toggle","visible":true,"name":"DUAL MONO","color":"F15509","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":9,"deviceId":1},"defaultValue":"off","formatter":"dualmono"}]},{"id":10,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VOLUME","color":"1791E9","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":6,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GAIN","color":"1791E9","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"BASS","color":"CC4EDD","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MIDDLE","color":"CC4EDD","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":9,"type":"fader","mode":"","visible":true,"variant":"thin","name":"TREBLE","color":"CC4EDD","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":8,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PRESENCE","color":"CC4EDD","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":4,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY/WET","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":8,"deviceId":1},"id":"value"}]}]}',
-    """function dualmono(valueObject, value)
-    if value == 0 then
-	    return("Mono")
-    else
-	    return("Dual")
-    end
-end
-""",
+'Amp': PresetInfo('{"version":2,"name":"Amp","projectId":"BneVx00IEY9smtkM37C8","pages":[{"id":1,"name":"Page 1"}],"groups":[{"id":11,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[181,96,659,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"Clean","index":0,"value":0},{"label":"Boost","index":1,"value":21},{"label":"Blues","index":2,"value":42},{"label":"Rock","index":3,"value":64},{"label":"Lead","index":4,"value":85},{"label":"Heavy","index":5,"value":106},{"label":"Bass","index":6,"value":127}]},{"id":2,"items":[{"value":0,"label":"Mono","index":0},{"value":127,"label":"Dual","index":1}]}],"controls":[{"id":1,"type":"list","visible":true,"name":"AMP TYPE","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":7,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":5,"type":"list","visible":true,"variant":"valueOnly","name":"MODE","color":"F15509","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":9},"overlayId":2,"id":"value"}]},{"id":10,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VOLUME","color":"1791E9","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":6,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GAIN","color":"1791E9","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"BASS","color":"CC4EDD","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MIDDLE","color":"CC4EDD","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":9,"type":"fader","mode":"","visible":true,"variant":"thin","name":"TREBLE","color":"CC4EDD","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":8,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PRESENCE","color":"CC4EDD","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatFloat","id":"value"}]},{"id":4,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY/WET","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":8,"deviceId":1},"id":"value"}]}]}',
+    """""",
     {'Device On': (-1,11,False,8)
 ,'Amp Type': (-1,11,False,7)
 ,'Bass': (-1,11,True,0)
@@ -1754,21 +1554,10 @@ time = controls.get(11)
 div = controls.get(10)
 s16th = controls.get(12)
 
-
 function tmode(valueObject, value)
-    if value == 0.0 then
-        time:setVisible(true)
-        div:setVisible(false)
-        s16th:setVisible(false)
-    elseif value == 1.0 then 
-        time:setVisible(false)
-        div:setVisible(true)
-        s16th:setVisible(false)
-    else
-       time:setVisible(false)
-        div:setVisible(false)
-        s16th:setVisible(true)
-    end
+    time:setVisible(value == 0)
+    div:setVisible(value == 1)
+    s16th:setVisible(value == 2)
 end
 """,
     {'Device On': (-1,11,False,20)
@@ -1842,26 +1631,15 @@ end
 quantize = controls.get(15)
 
 function qon (valueObject, value)
-   if value == 0 then
-      quantize:setVisible(false)
-   else
-      quantize:setVisible(true)   
-   end
+    quantize:setVisible(value ~=0)
 end
-
-scison = false
 
 scgain = controls.get(23)
 scmix = controls.get(24)
 
-function setscvisibility()
-    scgain:setVisible(scison)
-    scmix:setVisible(scison)
-end
-
 function scon(valueObject, value)
-    scison = (value ~= 0)
-    setscvisibility()
+    scgain:setVisible(value ~= 0)
+    scmix:setVisible(value ~= 0)
 end
 
 syncison = false
@@ -1960,14 +1738,8 @@ end
     """hpffreq = controls.get(8)
 
 function hpf(valueObject, value)
-    if value == 0 then
-       hpffreq:setVisible(false)
-    else
-       hpffreq:setVisible(true)
-    end
+    hpffreq:setVisible(value ~= 0)
 end
-
-
 
 width = controls.get(14)
 offset = controls.get(10)
@@ -1977,21 +1749,12 @@ feedbackinv = controls.get(4)
 drywet = controls.get(3)
 
 function mode(valueObject, value)
-    if value < 2 then
-        width:setVisible(true)
-        offset:setVisible(false)
-        shaping:setVisible(false)
-        feedback:setVisible(true)
-        feedbackinv:setVisible(true)
-	drywet:setVisible(true)
-    else
-        width:setVisible(false)
-        offset:setVisible(true)
-        shaping:setVisible(true)
-        feedback:setVisible(false)
-        feedbackinv:setVisible(false)  
-	drywet:setVisible(false)
-    end
+    width:setVisible(value < 2)
+    offset:setVisible(value > 1)
+    shaping:setVisible(value > 1)
+    feedback:setVisible(value < 2)
+    feedbackinv:setVisible(value < 2)
+    drywet:setVisible(value < 2)
 end
 """,
     {'Device On': (-1,11,False,10)
@@ -2015,28 +1778,17 @@ decay = controls.get(2)
 keyscale = controls.get(1)
 
 function mode(valueObject, value)
-    if value == 0 then
-        release:setVisible(false)
-        decay:setVisible(false)
-        keyscale:setVisible(false)   
-    else
-        release:setVisible(true)
-        decay:setVisible(true)
-        keyscale:setVisible(true)        
-    end
+    release:setVisible(value ~= 0)
+    decay:setVisible(value ~= 0)
+    keyscale:setVisible(value ~= 0)   
 end
 
 timelength = controls.get(8)
 synclength = controls.get(7)
 
 function sync(valueObject, value)
-    if value == 0 then
-        timelength:setVisible(true)
-        synclength:setVisible(false)
-    else
-        timelength:setVisible(false)
-        synclength:setVisible(true)
-    end
+    timelength:setVisible(value == 0)
+    synclength:setVisible(value ~= 0)
 end
 """,
     {'Device On': (-1,11,False,6)
@@ -2078,7 +1830,7 @@ end
 ,'Dual Mono': (-1,11,False,3)
 ,'Dry/Wet': (-1,11,True,0)
 }),
-'Echo': PresetInfo('{"version":2,"name":"Echo v5","projectId":"CJMvgH9pfNCBqKIe3Amg","pages":[{"id":1,"name":"Echo"},{"id":2,"name":"Mod / Char"}],"groups":[{"id":53,"pageId":1,"name":"LEFT","color":"ffffff","bounds":[14,6,158,16]},{"id":54,"pageId":1,"name":"RIGHT","color":"ffffff","bounds":[181,6,158,16]},{"id":57,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[348,6,325,16]},{"id":56,"pageId":1,"name":"REVERB","color":"6BA43D","bounds":[682,6,158,16]},{"id":55,"pageId":1,"name":"OUTPUT","color":"1791E9","bounds":[849,6,158,16]},{"id":63,"pageId":1,"name":"INPUT ","color":"ffffff","bounds":[14,366,158,16]},{"id":64,"pageId":1,"name":"FEEDBACK","color":"ffffff","bounds":[181,366,158,16]},{"id":58,"pageId":2,"name":"MODULATION","color":"ffffff","bounds":[14,96,993,16]},{"id":59,"pageId":2,"name":"GATE","color":"ffffff","bounds":[14,186,492,16]},{"id":62,"pageId":2,"name":"DUCKING","color":"ffffff","bounds":[515,186,492,16]},{"id":60,"pageId":2,"name":"NOISE","color":"ffffff","bounds":[14,276,492,16]},{"id":61,"pageId":2,"name":"WOBBLE","color":"ffffff","bounds":[515,276,492,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"value":0,"label":"Time","index":0},{"value":127,"label":"Sync","index":1}]},{"id":2,"items":[{"label":"Pre","index":0,"value":0},{"label":"Post","index":1,"value":64},{"label":"Feedback","index":2,"value":127}]},{"id":3,"items":[{"label":"Notes","index":0,"value":0},{"label":"Triplet","index":1,"value":42},{"label":"Dotted","index":2,"value":85},{"label":"16th","index":3,"value":127}]},{"id":4,"items":[{"label":"Stereo","index":0,"value":0},{"label":"Ping Pong","index":1,"value":64},{"label":"Mid/Side","index":2,"value":127}]},{"id":5,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":25},{"label":"Saw Up","index":2,"value":51},{"label":"Saw Down","index":3,"value":76},{"label":"Square","index":4,"value":102},{"label":"Random","index":5,"value":127}]},{"id":6,"items":[{"value":0,"label":"8","index":0},{"value":1,"label":"6","index":1},{"value":2,"label":"4","index":2},{"value":3,"label":"3","index":3},{"value":4,"label":"2","index":4},{"value":5,"label":"1.5","index":5},{"value":6,"label":"1","index":6},{"value":7,"label":"3/4","index":7},{"value":8,"label":"1/2","index":8},{"value":9,"label":"3/8","index":9},{"value":10,"label":"1/3","index":10},{"value":11,"label":"5/16","index":11},{"value":12,"label":"1/4","index":12},{"value":13,"label":"3/16","index":13},{"value":14,"label":"1/6","index":14},{"value":15,"label":"1/8","index":15},{"value":16,"label":"1/12","index":16},{"value":17,"label":"1/16","index":17},{"value":18,"label":"1/24","index":18},{"value":19,"label":"1/32","index":19},{"value":20,"label":"1/48","index":20},{"value":21,"label":"1/64","index":21}]},{"id":7,"items":[{"value":0,"label":"1/64","index":0},{"value":21,"label":"1/32","index":1},{"value":42,"label":"1/16","index":2},{"value":64,"label":"1/8","index":3},{"value":85,"label":"1/4","index":4},{"label":"1/2","index":5,"value":106},{"value":127,"label":"1","index":6}]}],"controls":[{"id":25,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":14,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":44,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":17,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP FREQ","color":"CC4EDD","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":18,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP RES","color":"CC4EDD","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"min":0,"max":30,"formatter":"formatFloat","id":"value"}]},{"id":47,"type":"fader","mode":"","visible":true,"variant":"thin","name":"REVERB LEVEL","color":"6BA43D","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO WIDTH","color":"1791E9","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":0,"max":2000,"formatter":"formatPercent","id":"value"}]},{"id":23,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"F15509","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":70},"function":"lsync","overlayId":1,"id":"value"}]},{"id":42,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"F15509","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":78},"function":"rsync","overlayId":1,"id":"value"}]},{"id":26,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP FREQ","color":"CC4EDD","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":27,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP RES","color":"CC4EDD","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"min":0,"max":30,"formatter":"formatFloat","id":"value"}]},{"id":48,"type":"list","visible":true,"name":"REVERB LOC","color":"6BA43D","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":81,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":38,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OUTPUT GAIN","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":24,"type":"list","visible":true,"name":"SYNC MODE","color":"FFFFFF","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":71,"deviceId":1},"function":"lmode","overlayId":3}]},{"id":43,"type":"list","visible":true,"name":"SYNC MODE","color":"FFFFFF","bounds":[187,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":79,"deviceId":1},"function":"rmode","overlayId":3}]},{"id":28,"type":"pad","mode":"toggle","visible":true,"name":"LINK","color":"F15509","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"defaultValue":"off","function":"lrlink"}]},{"id":12,"type":"pad","mode":"toggle","visible":true,"name":"FILTER ON","color":"CC4EDD","bounds":[521,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":67,"deviceId":1},"id":"value"}]},{"id":46,"type":"fader","mode":"","visible":true,"variant":"thin","name":"REVERB DECAY","color":"6BA43D","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY WET","color":"1791E9","bounds":[855,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OFFSET","color":"FFFFFF","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":1,"min":0,"max":16383},"min":-330,"max":330,"formatter":"formatPercent","id":"value"}]},{"id":41,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OFFSET","color":"FFFFFF","bounds":[187,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"min":-330,"max":330,"formatter":"formatPercent","id":"value"}]},{"id":1,"type":"list","visible":true,"name":"CHANNEL MODE","color":"6BA43D","bounds":[688,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":31,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":19,"type":"fader","mode":"","visible":true,"variant":"thin","name":"INPUT GAIN","color":"1791E9","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"min":-400,"max":400,"formatter":"formatdB","id":"value"}]},{"id":10,"type":"fader","mode":"","visible":true,"variant":"thin","name":"FEEDBACK","color":"168D7C","bounds":[187,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1500,"formatter":"formatPercent","id":"value"}]},{"id":2,"type":"pad","mode":"toggle","visible":true,"name":"CLIP DRY","color":"1791E9","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":63,"deviceId":1},"id":"value"}]},{"id":11,"type":"pad","mode":"toggle","visible":true,"name":"FEEDBACK INV","color":"168D7C","bounds":[187,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":66,"deviceId":1},"id":"value"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":64,"deviceId":1},"id":"value"}]},{"id":33,"type":"pad","mode":"toggle","visible":true,"name":"MOD SYNC","color":"FFFFFF","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":74,"deviceId":1},"defaultValue":"off","function":"modsync"}]},{"id":34,"type":"list","visible":true,"name":"MOD WAVE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":75,"deviceId":1},"overlayId":5,"id":"value"}]},{"id":30,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MOD FREQ","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":31,"type":"fader","visible":true,"variant":"thin","name":"MOD PHASE","color":"FFFFFF","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"min":0,"max":180,"formatter":"formatDegree","id":"value"}]},{"id":29,"type":"pad","mode":"toggle","visible":true,"name":"MOD 4X","color":"FFFFFF","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":73,"deviceId":1},"id":"value"}]},{"id":4,"type":"fader","visible":true,"variant":"thin","name":"DLY < MOD","color":"FFFFFF","bounds":[521,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":13,"type":"fader","visible":true,"variant":"thin","name":"FLT < MOD","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"ENV MIX","color":"FFFFFF","bounds":[855,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":14,"type":"pad","mode":"toggle","visible":true,"name":"GATE ON","color":"F15509","bounds":[20,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":68,"deviceId":1},"id":"value"}]},{"id":16,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GATE THR","color":"F15509","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":15,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GATE RELEASE","color":"F15509","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":6,"type":"pad","mode":"toggle","visible":true,"name":"DUCK ON","color":"F15509","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":8,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DUCK THR","color":"F15509","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DUCK RELEASE","color":"F15509","bounds":[855,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":37,"type":"pad","mode":"toggle","visible":true,"name":"NOISE ON","color":"1791E9","bounds":[20,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":76,"deviceId":1},"id":"value"}]},{"id":35,"type":"fader","mode":"","visible":true,"variant":"thin","name":"NOISE AMT","color":"1791E9","bounds":[187,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"fader","mode":"","visible":true,"variant":"thin","name":"NOISE MRPH","color":"1791E9","bounds":[354,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":52,"type":"pad","mode":"toggle","visible":true,"name":"WOBBLE ON","color":"6BA43D","bounds":[521,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":82,"deviceId":1},"id":"value"}]},{"id":50,"type":"fader","mode":"","visible":true,"variant":"thin","name":"WOBBLE AMT","color":"6BA43D","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":51,"type":"fader","mode":"","visible":true,"variant":"thin","name":"WOBBLE MRPH","color":"6BA43D","bounds":[855,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":45,"type":"pad","mode":"toggle","visible":true,"name":"REPITCH","color":"FB1A2A","bounds":[20,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":80,"deviceId":1},"id":"value"}]},{"id":20,"type":"fader","mode":"","visible":false,"variant":"thin","name":"16TH","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":69,"deviceId":1,"min":0,"max":127},"min":1,"max":16}]},{"id":39,"type":"fader","mode":"","visible":false,"variant":"thin","name":"16TH","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":77,"deviceId":1,"min":0,"max":127},"min":1,"max":16}]},{"id":32,"type":"fader","mode":"","visible":false,"variant":"thin","name":"MOD RATE","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","deviceId":1,"parameterNumber":19,"min":0,"max":127},"min":0,"max":21,"overlayId":6}]},{"id":21,"type":"list","visible":true,"name":"DIVISION","color":"ffffff","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":12},"overlayId":7,"id":"value"}]},{"id":40,"type":"list","visible":true,"name":"DIVISION","color":"ffffff","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":23},"overlayId":7,"id":"value"}]}]}',
+'Echo': PresetInfo('{"version":2,"name":"Echo v5","projectId":"CJMvgH9pfNCBqKIe3Amg","pages":[{"id":1,"name":"Echo"},{"id":2,"name":"Mod / Char"}],"groups":[{"id":53,"pageId":1,"name":"LEFT","color":"ffffff","bounds":[14,6,158,16]},{"id":54,"pageId":1,"name":"RIGHT","color":"ffffff","bounds":[181,6,158,16]},{"id":57,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[348,6,325,16]},{"id":56,"pageId":1,"name":"REVERB","color":"6BA43D","bounds":[682,6,158,16]},{"id":55,"pageId":1,"name":"OUTPUT","color":"1791E9","bounds":[849,6,158,16]},{"id":63,"pageId":1,"name":"INPUT ","color":"ffffff","bounds":[14,366,158,16]},{"id":64,"pageId":1,"name":"FEEDBACK","color":"ffffff","bounds":[181,366,158,16]},{"id":58,"pageId":2,"name":"MODULATION","color":"ffffff","bounds":[14,96,993,16]},{"id":59,"pageId":2,"name":"GATE","color":"ffffff","bounds":[14,186,492,16]},{"id":62,"pageId":2,"name":"DUCKING","color":"ffffff","bounds":[515,186,492,16]},{"id":60,"pageId":2,"name":"NOISE","color":"ffffff","bounds":[14,276,492,16]},{"id":61,"pageId":2,"name":"WOBBLE","color":"ffffff","bounds":[515,276,492,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"value":0,"label":"Time","index":0},{"value":127,"label":"Sync","index":1}]},{"id":2,"items":[{"label":"Pre","index":0,"value":0},{"label":"Post","index":1,"value":64},{"label":"Feedback","index":2,"value":127}]},{"id":3,"items":[{"label":"Notes","index":0,"value":0},{"label":"Triplet","index":1,"value":42},{"label":"Dotted","index":2,"value":85},{"label":"16th","index":3,"value":127}]},{"id":4,"items":[{"label":"Stereo","index":0,"value":0},{"label":"Ping Pong","index":1,"value":64},{"label":"Mid/Side","index":2,"value":127}]},{"id":5,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":25},{"label":"Saw Up","index":2,"value":51},{"label":"Saw Down","index":3,"value":76},{"label":"Square","index":4,"value":102},{"label":"Random","index":5,"value":127}]},{"id":6,"items":[{"value":0,"label":"8","index":0},{"value":1,"label":"6","index":1},{"value":2,"label":"4","index":2},{"value":3,"label":"3","index":3},{"value":4,"label":"2","index":4},{"value":5,"label":"1.5","index":5},{"value":6,"label":"1","index":6},{"value":7,"label":"3/4","index":7},{"value":8,"label":"1/2","index":8},{"value":9,"label":"3/8","index":9},{"value":10,"label":"1/3","index":10},{"value":11,"label":"5/16","index":11},{"value":12,"label":"1/4","index":12},{"value":13,"label":"3/16","index":13},{"value":14,"label":"1/6","index":14},{"value":15,"label":"1/8","index":15},{"value":16,"label":"1/12","index":16},{"value":17,"label":"1/16","index":17},{"value":18,"label":"1/24","index":18},{"value":19,"label":"1/32","index":19},{"value":20,"label":"1/48","index":20},{"value":21,"label":"1/64","index":21}]},{"id":7,"items":[{"value":0,"label":"1/64","index":0},{"value":21,"label":"1/32","index":1},{"value":42,"label":"1/16","index":2},{"value":64,"label":"1/8","index":3},{"value":85,"label":"1/4","index":4},{"label":"1/2","index":5,"value":106},{"value":127,"label":"1","index":6}]}],"controls":[{"id":25,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":14,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":44,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":17,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP FREQ","color":"CC4EDD","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":18,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP RES","color":"CC4EDD","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"min":0,"max":30,"formatter":"formatFloat","id":"value"}]},{"id":47,"type":"fader","mode":"","visible":true,"variant":"thin","name":"REVERB LEVEL","color":"6BA43D","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO WIDTH","color":"1791E9","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":0,"max":2000,"formatter":"formatPercent","id":"value"}]},{"id":23,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"F15509","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":70},"function":"lsync","overlayId":1,"id":"value"}]},{"id":42,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"F15509","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":78},"function":"rsync","overlayId":1,"id":"value"}]},{"id":26,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP FREQ","color":"CC4EDD","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":27,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP RES","color":"CC4EDD","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"min":0,"max":30,"formatter":"formatFloat","id":"value"}]},{"id":48,"type":"list","visible":true,"name":"REVERB LOC","color":"6BA43D","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":81,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":38,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OUTPUT GAIN","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":24,"type":"list","visible":true,"name":"SYNC MODE","color":"FFFFFF","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":71,"deviceId":1},"function":"lmode","overlayId":3}]},{"id":43,"type":"list","visible":true,"name":"SYNC MODE","color":"FFFFFF","bounds":[187,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":79,"deviceId":1},"function":"rmode","overlayId":3}]},{"id":28,"type":"pad","mode":"toggle","visible":true,"name":"LINK","color":"F15509","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"defaultValue":"off","function":"lrlink"}]},{"id":12,"type":"pad","mode":"toggle","visible":true,"name":"FILTER ON","color":"CC4EDD","bounds":[521,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":67,"deviceId":1},"id":"value"}]},{"id":46,"type":"fader","mode":"","visible":true,"variant":"thin","name":"REVERB DECAY","color":"6BA43D","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY WET","color":"1791E9","bounds":[855,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OFFSET","color":"FFFFFF","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":1,"min":0,"max":16383},"min":-330,"max":330,"formatter":"formatPercent","id":"value"}]},{"id":41,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OFFSET","color":"FFFFFF","bounds":[187,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"min":-330,"max":330,"formatter":"formatPercent","id":"value"}]},{"id":1,"type":"list","visible":true,"name":"CHANNEL MODE","color":"6BA43D","bounds":[688,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":31,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":19,"type":"fader","mode":"","visible":true,"variant":"thin","name":"INPUT GAIN","color":"1791E9","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"min":-400,"max":400,"formatter":"formatdB","id":"value"}]},{"id":10,"type":"fader","mode":"","visible":true,"variant":"thin","name":"FEEDBACK","color":"168D7C","bounds":[187,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"min":0,"max":1500,"formatter":"formatPercent","id":"value"}]},{"id":2,"type":"pad","mode":"toggle","visible":true,"name":"CLIP DRY","color":"1791E9","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":63,"deviceId":1},"id":"value"}]},{"id":11,"type":"pad","mode":"toggle","visible":true,"name":"FEEDBACK INV","color":"168D7C","bounds":[187,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":66,"deviceId":1},"id":"value"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":64,"deviceId":1},"id":"value"}]},{"id":33,"type":"list","visible":true,"variant":"valueOnly","name":"SYNC/TIME","color":"FFFFFF","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":74},"function":"modsync","overlayId":1,"id":"value"}]},{"id":34,"type":"list","visible":true,"name":"MOD WAVE","color":"FFFFFF","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":75,"deviceId":1},"overlayId":5,"id":"value"}]},{"id":30,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MOD FREQ","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":31,"type":"fader","visible":true,"variant":"thin","name":"MOD PHASE","color":"FFFFFF","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"min":0,"max":180,"formatter":"formatDegree","id":"value"}]},{"id":29,"type":"pad","mode":"toggle","visible":true,"name":"MOD 4X","color":"FFFFFF","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":73,"deviceId":1},"id":"value"}]},{"id":4,"type":"fader","visible":true,"variant":"thin","name":"DLY < MOD","color":"FFFFFF","bounds":[521,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":13,"type":"fader","visible":true,"variant":"thin","name":"FLT < MOD","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"ENV MIX","color":"FFFFFF","bounds":[855,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":14,"type":"pad","mode":"toggle","visible":true,"name":"GATE ON","color":"F15509","bounds":[20,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":68,"deviceId":1},"id":"value"}]},{"id":16,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GATE THR","color":"F15509","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":15,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GATE RELEASE","color":"F15509","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":6,"type":"pad","mode":"toggle","visible":true,"name":"DUCK ON","color":"F15509","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":8,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DUCK THR","color":"F15509","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":7,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DUCK RELEASE","color":"F15509","bounds":[855,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter"}]},{"id":37,"type":"pad","mode":"toggle","visible":true,"name":"NOISE ON","color":"1791E9","bounds":[20,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":76,"deviceId":1},"id":"value"}]},{"id":35,"type":"fader","mode":"","visible":true,"variant":"thin","name":"NOISE AMT","color":"1791E9","bounds":[187,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"fader","mode":"","visible":true,"variant":"thin","name":"NOISE MRPH","color":"1791E9","bounds":[354,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":52,"type":"pad","mode":"toggle","visible":true,"name":"WOBBLE ON","color":"6BA43D","bounds":[521,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":82,"deviceId":1},"id":"value"}]},{"id":50,"type":"fader","mode":"","visible":true,"variant":"thin","name":"WOBBLE AMT","color":"6BA43D","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":51,"type":"fader","mode":"","visible":true,"variant":"thin","name":"WOBBLE MRPH","color":"6BA43D","bounds":[855,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":45,"type":"pad","mode":"toggle","visible":true,"name":"REPITCH","color":"FB1A2A","bounds":[20,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":80,"deviceId":1},"id":"value"}]},{"id":20,"type":"fader","mode":"","visible":false,"variant":"thin","name":"16TH","color":"FFFFFF","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":69,"deviceId":1,"min":0,"max":127},"min":1,"max":16}]},{"id":39,"type":"fader","mode":"","visible":false,"variant":"thin","name":"16TH","color":"FFFFFF","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":77,"deviceId":1,"min":0,"max":127},"min":1,"max":16}]},{"id":32,"type":"fader","mode":"","visible":false,"variant":"thin","name":"MOD RATE","color":"FFFFFF","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","deviceId":1,"parameterNumber":19,"min":0,"max":127},"min":0,"max":21,"overlayId":6}]},{"id":21,"type":"list","visible":true,"name":"DIVISION","color":"ffffff","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":12},"overlayId":7,"id":"value"}]},{"id":40,"type":"list","visible":true,"name":"DIVISION","color":"ffffff","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","deviceId":1,"parameterNumber":23},"overlayId":7,"id":"value"}]}]}',
     """ltime = controls.get(25)
 rtime = controls.get(44)
 l16th = controls.get(20)
@@ -2089,9 +1841,6 @@ rdiv = controls.get(40)
 rs = controls.get(42)
 lm =  controls.get(24)
 rm = controls.get(43)
-
-modrate = controls.get(32)
-modfreq = controls.get(30)
 
 islsync = true
 isl16th = false
@@ -2121,16 +1870,6 @@ function rsync(valueObject, value)
     setvisibility()
 end
 
-function modsync(valueObject, value)
-    if value == 0 then
-        modfreq:setVisible(true)
-        modrate:setVisible(false)
-    else
-        modfreq:setVisible(false)
-        modrate:setVisible(true)
-    end
-end
-
 function lmode(valueObject, value)
     isl16th = (value == 3.0)    
     setvisibility()
@@ -2145,6 +1884,15 @@ function lrlink(valueObject, value)
     islinked = (value ~= 0)
     setvisibility()
 end
+
+modrate = controls.get(32)
+modfreq = controls.get(30)
+
+function modsync(valueObject, value)
+    modfreq:setVisible(value == 0)
+    modrate:setVisible(value ~= 0)
+end
+
 """,
     {'Device On': (-1,11,False,64)
 ,'L Sync': (-1,11,False,70)
@@ -2550,23 +2298,16 @@ hit = controls.get(9)
 posl = controls.get(18)
 posr = controls.get(19)
 
-type = 0
-
-function settypevisibility()
-    material:setVisible(type < 5)
-    inharmonics:setVisible(type < 5)
-    radius:setVisible(type > 4)
-    opening:setVisible(type == 5)
-    bright:setVisible(type < 5)
-    ratio:setVisible((type == 3) or (type == 4))
-    hit:setVisible(type < 5)
-    posl:setVisible(type < 5)
-    posr:setVisible(type < 5)
-end
-
 function settype(valueObject, value)
-    type = value
-    settypevisibility()
+    material:setVisible(value < 5)
+    inharmonics:setVisible(value < 5)
+    radius:setVisible(value > 4)
+    opening:setVisible(value == 5)
+    bright:setVisible(value < 5)
+    ratio:setVisible((value == 3) or (value == 4))
+    hit:setVisible(value < 5)
+    posl:setVisible(value < 5)
+    posr:setVisible(value < 5)
 end
 
 decay = controls.get(25)
@@ -3053,23 +2794,13 @@ rate2 = controls.get(33)
 freq2 = controls.get(28)
 
 function sync1(valueObject, value)
-    if value == 0 then
-        freq1:setVisible(true)
-        rate1:setVisible(false)
-    else
-        freq1:setVisible(false)
-        rate1:setVisible(true)
-    end
+    freq1:setVisible(value == 0)
+    rate1:setVisible(value ~= 0)
 end
 
 function sync2(valueObject, value)
-    if value == 0 then
-        freq2:setVisible(true)
-        rate2:setVisible(false)
-    else
-        freq2:setVisible(false)
-        rate2:setVisible(true)
-    end
+    freq2:setVisible(value == 0)
+    rate2:setVisible(value ~= 0)
 end
 
 material1 = controls.get(82)
@@ -3079,17 +2810,10 @@ opening1 =  controls.get(87)
 
 
 function type1(valueObject, value)
-    if value < 5 then
-        material1:setVisible(true)
-        inharmonics1:setVisible(true)
-        radius1:setVisible(false)
-        opening1:setVisible(false)
-    else
-        material1:setVisible(false)
-        inharmonics1:setVisible(false)
-        radius1:setVisible(true)
-        opening1:setVisible(true)
-    end
+    material1:setVisible(value < 5)
+    inharmonics1:setVisible(value < 5)
+    radius1:setVisible(value > 4)
+    opening1:setVisible(value > 4)
 end
 
 material2 = controls.get(113)
@@ -3098,17 +2822,10 @@ radius2 = controls.get(124)
 opening2 =  controls.get(118)
 
 function type2(valueObject, value)
-    if value < 5 then
-        material2:setVisible(true)
-        inharmonics2:setVisible(true)
-        radius2:setVisible(false)
-        opening2:setVisible(false)
-    else
-        material2:setVisible(false)
-        inharmonics2:setVisible(false)
-        radius2:setVisible(true)
-        opening2:setVisible(true)
-    end
+    material2:setVisible(value < 5)
+    inharmonics2:setVisible(value < 5)
+    radius2:setVisible(value > 4)
+    opening2:setVisible(value > 4)
 end
 """,
     {'Device On': (-1,11,False,66)
@@ -3359,34 +3076,17 @@ end
 ,'Output Gain': (12,11,True,7)
 ,'Dry/Wet': (-1,11,True,6)
 }),
-'Drift': PresetInfo('{"version":2,"name":"Drift","projectId":"7o2epCyHl8NprsBkvJaq","pages":[{"id":1,"name":"Osc / Noise / Filt / ENV"},{"id":2,"name":"LFO / MOD / GENERAL"},{"id":4,"name":"Not in UI"}],"groups":[{"id":67,"pageId":1,"name":"OSC 1","color":"F15509","bounds":[14,6,993,16]},{"id":68,"pageId":1,"name":"OSC 2","color":"1791E9","bounds":[14,96,993,16]},{"id":70,"pageId":1,"name":"PITCH MOD","color":"ffffff","bounds":[14,186,325,16]},{"id":69,"pageId":1,"name":"NOISE","color":"AC5A84","bounds":[515,186,492,16]},{"id":71,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[14,276,325,16]},{"id":75,"pageId":1,"name":"ENVELOPE 2","color":"168D7C","bounds":[515,366,492,16]},{"id":72,"pageId":2,"name":"LFO","color":"BE155B","bounds":[14,6,325,16]},{"id":73,"pageId":2,"name":"MOD","color":"F49500","bounds":[348,6,158,16]},{"id":76,"pageId":2,"name":"GENERAL","color":"ffffff","bounds":[682,6,325,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11},{"id":2,"name":"Generic MIDI","port":1,"channel":12}],"overlays":[{"id":1,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":21},{"label":"Shark Tooth","index":2,"value":42},{"label":"Saturated","index":3,"value":64},{"label":"Saw","index":4,"value":85},{"label":"Pulse","index":5,"value":106},{"label":"Rectangle","index":6,"value":127}]},{"id":2,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":32},{"label":"Saturated","index":2,"value":64},{"label":"Saw","index":3,"value":95},{"label":"Rectangle","index":4,"value":127}]},{"id":3,"items":[{"label":"I","index":0,"value":0},{"label":"II","index":1,"value":127}]},{"id":4,"items":[{"label":"Env","index":0,"value":0},{"label":"Cyc","index":1,"value":127}]},{"id":5,"items":[{"label":"Freq","index":0,"value":0},{"label":"Time","index":1,"value":42},{"label":"Ratio","index":2,"value":85},{"label":"Sync","index":3,"value":127}]},{"id":6,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":16},{"label":"Saw Up","index":2,"value":32},{"label":"Saw Down","index":3,"value":48},{"label":"Square","index":4,"value":64},{"label":"Sample & Hold","index":5,"value":79},{"label":"Wander","index":6,"value":95},{"label":"Linear Env","index":7,"value":111},{"label":"Exponential Env","index":8,"value":127}]}],"controls":[{"id":50,"type":"list","visible":true,"name":"OSC 1 WAVE","color":"F15509","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":78,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":46,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 1 OCT","color":"F15509","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":76,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":48,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 1 SHAPE","color":"F15509","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":2,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":47,"type":"pad","mode":"toggle","visible":true,"name":"OSC 1 ON","color":"F15509","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":77,"deviceId":1},"id":"value"}]},{"id":45,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 1 GAIN","color":"F15509","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":44,"type":"pad","mode":"toggle","visible":true,"name":"OSC 1 FLT ON","color":"F15509","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":75,"deviceId":1},"id":"value"}]},{"id":56,"type":"list","visible":true,"name":"OSC 2 WAVE","color":"1791E9","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":82,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":54,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 2 OCT","color":"1791E9","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":80,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":51,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 2 DETUNE","color":"1791E9","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":2,"min":0,"max":16383},"min":-700,"max":700,"formatter":"formatFloat","id":"value"}]},{"id":55,"type":"pad","mode":"toggle","visible":true,"name":"OSC 2 ON","color":"1791E9","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":81,"deviceId":1},"id":"value"}]},{"id":53,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 2 GAIN","color":"1791E9","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":52,"type":"pad","mode":"toggle","visible":true,"name":"OSC 2 FLT ON","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":79,"deviceId":1},"id":"value"}]},{"id":58,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PTCH MD AMT 1","color":"F49500","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":59,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PTCH MD AMT 2","color":"F49500","bounds":[187,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 1 SHP MD A","color":"F15509","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":42,"type":"pad","mode":"toggle","visible":true,"name":"NOISE ON","color":"AC5A84","bounds":[521,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":73,"deviceId":1},"id":"value"}]},{"id":41,"type":"fader","mode":"","visible":true,"variant":"thin","name":"NOISE GAIN","color":"AC5A84","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":31,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":40,"type":"pad","mode":"toggle","visible":true,"name":"NOISE FLT ON","color":"AC5A84","bounds":[855,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"id":"value"}]},{"id":31,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP FREQ","color":"CC4EDD","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":35,"type":"list","visible":true,"name":"LP TYPE","color":"CC4EDD","bounds":[187,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":70,"deviceId":1},"overlayId":3,"id":"value"}]},{"id":57,"type":"pad","mode":"toggle","visible":true,"name":"OSC RETRIG ON","color":"F15509","bounds":[354,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":83,"deviceId":1},"id":"value"}]},{"id":77,"type":"adsr","visible":true,"name":"ENVELOPE 1","color":"168D7C","bounds":[521,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":10,"valueId":"attack"}],"values":[{"id":"attack","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":7,"min":0,"max":16383},"defaultValue":84},{"id":"decay","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":8,"min":0,"max":16383},"defaultValue":127},{"id":"sustain","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":10,"min":0,"max":16383},"defaultValue":64},{"id":"release","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":9,"min":0,"max":16383},"defaultValue":127}]},{"id":34,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP RESO","color":"CC4EDD","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":101,"formatter":"formatFloat","id":"value"}]},{"id":20,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP FREQ","color":"CC4EDD","bounds":[187,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":78,"type":"adsr","visible":true,"name":"ENVELOPE 2","color":"168D7C","bounds":[521,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":4,"valueId":"attack"}],"values":[{"id":"attack","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":11,"min":0,"max":16383},"defaultValue":84},{"id":"decay","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":12,"min":0,"max":16383},"defaultValue":127},{"id":"sustain","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":14,"min":0,"max":16383},"defaultValue":64},{"id":"release","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":13,"min":0,"max":16383},"defaultValue":127}]},{"id":15,"type":"list","visible":true,"name":"ENV 2 CYC ON","color":"168D7C","bounds":[688,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":66,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":7,"type":"list","visible":true,"name":"CYC ENV TM MD","color":"168D7C","bounds":[855,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":64,"deviceId":1},"function":"envmode","overlayId":5}]},{"id":32,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP MOD AMT 1","color":"CC4EDD","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":33,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP MOD AMT 2","color":"CC4EDD","bounds":[187,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"CYC ENV TILT","color":"168D7C","bounds":[521,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":1,"type":"fader","mode":"","visible":true,"variant":"thin","name":"CYC ENV HOLD","color":"168D7C","bounds":[688,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"CYC ENV RATE","color":"168D7C","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":24,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO RATE","color":"BE155B","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":29,"type":"list","visible":true,"name":"LFO TIME MODE","color":"BE155B","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":68,"deviceId":1},"function":"lfomode","overlayId":5}]},{"id":37,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 1","color":"F49500","bounds":[354,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":63,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MONO THICKNESS","color":"FFFFFF","bounds":[688,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":66,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VOLUME","color":"1791E9","bounds":[855,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":30,"type":"list","visible":true,"name":"LFO WAVE","color":"BE155B","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":69,"deviceId":1},"overlayId":6,"id":"value"}]},{"id":26,"type":"pad","mode":"toggle","visible":true,"name":"LFO RETRIG ON","color":"BE155B","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":67,"deviceId":1},"id":"value"}]},{"id":38,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 2","color":"F49500","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":61,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO SPREAD","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":65,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VEL > VOL","color":"F49500","bounds":[855,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":12,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO AMT","color":"BE155B","bounds":[20,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":23,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO MOD AMT","color":"BE155B","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":19,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":39,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 3","color":"F49500","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":62,"type":"fader","mode":"","visible":true,"variant":"thin","name":"UNISONSTRENGTH","color":"FFFFFF","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":64,"type":"fader","visible":true,"variant":"thin","name":"TRANSPOSE","color":"FFFFFF","bounds":[855,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":2,"min":0,"max":16383},"min":-48,"max":48,"formatter":"formatSemitone","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"DRIFT","color":"FFFFFF","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"pad","mode":"toggle","visible":true,"name":"LEGATO ON","color":"F15509","bounds":[688,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":71,"deviceId":1},"id":"value"}]},{"id":43,"type":"pad","mode":"toggle","visible":true,"name":"NT PTCH BND ON","color":"F15509","bounds":[855,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":74,"deviceId":1},"id":"value"}]},{"id":19,"type":"fader","visible":true,"variant":"thin","name":"GLIDE TIME","color":"FFFFFF","bounds":[688,478,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":8,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":21,"type":"fader","visible":true,"variant":"thin","name":"KEY > LPF","color":"FFFFFF","bounds":[20,28,146,56],"pageId":4,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":60,"type":"fader","visible":true,"variant":"thin","name":"PLY VC DPTH","color":"FFFFFF","bounds":[187,28,146,56],"pageId":4,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":6,"type":"fader","visible":true,"variant":"thin","name":"CYC ENV TIME","color":"FFFFFF","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":28,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO TIME","color":"BE155B","bounds":[20,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":23,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":3,"type":"fader","visible":true,"variant":"thin","name":"CYC ENV RATIO","color":"FFFFFF","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":2.5,"max":160,"formatter":"formatLargeFloat","id":"value"}]},{"id":25,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO RATIO","color":"BE155B","bounds":[20,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":2.5,"max":160,"formatter":"formatLargeFloat","id":"value"}]},{"id":4,"type":"fader","visible":true,"variant":"thin","name":"CYC ENV SYNCED","color":"FFFFFF","bounds":[521,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":27,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LFO SYNCED","color":"BE155B","bounds":[20,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
+'Drift': PresetInfo('{"version":2,"name":"Drift","projectId":"7o2epCyHl8NprsBkvJaq","pages":[{"id":1,"name":"Osc / Noise / Filt / ENV"},{"id":2,"name":"LFO / MOD / GENERAL"},{"id":4,"name":"Not in UI"}],"groups":[{"id":67,"pageId":1,"name":"OSC 1","color":"F15509","bounds":[14,6,993,16]},{"id":68,"pageId":1,"name":"OSC 2","color":"1791E9","bounds":[14,96,993,16]},{"id":70,"pageId":1,"name":"PITCH MOD","color":"ffffff","bounds":[14,186,325,16]},{"id":69,"pageId":1,"name":"NOISE","color":"AC5A84","bounds":[515,186,492,16]},{"id":71,"pageId":1,"name":"FILTER","color":"CC4EDD","bounds":[14,276,325,16]},{"id":75,"pageId":1,"name":"ENVELOPE 2","color":"168D7C","bounds":[515,366,492,16]},{"id":72,"pageId":2,"name":"LFO","color":"BE155B","bounds":[14,6,325,16]},{"id":73,"pageId":2,"name":"MOD","color":"F49500","bounds":[348,6,158,16]},{"id":76,"pageId":2,"name":"GENERAL","color":"ffffff","bounds":[682,6,325,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11},{"id":2,"name":"Generic MIDI","port":1,"channel":12}],"overlays":[{"id":1,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":21},{"label":"Shark Tooth","index":2,"value":42},{"label":"Saturated","index":3,"value":64},{"label":"Saw","index":4,"value":85},{"label":"Pulse","index":5,"value":106},{"label":"Rectangle","index":6,"value":127}]},{"id":2,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":32},{"label":"Saturated","index":2,"value":64},{"label":"Saw","index":3,"value":95},{"label":"Rectangle","index":4,"value":127}]},{"id":3,"items":[{"label":"I","index":0,"value":0},{"label":"II","index":1,"value":127}]},{"id":4,"items":[{"label":"Env","index":0,"value":0},{"label":"Cyc","index":1,"value":127}]},{"id":5,"items":[{"label":"Freq","index":0,"value":0},{"label":"Time","index":1,"value":42},{"label":"Ratio","index":2,"value":85},{"label":"Sync","index":3,"value":127}]},{"id":6,"items":[{"label":"Sine","index":0,"value":0},{"label":"Triangle","index":1,"value":16},{"label":"Saw Up","index":2,"value":32},{"label":"Saw Down","index":3,"value":48},{"label":"Square","index":4,"value":64},{"label":"Sample & Hold","index":5,"value":79},{"label":"Wander","index":6,"value":95},{"label":"Linear Env","index":7,"value":111},{"label":"Exponential Env","index":8,"value":127}]}],"controls":[{"id":50,"type":"list","visible":true,"name":"WAVE","color":"F15509","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":78,"deviceId":1},"overlayId":1,"id":"value"}]},{"id":46,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OCTAVE","color":"F15509","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":76,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":48,"type":"fader","mode":"","visible":true,"variant":"thin","name":"SHAPE","color":"F15509","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":2,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":47,"type":"pad","mode":"toggle","visible":true,"name":"OSC 1 ON","color":"F15509","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":77,"deviceId":1},"id":"value"}]},{"id":45,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GAIN","color":"F15509","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":44,"type":"pad","mode":"toggle","visible":true,"name":"OSC 1 FLT ON","color":"F15509","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":75,"deviceId":1},"id":"value"}]},{"id":56,"type":"list","visible":true,"name":"WAVE","color":"1791E9","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":82,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":54,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OCTAVE","color":"1791E9","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":80,"deviceId":1,"min":0,"max":127},"formatter":"defaultFormatter","id":"value"}]},{"id":51,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DETUNE","color":"1791E9","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":2,"min":0,"max":16383},"min":-700,"max":700,"formatter":"formatFloat","id":"value"}]},{"id":55,"type":"pad","mode":"toggle","visible":true,"name":"OSC 2 ON","color":"1791E9","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":81,"deviceId":1},"id":"value"}]},{"id":53,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GAIN","color":"1791E9","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":52,"type":"pad","mode":"toggle","visible":true,"name":"OSC 2 FLT ON","color":"1791E9","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":79,"deviceId":1},"id":"value"}]},{"id":58,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PTCH MD AMT 1","color":"F49500","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":59,"type":"fader","mode":"","visible":true,"variant":"thin","name":"PTCH MD AMT 2","color":"F49500","bounds":[187,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":49,"type":"fader","mode":"","visible":true,"variant":"thin","name":"OSC 1 SHP MD A","color":"F15509","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":2,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":42,"type":"pad","mode":"toggle","visible":true,"name":"NOISE ON","color":"AC5A84","bounds":[521,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":73,"deviceId":1},"id":"value"}]},{"id":41,"type":"fader","mode":"","visible":true,"variant":"thin","name":"GAIN","color":"AC5A84","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":31,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":40,"type":"pad","mode":"toggle","visible":true,"name":"NOISE FLT ON","color":"AC5A84","bounds":[855,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":72,"deviceId":1},"id":"value"}]},{"id":31,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP FREQ","color":"CC4EDD","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":24,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":35,"type":"list","visible":true,"name":"LP TYPE","color":"CC4EDD","bounds":[187,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":70,"deviceId":1},"overlayId":3,"id":"value"}]},{"id":57,"type":"pad","mode":"toggle","visible":true,"name":"OSC RETRIG ON","color":"F15509","bounds":[354,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":83,"deviceId":1},"id":"value"}]},{"id":77,"type":"adsr","visible":true,"name":"ENVELOPE 1","color":"168D7C","bounds":[521,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":10,"valueId":"attack"}],"values":[{"id":"attack","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":7,"min":0,"max":16383},"defaultValue":84},{"id":"decay","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":8,"min":0,"max":16383},"defaultValue":127},{"id":"sustain","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":10,"min":0,"max":16383},"defaultValue":64},{"id":"release","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":9,"min":0,"max":16383},"defaultValue":127}]},{"id":34,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP RESO","color":"CC4EDD","bounds":[20,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":27,"deviceId":1,"min":0,"max":16383},"min":0,"max":101,"formatter":"formatFloat","id":"value"}]},{"id":20,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HP FREQ","color":"CC4EDD","bounds":[187,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":16,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":78,"type":"adsr","visible":true,"name":"ENVELOPE 2","color":"168D7C","bounds":[521,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":4,"valueId":"attack"}],"values":[{"id":"attack","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":11,"min":0,"max":16383},"defaultValue":84},{"id":"decay","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":12,"min":0,"max":16383},"defaultValue":127},{"id":"sustain","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":14,"min":0,"max":16383},"defaultValue":64},{"id":"release","message":{"type":"cc14","deviceId":1,"lsbFirst":false,"parameterNumber":13,"min":0,"max":16383},"defaultValue":127}]},{"id":15,"type":"list","visible":true,"name":"ENV 2 CYC ON","color":"168D7C","bounds":[688,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":66,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":7,"type":"list","visible":true,"name":"CYC ENV TM MD","color":"168D7C","bounds":[855,388,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":64,"deviceId":1},"function":"envmode","overlayId":5}]},{"id":32,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP MOD AMT 1","color":"CC4EDD","bounds":[20,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":25,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":33,"type":"fader","mode":"","visible":true,"variant":"thin","name":"LP MOD AMT 2","color":"CC4EDD","bounds":[187,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":26,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":5,"type":"fader","mode":"","visible":true,"variant":"thin","name":"TILT","color":"168D7C","bounds":[521,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":1,"type":"fader","mode":"","visible":true,"variant":"thin","name":"HOLD","color":"168D7C","bounds":[688,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":2,"type":"fader","mode":"","visible":true,"variant":"thin","name":"RATE","color":"168D7C","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":24,"type":"fader","mode":"","visible":true,"variant":"thin","name":"RATE","color":"BE155B","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":20,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":29,"type":"list","visible":true,"name":"MODE","color":"BE155B","bounds":[187,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":68,"deviceId":1},"function":"lfomode","overlayId":5}]},{"id":37,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 1","color":"F49500","bounds":[354,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":28,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":63,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MONO THICKNESS","color":"FFFFFF","bounds":[688,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":66,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VOLUME","color":"1791E9","bounds":[855,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":13,"deviceId":2,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":30,"type":"list","visible":true,"name":"WAVE","color":"BE155B","bounds":[20,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":69,"deviceId":1},"overlayId":6,"id":"value"}]},{"id":26,"type":"pad","mode":"toggle","visible":true,"name":"RETRIG ON","color":"BE155B","bounds":[187,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":67,"deviceId":1},"id":"value"}]},{"id":38,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 2","color":"F49500","bounds":[354,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":29,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":61,"type":"fader","mode":"","visible":true,"variant":"thin","name":"STEREO SPREAD","color":"FFFFFF","bounds":[688,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":65,"type":"fader","mode":"","visible":true,"variant":"thin","name":"VEL > VOL","color":"F49500","bounds":[855,118,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":12,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":22,"type":"fader","mode":"","visible":true,"variant":"thin","name":"AMOUNT","color":"BE155B","bounds":[20,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":18,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":23,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MOD AMOUNT","color":"BE155B","bounds":[187,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":19,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":39,"type":"fader","mode":"","visible":true,"variant":"thin","name":"MD MTRX AMT 3","color":"F49500","bounds":[354,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":30,"deviceId":1,"min":0,"max":16383},"min":-1000,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":62,"type":"fader","mode":"","visible":true,"variant":"thin","name":"UNISONSTRENGTH","color":"FFFFFF","bounds":[688,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":64,"type":"fader","visible":true,"variant":"thin","name":"TRANSPOSE","color":"FFFFFF","bounds":[855,208,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":2,"min":0,"max":16383},"min":-48,"max":48,"formatter":"formatSemitone","id":"value"}]},{"id":9,"type":"fader","visible":true,"variant":"thin","name":"DRIFT","color":"FFFFFF","bounds":[688,298,146,56],"pageId":2,"controlSetId":2,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":36,"type":"pad","mode":"toggle","visible":true,"name":"LEGATO ON","color":"F15509","bounds":[688,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":71,"deviceId":1},"id":"value"}]},{"id":43,"type":"pad","mode":"toggle","visible":true,"name":"NT PTCH BND ON","color":"F15509","bounds":[855,388,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":74,"deviceId":1},"id":"value"}]},{"id":19,"type":"fader","visible":true,"variant":"thin","name":"GLIDE TIME","color":"FFFFFF","bounds":[688,478,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":15,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":8,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":2,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":65,"deviceId":1},"id":"value"}]},{"id":21,"type":"fader","visible":true,"variant":"thin","name":"KEY > LPF","color":"FFFFFF","bounds":[20,28,146,56],"pageId":4,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":17,"deviceId":1,"min":0,"max":16383},"min":0,"max":100,"formatter":"formatFloat","id":"value"}]},{"id":60,"type":"fader","visible":true,"variant":"thin","name":"PLY VC DPTH","color":"FFFFFF","bounds":[187,28,146,56],"pageId":4,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":2,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":28,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"BE155B","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":23,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":6,"type":"fader","mode":"","visible":false,"variant":"thin","name":"TIME","color":"168D7C","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":25,"type":"fader","mode":"","visible":false,"variant":"thin","name":"RATIO","color":"BE155B","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":21,"deviceId":1,"min":0,"max":16383},"min":2.5,"max":160,"formatter":"formatLargeFloat","id":"value"}]},{"id":3,"type":"fader","mode":"","visible":false,"variant":"thin","name":"RATIO","color":"168D7C","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"min":2.5,"max":160,"formatter":"formatLargeFloat","id":"value"}]},{"id":27,"type":"fader","mode":"","visible":false,"variant":"thin","name":"SYNCED","color":"BE155B","bounds":[20,28,146,56],"pageId":2,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":22,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":4,"type":"fader","mode":"","visible":false,"variant":"thin","name":"SYNCED","color":"168D7C","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]}]}',
     """lforate = controls.get(24)
 lfotime = controls.get(28)
 lforatio = controls.get(25)
 lfosynced = controls.get(27)
 
 function lfomode(valueObject, value)
-    if value == 0 then
-        lforate:setVisible(true)
-        lfotime:setVisible(false)
-        lforatio:setVisible(false)
-        lfosynced:setVisible(false)
-    elseif value == 1 then
-        lforate:setVisible(false)
-        lfotime:setVisible(true)
-        lforatio:setVisible(false)
-        lfosynced:setVisible(false)
-    elseif value == 2 then
-        lforate:setVisible(false)
-        lfotime:setVisible(false)
-        lforatio:setVisible(true)
-        lfosynced:setVisible(false)
-    else
-        lforate:setVisible(false)
-        lfotime:setVisible(false)
-        lforatio:setVisible(false)
-        lfosynced:setVisible(true)
-    end
+    lforate:setVisible(value == 0)
+    lfotime:setVisible(value == 1)
+    lforatio:setVisible(value == 2)
+    lfosynced:setVisible(value == 3)
 end
 
 envrate = controls.get(2)
@@ -3395,27 +3095,11 @@ envratio = controls.get(3)
 envsynced = controls.get(4)
 
 function envmode(valueObject, value)
-    if value == 0 then
-        envrate:setVisible(true)
-        envtime:setVisible(false)
-        envratio:setVisible(false)
-        envsynced:setVisible(false)
-    elseif value == 1 then
-        envrate:setVisible(false)
-        envtime:setVisible(true)
-        envratio:setVisible(false)
-        envsynced:setVisible(false)
-    elseif value == 2 then
-        envrate:setVisible(false)
-        envtime:setVisible(false)
-        envratio:setVisible(true)
-        envsynced:setVisible(false)
-    else
-        envrate:setVisible(false)
-        envtime:setVisible(false)
-        envratio:setVisible(false)
-        envsynced:setVisible(true)
-    end
+    print(value)
+    envrate:setVisible(value == 0.0)
+    envtime:setVisible(value == 1.0)
+    envratio:setVisible(value == 2.0)
+    envsynced:setVisible(value == 3.0)
 end
 """,
     {'Device On': (-1,11,False,65)

@@ -9,9 +9,6 @@ rs = controls.get(42)
 lm =  controls.get(24)
 rm = controls.get(43)
 
-modrate = controls.get(32)
-modfreq = controls.get(30)
-
 islsync = true
 isl16th = false
 isrsync = true
@@ -40,16 +37,6 @@ function rsync(valueObject, value)
     setvisibility()
 end
 
-function modsync(valueObject, value)
-    if value == 0 then
-        modfreq:setVisible(true)
-        modrate:setVisible(false)
-    else
-        modfreq:setVisible(false)
-        modrate:setVisible(true)
-    end
-end
-
 function lmode(valueObject, value)
     isl16th = (value == 3.0)    
     setvisibility()
@@ -64,3 +51,12 @@ function lrlink(valueObject, value)
     islinked = (value ~= 0)
     setvisibility()
 end
+
+modrate = controls.get(32)
+modfreq = controls.get(30)
+
+function modsync(valueObject, value)
+    modfreq:setVisible(value == 0)
+    modrate:setVisible(value ~= 0)
+end
+

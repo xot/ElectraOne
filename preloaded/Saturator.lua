@@ -6,19 +6,10 @@ damp = controls.get(12)
 period = controls.get(16)
 
 function curvetype(valueObject, value)
-    if (value == 6) then
-        drive:setVisible(true)
-        curve:setVisible(true)
-        depth:setVisible(true)
-        lin:setVisible(true)
-        damp:setVisible(true)
-        period:setVisible(true)
-    else
-        drive:setVisible(false)
-        curve:setVisible(false)
-        depth:setVisible(false)
-        lin:setVisible(false)
-        damp:setVisible(false)
-        period:setVisible(false)
-    end
+    drive:setVisible(value == 6)
+    curve:setVisible(value == 6)
+    depth:setVisible(value == 6)
+    lin:setVisible(value == 6)
+    damp:setVisible(value == 6)
+    period:setVisible(value == 6)
 end

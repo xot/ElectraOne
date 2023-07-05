@@ -33,26 +33,15 @@ end
 quantize = controls.get(15)
 
 function qon (valueObject, value)
-   if value == 0 then
-      quantize:setVisible(false)
-   else
-      quantize:setVisible(true)   
-   end
+    quantize:setVisible(value ~=0)
 end
-
-scison = false
 
 scgain = controls.get(23)
 scmix = controls.get(24)
 
-function setscvisibility()
-    scgain:setVisible(scison)
-    scmix:setVisible(scison)
-end
-
 function scon(valueObject, value)
-    scison = (value ~= 0)
-    setscvisibility()
+    scgain:setVisible(value ~= 0)
+    scmix:setVisible(value ~= 0)
 end
 
 syncison = false

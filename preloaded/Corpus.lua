@@ -22,23 +22,16 @@ hit = controls.get(9)
 posl = controls.get(18)
 posr = controls.get(19)
 
-type = 0
-
-function settypevisibility()
-    material:setVisible(type < 5)
-    inharmonics:setVisible(type < 5)
-    radius:setVisible(type > 4)
-    opening:setVisible(type == 5)
-    bright:setVisible(type < 5)
-    ratio:setVisible((type == 3) or (type == 4))
-    hit:setVisible(type < 5)
-    posl:setVisible(type < 5)
-    posr:setVisible(type < 5)
-end
-
 function settype(valueObject, value)
-    type = value
-    settypevisibility()
+    material:setVisible(value < 5)
+    inharmonics:setVisible(value < 5)
+    radius:setVisible(value > 4)
+    opening:setVisible(value == 5)
+    bright:setVisible(value < 5)
+    ratio:setVisible((value == 3) or (value == 4))
+    hit:setVisible(value < 5)
+    posl:setVisible(value < 5)
+    posr:setVisible(value < 5)
 end
 
 decay = controls.get(25)

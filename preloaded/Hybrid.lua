@@ -4,19 +4,10 @@ delayrate = controls.get(32)
 fbrate = controls.get(33)
 
 function sync(valueObject, value)
-    if value == 0 then
-        delaytime:setVisible(true)
-        fbtime:setVisible(true)
-        delayrate:setVisible(false)
-        fbrate:setVisible(false)
-        return("Free")
-    else
-        delaytime:setVisible(false)
-        fbtime:setVisible(false)
-        delayrate:setVisible(true)
-        fbrate:setVisible(true)
-        return("Sync")
-    end
+    delaytime:setVisible(value == 0)
+    fbtime:setVisible(value == 0)
+    delayrate:setVisible(value ~= 0)
+    fbrate:setVisible(value ~= 0)
 end
 
 modulation = controls.get(31) 
@@ -84,49 +75,11 @@ function prvis(flag)
     prx:setVisible(flag)    
 end
 
-
 function algotype(valueObject, value)
-    if value == 0.0 then
-	qzvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(false)
-	dhvis(true)
-    elseif value == 1.0 then
-	dhvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(false)
-	qzvis(true)
-    elseif value == 2.0 then
-	dhvis(false)
-	qzvis(false)
-	tivis(false)
-	prvis(false)
-	shvis(true)
-    elseif value == 3.0 then
-	dhvis(false)
-	qzvis(false)
-	shvis(false)
-	prvis(false)
-	tivis(true)
-    else
-	dhvis(false)
-	qzvis(false)
-	shvis(false)
-	tivis(false)
-	prvis(true)
-    end
-    if value == 0.0 then
-        return("DarkHall")
-    elseif value == 1.0 then
-        return("Quartz")    
-    elseif value == 2.0 then
-        return("Shimmer")    
-    elseif value == 3.0 then
-        return("Tides")
-    else
-        return("Prism")
-    end
+    dhvis(value == 0)
+    qzvis(value == 1)
+    shvis(value == 2)
+    tivis(value == 3)
+    prvis(value == 4)
 end
 

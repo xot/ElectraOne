@@ -2,16 +2,8 @@ ratio = controls.get(12)
 xratio = controls.get(6)
 
 function model(valueObject, value)
-    if value == 0.0 then
-        ratio:setVisible(true)
-        xratio:setVisible(false)
-    elseif value == 1.0 then
-        ratio:setVisible(true)
-        xratio:setVisible(false)
-    else
-        ratio:setVisible(false)
-        xratio:setVisible(true)
-    end
+    ratio:setVisible(value < 2)
+    xratio:setVisible(value > 1)
 end
 
 scison = false
@@ -59,9 +51,5 @@ end
 release = controls.get(13)
 
 function autorelease(valueObject, value)
-    if (value == 0) then
-       release:setVisible(true)
-    else
-       release:setVisible(false)
-    end
+    release:setVisible(value == 0)
 end
