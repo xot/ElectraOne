@@ -20,7 +20,6 @@ from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
 
 # Default LUA scripts to send along an effect preset.
-# - DEFAULT_LUASCRIPT contains all formatting functions used by the dumper
 # - PATCH_REQUEST_SCRIPT programs the PATCH REQUEST
 # button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
 # received by ElectraOne to swap the visible preset. As complex presets may have
@@ -30,72 +29,6 @@ from .GenericDeviceController import GenericDeviceController
 # - MIXER_FORWARDING_SCRIPT contains code to forward calls to LUA functions
 # to a second E1 running the Mixer preset
 #
-DEFAULT_LUASCRIPT = """
-info.setText("by www.xot.nl")
-
-function defaultFormatter(valueObject, value)
-    return("")
-end
-
-function formatFloat (valueObject, value)
-  return (string.format("%.2f",value/100))
-end
-
-function formatLargeFloat (valueObject, value)
-  return (string.format("%.1f",value/10))
-end
-
-function formatdB (valueObject, value)
-  return (string.format("%.1f dB",value/10))
-end
-
-function formatFreq (valueObject, value)
-  return (string.format("%.1f Hz",value/10))
-end
-
-function formatPan (valueObject, value)
-  if value < 0 then
-    return (string.format("%iL", -value))
-  elseif value == 0 then
-    return "C"
-  else
-    return (string.format("%iR", value))
-  end
-end
-
-function formatPercent (valueObject, value)
-  return (string.format("%.1f %%",value/10))
-end
-
-function formatIntPercent (valueObject, value)
-  return (string.format("%.0f %%",value/10))
-end
-
-function formatDegree (valueObject, value)
-  return (string.format("%i *",value))
-end
-
-function formatSemitone (valueObject, value)
-  return (string.format("%i st",value))
-end
-
-function formatFineSemitone (valueObject, value)
-  return (string.format("%.2f st",value/100))
-end
-
-function formatDetune (valueObject, value)
-  return (string.format("%i ct",value))
-end
-
-function aa()
-  window.stop()
-end
-
-function zz()
-  window.resume()
-end
-
-"""
 
 PATCH_REQUEST_SCRIPT = """
 function patch.onRequest (device)
@@ -158,10 +91,6 @@ end
 
 """
 
-# Empty preset; needs to define a device for the patch request lua code to work
-# (See PATCH_REQUEST_SCRIPT)
-EMPTY_PRESET = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","pages":[],"groups":[],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[],"controls":[]}'
-
 # Note: the EffectController creates an instance of a GenericDeviceController
 # to manage the currently assigned device. If uploading is delayed,
 # self._assigned_device already points to the newly selected device, but
@@ -170,7 +99,8 @@ EMPTY_PRESET = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","
 # deletion triggers device selection, so
 # self._assigned_device_controller is updated (and no longer points to
 # the now deleted device). If no device is assigned, then self._assigned_device
-# equal None and EMPTY_PRESET is uploaded with the necessary LUA scripts to
+# equal None and an empty preset (teken froma  devicd with name "Empty")
+# is uploaded with the necessary LUA scripts to
 # still handle pathc request button preses and to forward lua calls to a mixer
 # on a second E1 if CONTROL_MODE = CONTROL_BOTH
 
@@ -365,24 +295,29 @@ class EffectController(ElectraOneBase):
            the E1 and create a device controller for it.
         """
         device = self._assigned_device
+        # TODO: we get the (complex) preset from DEVICES.py even if
+        # it is already preloaded on the E1; luckily we do not construct
+        # the preset on the fly unneccessarily (as it is then  also not
+        # preloaded); we do validate though...
         if device:
             device_name = self.get_device_name(device)
             self.debug(2,f'Uploading device { device_name }')
             preset_info = self._get_preset_info(device)
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
-            preset = preset_info.get_preset()
-            script = DEFAULT_LUASCRIPT + preset_info.get_lua_script() 
         else:
+            device_name = 'Empty'
             self.debug(2,'Uploading empty device')
-            preset = EMPTY_PRESET
-            script = ""
-        # extend the LUA script where necessary
-        if CONTROL_MODE == CONTROL_BOTH:
-            script += MIXER_FORWARDING_SCRIPT
-        if CONTROL_MODE == CONTROL_EITHER:
-            script += PATCH_REQUEST_SCRIPT
+            # 'Empty' guaranteed to exist
+            preset_info = get_predefined_preset_info(device_name)
+        preset = preset_info.get_preset()
+        script = preset_info.get_lua_script() 
+        # TODO: extend the LUA script where necessary
+        #if CONTROL_MODE == CONTROL_BOTH:
+        #    script += MIXER_FORWARDING_SCRIPT
+        #if CONTROL_MODE == CONTROL_EITHER:
+        #    script += PATCH_REQUEST_SCRIPT
         # upload preset: will also request midi map (which will also refresh state)
-        self.upload_preset(EFFECT_PRESET_SLOT,preset,script)
+        self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
         self._assigned_device_upload_delayed = False
         # if this upload fails, ElectraOneBase.preset_upload_successful will be
         # false; then update_display will try to upload again every 100ms (when
@@ -421,7 +356,7 @@ class EffectController(ElectraOneBase):
                 # upload preset: will also request midi map (which will also refresh state)                
                 self._upload_assigned_device_if_possible_and_needed()
         else:
-            # assigns the EMPTY_DEVICE (needed to install some LUA script
+            # assigns the empty device (needed to install some LUA script
             # when comamnds need to be forwarded to a mixer when
             # in CONTROL_BOTH_MODE 
             self._assigned_device = None

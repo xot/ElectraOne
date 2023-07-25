@@ -270,6 +270,9 @@ class ElectraOneBase(Log):
     # Record whether E1 will forward ACKs from anotehr E1 attached to it
     E1_FORWARDS_ACK = False
 
+    # Record whether E1 supports preloaded presets on the E1 itself
+    E1_PRELOADED_PRESETS_SUPPORTED = False
+
     # Minimum and maximum timeouts to wait for an ACK
     MIN_TIMEOUT = 0
     MAX_TIMEOUT = 0
@@ -300,9 +303,10 @@ class ElectraOneBase(Log):
         else:
             ElectraOneBase.E1_version_supported = True
             ElectraOneBase.E1_FORWARDS_ACK = (sw_version >= (3,2,0))
+            ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0)) 
             # set hwardware dependent options
             if hw_version >= (3,0): # mkII
-                ElectraOneBase.MIN_TIMEOUT = 30
+                ElectraOneBase.MIN_TIMEOUT = 50
                 ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
@@ -840,6 +844,24 @@ class ElectraOneBase(Log):
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_select)
         
+    def _load_preloaded_preset(self, slot, preset_name):
+        """Load a preloaded preset and associated luascript that are already
+           preloaded on the E1 to the indicated slot. 
+           - slot: slot to upload to; (bank: 0..5, preset: 0..1)
+           - preset_name: name of the preset to load; str
+        """
+        self.debug(4,f'Loading preloaded preset for {preset_name} into slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
+        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
+        # see https://docs.electra.one/developers/midiimplementation.html#load-preloaded-preset
+        sysex_command = (0x04, 0x08)
+        json = f'{{ "bankNumber": {bankidx}, "slot": {presetidx}, "preset": "{E1_PRESET_FOLDER}/{preset_name}" }}'
+        sysex_json = tuple([ self._safe_ord(c) for c in json ])
+        # this SysEx command repsonds with an ACK/NACK 
+        self._increment_acks_pending()
+        self._send_midi_sysex(sysex_command + sysex_json)
+        
     def _upload_lua_script_to_current_slot(self, luascript):
         """Upload the specified LUA script to the currently selected slot on
            the E1 (use _select_slot_only to select the desired slot)
@@ -869,12 +891,14 @@ class ElectraOneBase(Log):
         self._send_midi_sysex(sysex_command + sysex_preset)
 
     
-    def __upload_preset_thread(self, slot, preset, luascript):
-        """To be called as a thread. Select a slot, then upload a preset, and
-           then upload a lua script for it. In all cases wait (within a timeout) for
-           confirmation from the E1. Reactivate the interface when done and
-           request to rebuild the midi map.
+    def __upload_preset_thread(self, slot, preset_name, preset, luascript):
+        """To be called as a thread. Select a slot, then load preloaded
+           preset and luascript, or upload a preset and a lua script for it.
+           In all cases wait (within a timeout) for confirmation from the E1.
+           Reactivate the interface when done and request to rebuild the
+           midi map.
            - slot: slot to upload to; (bank: 0..5, preset: 0..1)
+           - preset_name: name of the preset to load; str
            - preset: preset to upload; str (JASON, .epr format)
            - luascript: LUA script to upload; str
         """
@@ -887,19 +911,30 @@ class ElectraOneBase(Log):
             # first select slot and wait for ACK
             self._select_slot_only(slot)
             if self.__wait_for_ack_or_timeout(10): 
-                # slot selected, now upload preset and wait for ACK
-                self._upload_preset_to_current_slot(preset)
-                # timeout depends on patch complexity
-                # patch sizes range from 500 - 100.000 bytes
-                if self.__wait_for_ack_or_timeout( int(len(preset)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
-                    # preset uploaded, now upload lua script and wait for ACK
-                    self._upload_lua_script_to_current_slot(luascript)
-                    if self.__wait_for_ack_or_timeout( 10*int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
-                        ElectraOneBase.preset_upload_successful = True
-                    else: # lua script upload timeout
-                        self.debug(3,'Upload thread: lua script upload failed. Aborted')
-                else: # preset upload timeout
-                    self.debug(3,'Upload thread: preset upload failed. Aborted')
+                # slot selected, now try to load the preloaded preset
+                # and wait for ack if supported (if succesful, lua
+                # script is also uploaded
+                loaded = False
+                if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+                    self._load_preloaded_preset(slot,preset_name)
+                    loaded = self.__wait_for_ack_or_timeout(10)
+                # if loading preloaded preset failed upload preset
+                # instead and wait for ACK                    
+                if loaded:
+                    ElectraOneBase.preset_upload_successful = True
+                else:
+                    self._upload_preset_to_current_slot(preset)
+                    # timeout depends on patch complexity
+                    # patch sizes range from 500 - 100.000 bytes
+                    if self.__wait_for_ack_or_timeout( int(len(preset)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
+                        # preset uploaded, now upload lua script and wait for ACK
+                        self._upload_lua_script_to_current_slot(luascript)
+                        if self.__wait_for_ack_or_timeout( 10*int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
+                            ElectraOneBase.preset_upload_successful = True
+                        else: # lua script upload timeout
+                            self.debug(3,'Upload thread: lua script upload failed. Aborted')
+                    else: # preset upload timeout
+                        self.debug(3,'Upload thread: preset upload failed. Aborted')
             else: # slot selection timed out
                 self.debug(2,'Upload thread failed to select slot. Aborted.')
             # reopen interface
@@ -913,12 +948,16 @@ class ElectraOneBase(Log):
             ElectraOneBase.preset_uploading = False
             self.debug(1,f'Exception occured in upload thread {sys.exc_info()}')
         
-    def upload_preset(self, slot, preset, luascript):
-        """Select a slot and upload a preset and associated luascript.
+    def upload_preset(self, slot, preset_name, preset, luascript):
+        """Select a slot and upload a preset and associated luascript. First
+           try to load a preloaded preset and associated luascript that are
+           already preloaded on the E1, using preset_name.
+           If that fails, upload the provided preset and luacsript.
            Returns immediately, but closes interface until preset fully loaded
            in the background. Once upload finished, the thread will request to
            rebuild the midi map.
            - slot: slot to upload to; (bank: 0..5, preset: 0..1)
+           - preset_name: name of the preset to load; str
            - preset: preset to upload; str (JASON, .epr format)
            - luascript: LUA script to upload; str
         """
@@ -926,9 +965,10 @@ class ElectraOneBase(Log):
         ElectraOneBase.preset_uploading = True  # do this outside thread because thread may not even execute first statement before finishing
         ElectraOneBase.preset_upload_successful = False
         # thread also requests to rebuild MIDI map at the end (if successful), and this then calls refresh state
-        self._upload_thread = threading.Thread(target=self.__upload_preset_thread,args=(slot,preset,luascript))
+        self._upload_thread = threading.Thread(target=self.__upload_preset_thread,args=(slot,preset_name,preset,luascript))
         self._upload_thread.start()
 
-                
+
+        
     
         

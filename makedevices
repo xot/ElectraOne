@@ -57,6 +57,8 @@ def get_predefined_preset_info(device_name):
 # Output file
 DEVICES = 'Devices.py'
 
+DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
+
 # Dictionary with data for remapping pages
 # { 'parametername' : new page } or { 'id': new_page }
 
@@ -89,6 +91,9 @@ def remap_pages(d):
 # main
 
 print(f'MAKEDEVICES (version of {COMMITDATE}): fill ./Devices.py with presets in ./preloaded')
+# load the defualt lua script
+with open(DEFAULT_LUA_SCRIPT_FILE,'r') as inf:
+    DEFAULT_LUA_SCRIPT = inf.read()
 # find the paths to all presets to preload
 here = Path('.')
 allpresets_paths = here.glob('preloaded/*.epr')
@@ -126,17 +131,16 @@ with open(DEVICES,'w') as outf:
             # as a single-quoted string to Devices.py
             filter_quotes = str.maketrans({ "'": "\\'"})
             json_preset = json_preset.translate(filter_quotes)
-        # load the .lua if it exists
+        lua_script = DEFAULT_LUA_SCRIPT
+        # append the .lua if it exists
         if os.path.exists(lua_script_path):
             with open(lua_script_path,'r') as inf:
                 #print('- LUA script found. Loading.')
-                lua_script = inf.read()
+                lua_script += inf.read()
                 # escape single quotes in json_preset; it will be written
                 # as a single-quoted string to Devices.py
                 filter_quotes = str.maketrans({ "'": "\\'"})
                 lua_script = lua_script.translate(filter_quotes)
-        else:
-            lua_script = ''
         # load the .ccmap
         with open(ccmap_path,'r') as inf:
             #print('- Loading CCMAP.')

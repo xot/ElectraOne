@@ -45,6 +45,10 @@ DETECT_E1 = True
 # (Leading or trailing slash is ignored)
 LIBDIR = 'ElectraOne'
 
+# Folder on the E1 where the preloaded presets are stored, relative to ctrlv2/presets
+# (only possible for E1 with firmware 3.4 and higher)
+E1_PRESET_FOLDER = 'xot/ableton'
+
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)
 

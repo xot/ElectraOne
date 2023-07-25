@@ -10,6 +10,8 @@ It can also be used to dump E1 presets for Ableton Live devices with sensible de
 
 The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks, together with an [E1 mixer preset](#the-mixer) (```Mixer.eproj```) to control it.
 
+The remote script also comes with specially crafted presets for most of the Ableton Live effects and instruments.
+
 (*Note: this is a beta release, but it should be relatively stable and usable by now.*)
 
 ## The mixer
@@ -61,11 +63,13 @@ Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is s
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-The remote script looks for a preloaded preset for the appointed device in ```Devices.py``` and uses that if it exists. You can add your own favourite preset layout here. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
+Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), specially crafted presets to control such appointed effects and instruments can be preloaded to the E1 for fast recall. See for instructions below.
+
+The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It the first one it finds. You can add your own favourite preset layout in anyof these locations. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
-If no preloaded preset exists, it creates a preset on the fly. The preset is uploaded to the E1 to the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+If no preloaded preset exists, it creates a preset on the fly. The preset is (up)loaded to the E1 to the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
@@ -152,6 +156,10 @@ If you set the control identifier in the CC-map of a parameter to the actual ide
 
 Apart from that, anything goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
+### Uploading preloaded presets
+
+On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive  archive ```upload-to-E1.zip``` in the folder ```ctrlv2/presets``` on the E1. See the installation instructions below for more details.
+ 
 ## Switching between presets
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
@@ -194,6 +202,8 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1.
 
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*), unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2/presets``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and associated LUA scripts.
+
 Start Ableton 
 
 A patch for the appointed device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the E1
@@ -217,7 +227,8 @@ Set the following constants in the ```config.py``` (this is one of the files you
 
 The behaviour of the remote script can be changed by editing ```config.py```:
 
-- ```LIBDIR```determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
+- ```LIBDIR``` determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
+- ```E1_PRESET_FOLDER``` subfolder on the E1 where the preloaded presets are stored, relative to ```ctrlv2/presets``` (only possible for E1 with firmware 3.4 and higher). The default is ```xot/ableton```.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```E1_LOGGING``` controls whether the E1 should send log messages, and if so how detailed. Default ```-1``` (which means no logging). Other possible levels: ```0``` (critical messages and errors only), ```1``` (warning messages), ```2``` (informative messages), or ```3``` (tracing messages).
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
