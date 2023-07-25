@@ -443,7 +443,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - vmin: minimum value; int (or None if not used)
            - vmax: maximum value; int 
            - formatter: name of LUA formatter function; str (None if not used)
-             (see EffectController DEFAULT_LUASCRIPT for possible values)
+             (see default.lua for possible values)
            If vmin != None, vmin and vmax specify the minimal and maximal value
            for the fader as used by the E1 to compute and display its current
            value (possibly using the formatter function if specified) based on
@@ -854,12 +854,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # this modifes cc_map to set the control indices for parameters that
         # need to use Ableton generated value strings.
         self._preset_json = self._construct_json_preset(device_name, parameters, self._cc_map)
-        self._lua_script = ''
 
 
     def get_preset(self):
         """Return the constructed preset and ccmap as PresetInfo.
            - result: preset and ccmap; PresetInfo
         """
-        return PresetInfo(self._preset_json, self._lua_script, self._cc_map)
+        return PresetInfo(self._preset_json, '', self._cc_map)
         

@@ -153,11 +153,15 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
+            # get the default lua script from the Empty device
+            empty_preset_info = get_predefined_preset_info('Empty')
+            preset_info._lua_script = empty_preset_info.get_lua_script()
             if DUMP:
                 self._dump_presetinfo(device,preset_info)
         # check preset integrity; any warnings will be reported in the log
         preset_info.validate(device, device_name, self.warning)
         return preset_info
+
     
     # --- handling presets  ----
     
