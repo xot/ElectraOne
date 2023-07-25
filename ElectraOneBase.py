@@ -648,9 +648,10 @@ class ElectraOneBase(Log):
             self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_lua)
 
-    def midi_burst_on(self):
+    def midi_burst_on(self,command):
         """Prepare the script for a burst of updates; set a small delay
            to prevent clogging the E1, and disable window repaints.
+           - command: command to use (addressing mixer or effect)
         """
         self.debug(4,'MIDI burst on.')
         # TODO: set proper timings; note that the current HW has 256k RAM
@@ -660,26 +661,49 @@ class ElectraOneBase(Log):
         ElectraOneBase._send_midi_sleep = ElectraOneBase.BURST_MIDI_SLEEP
         ElectraOneBase._send_value_update_sleep = ElectraOneBase.BURST_VALUE_UPDATE_SLEEP 
         # defer drawing
-        self._send_lua_command('aa()')
+        self._send_lua_command(command)
         # wait a bit to ensure the command is processed before sending actual
         # value updates (we cannot wait for the actual ACK)
         time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
         
-    def midi_burst_off(self):
+    def midi_burst_off(self,command):
         """Reset the delays, because updates are now individual. And allow
            immediate window updates again. Draw any buffered window repaints.
+           - command: command to use (addressing mixer or effect)
         """
         self.debug(4,'MIDI burst off.')
-        # wait a bit (100ms) to ensure all MIDI CC messages have been processed
+        # wait a bit to ensure all MIDI CC messages have been processed
         # and all ACKs/NACks for LUA commands sent have been received
         time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
-        ElectraOneBase._send_midi_sleep = ElectraOneBase.BURST_MIDI_SLEEP
-        ElectraOneBase._send_value_update_sleep = ElectraOneBase.BURST_VALUE_UPDATE_SLEEP
+        ElectraOneBase._send_midi_sleep = ElectraOneBase.MIDI_SLEEP
+        ElectraOneBase._send_value_update_sleep = ElectraOneBase.VALUE_UPDATE_SLEEP
         # reenable drawing and update display
-        self._send_lua_command('zz()')
+        self._send_lua_command(command)
         # wait a bit to ensure the command is processed
         # (we cannot wait for the actual ACK)
-        time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
+        time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP)
+
+    def effect_midi_burst_on(self):
+        """Tell effect to disable redraws to prepare for a burst of MIDI updated
+        """
+        self.midi_burst_on('aaa()')
+        
+    def effect_midi_burst_off(self):
+        """Tell effect to reenable redraws, and update display to new state.
+           No more MIDI burst.
+        """
+        self.midi_burst_off('zzz()')
+
+    def mixer_midi_burst_on(self):
+        """Tell mixer to disable redraws to prepare for a burst of MIDI updated
+        """
+        self.midi_burst_on('aa()')
+        
+    def mixer_midi_burst_off(self):
+        """Tell mixer to reenable redraws, and update display to new state.
+           No more MIDI burst.
+        """
+        self.midi_burst_off('zz()')
         
     def update_track_labels(self, idx, label):
         """Update the label for a track on all relevant pages

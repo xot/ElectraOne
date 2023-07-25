@@ -85,11 +85,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -100,6 +100,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 ratio = controls.get(12)
@@ -240,11 +288,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -255,6 +303,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -332,11 +428,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -347,6 +443,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 freq = controls.get(2)
@@ -437,11 +581,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -452,6 +596,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 pfdial = controls.get(6)
@@ -530,11 +722,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -545,6 +737,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 time = controls.get(11)
@@ -627,11 +867,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -642,6 +882,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 drive = controls.get(14)
@@ -737,11 +1025,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -752,6 +1040,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -849,11 +1185,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -864,6 +1200,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -990,11 +1374,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1005,6 +1389,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 mfreq = controls.get(16)
@@ -1141,11 +1573,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1156,6 +1588,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -1303,11 +1783,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1318,6 +1798,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 width = controls.get(13)
@@ -1432,11 +1960,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1447,6 +1975,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 delaytime = controls.get(36)
@@ -1643,11 +2219,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1658,6 +2234,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -1727,11 +2351,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1742,6 +2366,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -1814,11 +2486,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1829,6 +2501,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -1902,11 +2622,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -1917,6 +2637,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 acoarse = controls.get(1)
@@ -2290,11 +3058,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2305,6 +3073,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 scison = false
@@ -2424,11 +3240,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2439,6 +3255,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 ltime = controls.get(10)
@@ -2579,11 +3443,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2594,6 +3458,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -2667,11 +3579,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2682,6 +3594,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -2758,11 +3718,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2773,6 +3733,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -2843,11 +3851,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2858,6 +3866,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -2931,11 +3987,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -2946,6 +4002,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -3019,11 +4123,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3034,6 +4138,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -3190,11 +4342,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3205,6 +4357,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 function formatMidFreq (valueObject, value)
@@ -3289,11 +4489,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3304,6 +4504,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 mode = 0
@@ -3505,11 +4753,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3520,6 +4768,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 rmodesel = controls.get(22)
@@ -3666,11 +4962,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3681,6 +4977,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -3748,11 +5092,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3763,6 +5107,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 ftype = 0
@@ -3928,11 +5320,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -3943,6 +5335,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -4008,11 +5448,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4023,6 +5463,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -4117,11 +5605,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4132,6 +5620,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 hpffreq = controls.get(8)
@@ -4230,11 +5766,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4245,6 +5781,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 release = controls.get(5)
@@ -4334,11 +5918,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4349,6 +5933,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -4429,11 +6061,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4444,6 +6076,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -4513,11 +6193,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4528,6 +6208,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 ltime = controls.get(25)
@@ -4705,11 +6433,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4720,6 +6448,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -4955,11 +6731,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -4970,6 +6746,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 chrate = controls.get(3)
@@ -5101,11 +6925,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5116,6 +6940,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 ltime = controls.get(14)
@@ -5238,11 +7110,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5253,6 +7125,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -5323,11 +7243,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5338,6 +7258,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -5411,11 +7379,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5426,6 +7394,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -5513,11 +7529,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5528,6 +7544,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 tune = controls.get(37)
@@ -5723,11 +7787,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5738,6 +7802,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -5819,11 +7931,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5834,6 +7946,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -5935,11 +8095,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -5950,6 +8110,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -6018,11 +8226,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6033,6 +8241,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -6205,11 +8461,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6220,6 +8476,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -6447,11 +8751,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6462,6 +8766,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 function formatPitch (valueObject, value)
@@ -6551,11 +8903,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6566,6 +8918,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 rate1 = controls.get(19)
@@ -6831,11 +9231,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6846,6 +9246,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 scison = false
@@ -6974,11 +9422,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -6989,6 +9437,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 """,
@@ -7066,11 +9562,11 @@ end
 
 -- start/stop display drawing
 
-function aa()
+function aaa()
   window.stop()
 end
 
-function zz()
+function zzz()
   window.resume()
 end
 
@@ -7081,6 +9577,54 @@ function patch.onRequest (device)
   if device.id == 1
     then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
   end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward(\'aa\')
+end
+
+function zz()
+  forward(\'zz\')
+end
+
+function utl(idx,label)
+  forward2(\'utl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function ursl(idx,label)
+  forward2(\'ursl\', tostring(idx), \'"\'..label..\'"\')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2(\'seqv\',tostring(idx),\'true\')
+  else
+    forward2(\'seqv\',tostring(idx),\'false\')
+  end
+end
+
+function smv(tc,rc)
+  forward2(\'smv\', tostring(tc), tostring(rc))
 end
 
 lforate = controls.get(24)

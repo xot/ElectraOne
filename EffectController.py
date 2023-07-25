@@ -19,61 +19,6 @@ from .ElectraOneBase import ElectraOneBase
 from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
 
-# Default LUA scripts to send along an effect preset.
-# - MIXER_FORWARDING_SCRIPT contains code to forward calls to LUA functions
-# to a second E1 running the Mixer preset
-#
-
-MIXER_FORWARDING_SCRIPT = """
-function forward(f)
-  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
-  cmds = f .. "()"
-  for i=1, string.len(cmds) do
-    cmdt[i+5]= string.byte(cmds,i,i)
-  end
-  midi.sendSysex(PORT_1,cmdt)
-end
-
-function forward2(f,p1,p2)
-  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
-  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
-  for i=1, string.len(cmds) do
-    cmdt[i+5]= string.byte(cmds,i,i)
-  end
-  midi.sendSysex(PORT_1,cmdt)
-end
-
-function aa()
-  window.stop()
-  forward('aa')
-end
-
-function zz()
-  window.resume()
-  forward('zz')
-end
-
-function utl(idx,label)
-  forward2('utl', tostring(idx), '"'..label..'"')
-end
-
-function ursl(idx,label)
-  forward2('ursl', tostring(idx), '"'..label..'"')
-end
-
-function seqv(idx,flag)
-  if flag then
-    forward2('seqv',tostring(idx),'true')
-  else
-    forward2('seqv',tostring(idx),'false')
-  end
-end
-
-function smv(tc,rc)
-  forward2('smv', tostring(tc), tostring(rc))
-end
-
-"""
 
 # Note: the EffectController creates an instance of a GenericDeviceController
 # to manage the currently assigned device. If uploading is delayed,
@@ -84,9 +29,6 @@ end
 # self._assigned_device_controller is updated (and no longer points to
 # the now deleted device). If no device is assigned, then self._assigned_device
 # equal None and an empty preset (teken froma  devicd with name "Empty")
-# is uploaded with the necessary LUA scripts to
-# still handle pathc request button preses and to forward lua calls to a mixer
-# on a second E1 if CONTROL_MODE = CONTROL_BOTH
 
 class EffectController(ElectraOneBase):
     """Control the currently selected device.
@@ -153,9 +95,9 @@ class EffectController(ElectraOneBase):
         """
         if self._assigned_device_is_visible():
             self.debug(2,'EffCont refreshing state.')
-            self.midi_burst_on()
+            self.effect_midi_burst_on()
             self._assigned_device_controller.refresh_state()
-            self.midi_burst_off()
+            self.effect_midi_burst_off()
             self.debug(2,'EffCont state refreshed.')
         else:
             self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
@@ -295,9 +237,6 @@ class EffectController(ElectraOneBase):
             preset_info = get_predefined_preset_info(device_name)
         preset = preset_info.get_preset()
         script = preset_info.get_lua_script() 
-        # TODO: extend the LUA script where necessary
-        #if CONTROL_MODE == CONTROL_BOTH:
-        #    script += MIXER_FORWARDING_SCRIPT
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
         self._assigned_device_upload_delayed = False
