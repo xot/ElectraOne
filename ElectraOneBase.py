@@ -908,21 +908,23 @@ class ElectraOneBase(Log):
             # consume any stray pending ACKs or NACKs from previous commands
             # to clear the pending acks queue
             self.__clear_acks_queue()
-            # first select slot and wait for ACK
-            self._select_slot_only(slot)
-            if self.__wait_for_ack_or_timeout(10): 
-                # slot selected, now try to load the preloaded preset
-                # and wait for ack if supported (if succesful, lua
-                # script is also uploaded
-                loaded = False
-                if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
-                    self._load_preloaded_preset(slot,preset_name)
-                    loaded = self.__wait_for_ack_or_timeout(10)
-                # if loading preloaded preset failed upload preset
-                # instead and wait for ACK                    
-                if loaded:
-                    ElectraOneBase.preset_upload_successful = True
-                else:
+            # try loading preloaded preset + lua first
+            loaded = False
+            if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+                self._load_preloaded_preset(slot,preset_name)
+                loaded = self.__wait_for_ack_or_timeout(10)
+            # if loading preloaded preset failed upload preset
+            # instead and wait for ACK                    
+            if loaded:
+                ElectraOneBase.current_visible_slot = slot
+                ElectraOneBase.preset_upload_successful = True
+            else:
+                self.debug(2,'Loading preloaded presdet failed; revert to upload.')
+                # preloading failed: upload instead
+                # first select slot and wait for ACK
+                self._select_slot_only(slot)
+                if self.__wait_for_ack_or_timeout(10):
+                    # upload preset
                     self._upload_preset_to_current_slot(preset)
                     # timeout depends on patch complexity
                     # patch sizes range from 500 - 100.000 bytes
@@ -935,8 +937,8 @@ class ElectraOneBase(Log):
                             self.debug(3,'Upload thread: lua script upload failed. Aborted')
                     else: # preset upload timeout
                         self.debug(3,'Upload thread: preset upload failed. Aborted')
-            else: # slot selection timed out
-                self.debug(2,'Upload thread failed to select slot. Aborted.')
+                else: # slot selection timed out
+                    self.debug(2,'Upload thread failed to select slot. Aborted.')
             # reopen interface
             ElectraOneBase.preset_uploading = False
             if ElectraOneBase.preset_upload_successful == True:
