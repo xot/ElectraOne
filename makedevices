@@ -59,6 +59,8 @@ DEVICES = 'Devices.py'
 
 DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 
+TMP = Path('tmp/xot/ableton')
+
 # Dictionary with data for remapping pages
 # { 'parametername' : new page } or { 'id': new_page }
 
@@ -91,6 +93,8 @@ def remap_pages(d):
 # main
 
 print(f'MAKEDEVICES (version of {COMMITDATE}): fill ./Devices.py with presets in ./preloaded')
+# make the tmp directory
+os.makedirs(TMP, exist_ok=True)
 # load the defualt lua script
 with open(DEFAULT_LUA_SCRIPT_FILE,'r') as inf:
     DEFAULT_LUA_SCRIPT = inf.read()
@@ -149,7 +153,7 @@ with open(DEVICES,'w') as outf:
             # TODO: commented out to allow comments in CC-maps
             #filter_newlines = str.maketrans({ '\n': None})
             #ccmap = ccmap.translate(filter_newlines)
-        # write the preset information to the output
+        # write the preset information to DEVICES.py
         outf.write(f"'{ device_name }': PresetInfo('")
         outf.write(json_preset)
         outf.write("',\n    ")
@@ -159,5 +163,10 @@ with open(DEVICES,'w') as outf:
         outf.write('""",\n    ')
         outf.write(ccmap)
         outf.write(')')
+        # weite the preset and lua to the TMP directory
+        with open(TMP / json_preset_path.name ,'w') as eprout:
+            eprout.write(json_preset)
+        with open(TMP / lua_script_path.name ,'w') as luaout:
+            luaout.write(lua_script)
     outf.write('\n}\n\n')
     outf.write(POSTSCRIPT)

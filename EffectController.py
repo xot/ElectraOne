@@ -20,25 +20,9 @@ from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
 
 # Default LUA scripts to send along an effect preset.
-# - PATCH_REQUEST_SCRIPT programs the PATCH REQUEST
-# button to send a special SysEx message (0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)
-# received by ElectraOne to swap the visible preset. As complex presets may have
-# more than one device defined (an patch.onRequest sends a message out for
-# every device), we use device.id to diversify the outgoing message.
-# (Effect presets always have device.id = 1 as the first device)
 # - MIXER_FORWARDING_SCRIPT contains code to forward calls to LUA functions
 # to a second E1 running the Mixer preset
 #
-
-PATCH_REQUEST_SCRIPT = """
-function patch.onRequest (device)
-  print ("Patch Request pressed");
-  if device.id == 1
-    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
-  end
-end
-
-"""
 
 MIXER_FORWARDING_SCRIPT = """
 function forward(f)
@@ -314,8 +298,6 @@ class EffectController(ElectraOneBase):
         # TODO: extend the LUA script where necessary
         #if CONTROL_MODE == CONTROL_BOTH:
         #    script += MIXER_FORWARDING_SCRIPT
-        #if CONTROL_MODE == CONTROL_EITHER:
-        #    script += PATCH_REQUEST_SCRIPT
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
         self._assigned_device_upload_delayed = False
