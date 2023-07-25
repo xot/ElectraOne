@@ -57,13 +57,16 @@ def get_predefined_preset_info(device_name):
 # Output file
 DEVICES = 'Devices.py'
 
+# Path to file containinf the default LUA script that always needs to be
+# included
 DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 
+# Path to tmp file to store processed preset and lua files for uploading to E1
+# (starting from firmware 3.4)
 TMP = Path('tmp/xot/ableton')
 
 # Dictionary with data for remapping pages
 # { 'parametername' : new page } or { 'id': new_page }
-
 remap_data = {}
 
 def remap_pages(d):
@@ -90,7 +93,78 @@ def remap_pages(d):
             d['pageId'] = new_page
     return(d)
 
-# main
+flag = False
+
+def process_preset(outf,preset_path):
+    """Process one preset, writing its data to outf and the TMP directory
+    """
+    global flag, remap_data
+    # get the paths to the data files, and the device name
+    remap_data_path = preset_path.with_suffix('.remap')
+    json_preset_path = preset_path
+    lua_script_path = preset_path.with_suffix('.lua')
+    ccmap_path = preset_path.with_suffix('.ccmap')
+    device_name = preset_path.stem
+    print(f'Preloading {device_name}')
+    # write a comma to outf if needed
+    if flag:
+        outf.write(',\n')
+    flag = True
+    # load the remap data
+    if os.path.exists(remap_data_path):
+        with open(remap_data_path,'r') as inf:
+            print('- Remapping found. Loading.')
+            remap_data = json.load(inf)
+    else:
+        remap_data = {}
+    # load and process the .epr preset, remapping controls if necessary
+    with open(json_preset_path,'r') as inf:
+        #print('- Loading preset JSON.')
+        json_load = json.load(inf,object_hook=remap_pages)
+        #json_load = json.load(inf)
+        json_preset = json.dumps(json_load, separators=(',', ':'))
+        # escape single quotes in json_preset; it will be written
+        # as a single-quoted string to Devices.py
+        filter_quotes = str.maketrans({ "'": "\\'"})
+        json_preset = json_preset.translate(filter_quotes)
+    # load the .lua script if it exist; always add DEFAULT_LUA_SCRIPT
+    lua_script = DEFAULT_LUA_SCRIPT
+    # append the .lua if it exists
+    if os.path.exists(lua_script_path):
+        with open(lua_script_path,'r') as inf:
+            #print('- LUA script found. Loading.')
+            lua_script += inf.read()
+            # escape single quotes in json_preset; it will be written
+            # as a single-quoted string to Devices.py
+            filter_quotes = str.maketrans({ "'": "\\'"})
+            lua_script = lua_script.translate(filter_quotes)
+    # load the .ccmap
+    with open(ccmap_path,'r') as inf:
+        #print('- Loading CCMAP.')
+        ccmap = inf.read()
+        # Remove newlines from ccmap
+        # TODO: commented out to allow comments in CC-maps
+        #filter_newlines = str.maketrans({ '\n': None})
+        #ccmap = ccmap.translate(filter_newlines)
+    # write the preset information to DEVICES.py
+    outf.write(f"'{ device_name }': PresetInfo('")
+    outf.write(json_preset)
+    outf.write("',\n    ")
+    # LUA script may contain newlines
+    outf.write('"""')
+    outf.write(lua_script)
+    outf.write('""",\n    ')
+    outf.write(ccmap)
+    outf.write(')')
+    # weite the preset and lua to the TMP directory
+    with open(TMP / json_preset_path.name ,'w') as eprout:
+        eprout.write(json_preset)
+    with open(TMP / lua_script_path.name ,'w') as luaout:
+        luaout.write(lua_script)
+
+
+
+# === MAIN ===
 
 print(f'MAKEDEVICES (version of {COMMITDATE}): fill ./Devices.py with presets in ./preloaded')
 # make the tmp directory
@@ -105,68 +179,8 @@ allpresets_paths = here.glob('preloaded/*.epr')
 with open(DEVICES,'w') as outf:
     outf.write(PREAMBLE)
     outf.write('\nDEVICES = {\n')
-    flag = False
     # process each preset path
     for preset_path in allpresets_paths:
-        remap_data_path = preset_path.with_suffix('.remap')
-        json_preset_path = preset_path
-        lua_script_path = preset_path.with_suffix('.lua')
-        ccmap_path = preset_path.with_suffix('.ccmap')
-        device_name = preset_path.stem
-        print(f'Preloading {device_name}')
-        # write a comma if needed
-        if flag:
-            outf.write(',\n')
-        flag = True
-        # load the remap data
-        if os.path.exists(remap_data_path):
-            with open(remap_data_path,'r') as inf:
-                print('- Remapping found. Loading.')
-                remap_data = json.load(inf)
-        else:
-            remap_data = {}
-        # load and process the .epr preset
-        with open(json_preset_path,'r') as inf:
-            #print('- Loading preset JSON.')
-            json_load = json.load(inf,object_hook=remap_pages)
-            #json_load = json.load(inf)
-            json_preset = json.dumps(json_load, separators=(',', ':'))
-            # escape single quotes in json_preset; it will be written
-            # as a single-quoted string to Devices.py
-            filter_quotes = str.maketrans({ "'": "\\'"})
-            json_preset = json_preset.translate(filter_quotes)
-        lua_script = DEFAULT_LUA_SCRIPT
-        # append the .lua if it exists
-        if os.path.exists(lua_script_path):
-            with open(lua_script_path,'r') as inf:
-                #print('- LUA script found. Loading.')
-                lua_script += inf.read()
-                # escape single quotes in json_preset; it will be written
-                # as a single-quoted string to Devices.py
-                filter_quotes = str.maketrans({ "'": "\\'"})
-                lua_script = lua_script.translate(filter_quotes)
-        # load the .ccmap
-        with open(ccmap_path,'r') as inf:
-            #print('- Loading CCMAP.')
-            ccmap = inf.read()
-            # Remove newlines from ccmap
-            # TODO: commented out to allow comments in CC-maps
-            #filter_newlines = str.maketrans({ '\n': None})
-            #ccmap = ccmap.translate(filter_newlines)
-        # write the preset information to DEVICES.py
-        outf.write(f"'{ device_name }': PresetInfo('")
-        outf.write(json_preset)
-        outf.write("',\n    ")
-        # LUA script may contain newlines
-        outf.write('"""')
-        outf.write(lua_script)
-        outf.write('""",\n    ')
-        outf.write(ccmap)
-        outf.write(')')
-        # weite the preset and lua to the TMP directory
-        with open(TMP / json_preset_path.name ,'w') as eprout:
-            eprout.write(json_preset)
-        with open(TMP / lua_script_path.name ,'w') as luaout:
-            luaout.write(lua_script)
+        process_preset(outf,preset_path)
     outf.write('\n}\n\n')
     outf.write(POSTSCRIPT)
