@@ -912,7 +912,8 @@ class ElectraOneBase(Log):
             loaded = False
             if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
                 self._load_preloaded_preset(slot,preset_name)
-                loaded = self.__wait_for_ack_or_timeout(10)
+                # don't wait to briefly; complex presets do take some time to load
+                loaded = self.__wait_for_ack_or_timeout(50)
             # if loading preloaded preset failed upload preset
             # instead and wait for ACK                    
             if loaded:
