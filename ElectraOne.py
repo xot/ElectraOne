@@ -224,8 +224,10 @@ class ElectraOne(ElectraOneBase):
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
+            self.debug(3,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
+        else:
+            self.debug(3,f'warning: Unexpected ACK received, uploading?: {ElectraOneBase.preset_uploading}).')            
         ElectraOneBase.ack_or_nack_received = ACK_RECEIVED
-        self.debug(3,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         
     def _do_nack(self, midi_bytes):
         """Handle a NACK message. 
@@ -233,8 +235,10 @@ class ElectraOne(ElectraOneBase):
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
+            self.debug(3,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
+        else:
+            self.debug(3,f'warning: Unexpected NACK received, uploading?: {ElectraOneBase.preset_uploading}).')
         ElectraOneBase.ack_or_nack_received = NACK_RECEIVED
-        self.debug(3,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
 
     def _do_request_response(self, midi_bytes):
         """Handle a request response message: record it as received
