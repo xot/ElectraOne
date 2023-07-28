@@ -369,12 +369,13 @@ two *threads* are used.
 
 One thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts (if ```DETECT_E1=True```).
 
-The other thread (```_upload_preset_thread```) first sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). See [the section on uploading for more detais](#uploading_a_preset)
+The other thread (```_upload_preset_thread```) first tries to load a prealoaded preset, and if that is not possible it sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). See [the section on uploading for more detais](#uploading_a_preset)
 
 
 In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
 
-The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa. It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (see ```EffectController.py```).
+The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa (but only of ```CONTROL_MODE = CONTROL_EITHER```). It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function 
+(see ```default.lua``` and the mixer lua script).
 
 ## Remote script package structure
 
@@ -416,6 +417,7 @@ And it defines the following core modules:
 - ```Devices.py```: stores curated device presets.
 - ```versioninfo.py```: stores the date this version was committed
 
+Finally, the file ```default.lua``` contains the default LUA scripting all effect presets need to include in order to properly format certain control values, and to pause/resume display redraws.
 
 The remote script outputs various debug messages, with different 'importance' levels:
 
@@ -814,9 +816,6 @@ When sending a bunch of MIDI message to update the values of a complete mixer or
 - ```aa()```: delay updating the display of the preset.
 - ```zz()```: resume updating the display of the preset, and force a redraw now. 
 
-
-
-
 For complex Abelton parameters whose display function is hard to derive from the underlying MIDI value (e.g. exponential or logarithmic volume or frequency domains), the remote script uses the ```str_for_value()``` function that Ableton defines for each device parameter. (In fact, for a parameter ```p``` the standard ```str(p)``` call is equivalent to ```p.str_for_value(p.value)```.)
 The resulting string is sent to the E1 by calling the LUA function ```svu``` defined in every effect preset. (See ```ElectraOneBase.py``` and ```DEFAULT_LUASCRIPT``` defined in ```EffectController.py```. The preset must use ```defaultFormatter``` as the formatter function for such controls (to ensure that the E1 itself does not change the value).
 
@@ -825,13 +824,14 @@ For smoother operation, values for such complex Ableton parameters are not immed
 
 ## Device control (```EffectController```)
 
-The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely.
+The remote script also manages the currently selected device, through a second dynamic preset (alongside the static mixer preset outlined above). The idea is that whenever you change the currently selected device (indicated by the 'Blue Hand' in Live), the corresponding preset for that device is uploaded to the E1 so you can control it remotely. 
 
 The ```EffectController.py``` module handles this, with the help of
 - ```ElectraOneDumper.py``` (that creates device presets on the fly based on the information it can obtain from Live about the parameters of the device, see [further below](#generating-an-e1-preset)),
-- ```Devices.py```(that contains preloaded, fine-tuned, presets for common devices), and
+- ```Devices.py```(that contains curated, fine-tuned, presets for common devices), and
 - ```GenericDeviceController.py``` that contains the code to update midi maps and refresh state (that is also used to control the Eq devices in the mixer preset).
 
+Starting with E1 firmware version 3.4, the curated presets stored in ```Devices.py``` can actually be uploaded once to the E1 and stored on its internal file system. A SysEx call can then quickly stage such a preloaded preset in the effect slot.
 
 Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. (Note that unfortunately certain devices omit certain controls from their parameter list.) The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
 
@@ -839,10 +839,10 @@ Module ```EffectController.py``` uses the same method as described above for the
 When the selected device changes, ```EffectController``` does the following.
 
 1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixth bank).
-   - If a user-defined patch exists, that one is used. 
+   - If a user-defined curated preset exists, that one is used: either using the preloaded version already stored on the E1, or the one stored in ```Devices.py```.
    - If not, the parameters for the newly selected device are retrieved from Live (using ```device.parameters```) and automatically converted to a Electra One patch (see ```ElectraOneDumper.py```) in the order specified by the configuration constant ```ORDER```. 
 
-2. All the parameters in the newly selected device are mapped to MIDI CC (using ```Live.MidiMap.map_midi_cc```). For a user-defined preset, a accompanying CC map must be defined to provide the necessary information. For presets constructed on the fly, ```ElectraOneDumper.py``` creates it. 
+2. All the parameters in the newly selected device are mapped to MIDI CC (using ```Live.MidiMap.map_midi_cc```). For a user-defined preset, an accompanying CC map must be defined to provide the necessary information. For presets constructed on the fly, ```ElectraOneDumper.py``` creates it. 
 
 3. After this mapping the values of the controller are initialised once (after a small delay to ensure the patch on the E1 is ready to receive them) all is set: Ableton will forward incoming MIDI CC changes to the mapped parameter, and will also *send* MIDI CC messages whenever the parameter is changed through the Ableton GUI or another control surface.
 
@@ -852,9 +852,11 @@ If *no* device is currently selected (e.g. initially, after deleting a device), 
 - ensure that in ```CONTROL_BOTH``` mode (when a second E1 is connected to the USB Host input that controls the mixer) the necessary SysEx commands are forwarded to the second E1.
  
 
-### Preloaded presets
+### Curated presets
 
-Preloaded presets are stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
+Curated presets are 
+- either stored preloaded on the E1, by default in the folder ```xot/ableton``` within ```ctrlv2/presets```, using the ```device.class_name``` as the file name (where the preset itself is stored in ```<name>.epr``` and any associated LUA code is stored in ```<name>.lua```),
+- or stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
 
 
 Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, a CC map, and some LUA scripting special to the preset. Certain presets use this to hide/show certain parts of the preset depending on the value of certain parameters (e.g. to show either a synchronised rate control or a free frequency control to control the speed of an LFO, depending on a 'sync' toggle button).
@@ -863,7 +865,7 @@ The E1 JSON preset format is described [here](https://docs.electra.one/developer
 
 The CC map is yet another dictionary, indexed by parameter names (as returned by ```parameter.original_name```). For every control defined in the JSON preset, a corresponding entry (with the same MIDI information) must be present in the CC map (or else the control will not control an actual parameter in Live). The other way around, a preset may be simplified and not contain controls for all the parameters in the CC map. Note that the preset does not (need to) know the parameter name (although for presets constructed on the fly the parameter name is in fact used as the label of the control).
 
-(*Note: should a parameter name in Live change across version updates (yes, I've seen this happen, argh) then keep the dictionary entry in the CC map for the original name, and duplicate it to add another dictionary entry for the new parameter name. This way the preloaded preset works for both versions of Live.*)
+(*Note: should a parameter name in Live change across version updates (yes, I've seen this happen, argh) then keep the dictionary entry in the CC map for the original name, and duplicate it to add another dictionary entry for the new parameter name. This way the curated preset works for both versions of Live.*)
 
 A parameter entry in the CC map is a ```CCInfo``` object containing:
 
@@ -872,13 +874,13 @@ A parameter entry in the CC map is a ```CCInfo``` object containing:
 - whether the control sends 7bit (```False``` or 0) or 14 bit (```True``` or 1) values, and
 - the actual CC parameter number (between 0..127, -1 if not mapped).
 
-The constructor for ```CCInfo``` accepts a four-tuple as parameter, to allow the definition of a CC map for a preloaded preset to look like 
+The constructor for ```CCInfo``` accepts a four-tuple as parameter, to allow the definition of a CC map for a curated preset to look like 
 
 ```
 {'Device On': (-1,11,False,1),'State': (-1,11,False,2),'Feedback': (-1,11,True,3),...
 ```
 
-The full preloaded definition for the Looper device in ```Devices.py``` then looks like this:
+The full curated definition for the Looper device in ```Devices.py``` then looks like this:
 
 ```
 DEVICES = {
@@ -891,9 +893,9 @@ DEVICES = {
 
 #### Getting the name of a plugin or Max device
 
-For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify preloaded presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so uses the rack (preset) name to lookup a preloaded preset.
+For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify curated presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so uses the rack (preset) name to lookup a curated preset.
 
-So, if you want to make your own preloaded presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it.
+So, if you want to make your own curated presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it.
 
 #### Getting the name for a rack device
 
@@ -952,7 +954,7 @@ Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` 
 
 ### Uploading a preset
 
-The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
 
 
 Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
@@ -965,15 +967,14 @@ In that case ```EffectController``` keeps track of this delayed upload, and will
 
 ### Preset LUA script
 
-Whenever a preset is uploaded, some default LUA scripts are sent along. These are defined in ```EffectController.py```:
+Whenever a preset is uploaded, some default LUA script is sent along, taken from ```default.lua```. The script that creates ```Devices.py``` and the zip archive with preloaded presets that can be unpacked on the E1 file system ensure that this default LUA script is prepended to the device specific LUA script.
 
-- ```DEFAULT_LUASCRIPT```: Defines some formatting functions to format parameters with decibel values, frequency values, pan controllers, etc, that are used in both the preloaded presets and the presets generated on the fly.
+It defines some formatting functions to format parameters with decibel values, frequency values, pan controllers, etc, that are used in both the curated presets and the presets generated on the fly. And it defines the functions ```aaa()``` and ```zzz()``` to pause and resume display updates.
 
-- ```PATCH_REQUEST_SCRIPT```: Defines the function ```patch.onRequest``` that is called whenever the patch request button (top right) is pressed. It sends a special MIDI SysEx command back to the remote script that then toggles between mixer and effect control. Is only uploaded (and active) when ```CONTROL_MODE = CONTROL_EITEHR```
+It also defines the function ```patch.onRequest``` that is called whenever the patch request button (top right) is pressed. It sends a special MIDI SysEx command ```(0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)``` back to the remote script that then toggles between mixer and effect control. As complex presets may have more than one device defined (and patch.onRequest sends a message out for every device), we use device.id to diversify the outgoing message. (Effect presets always have device.id = 1 as the first device)
+
   
-- ```MIXER_FORWARDING_SCRIPT```: Defines variants for the mixer display control functions (```aa()```, ```zz()```, ```utl()```, ```ursl()```, ```seqv()``` and ```smv()```) to forward them when ```CONTROL_MODE = CONTROL_BOTH```.
-
-Some preloaded presets define preset specific LUA scripts in ```Devices.py```; those are also sent along when that preset is uploaded.
+And it defines variants for the mixer display control functions (```aa()```, ```zz()```, ```utl()```, ```ursl()```, ```seqv()``` and ```smv()```) to forward them when ```CONTROL_MODE = CONTROL_BOTH```.
 
 ## Dealing with ACKs and NACKs
 
@@ -996,6 +997,5 @@ The upload thread subsequently first consumes all pending ACKs/NACks by calling
 <!--
 ## TODO
 
-- preset switch button
 - lessons learned, e.g. not overflooding the E1
 -->

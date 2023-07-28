@@ -307,7 +307,7 @@ class ElectraOneBase(Log):
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
-                ElectraOneBase.MIN_TIMEOUT = 110 # TODO this is large
+                ElectraOneBase.MIN_TIMEOUT = 60 # TODO this is large
                 ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
@@ -325,7 +325,7 @@ class ElectraOneBase(Log):
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.01                 
                 ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 50
-                self.show_message(f'E1, with firmware {sw_version} detected.')
+                self.show_message(f'E1 mk I, with firmware {sw_version} detected.')
                 
     def set_version(self, sw_versionstr, hw_versionstr):
         """Set the E1 firmware version.
