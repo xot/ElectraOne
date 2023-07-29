@@ -104,8 +104,34 @@ class CCMap ( dict ) :
     """
 
     def __init__(self,d):
+        """Initialise from a dictionary mapping parameter.original_name to CCInfo
+           -d: dictionary; dict
+        """
         dict.__init__(self,d)
 
+    def map(self,parameter,ccinfo):
+        """Map the parameter using ccinfo
+           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - ccinfo: ; CCInfo
+        """
+        assert (parameter.original_name not in self), f'Map: {parameter.original_name} already mapped'
+        self[parameter.original_name] = ccinfo
+
+    def update(self,parameter,ccinfo):
+        """Update the parameter using ccinfo
+           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - ccinfo: ; CCInfo
+        """
+        assert (parameter.original_name in self), f'Update: {parameter.original_name} not yet mapped'
+        self[parameter.original_name] = ccinfo
+
+    def is_mapped(self,parameter):
+        """Return whether the parameter is mapped in this CC map
+           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - result: whether mapped or not; bool
+        """
+        return (parameter.original_name in self)
+    
     def get_cc_info(self,parameter):
         """Return the MIDI CC parameter info assigned to the device parameter
            - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter

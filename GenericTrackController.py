@@ -139,6 +139,8 @@ class GenericTrackController(ElectraOneBase):
         for p in eq_cc_map:
             (channel_id, channel, is_cc14, cc_no) = eq_cc_map[p]
             # adjust the CC
+            # TODO: hide the fact that cc_map is a dict
+            # (but we have the  name p here, not the full Live parameter obejct)
             cc_map[p] = CCInfo((channel_id, channel, is_cc14, self._my_cc(cc_no)))
         return cc_map
     

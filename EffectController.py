@@ -153,10 +153,6 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
-            # TODO: this should be done in DeviceDumper
-            # get the default lua script from the Empty device
-            empty_preset_info = get_predefined_preset_info('Empty')
-            preset_info._lua_script = empty_preset_info.get_lua_script()
             if DUMP:
                 # determine path to store the dumps in (created if it doesnt exist)
                 path = self._ensure_in_libdir('dumps')
