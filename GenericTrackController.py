@@ -137,11 +137,10 @@ class GenericTrackController(ElectraOneBase):
         """
         cc_map = CCMap({})
         for p in eq_cc_map:
+            # TODO: eq_cc_map is just a dict, not a CCMap
             (channel_id, channel, is_cc14, cc_no) = eq_cc_map[p]
             # adjust the CC
-            # TODO: hide the fact that cc_map is a dict
-            # (but we have the  name p here, not the full Live parameter obejct)
-            cc_map[p] = CCInfo((channel_id, channel, is_cc14, self._my_cc(cc_no)))
+            cc_map.map_name(p, CCInfo((channel_id, channel, is_cc14, self._my_cc(cc_no))))
         return cc_map
     
     def add_eq_device(self, eq_device_name, eq_cc_map):
@@ -176,6 +175,7 @@ class GenericTrackController(ElectraOneBase):
         if (device != self._eq_device) or \
            (not device and self._eq_device_controller):
             self.debug(3,'EQ device change detected.')
+            # we can use _eq_device_name and _eq_cc_map because add_eq_device already called earlier
             self.add_eq_device(self._eq_device_name,self._eq_cc_map) # also removes any previous eq device controller
             self.request_rebuild_midi_map() # also refreshes state
             

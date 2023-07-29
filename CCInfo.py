@@ -103,11 +103,21 @@ class CCMap ( dict ) :
        returning the CCInfo for this parameter.
     """
 
-    def __init__(self,d):
+    def __init__(self,cc_map):
         """Initialise from a dictionary mapping parameter.original_name to CCInfo
-           -d: dictionary; dict
+           - cc_map: dictionary; dict
         """
-        dict.__init__(self,d)
+        # we could simply do dict.__init__(self,cc_map), but this is safer, checking
+        # all entries in the dict
+        dict.__init__(self,{})
+        for par_name in cc_map:
+            value = cc_map[par_name]
+            if type(value) is tuple:
+                ccinfo = CCInfo(value)
+            else:
+                assert type(value) == CCInfo, f'{value} should be of type CCInfo'
+                ccinfo = value 
+            self[par_name] = ccinfo
 
     def map(self,parameter,ccinfo):
         """Map the parameter using ccinfo
@@ -115,14 +125,25 @@ class CCMap ( dict ) :
            - ccinfo: ; CCInfo
         """
         assert (parameter.original_name not in self), f'Map: {parameter.original_name} already mapped'
+        assert type(ccinfo) == CCInfo, f'{ccinfo} should be of type CCInfo'
         self[parameter.original_name] = ccinfo
 
+    def map_name(self,parameter_name,ccinfo):
+        """Map the parameter name using ccinfo
+           - parameter_name: string
+           - ccinfo: ; CCInfo
+        """
+        assert (parameter_name not in self), f'Map: {parameter_name} already mapped'
+        assert type(ccinfo) == CCInfo, f'{ccinfo} should be of type CCInfo'
+        self[parameter_name] = ccinfo
+        
     def update(self,parameter,ccinfo):
         """Update the parameter using ccinfo
            - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
            - ccinfo: ; CCInfo
         """
         assert (parameter.original_name in self), f'Update: {parameter.original_name} not yet mapped'
+        assert type(ccinfo) == CCInfo, f'{ccinfo} should be of type CCInfo'
         self[parameter.original_name] = ccinfo
 
     def is_mapped(self,parameter):
@@ -140,10 +161,8 @@ class CCMap ( dict ) :
         """
         if parameter.original_name in self:
             v = self[parameter.original_name]
-            if type(v) is tuple:
-                return CCInfo(v)
-            else:
-                return v # Then it is CCInfo 
+            assert type(v) == CCInfo, f'{v} should be of type CCInfo'
+            return v 
         else:
             return UNMAPPED_CCINFO
 
