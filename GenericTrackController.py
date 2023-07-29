@@ -64,11 +64,9 @@ import Live
 
 # Local imports
 from .config import *
-from .PresetInfo import PresetInfo
-from .CCInfo import UNMAPPED_ID
+from .CCInfo import CCMap, CCInfo
 from .ElectraOneBase import ElectraOneBase
 from .GenericDeviceController import GenericDeviceController
-
 
 
 class GenericTrackController(ElectraOneBase):
@@ -129,20 +127,20 @@ class GenericTrackController(ElectraOneBase):
                 return d
         return None
 
-    def _my_channel_eq_preset_info(self, eq_cc_map):
-        """Return the preset info associated with the Channel EQ Device on this
+    def _my_channel_eq_cc_map(self, eq_cc_map):
+        """Return the CC map associated with the Channel EQ Device on this
            track, filling in the correct MIDI CC numbers for this
            particular instance of the device using eq_cc_map as source
            for the base values.
            - eq_cc_map: ; dict of CCInfo
-           - result: CC map in a preset info (with empty preset JSON string!); PresetInfo
+           - result: CC map; CCMap
         """
-        cc_map = {}
+        cc_map = CCMap({})
         for p in eq_cc_map:
             (channel_id, channel, is_cc14, cc_no) = eq_cc_map[p]
             # adjust the CC
-            cc_map[p] = (channel_id, channel, is_cc14, self._my_cc(cc_no))
-        return PresetInfo('','',cc_map)
+            cc_map[p] = CCInfo((channel_id, channel, is_cc14, self._my_cc(cc_no)))
+        return cc_map
     
     def add_eq_device(self, eq_device_name, eq_cc_map):
         """Add a equaliser device to be managed by the mixer preset.
@@ -157,8 +155,8 @@ class GenericTrackController(ElectraOneBase):
         # find the equaliser device on the track
         self._eq_device = self._my_channel_eq(eq_device_name)
         if self._eq_device:
-            preset_info = self._my_channel_eq_preset_info(eq_cc_map)
-            self._eq_device_controller = GenericDeviceController(self._c_instance, self._eq_device, preset_info)
+            cc_map = self._my_channel_eq_cc_map(eq_cc_map)
+            self._eq_device_controller = GenericDeviceController(self._c_instance, self._eq_device, cc_map)
         else:
             self._eq_device_controller = None
         

@@ -234,7 +234,8 @@ class EffectController(ElectraOneBase):
             device_name = self.get_device_name(device)
             self.debug(2,f'Uploading device { device_name }')
             preset_info = self._get_preset_info(device)
-            self._assigned_device_controller = GenericDeviceController(self._c_instance, device, preset_info)
+            cc_map = preset_info.get_cc_map()
+            self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
         else:
             device_name = 'Empty'
             self.debug(2,'Uploading empty device')

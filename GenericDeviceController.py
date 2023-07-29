@@ -15,8 +15,7 @@ import Live
 
 # Local imports
 from .config import USE_ABLETON_VALUES
-from .CCInfo import CCInfo, UNMAPPED_ID
-from .PresetInfo import PresetInfo
+from .CCInfo import CCInfo, CCMap, UNMAPPED_ID
 from .ElectraOneBase import ElectraOneBase
 
 class GenericDeviceController(ElectraOneBase):
@@ -24,19 +23,19 @@ class GenericDeviceController(ElectraOneBase):
        in the mixer): build MIDI maps, refresh state
     """
 
-    def __init__(self, c_instance, device, preset_info):
+    def __init__(self, c_instance, device, cc_map):
         """Create a new device controller for the device and the
-           associated preset information. It is assumed the preset is already
+           associated cc-map. It is assumed the preset is already
            present on the E1 or will be uploaded there shortly
-           (with controls matching the description in PresetInfo)
+           (with controls matching the description in cc_map)
            - c_instance: Live interface object (see __init.py__)
            - device: the device; Live.Device.Device
-           - preset_info: the preset information; PresetInfo
+           - cc_map: the preset cc-map; CCMap
         """
         ElectraOneBase.__init__(self, c_instance)
         self._device = device
         self._device_name = self.get_device_name(self._device)
-        self._preset_info = preset_info
+        self._cc_map = cc_map
         # dictionary to keep track of string value updates
         self._values = { }
 
@@ -48,14 +47,13 @@ class GenericDeviceController(ElectraOneBase):
         # device may already be deleted while this controller still exists
         if not self._device:
             return
-        assert self._preset_info
+        assert self._cc_map
         self.debug(3,f'Building MIDI map for device { self._device_name }')
         parameters = self._device.parameters
-        ccmap = self._preset_info.get_cc_map()
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
         for p in parameters:
-            ccinfo = ccmap.get_cc_info(p)
+            ccinfo = self._cc_map.get_cc_info(p)
             if ccinfo.is_mapped():
                 if ccinfo.is_cc14():
                     map_mode = Live.MidiMap.MapMode.absolute_14_bit
@@ -120,7 +118,7 @@ class GenericDeviceController(ElectraOneBase):
         # device may already be deleted while this controller still exists
         if not self._device:
             return
-        assert self._preset_info
+        assert self._cc_map
         if full_refresh:
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
@@ -131,12 +129,11 @@ class GenericDeviceController(ElectraOneBase):
         # the problem being that the CC map has only *one* entry for this para
         # meter name, so both parameters are mapped to the same control)
         # TODO: fix this in a more rigorous manner (seems to be hard...)
-        ccmap = self._preset_info.get_cc_map()
         refreshed = {}
         for p in self._device.parameters:
             if not p.original_name in refreshed:
                 refreshed[p.original_name] = True
-                ccinfo = ccmap.get_cc_info(p)
+                ccinfo = self._cc_map.get_cc_info(p)
                 if ccinfo.is_mapped():
                     self._refresh_parameter(p,ccinfo,full_refresh)
 
