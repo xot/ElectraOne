@@ -153,48 +153,18 @@ class EffectController(ElectraOneBase):
             self.debug(2,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
+            # TODO: this should be done in DeviceDumper
             # get the default lua script from the Empty device
             empty_preset_info = get_predefined_preset_info('Empty')
             preset_info._lua_script = empty_preset_info.get_lua_script()
             if DUMP:
-                self._dump_presetinfo(device,preset_info)
+                # determine path to store the dumps in (created if it doesnt exist)
+                path = self._ensure_in_libdir('dumps')
+                device_name = self.get_device_name(device)
+                preset_info.dump(device,device_name,path,self.debug)
         # check preset integrity; any warnings will be reported in the log
         preset_info.validate(device, device_name, self.warning)
         return preset_info
-
-    
-    # --- handling presets  ----
-    
-    def _dump_presetinfo(self, device, preset_info):
-        """Dump the presetinfo: an ElectraOne JSON preset, and the MIDI CC map
-        """
-        device_name = self.get_device_name(device)
-        # determine path to store the dumps in (created if it doesnt exist)
-        path = self._ensure_in_libdir('dumps')
-        # stop if path could not be created
-        if path != '':
-            # dump the preset JSON string 
-            fname = f'{ path }/{ device_name }.epr'
-            self.debug(2,f'dumping device: { device_name } in { fname }.')
-            s = preset_info.get_preset()
-            with open(fname,'w') as f:            
-                f.write(s)
-            # dump the cc-map
-            fname = f'{ path }/{ device_name }.ccmap'
-            ccmap = preset_info.get_cc_map()
-            with open(fname,'w') as f:
-                f.write('{')
-                comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
-                for p in device.parameters:
-                    if comma:
-                        f.write(',')
-                    comma = True
-                    ccinfo = ccmap.get_cc_info(p)
-                    if ccinfo.is_mapped():
-                        f.write(f"'{ p.original_name }': { ccinfo }\n")
-                    else:
-                        f.write(f"'{ p.original_name }': None\n")
-                f.write('}')
 
     # --- handle device selection ---
     

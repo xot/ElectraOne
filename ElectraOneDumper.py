@@ -18,7 +18,7 @@ from _Generic.Devices import *
 # Local imports
 from .config import *
 from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
-from .CCInfo import CCInfo, UNMAPPED_CC, UNMAPPED_ID, IS_CC7, IS_CC14
+from .CCInfo import CCInfo, CCMap, UNMAPPED_CC, UNMAPPED_ID, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
 
 # --- constants
@@ -715,7 +715,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            no more MIDI channels than specified by MAX_MIDI_EFFECT_CHANNELS
            - device_name: name of the device (for warnings); str
            - parameters:  parameter list; list of Live.DeviceParameter.DeviceParameter
-           - result: ccmap; dict of CCInfo
+           - result: ccmap; CCMap
         """
         self.debug(2,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
@@ -779,7 +779,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self.warning('Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(5,f'CC map constructed: { cc_map }')
-        return cc_map
+        return CCMap(cc_map)
         
     def _filter_and_order_parameters(self, device_name, parameters):
         """Order the parameters: either original, device-dict based, or

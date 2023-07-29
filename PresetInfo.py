@@ -42,6 +42,43 @@ class PresetInfo:
         """
         return self._lua_script
 
+    def dump(self, device, device_name, path, debug):
+        """Dump the preset info for this device:
+           the E1 JSON preset in path/<devicename>.epr
+           the CCmap in path/<devicename>.ccmap
+           - device: device to dump; Live.Devices
+           - device_name: name of device to dump; str
+           - path: path to dump into, str
+           - debug: function to log debugging ino
+        """
+        # we need to pass device to have access to ALL parameters in the device
+        # not only the ones in the ccmap.
+        #
+        # stop if path does not exist
+        if path != '':
+            # dump the preset JSON string 
+            fname = f'{ path }/{ device_name }.epr'
+            debug(2,f'dumping device: { device_name } in { fname }.')
+            s = self.get_preset()
+            with open(fname,'w') as f:            
+                f.write(s)
+            # dump the cc-map
+            fname = f'{ path }/{ device_name }.ccmap'
+            ccmap = self.get_cc_map()
+            with open(fname,'w') as f:
+                f.write('{')
+                comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
+                for p in device.parameters:
+                    if comma:
+                        f.write(',')
+                    comma = True
+                    ccinfo = ccmap.get_cc_info(p)
+                    if ccinfo.is_mapped():
+                        f.write(f"'{ p.original_name }': { ccinfo }\n")
+                    else:
+                        f.write(f"'{ p.original_name }': None\n")
+                f.write('}')
+        
     def validate(self, device, device_name, warning):
         """Check for internal consistency of PresetInfo and warn for
            any inconsistencies. Only checks CC map (for now).
