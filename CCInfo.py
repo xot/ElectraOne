@@ -98,4 +98,63 @@ class CCInfo:
 UNMAPPED_CCINFO = CCInfo((UNMAPPED_ID,MIDI_EFFECT_CHANNEL,IS_CC7,UNMAPPED_CC))
 
 
+class CCMap ( dict ) :
+    """Class storing a CC map: a dictionary indexed by parameter.original_name
+       returning the CCInfo for this parameter.
+    """
 
+    def __init__(self,d):
+        dict.__init__(self,d)
+
+    def get_cc_info(self,parameter):
+        """Return the MIDI CC parameter info assigned to the device parameter
+           - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
+           - result: a CCInfo object describing the assignment, or
+             UNMAPPED_CCINFO if not mapped.
+        """
+        if parameter.original_name in self:
+            v = self[parameter.original_name]
+            if type(v) is tuple:
+                return CCInfo(v)
+            else:
+                return v # Then it is CCInfo 
+        else:
+            return UNMAPPED_CCINFO
+
+    def validate(self, device, device_name, warning):
+        """Check for internal consistency of ccmap and warn for any unmapped
+           or badly mapped parameters;
+           this may (for example) indicate that Live added or renamed
+           parameters the last time a preset was constructed 
+           (Note that there are actually valid reasons to have several device
+            parameters mapped to the same control/CC)
+           - device: device to which this CCMap belongs
+           - device_name: name of the device
+           - warning: function to call to write any warnings
+        """
+        # check CC map consistency
+        seen = []
+        for cc_info in self.values():
+            # remember, for preloaded presets the cc_map actually contains tuples...
+            if type(cc_info) is tuple:
+                cc_info = CCInfo(cc_info)
+            channel = cc_info.get_midi_channel()
+            if channel not in range(1,17):
+                warning(f'Bad MIDI channel {channel} in CC map.')
+            cc_no = cc_info.get_cc_no()
+            if cc_no not in range(0,128):
+                warning(f'Bad MIDI CC parameter {cc_no} in CC map.')
+            seeing = (channel, cc_no)
+            if seeing in seen:
+                warning(f'Duplicate {seeing} in CC map.')
+            else:
+                seen.append(seeing)
+        # check parameter mappings
+        pnames = [p.original_name for p in device.parameters]
+        ccnames = self.keys()
+        for name in pnames:
+            if not name in ccnames:
+                warning(f'Unmapped parameter {name} found for {device_name}!')
+        for name in ccnames:
+            if not name in pnames:
+                warning(f'Mapped parameter {name} does not exist for {device_name}!')

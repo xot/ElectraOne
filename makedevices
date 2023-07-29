@@ -28,7 +28,8 @@ PREAMBLE = """
 # Distributed under the MIT License, see LICENSE
 #
 
-from .ElectraOneDumper import PresetInfo
+from .PresetInfo import PresetInfo
+from .CCInfo import CCMap
 
 # Dictionary with preset and MIDI cc mapping data for known devices
 # (indexed by device.original_name)
@@ -154,7 +155,7 @@ def process_preset(outf,preset_path):
     outf.write('"""')
     outf.write(filtered_lua_script)
     outf.write('""",\n    ')
-    outf.write(ccmap)
+    outf.write(f'CCMap({ccmap})')
     outf.write(')')
     # weite the preset and lua to the TMP directory
     with open(TMP / json_preset_path.name ,'w') as eprout:

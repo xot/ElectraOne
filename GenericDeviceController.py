@@ -51,10 +51,11 @@ class GenericDeviceController(ElectraOneBase):
         assert self._preset_info
         self.debug(3,f'Building MIDI map for device { self._device_name }')
         parameters = self._device.parameters
+        ccmap = self._preset_info.get_cc_map()
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
-        for p in parameters:                
-            ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
+        for p in parameters:
+            ccinfo = ccmap.get_cc_info(p)
             if ccinfo.is_mapped():
                 if ccinfo.is_cc14():
                     map_mode = Live.MidiMap.MapMode.absolute_14_bit
@@ -130,11 +131,12 @@ class GenericDeviceController(ElectraOneBase):
         # the problem being that the CC map has only *one* entry for this para
         # meter name, so both parameters are mapped to the same control)
         # TODO: fix this in a more rigorous manner (seems to be hard...)
+        ccmap = self._preset_info.get_cc_map()
         refreshed = {}
         for p in self._device.parameters:
             if not p.original_name in refreshed:
                 refreshed[p.original_name] = True
-                ccinfo = self._preset_info.get_ccinfo_for_parameter(p)
+                ccinfo = ccmap.get_cc_info(p)
                 if ccinfo.is_mapped():
                     self._refresh_parameter(p,ccinfo,full_refresh)
 

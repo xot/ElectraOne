@@ -181,6 +181,7 @@ class EffectController(ElectraOneBase):
                 f.write(s)
             # dump the cc-map
             fname = f'{ path }/{ device_name }.ccmap'
+            ccmap = preset_info.get_cc_map()
             with open(fname,'w') as f:
                 f.write('{')
                 comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
@@ -188,7 +189,7 @@ class EffectController(ElectraOneBase):
                     if comma:
                         f.write(',')
                     comma = True
-                    ccinfo = preset_info.get_ccinfo_for_parameter(p)
+                    ccinfo = ccmap.get_cc_info(p)
                     if ccinfo.is_mapped():
                         f.write(f"'{ p.original_name }': { ccinfo }\n")
                     else:
