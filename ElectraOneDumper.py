@@ -829,8 +829,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
-            # sort by name, not original_name
-            parameters_copy.sort(key=lambda p: p.name)
+            # sort by original_name, this is better for racks where the parameter
+            # original name is Macro x
+            # TODO: sort Macro 10 after Macro 9
+            parameters_copy.sort(key=lambda p: p.original_name)
             result = parameters_copy
         else: 
             result = parameters
