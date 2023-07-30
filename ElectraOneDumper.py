@@ -789,7 +789,19 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(5,f'CC map constructed: { cc_map }')
         return cc_map
-        
+    
+    def _parameter_sort_key(self,parameter):
+        # sort by original_name for racks where the parameter
+        # original name is Macro x
+        if (parameter.original_name[:5] == 'Macro'):
+            # Macro x -> Macro 0x : Macro 9 before Macro 10
+            key = parameter.original_name
+            if len(key) == 7:
+                key = key[:6] + '0'+ key [6]
+        else:
+            key = parameter.name
+        return key
+    
     def _filter_and_order_parameters(self, device_name, parameters):
         """Order the parameters: either original, device-dict based, or
            sorted by name (determined by ORDER configuration constant).
@@ -829,10 +841,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             parameters_copy = []
             for p in parameters:
                 parameters_copy.append(p)
-            # sort by original_name, this is better for racks where the parameter
-            # original name is Macro x
-            # TODO: sort Macro 10 after Macro 9
-            parameters_copy.sort(key=lambda p: p.original_name)
+            parameters_copy.sort(key=self._parameter_sort_key)
             result = parameters_copy
         else: 
             result = parameters
