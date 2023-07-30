@@ -550,7 +550,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # TODO: why would you ever want to use ableton string values for integer parameters?
         #if USE_ABLETON_VALUES:
         #    self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
-        #    cc_info.set_control_id(id+1)
+        #    cc_info.set_control_id((id+1,0))
         #else:
         #    self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
@@ -573,7 +573,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             return cc_info
         except:
             self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
-            cc_info.set_control_id(id+1)
+            cc_info.set_control_id((id+1,0))
             return cc_info
             
     def _append_json_plain_fader(self, id, p, cc_info):
@@ -587,7 +587,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         if USE_ABLETON_VALUES:
             self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
-            cc_info.set_control_id(id+1)
+            cc_info.set_control_id((id+1,0))
         else:
             self._append_json_generic_fader(cc_info, False, None, None, None)
         return cc_info

@@ -32,19 +32,23 @@ class CCInfo:
            Where is_cc14? is IS_CC7 when the parameter is 7bit, IS_CC14 if 14bit.
            Constructing from a tuple instead of a list of parameters, to allow
            Devices.py to contain plain tuples in the cc_map.
+        
            control_id is either an integer (for plain controls) or a tuple
            (control_id,value_id) for controls that are part of an ADSR or
-           similar.
+           similar. Internally always stored as a tuple, with value_id == 0
+           for non-ADSR controls
         """
         assert type(v) is tuple, f'{v} should be tuple but is {type(v)}'
-        (self._control_id, self._midi_channel, self._is_cc14, self._cc_no) = v
-        if type(self._control_id) is int:
-            assert self._control_id in range(-1,443), f'Control index {self._control_id} out of range.'
+        (id, self._midi_channel, self._is_cc14, self._cc_no) = v
+        if type(id) is int:
+            assert id in range(-1,443), f'Control index {id} out of range.'
+            self._control_id = (id,0)
         else:
-            assert type(self._control_id) is tuple, f'{self._control_id} should be an integer or a tuple.'
-            (cid,vid) = self._control_id
+            assert type(id) is tuple, f'Control id {id} should be an integer or a tuple.'
+            (cid,vid) = id
             assert cid in range(-1,443), f'Control index {cid} out of range.'
             assert vid in range(1,11), f'Value index {vid} out of range.'
+            self._control_id = id
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
         assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'
         assert self._cc_no in range(-1,128), f'CC parameter number {self._cc_no} out of range.'
@@ -75,17 +79,18 @@ class CCInfo:
 
     def get_control_id(self):
         """Return the E1 preset control id of this object; always returned as a tuple!.
-           - result: the control id (-1,dc) if not mapped; tuple (int,int) 
+           - result: the control id, (-1,dc) if not mapped; tuple (int,int) 
         """
-        if type(self._control_id) is int:
-            return (self._control_id,0)
-        else:
-            return self._control_id
+        return self._control_id
 
     def set_control_id(self,id):
         """Set the E1 preset control id of this object.
-           - id: value to set control id to; int
+           - id: value to set control id to; tuple of int,int
         """
+        assert type(id) is tuple, f'Control id {id} should be tuple.'
+        (cid,vid) = id
+        assert cid in range(-1,443), f'Control index {cid} out of range.'
+        assert vid in range(11), f'Value index {vid} out of range.'
         self._control_id = id
 
     def is_mapped(self):
@@ -180,9 +185,6 @@ class CCMap ( dict ) :
         # check CC map consistency
         seen = []
         for cc_info in self.values():
-            # remember, for preloaded presets the cc_map actually contains tuples...
-            if type(cc_info) is tuple:
-                cc_info = CCInfo(cc_info)
             channel = cc_info.get_midi_channel()
             if channel not in range(1,17):
                 warning(f'Bad MIDI channel {channel} in CC map.')
