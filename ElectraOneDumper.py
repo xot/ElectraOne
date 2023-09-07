@@ -768,7 +768,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 p = cc14pars[cur_cc14par_idx]
                 if cc_map.is_mapped(p):
                     self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
-                cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC14,i)) )
+                else:
+                    cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC14,i)) )
                 cur_cc14par_idx += 1
                 free[i] = False
                 free[i+32] = False
@@ -781,7 +782,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     p = cc7pars[cur_cc7par_idx]
                     if cc_map.is_mapped(p):
                         self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
-                    cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC7,cc_no)) )
+                    else:
+                        cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC7,cc_no)) )
                     cur_cc7par_idx += 1
                     cc_no += 1
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
