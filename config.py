@@ -205,4 +205,8 @@ def check_configuration():
         , f'Configuration error: MIDI_MAX_EFFECT_CHANNELS set to { MIDI_MAX_EFFECT_CHANNELS}.' 
     assert ORDER in [ORDER_ORIGINAL, ORDER_SORTED, ORDER_DEVICEDICT] \
                , f'Configuration error: ORDER set to { ORDER }.'
-    
+
+try:
+    from .myconfig import *
+except ImportError:
+    pass

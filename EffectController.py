@@ -148,9 +148,9 @@ class EffectController(ElectraOneBase):
         self.debug(2,f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
-            self.debug(2,'Predefined preset found')
+            self.debug(3,'Predefined preset found')
         else:
-            self.debug(2,'Constructing preset on the fly...')
+            self.debug(3,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
             if DUMP:
@@ -243,7 +243,7 @@ class EffectController(ElectraOneBase):
             # apparently triggers a device appointment of the same device,
             # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
-                self.debug(2,f'Assigning new device { device_name }')
+                self.debug(3,'\ (This is an assignment of a different device.)')
                 self._assigned_device = device
                 self._assigned_device_controller = None
                 # upload preset: will also request midi map (which will also refresh state)                

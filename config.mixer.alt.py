@@ -204,3 +204,7 @@ def check_configuration():
     assert ORDER in [ORDER_ORIGINAL, ORDER_SORTED, ORDER_DEVICEDICT] \
                , f'Configuration error: ORDER set to { ORDER }.'
     
+try:
+    from .myconfig import *
+except ImportError:
+    pass

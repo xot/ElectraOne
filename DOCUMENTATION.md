@@ -48,6 +48,8 @@ This is the general idea. Unfortunately, no official information on how to imple
 
 Every remote script is a separate [Python package](https://docs.python.org/3/tutorial/modules.html) contained in a separate directory in the remote scripts folder. User defined remote scripts are stored in ```~/Music/Ableton/User Library/Remote Scripts/``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts``` on Windows. The name of the directory determines the name Live uses for the remote script. In our case, the ElectraOne remote script is therefore stored in the directory ```ElectraOne```. 
 
+Ableton Live 11 support Python 3.
+
 Every remote script Python package must contain a file ```__init.py__``` that should define two functions
 
 - ```create_instance``` which is passed a parameter ```c_instance```. This must return an object implementing the remote script functionality (see below). It is called exactly once when opening a new live set (song), or when the remote script is attached to Live in the Preferences dialog. 
@@ -325,6 +327,13 @@ Others:
 - Analog Sync Rate: ```4d```..```1/32t```.
 - Wavetable Sync rate: ```8```..```1/64```.
 - Analog Noise Balance: ```F2```..```50/50```..```F1```.
+
+## Tracks
+
+```self.song().visible_tracks``` returns the list (actually a ```Base.Vector``` ) of currently visible audio and midi tracks. This does include any tracks that are part of a expanded group track, but *does not include* any visible 'subtracks' created for chains in an instrument or drum rack. Therefore there is no straightforward way to list or get access to such subtracks. For this ```track_is_showing_chains``` needs to be checked and the shown chains need to be found. 
+
+Similarly ```self.song().view.selected_track``` *always* returns the main  track (or *group* subtrack), not the actually selected chain.
+
 
 ## Bugs/anomalies in Live
 
