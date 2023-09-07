@@ -151,6 +151,38 @@ class MixerController(ElectraOneBase):
         """
         self.song().remove_visible_tracks_listener(self._on_tracks_added_or_deleted)
 
+    # The rather convulated method used below to add a showing_chains_listener
+    # is  necessary because this listener can only be added to a track that
+    # can have chains. Initialy it may not, so every time a device is added
+    # we have to see if now have to add a showing_chains_listener
+    
+    def _on_devices_changed(self):
+        for tc in self._track_controllers:
+            track = tc._track
+            if (type(track) == Live.Track.Track) and track.can_show_chains:
+                self.debug(5,f'Adding showing chains listener for track {track.name}')
+                if not track.is_showing_chains_has_listener(self._on_tracks_added_or_deleted):
+                    track.add_is_showing_chains_listener(self._on_tracks_added_or_deleted)
+        
+    def _add_chain_visibility_listeners(self):
+        """Add listeners for changes in chain visibility, to copy changes to the
+           controller.
+        """
+        for tc in self._track_controllers:
+            track = tc._track
+            if type(track) == Live.Track.Track:
+                if not track.devices_has_listener(self._on_devices_changed):
+                    track.add_devices_listener(self._on_devices_changed)
+                
+    def _remove_chain_visibility_listeners(self):
+        """Remove all chain visibility listeners added.
+        """
+        for tc in self._track_controllers:
+            track = tc._track
+            if type(track) == Live.Track.Track:
+                if track.devices_has_listener(self._on_devices_changed):
+                    track.remove_devices_listener(self._on_devices_changed)
+        
     def _remap_return_tracks(self):
         """Create new return track controllers for the current set of
            visible return tracks
@@ -167,12 +199,14 @@ class MixerController(ElectraOneBase):
            (unmap and destroy existing track controllers). Show a message
            to the user to tell which tracks are currently mapped.
         """
+        self._remove_chain_visibility_listeners()
         for tc in self._track_controllers:
             tc.disconnect()
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.get_visible_torcs()))
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
+        self._add_chain_visibility_listeners()
         # TODO: this is no longer correct if we also hide/show chains
         # highlight the tracks currently controlled in Live too
         #self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
