@@ -120,6 +120,14 @@ ORDER = ORDER_DEVICEDICT
 # e.g. PARAMETERS_TO_IGNORE = {"ALL": ["Device On"]}
 PARAMETERS_TO_IGNORE = {}
 
+
+# Personal DEVICE_DICT: for named devices, contains a a tuple of tuples
+# containing the names of the parameters to include if ORDER=DEVICE_DICT
+# e.g. PERSONAL_DEVICE_DICT = { 'Emit': ( ('Attack', 'Decay' ), ) }
+# Do not forget a trailing comma (,) if you only add one tuple!
+# Takes precedence over any entry for the same device in the global DEVICE_DICT
+PERSONAL_DEVICE_DICT = {}
+
 # Limit the number of parameters assigned to 7bit and 14bit CC controllers
 # included in a preset constructed on the fly;
 # -1 means all parameters are included: this is a good setting when

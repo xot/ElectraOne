@@ -824,10 +824,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(4,f'Ignoring parameters: {ignore}')
         parameters = [p for p in parameters if p.original_name not in ignore]
         # now sort (and filter if ORDER_DEVICE_DICT)
-        if (ORDER == ORDER_DEVICEDICT) and (device_name in DEVICE_DICT) and \
+        if (ORDER == ORDER_DEVICEDICT) and \
+           ( (device_name in DEVICE_DICT) or \
+             (device_name in PERSONAL_DEVICE_DICT) ) and \
            (device_name not in ORDER_DEVICEDICT_IGNORE):
-            banks = DEVICE_DICT[device_name] # tuple of tuples
+            if device_name in PERSONAL_DEVICE_DICT:
+                banks = PERSONAL_DEVICE_DICT[device_name] # tuple of tuples
+            else: # guaranteed to be in DEVICE_DICT
+                banks = DEVICE_DICT[device_name] # tuple of tuples
             parlist = [p for b in banks for p in b] # turn into a list
+            self.debug(5,f'{parlist}')
             # order parameters as in parlist, skip parameters that are not
             # listed in parlist
             parameters_copy = []
