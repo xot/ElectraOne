@@ -214,6 +214,38 @@ class ElectraOneBase(Log):
         """
         return self._c_instance.song()
 
+    def _find_first_rack(self,torc):
+        for d in torc.devices:
+            self.debug(6,f'Considering {d.name}')
+            if type(d) == Live.RackDevice.RackDevice:
+                self.debug(5,f'Rack found: {d.name}')
+                return d
+        return None
+
+    def _visible_chains_for_torc(self,torc):
+        """Return the visible chains for this track or chain
+        """
+        chains = []
+        rack = self._find_first_rack(torc)
+        if rack and rack.can_show_chains and rack.is_showing_chains:
+            for chain in rack.chains:
+                chains.append(chain)
+                chains.extend( self._visible_chains_for_torc(chain) )
+        return chains
+
+    def get_visible_torcs(self):
+        """Return the currently visible chains and tracks
+           song: current song; Live.Song.Song
+        """
+        torcs = []
+        for t in self.song().visible_tracks:
+            self.debug(5,f'Getting visible torcs for {t.name}')
+            torcs.append(t)
+            torcs.extend( self._visible_chains_for_torc(t) )
+        for torc in torcs:
+            self.debug(5,f'Visible torc {torc.name}')
+        return torcs    
+    
     def request_rebuild_midi_map(self):
         """Request that the MIDI map is rebuilt.
            (The old mapping is (apparently) destroyed.)

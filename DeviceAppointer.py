@@ -43,6 +43,7 @@ class DeviceAppointer(ElectraOneBase):
            appointed, and add a listener for device selection changes on
            this track. 
         """
+        # This even works for chains in drum or instrument racks
         track = self.song().view.selected_track
         # song may not contain any tracks
         if track:

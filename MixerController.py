@@ -63,7 +63,7 @@ class MixerController(ElectraOneBase):
         # index of first track should always be a multiple of NO_OF_TRACKS: moving
         # forward/backward then always shows the same block of tracks
         # in the mixer
-        no_of_tracks = len(self.song().visible_tracks)
+        no_of_tracks = len(self.get_visible_torcs())
         idx = min(idx, NO_OF_TRACKS * (no_of_tracks // NO_OF_TRACKS))
         idx = max(idx, 0)            
         return idx
@@ -142,6 +142,8 @@ class MixerController(ElectraOneBase):
            controller.
         """
         self.song().add_visible_tracks_listener(self._on_tracks_added_or_deleted)
+        # TODO: should also listen to visible_chains changes, but
+        # this is not easy, because by defualt tracks do not have that listener
         # self.song().add_loop_listener(self._on_loop_changed)
 
     def _remove_listeners(self):
@@ -167,12 +169,13 @@ class MixerController(ElectraOneBase):
         """
         for tc in self._track_controllers:
             tc.disconnect()
-        last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.song().visible_tracks))
+        last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.get_visible_torcs()))
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
                                     for i in track_range ]
+        # TODO: this is no longer correct if we also hide/show chains
         # highlight the tracks currently controlled in Live too
-        self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
+        #self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         
     def _handle_selected_tracks_change(self):

@@ -10,7 +10,7 @@
 # Distributed under the MIT License, see LICENSE
 
 # Ableton Live imports
-#import Live
+import Live
 
 # Local imports
 from .config import *
@@ -44,7 +44,8 @@ class TrackController(GenericTrackController):
         GenericTrackController.__init__(self, c_instance)
         # keep reference of track because if tracks added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
-        self._track = self.song().visible_tracks[idx]
+        visible_torcs = self.get_visible_torcs()
+        self._track = visible_torcs[idx]
         # offset of this track relative to the first mapped track
         self._offset = offset
         # EQ device
@@ -58,10 +59,11 @@ class TrackController(GenericTrackController):
         self._sends_cc = SENDS_CC
         # buttons
         self._base_mute_cc = MUTE_CC
-        if self._track.can_be_armed:
+        # _track can also be a chain
+        if (type(self._track) == Live.Track.Track) and self._track.can_be_armed:
             self._base_arm_cc = ARM_CC
         else:
-            self._base_arm_cc = None # group tracks cannot be armed
+            self._base_arm_cc = None # group tracks and chains cannot be armed
         self._base_solo_cue_cc = SOLO_CUE_CC 
         #
         self.add_listeners()
