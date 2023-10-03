@@ -216,9 +216,9 @@ class ElectraOneBase(Log):
 
     def _find_first_rack(self,torc):
         for d in torc.devices:
-            self.debug(6,f'Considering {d.name}')
+            self.debug(7,f'Considering {d.name}')
             if type(d) == Live.RackDevice.RackDevice:
-                self.debug(5,f'Rack found: {d.name}')
+                self.debug(6,f'Rack found: {d.name}')
                 return d
         return None
 
@@ -239,11 +239,11 @@ class ElectraOneBase(Log):
         """
         torcs = []
         for t in self.song().visible_tracks:
-            self.debug(5,f'Getting visible torcs for {t.name}')
+            self.debug(6,f'Getting visible torcs for {t.name}')
             torcs.append(t)
             torcs.extend( self._visible_chains_for_torc(t) )
         for torc in torcs:
-            self.debug(5,f'Visible torc {torc.name}')
+            self.debug(6,f'Visible torc {torc.name}')
         return torcs    
     
     def request_rebuild_midi_map(self):
