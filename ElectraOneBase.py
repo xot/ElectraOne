@@ -361,28 +361,27 @@ class ElectraOneBase(Log):
                 
     def set_version(self, sw_versionstr, hw_versionstr):
         """Set the E1 firmware version.
-           - sw_versionstr: software version string as returned by request response; str
-           - hw_versionstr: software version string as returned by request response; str
+           - sw_versionstr: software version string as returned by request response; int
+           - hw_versionstr: hardware version string as returned by request response; str
         """
         # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
         # parse software version string
-        # sw_versionstr format "v<major>.<minor>.<sub>" (sub somtimes missing; sub sometimes including trailing letter)
+        # sw_versionstr format "aaabbbcccdd"
+        # - aaa is the major (a if 1-9 aa if 10-99 etc.) 
+        # - bbb is the minor
+        # - ccc is the patch
+        # - dd is for markings such as alpha, beta, rc (not used it much)
+        self.debug(2,f'Parsing version info: {sw_versionstr},{hw_versionstr}')
+        if type(sw_versionstr) != str:
+            sw_versionstr = str(sw_versionstr)
         try:
-            version_tuple = sw_versionstr[1:].split('.')
-            if len(version_tuple) == 3:
-                (majorstr,minorstr,substr) = version_tuple
-                # remove any trailing letters from version string
-                if substr[-1] not in string.digits:
-                    substr = substr[:-1]
-                sw_version = (int(majorstr),int(minorstr),int(substr))
-            elif len(version_tuple) == 2:
-                (majorstr,minorstr) = version_tuple
-                sw_version = (int(majorstr),int(minorstr),0)
-            else:
-                sw_version = (0,0,0)
+            majorstr = sw_versionstr[-11:-8]
+            minorstr = sw_versionstr[-8:-5]
+            substr =  sw_versionstr[-5:-2]    
+            sw_version = (int(majorstr),int(minorstr),0)
         except ValueError:
             self.debug(2,f'Failed to parse software version string { sw_versionstr }.')
-            ElectraOneBase._E1_sw_version = (0,0,0)
+            sw_version = (0,0,0)
         # parse hardware version string
         # hw_versionstr format "<major>.<minor>": "3.0" = mkII}
         try:
@@ -394,7 +393,7 @@ class ElectraOneBase(Log):
                 hw_version = (0,0)
         except ValueError:
             self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
-            ElectraOneBase._E1_hw_version = (0,0)
+            hw_version = (0,0)
         self.configure_for_version(sw_version,hw_version)
         self.debug(2,f'E1 version {sw_version} (software) { hw_version } (hardware).')
         

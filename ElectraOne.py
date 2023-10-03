@@ -249,7 +249,7 @@ class ElectraOne(ElectraOneBase):
         self.debug(3,f'Request response received: {json_str}' )
         # get the version
         json_dict = json.loads(json_str)
-        self.set_version(json_dict["versionText"],json_dict["hwRevision"])
+        self.set_version(json_dict["versionSeq"],json_dict["hwRevision"])
         self._request_response_received = True
 
     def _do_logmessage(self, midi_bytes):
