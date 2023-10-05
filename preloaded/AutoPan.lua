@@ -6,6 +6,11 @@ rate = controls.get(11)
 offset = controls.get(6)
 modebutton = controls.get(10)
 
+rate:setSlot(2,1)
+spin:setSlot(3,1)
+offset:setSlot(9,1)
+width:setSlot(3,1)
+
 israndom = false
 isphase = true
 issync = false
@@ -34,5 +39,4 @@ function lfotype(valueObject, value)
     issync = (value ~= 0)
     setvisibility()
 end
-
 

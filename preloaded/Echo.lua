@@ -5,6 +5,11 @@ r16th = controls.get(39)
 ldiv = controls.get(21)
 rdiv = controls.get(40)
 
+l16th:setSlot(1,1)
+r16th:setSlot(2,1)
+ldiv:setSlot(1,1)
+rdiv:setSlot(2,1)
+
 rs = controls.get(42)
 lm =  controls.get(24)
 rm = controls.get(43)
@@ -54,6 +59,8 @@ end
 
 modrate = controls.get(32)
 modfreq = controls.get(30)
+
+modrate:setSlot(7,2)
 
 function modsync(valueObject, value)
     modfreq:setVisible(value == 0)

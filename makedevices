@@ -4,7 +4,8 @@
 #
 # Ableton Live MIDI Remote Script for the Electra One
 #
-# makedevices: a script to make Devices.py
+# makedevices: a script to make Devices.py and to prepare the
+#   files in xot/ableton for upload to the E1
 #
 # Author: Jaap-henk Hoepman (info@xot.nl)
 #
@@ -66,42 +67,14 @@ DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 # (starting from firmware 3.4)
 TMP = Path('tmp/xot/ableton')
 
-# Dictionary with data for remapping pages
-# { 'parametername' : new page } or { 'id': new_page }
-remap_data = {}
-
-def remap_pages(d):
-    """Remap controls based on remap_data; remove pages whose
-       name is simply "Page x" with x > 6
-    """
-    if 'pages' in d:
-        pages = d['pages']
-        newpages = []
-        for p in pages:
-            if ("Page " not in p['name']) or (p['id'] < 7):
-                newpages.append(p)
-            else:
-                print(f"! - Removing page {p['name']}. ")
-            d['pages'] = newpages
-    elif ('pageId' in d) and ('name' in d):
-        if d['name'] in remap_data:
-            new_page = remap_data[d['name']]
-            print(f"! - Moving {d['name']} (control id {d['id']}) to page {new_page}. ")            
-            d['pageId'] = new_page
-        elif str(d['id']) in remap_data:
-            new_page = remap_data[str(d['id'])]
-            print(f"! - Moving {d['name']} (control id {d['id']}) to page {new_page}. ")            
-            d['pageId'] = new_page
-    return(d)
 
 flag = False
 
 def process_preset(outf,preset_path):
     """Process one preset, writing its data to outf and the TMP directory
     """
-    global flag, remap_data
+    global flag
     # get the paths to the data files, and the device name
-    remap_data_path = preset_path.with_suffix('.remap')
     json_preset_path = preset_path
     lua_script_path = preset_path.with_suffix('.lua')
     ccmap_path = preset_path.with_suffix('.ccmap')
@@ -111,18 +84,10 @@ def process_preset(outf,preset_path):
     if flag:
         outf.write(',\n')
     flag = True
-    # load the remap data
-    if os.path.exists(remap_data_path):
-        with open(remap_data_path,'r') as inf:
-            print('- Remapping found. Loading.')
-            remap_data = json.load(inf)
-    else:
-        remap_data = {}
     # load and process the .epr preset, remapping controls if necessary
     with open(json_preset_path,'r') as inf:
         #print('- Loading preset JSON.')
-        json_load = json.load(inf,object_hook=remap_pages)
-        #json_load = json.load(inf)
+        json_load = json.load(inf)
         json_preset = json.dumps(json_load, separators=(',', ':'))
         # escape single quotes in json_preset; it will be written
         # as a single-quoted string to Devices.py
@@ -157,7 +122,7 @@ def process_preset(outf,preset_path):
     outf.write('""",\n    ')
     outf.write(f'CCMap({ccmap})')
     outf.write(')')
-    # weite the preset and lua to the TMP directory
+    # write the preset and lua to the TMP directory
     with open(TMP / json_preset_path.name ,'w') as eprout:
         eprout.write(json_preset)
     with open(TMP / lua_script_path.name ,'w') as luaout:

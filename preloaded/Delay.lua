@@ -3,6 +3,9 @@ rtime = controls.get(21)
 l16th = controls.get(11)
 r16th = controls.get(18)
 
+l16th:setSlot(1,1)
+r16th:setSlot(2,1)
+
 rs = controls.get(20)
 
 loffset = controls.get(12)

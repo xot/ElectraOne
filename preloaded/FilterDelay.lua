@@ -10,6 +10,10 @@ rtime = controls.get(32)
 rbeat = controls.get(23)
 rswing = controls.get(24)
 
+ltime:setSlot(3,1)
+lrtime:setSlot(15,1)
+rtime:setSlot(27,1)
+
 islsync = false
 islrsync = false
 isrsync = false

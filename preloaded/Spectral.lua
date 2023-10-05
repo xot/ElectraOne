@@ -8,6 +8,10 @@ intervalmode = controls.get(26)
 fadein = controls.get(15)
 fadeout = controls.get(16)
 
+xfadeperct:setSlot(8,1)
+intervalsync:setSlot(19,1)
+intervaltime:setSlot(19,1)
+
 isretrigger = false
 isrsync = false
 isisync = false
@@ -49,8 +53,11 @@ time = controls.get(11)
 div = controls.get(10)
 s16th = controls.get(12)
 
+div:setSlot(9,1)
+s16th:setSlot(9,1)
+
 function tmode(valueObject, value)
     time:setVisible(value == 0)
     div:setVisible(value == 1)
-    s16th:setVisible(value == 2)
+    s16th:setVisible(value >= 2)
 end

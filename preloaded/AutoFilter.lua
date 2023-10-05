@@ -8,6 +8,10 @@ circuit2 = controls.get(6)
 morph = controls.get(21)
 drive = controls.get(2)
 
+circuit2:setSlot(3,1)
+drive:setSlot(10,1)
+
+
 function setfiltervisibility ()
    circuit1:setVisible(ftype < 2)
    circuit2:setVisible(ftype > 1)
@@ -55,6 +59,10 @@ spinison = false
 
 lfospin = controls.get(16)
 lfophase = controls.get(13)
+
+lforate:setSlot(11,1)
+lfospin:setSlot(17,1)
+lfooffset:setSlot(18,1)
 
 function setlfovisibility()
   lfofreq:setVisible(not syncison)

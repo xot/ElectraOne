@@ -23,6 +23,8 @@ eqfreq = controls.get(9)
 eqgain = controls.get(10)
 eqq = controls.get(12)
 
+eqq:setSlot(20,1)
+
 function seteqvisibility()
    eqtp:setVisible(sceqison)
    eqfreq:setVisible(sceqison)   

@@ -11,6 +11,8 @@ end
 timelength = controls.get(8)
 synclength = controls.get(7)
 
+synclength:setSlot(2,1)
+
 function sync(valueObject, value)
     timelength:setVisible(value == 0)
     synclength:setVisible(value ~= 0)
