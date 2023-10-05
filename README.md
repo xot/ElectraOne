@@ -144,7 +144,6 @@ Preloaded presets are stored in ```Devices.py```. The Python script ```makedevic
 - ```<devicename>.epr```, the preset in JSON format, as [documented here](https://docs.electra.one/developers/presetformat.html#preset-json-format); it is minified by the script, 
 - ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
 - ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
-- ```<devicename>.remap``` containing information about remapping controls to different pages (this file is also optional). 
 
 See [further documentation here](./makedevices-README.md)
 
