@@ -12,7 +12,7 @@ The remote script comes with a default Ableton Live template (```Live template.a
 
 The remote script also comes with specially crafted presets for most of the Ableton Live effects and instruments.
 
-(*Note: this is a beta release, but it should be relatively stable and usable by now.*)
+(*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5 *)
 
 ## The mixer
 
@@ -52,6 +52,8 @@ As an example, an alternative mixer design is included in the distribution that 
 
 If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
 
+(**Note: this currently does not work due to firmware changes; a fix is in the works.**)
+
 Use a USB cable to connect the second E1 to the USB Host port on the first E1. Make sure that in the USB Host configuration on the first E1, Port 1 is selected for the second connected E1. See [these instructions](https://docs.electra.one/userinterface.html#menu). Finally, in
 ```config.py``` set ```CONTROL_MODE = CONTROL_BOTH```.
 
@@ -65,7 +67,7 @@ In Ableton Live, each track typically has a selected device, and usually the sel
 
 Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), specially crafted presets to control such appointed effects and instruments can be preloaded to the E1 for fast recall. See for instructions below.
 
-The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It the first one it finds. You can add your own favourite preset layout in anyof these locations. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
+The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It uses the first one it finds. You can add your own favourite preset layout in any of these locations. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
@@ -157,8 +159,21 @@ Apart from that, anything goes. This means you can freely change controller name
 
 ### Uploading preloaded presets
 
-On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive  archive ```upload-to-E1.zip``` in the folder ```ctrlv2/``` on the E1. See the installation instructions below for more details.
+On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2/``` on the E1. See the installation instructions below for more details.
  
+You can modify existing presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
+ 
+When changing existing preloaded presets, you only need to upload the new versions of both `device.epr` (created with `Download Preset` in the web editor) and the `device.lua` (cut and paste from the web editor) to the E1 
+at `ctrlv2/presets/xot/ableton`. Make sure to include the following line
+
+```
+require("xot/default")
+```
+
+at the start of the `device.lua` file. This includes some common LUA functions used by the remote script and the preset.
+
+When uploading a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as [described above](#device-preset-dumps)).
+
 ## Switching between presets
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
