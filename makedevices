@@ -63,15 +63,10 @@ DEVICES = 'Devices.py'
 # included
 DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 
-# Path to tmp file to store processed preset and lua files for uploading to E1
-# (starting from firmware 3.4)
-TMP = Path('tmp/xot/ableton')
-
-
 flag = False
 
 def process_preset(outf,preset_path):
-    """Process one preset, writing its data to outf and the TMP directory
+    """Process one preset, writing its data to outf 
     """
     global flag
     # get the paths to the data files, and the device name
@@ -122,19 +117,12 @@ def process_preset(outf,preset_path):
     outf.write('""",\n    ')
     outf.write(f'CCMap({ccmap})')
     outf.write(')')
-    # write the preset and lua to the TMP directory
-    with open(TMP / json_preset_path.name ,'w') as eprout:
-        eprout.write(json_preset)
-    with open(TMP / lua_script_path.name ,'w') as luaout:
-        luaout.write(lua_script)
 
 
 
 # === MAIN ===
 
 print(f'MAKEDEVICES (version of {COMMITDATE}): fill ./Devices.py with presets in ./preloaded')
-# make the tmp directory
-os.makedirs(TMP, exist_ok=True)
 # load the defualt lua script
 with open(DEFAULT_LUA_SCRIPT_FILE,'r') as inf:
     DEFAULT_LUA_SCRIPT = inf.read()

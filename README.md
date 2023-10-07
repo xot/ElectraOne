@@ -157,7 +157,7 @@ Apart from that, anything goes. This means you can freely change controller name
 
 ### Uploading preloaded presets
 
-On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive  archive ```upload-to-E1.zip``` in the folder ```ctrlv2/presets``` on the E1. See the installation instructions below for more details.
+On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive  archive ```upload-to-E1.zip``` in the folder ```ctrlv2/``` on the E1. See the installation instructions below for more details.
  
 ## Switching between presets
 
