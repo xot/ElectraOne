@@ -339,7 +339,7 @@ class ElectraOneBase(Log):
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
-                ElectraOneBase.MIN_TIMEOUT = 60 # TODO this is large
+                ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
                 ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
