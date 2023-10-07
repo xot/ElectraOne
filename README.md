@@ -12,7 +12,7 @@ The remote script comes with a default Ableton Live template (```Live template.a
 
 The remote script also comes with specially crafted presets for most of the Ableton Live effects and instruments.
 
-(*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5 *)
+(*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5*)
 
 ## The mixer
 
