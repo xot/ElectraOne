@@ -145,7 +145,7 @@ class EffectController(ElectraOneBase):
            predefined or else construct it on the fly.
         """
         device_name = self.get_device_name(device)
-        self.debug(2,f'Getting preset for { device_name }.')
+        self.debug(3,f'Getting preset for { device_name }.')
         preset_info = get_predefined_preset_info(device_name)
         if preset_info:
             self.debug(3,'Predefined preset found')
@@ -237,13 +237,13 @@ class EffectController(ElectraOneBase):
         # If device == None then no device appointed
         if device != None:
             device_name = self.get_device_name(device)
-            self.debug(2,f'Assignment of device { device_name } detected')
+            self.debug(1,f'Assignment of device { device_name } detected')
             # Note: even if this is not the case, Ableton rebuilds the midi map
             # and initiates a state refresh. As hot-swapping a device
             # apparently triggers a device appointment of the same device,
             # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
-                self.debug(3,'\ (This is an assignment of a different device.)')
+                self.debug(1,'\ (This is an assignment of a different device.)')
                 self._assigned_device = device
                 self._assigned_device_controller = None
                 # upload preset: will also request midi map (which will also refresh state)                
@@ -254,7 +254,7 @@ class EffectController(ElectraOneBase):
             # in CONTROL_BOTH_MODE 
             self._assigned_device = None
             self._assigned_device_controller = None
-            self.debug(2,'Assigning an empty device.')
+            self.debug(1,'Assigning an empty device.')
             # upload preset: will also request midi map (which will also refresh state)
             self._upload_assigned_device_if_possible_and_needed()
             
@@ -266,5 +266,5 @@ class EffectController(ElectraOneBase):
         if not self._assigned_device_locked:
             self._assign_device(device)
         else:
-            self.debug(2,'Device appointment ignored because device locked.')
+            self.debug(1,'Device appointment ignored because device locked.')
             

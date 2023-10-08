@@ -179,7 +179,7 @@ class TransportController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(2,'Building transport MIDI map.')
+        self.debug(3,'Building transport MIDI map.')
         # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(4,f'TransportController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')

@@ -270,22 +270,22 @@ class ElectraOneBase(Log):
         # To distinguish names for plugins/max devices (for which we derive
         # the name from the enclosing rack) from the name of the enclosing
         # rack itself, append a hypen to the name to the derived plugin/max name
-        self.debug(6,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
+        self.debug(7,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent
             if isinstance(cp,Live.Chain.Chain):
                 cp = cp.canonical_parent
-                self.debug(6,'Enclosing rack found, using its name.')
+                self.debug(7,'Enclosing rack found, using its name.')
                 name = cp.name + '-'
             else:
-                self.debug(6,'No enclosing rack found, using my own name (unreliable).')
+                self.debug(7,'No enclosing rack found, using my own name (unreliable).')
                 name = device.name
         elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
-            self.debug(6,'I am a rack, using my own name (unreliable).')
+            self.debug(7,'I am a rack, using my own name (unreliable).')
             name = device.name
         else:
             name = device.class_name
-        self.debug(5,f'Device name is { name }.')
+        self.debug(6,f'Device name is { name }.')
         return name
     
     # --- dealing with fimrware versions
