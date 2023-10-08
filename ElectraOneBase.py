@@ -371,7 +371,7 @@ class ElectraOneBase(Log):
         # - bbb is the minor
         # - ccc is the patch
         # - dd is for markings such as alpha, beta, rc (not used it much)
-        self.debug(2,f'Parsing version info: {sw_versionstr},{hw_versionstr}')
+        self.debug(2,f'Parsing version info: {sw_versionstr}, {hw_versionstr}')
         if type(sw_versionstr) != str:
             sw_versionstr = str(sw_versionstr)
         try:
@@ -395,7 +395,7 @@ class ElectraOneBase(Log):
             self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
             hw_version = (0,0)
         self.configure_for_version(sw_version,hw_version)
-        self.debug(2,f'E1 version {sw_version} (software) { hw_version } (hardware).')
+        self.debug(2,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.')
         
     # --- Fast MIDI sysex upload handling
 
