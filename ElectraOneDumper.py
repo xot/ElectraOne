@@ -888,9 +888,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            as PresetInfo.
            - result: preset, lua and cc map; PresetInfo
         """
-        # get the default lua script from the Empty device
-        # (which is guaranteed to exist)
-        empty_preset_info = get_predefined_preset_info('Empty')
-        lua_script = empty_preset_info.get_lua_script()
+        lua_script = ""
         return PresetInfo(self._preset_json, lua_script, self._cc_map)
         

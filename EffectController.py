@@ -19,7 +19,6 @@ from .ElectraOneBase import ElectraOneBase
 from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
 
-
 # Note: the EffectController creates an instance of a GenericDeviceController
 # to manage the currently assigned device. If uploading is delayed,
 # self._assigned_device already points to the newly selected device, but
@@ -61,6 +60,15 @@ class EffectController(ElectraOneBase):
         # created by DeviceAppointer or by other remote scripts handling device
         # appointments)
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
+        # set the default lua script
+        path = self._get_libdir()
+        if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+            # in this case defualt.lua preloaded on E1
+            self._DEFAULT_LUA_SCRIPT = 'require("xot/default")\n'
+        else:
+            # load the default lua script from file
+            with open(path + '/default.lua','r') as inf:
+                self._DEFAULT_LUA_SCRIPT = inf.read()
         self.debug(0,'EffectController loaded.')
 
     def _slot_is_visible(self):
@@ -208,7 +216,8 @@ class EffectController(ElectraOneBase):
             # 'Empty' guaranteed to exist
             preset_info = get_predefined_preset_info(device_name)
         preset = preset_info.get_preset()
-        script = preset_info.get_lua_script() 
+        script = self._DEFAULT_LUA_SCRIPT
+        script += preset_info.get_lua_script() 
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
         self._assigned_device_upload_delayed = False

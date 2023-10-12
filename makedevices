@@ -89,7 +89,8 @@ def process_preset(outf,preset_path):
         filter_quotes = str.maketrans({ "'": "\\'"})
         filtered_json_preset = json_preset.translate(filter_quotes)
     # load the .lua script if it exist; always add DEFAULT_LUA_SCRIPT
-    lua_script = DEFAULT_LUA_SCRIPT
+    #lua_script = DEFAULT_LUA_SCRIPT
+    lua_script = ""
     # append the .lua if it exists
     if os.path.exists(lua_script_path):
         with open(lua_script_path,'r') as inf:
