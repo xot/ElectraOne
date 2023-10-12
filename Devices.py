@@ -26,6 +26,131 @@ from .CCInfo import CCMap
 #   the same parameter.
 
 
+DEFAULT_LUA_SCRIPT="""info.setText("by www.xot.nl")
+
+function defaultFormatter(valueObject, value)
+    return("")
+end
+
+function formatFloat (valueObject, value)
+  return (string.format("%.2f",value/100))
+end
+
+function formatLargeFloat (valueObject, value)
+  return (string.format("%.1f",value/10))
+end
+
+function formatdB (valueObject, value)
+  return (string.format("%.1f dB",value/10))
+end
+
+function formatFreq (valueObject, value)
+  return (string.format("%.1f Hz",value/10))
+end
+
+function formatPan (valueObject, value)
+  if value < 0 then
+    return (string.format("%iL", -value))
+  elseif value == 0 then
+    return "C"
+  else
+    return (string.format("%iR", value))
+  end
+end
+
+function formatPercent (valueObject, value)
+  return (string.format("%.1f %%",value/10))
+end
+
+function formatIntPercent (valueObject, value)
+  return (string.format("%.0f %%",value/10))
+end
+
+function formatDegree (valueObject, value)
+  return (string.format("%i *",value))
+end
+
+function formatSemitone (valueObject, value)
+  return (string.format("%i st",value))
+end
+
+function formatFineSemitone (valueObject, value)
+  return (string.format("%.2f st",value/100))
+end
+
+function formatDetune (valueObject, value)
+  return (string.format("%i ct",value))
+end
+
+-- start/stop display drawing
+
+function aaa()
+  window.stop()
+end
+
+function zzz()
+  window.resume()
+end
+
+-- handling patch requests to switch between mixer/effect 
+
+function patch.onRequest (device)
+  print ("Patch Request pressed");
+  if device.id == 1
+    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
+  end
+end
+
+-- handling forwarding mixer updates to second E1 (if attached)
+
+function forward(f)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "()"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function forward2(f,p1,p2)
+  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
+  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
+  for i=1, string.len(cmds) do
+    cmdt[i+5]= string.byte(cmds,i,i)
+  end
+  midi.sendSysex(PORT_1,cmdt)
+end
+
+function aa()
+  forward('aa')
+end
+
+function zz()
+  forward('zz')
+end
+
+function utl(idx,label)
+  forward2('utl', tostring(idx), '"'..label..'"')
+end
+
+function ursl(idx,label)
+  forward2('ursl', tostring(idx), '"'..label..'"')
+end
+
+function seqv(idx,flag)
+  if flag then
+    forward2('seqv',tostring(idx),'true')
+  else
+    forward2('seqv',tostring(idx),'false')
+  end
+end
+
+function smv(tc,rc)
+  forward2('smv', tostring(tc), tostring(rc))
+end
+
+"""
+
 DEVICES = {
 'Compressor2': PresetInfo('{"version":2,"name":"Compressor2","projectId":"qzode8UzS0zCHOLgQjLS","pages":[{"id":1,"name":"Page 1"},{"id":7,"name":"Page 7","hidden":true}],"groups":[{"id":24,"pageId":1,"name":"SIDECHAIN","color":"BE155B","bounds":[14,6,325,16]},{"id":25,"pageId":1,"name":"COMPRESSOR","color":"ffffff","bounds":[348,6,492,16]},{"id":26,"pageId":1,"name":"GENERAL","color":"ffffff","bounds":[849,6,158,16]}],"devices":[{"id":1,"name":"Generic MIDI","port":1,"channel":11}],"overlays":[{"id":1,"items":[{"label":"Low Shelf","index":0,"value":0},{"label":"Bell","index":1,"value":25},{"label":"High Shelf","index":2,"value":51},{"label":"Low pass","index":3,"value":76},{"label":"Peak","index":4,"value":102},{"label":"High pass","index":5,"value":127}]},{"id":2,"items":[{"label":"0 ms","index":0,"value":0},{"label":"1 ms","index":1,"value":64},{"label":"10 ms","index":2,"value":127}]},{"id":3,"items":[{"label":"Peak","index":0,"value":0},{"label":"RMS","index":1,"value":64},{"label":"Expand","index":2,"value":127}]},{"id":4,"items":[{"label":"Lin","index":0,"value":0},{"label":"Log","index":1,"value":127}]}],"controls":[{"id":22,"type":"pad","mode":"toggle","visible":true,"name":"S/C ON","color":"BE155B","bounds":[20,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":22,"deviceId":1},"defaultValue":"off","function":"scon"}]},{"id":16,"type":"pad","mode":"toggle","visible":true,"name":"S/C EQ ON","color":"CC4EDD","bounds":[187,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":19,"deviceId":1},"defaultValue":"off","function":"sceqon"}]},{"id":12,"type":"fader","visible":true,"variant":"thin","name":"RATIO","color":"FFFFFF","bounds":[354,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":5,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":23,"type":"fader","visible":true,"variant":"thin","name":"THRESHOLD","color":"FFFFFF","bounds":[521,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":4,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":12,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":11,"type":"fader","visible":true,"variant":"thin","name":"OUTPUT GAIN","color":"FFFFFF","bounds":[688,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":4,"deviceId":1,"min":0,"max":16383},"min":-360,"max":360,"formatter":"formatdB","id":"value"}]},{"id":9,"type":"pad","mode":"toggle","visible":true,"name":"MAKEUP","color":"F49500","bounds":[855,28,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":17,"deviceId":1},"id":"value"}]},{"id":20,"type":"pad","mode":"toggle","visible":false,"name":"LISTEN","color":"BE155B","bounds":[20,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":21,"deviceId":1},"id":"value"}]},{"id":18,"type":"list","visible":false,"name":"EQ TYPE","color":"CC4EDD","bounds":[187,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":20,"deviceId":1},"function":"eqtype","overlayId":1}]},{"id":1,"type":"fader","visible":true,"variant":"thin","name":"ATTACK","color":"FFFFFF","bounds":[354,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":0,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":7,"type":"fader","visible":true,"variant":"thin","name":"KNEE","color":"FFFFFF","bounds":[521,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":10,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":3,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":8,"type":"list","visible":true,"name":"LOOKAHEAD","color":"FFFFFF","bounds":[688,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":11,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":16,"deviceId":1},"overlayId":2,"id":"value"}]},{"id":10,"type":"list","visible":true,"name":"MODEL","color":"F49500","bounds":[855,118,146,56],"pageId":1,"controlSetId":1,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","parameterNumber":18,"deviceId":1},"function":"model","overlayId":3}]},{"id":19,"type":"fader","mode":"","visible":false,"variant":"thin","name":"GAIN","color":"BE155B","bounds":[20,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":1,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":10,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":14,"type":"fader","mode":"","visible":false,"variant":"thin","name":"EQ FREQ","color":"CC4EDD","bounds":[187,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":2,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":7,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":13,"type":"fader","visible":true,"variant":"thin","name":"RELEASE","color":"FFFFFF","bounds":[354,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":6,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":5,"type":"list","visible":true,"variant":"valueOnly","name":"ENV MODE","color":"FFFFFF","bounds":[688,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":5,"valueId":"value"}],"values":[{"message":{"type":"cc7","parameterNumber":15,"deviceId":1},"overlayId":4,"id":"value"}]},{"id":4,"type":"fader","mode":"","visible":true,"variant":"thin","name":"DRY/WET","color":"1791E9","bounds":[855,208,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":6,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":1,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":21,"type":"fader","mode":"","visible":false,"variant":"thin","name":"MIX","color":"BE155B","bounds":[20,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":7,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":11,"deviceId":1,"min":0,"max":16383},"min":0,"max":1000,"formatter":"formatPercent","id":"value"}]},{"id":15,"type":"fader","mode":"","visible":false,"variant":"thin","name":"EQ GAIN","color":"CC4EDD","bounds":[187,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":8,"deviceId":1,"min":0,"max":16383},"min":-150,"max":150,"formatter":"formatdB","id":"value"}]},{"id":2,"type":"pad","mode":"toggle","visible":true,"name":"AUTO RELEASE","color":"FFFFFF","bounds":[354,298,146,56],"pageId":1,"controlSetId":2,"inputs":[{"potId":9,"valueId":"value"}],"values":[{"id":"value","message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":13,"deviceId":1},"defaultValue":"off","function":"autorelease"}]},{"id":3,"type":"pad","mode":"toggle","visible":true,"name":"DEVICE ON","color":"F15509","bounds":[855,478,146,56],"pageId":1,"controlSetId":3,"inputs":[{"potId":12,"valueId":"value"}],"values":[{"message":{"type":"cc7","offValue":0,"onValue":127,"parameterNumber":14,"deviceId":1},"id":"value"}]},{"id":6,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EXP RATIO","color":"FFFFFF","bounds":[354,28,146,56],"pageId":7,"controlSetId":1,"inputs":[{"potId":3,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":2,"deviceId":1,"min":0,"max":16383},"formatter":"defaultFormatter","id":"value"}]},{"id":17,"type":"fader","mode":"","visible":true,"variant":"thin","name":"EQ Q","color":"CC4EDD","bounds":[187,298,146,56],"pageId":7,"controlSetId":2,"inputs":[{"potId":8,"valueId":"value"}],"values":[{"message":{"type":"cc14","lsbFirst":false,"parameterNumber":9,"deviceId":1,"min":0,"max":16383},"min":1,"max":120,"formatter":"formatLargeFloat","id":"value"}]}]}',
     """ratio = controls.get(12)

@@ -133,6 +133,7 @@ allpresets_paths = here.glob('preloaded/*.epr')
 # open the output for writing
 with open(DEVICES,'w') as outf:
     outf.write(PREAMBLE)
+    outf.write(f'\nDEFAULT_LUA_SCRIPT="""{DEFAULT_LUA_SCRIPT}"""\n')
     outf.write('\nDEVICES = {\n')
     # process each preset path
     for preset_path in allpresets_paths:

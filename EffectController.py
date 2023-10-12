@@ -14,7 +14,7 @@
 from .config import *
 from .CCInfo import CCInfo
 from .PresetInfo import PresetInfo
-from .Devices import get_predefined_preset_info
+from .Devices import get_predefined_preset_info, DEFAULT_LUA_SCRIPT
 from .ElectraOneBase import ElectraOneBase 
 from .ElectraOneDumper import ElectraOneDumper
 from .GenericDeviceController import GenericDeviceController
@@ -64,11 +64,9 @@ class EffectController(ElectraOneBase):
         path = self._get_libdir()
         if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
             # in this case defualt.lua preloaded on E1
-            self._DEFAULT_LUA_SCRIPT = 'require("xot/default")\n'
+            self._default_lua_script = 'require("xot/default")\n'
         else:
-            # load the default lua script from file
-            with open(path + '/default.lua','r') as inf:
-                self._DEFAULT_LUA_SCRIPT = inf.read()
+            self._default_lua_script = DEFAULT_LUA_SCRIPT 
         self.debug(0,'EffectController loaded.')
 
     def _slot_is_visible(self):
@@ -216,7 +214,7 @@ class EffectController(ElectraOneBase):
             # 'Empty' guaranteed to exist
             preset_info = get_predefined_preset_info(device_name)
         preset = preset_info.get_preset()
-        script = self._DEFAULT_LUA_SCRIPT
+        script = self._default_lua_script
         script += preset_info.get_lua_script() 
         # upload preset: will also request midi map (which will also refresh state)
         self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
