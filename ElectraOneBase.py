@@ -793,6 +793,7 @@ class ElectraOneBase(Log):
            - valuestr: string representing value to display; str
         """
         self.debug(4,f'Send value update {valuestr} for control ({cid},{vid}).')
+        # see https://docs.electra.one/developers/midiimplementation.html#override-value-text
         sysex_command = (0x14, 0x0E)
         sysex_controlid = (cid % 128 , cid // 128)
         sysex_valueid = (vid, ) 
