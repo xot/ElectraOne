@@ -1,71 +1,71 @@
-{'Device On': 69
-,'Reverse': 70
-,'Snap': 71
-,'Sample Selector': 72
-,'Osc On': 73
-,'Spread': 74
-,'Key Zone Shift': 129
-,'Glide Mode': 75
-,'Glide Time': 130
-,'Time': 76
-,'Time < Key': 77
-,'Transpose': 131
-,'Detune': 132
-,'Pitch < LFO': 133
-,'Pe On': 78
-,'Volume': 134
-,'Vol < Vel': 135
-,'Vol < LFO': 136
-,'Pan': 137
-,'Pan < Rnd': 138
-,'Pan < LFO': 139
-,'Ve Attack': 140
-,'Ve Init': 141
-,'Ve A Slope': 79
-,'Ve Decay': 142
-,'Ve Peak': 143
-,'Ve D Slope': 80
-,'Ve Sustain': 144
-,'Ve Release': 145
-,'Ve R Slope': 81
-,'Ve Mode': 82
-,'Ve Loop': 146
-,'Ve Retrig': 147
-,'Ve R < Vel': 83
-,'Fade In': 148
-,'Trigger Mode': 84
-,'Fade Out': 149
-,'F On': 85
-,'Filter Type': 86
-,'Filter Circuit - LP/HP': 87
-,'Filter Circuit - BP/NO/Morph': 88
-,'Filter Slope': 89
-,'Filter Freq': 150
-,'Filter Res': 151
-,'Filter Morph': 90
-,'Filter Drive': 152
-,'Fe On': 91
-,'Fe < Env': 92
-,'Fe Attack': 153
-,'Fe Init': 154
-,'Fe A Slope': 93
-,'Fe Decay': 155
-,'Fe Peak': 156
-,'Fe D Slope': 94
-,'Fe Sustain': 157
-,'Fe Release': 158
-,'Fe End': 159
-,'Fe R Slope': 95
-,'Fe Mode': 96
-,'Fe Loop': 160
-,'Fe Retrig': 193
-,'Fe R < Vel': 101
-,'Filt < Key': 194
-,'Filt < Vel': 195
-,'Filt < LFO': 196
-,'Shaper On': 102
-,'L 1 On': 103
-,'L 2 On': 104
-,'L 3 On': 105
-,'Ae On': 106
+{'Device On': ((-1, 0),11,False,65)
+,'Reverse': ((-1, 0),11,False,79)
+,'Snap': ((-1, 0),11,False,81)
+,'Sample Selector': ((-1, 0),11,True,30)
+,'Osc On': ((-1, 0),11,False,77)
+,'Spread': ((-1, 0),11,True,31)
+,'Key Zone Shift': ((-1, 0),11,True,25)
+,'Glide Mode': ((-1, 0),11,False,73)
+,'Glide Time': ((35, 0),11,True,24)
+,'Time': ((-1, 0),12,True,0)
+,'Time < Key': ((-1, 0),12,True,1)
+,'Transpose': ((-1, 0),12,True,2)
+,'Detune': ((-1, 0),11,True,0)
+,'Pitch < LFO': ((-1, 0),11,True,29)
+,'Pe On': ((-1, 0),11,False,78)
+,'Volume': ((-1, 0),12,True,17)
+,'Vol < Vel': ((-1, 0),12,True,16)
+,'Vol < LFO': ((-1, 0),12,True,15)
+,'Pan': ((-1, 0),11,True,26)
+,'Pan < Rnd': ((-1, 0),11,True,28)
+,'Pan < LFO': ((-1, 0),11,True,27)
+,'Ve Attack': ((56, 0),12,True,4)
+,'Ve Init': ((59, 0),12,True,7)
+,'Ve A Slope': ((-1, 0),12,True,3)
+,'Ve Decay': ((58, 0),12,True,6)
+,'Ve Peak': ((62, 0),12,True,9)
+,'Ve D Slope': ((-1, 0),12,True,5)
+,'Ve Sustain': ((67, 0),12,True,14)
+,'Ve Release': ((65, 0),12,True,12)
+,'Ve R Slope': ((-1, 0),12,True,11)
+,'Ve Mode': ((-1, 0),11,False,83)
+,'Ve Loop': ((60, 0),12,True,8)
+,'Ve Retrig': ((66, 0),12,True,13)
+,'Ve R < Vel': ((-1, 0),12,True,10)
+,'Fade In': ((5, 0),11,True,1)
+,'Trigger Mode': ((-1, 0),11,False,82)
+,'Fade Out': ((6, 0),11,True,2)
+,'F On': ((-1, 0),11,False,66)
+,'Filter Type': ((-1, 0),11,False,72)
+,'Filter Circuit - LP/HP': ((-1, 0),11,False,70)
+,'Filter Circuit - BP/NO/Morph': ((-1, 0),11,False,69)
+,'Filter Slope': ((-1, 0),11,False,71)
+,'Filter Freq': ((29, 0),11,True,21)
+,'Filter Res': ((-1, 0),11,True,23)
+,'Filter Morph': ((-1, 0),11,True,22)
+,'Filter Drive': ((28, 0),11,True,20)
+,'Fe On': ((-1, 0),11,False,68)
+,'Fe < Env': ((-1, 0),11,True,3)
+,'Fe Attack': ((9, 0),11,True,5)
+,'Fe Init': ((-1, 0),11,True,9)
+,'Fe A Slope': ((-1, 0),11,True,4)
+,'Fe Decay': ((11, 0),11,True,7)
+,'Fe Peak': ((-1, 0),11,True,11)
+,'Fe D Slope': ((-1, 0),11,True,6)
+,'Fe Sustain': ((-1, 0),11,True,16)
+,'Fe Release': ((20, 0),11,True,14)
+,'Fe End': ((-1, 0),11,True,8)
+,'Fe R Slope': ((-1, 0),11,True,13)
+,'Fe Mode': ((-1, 0),11,False,67)
+,'Fe Loop': ((14, 0),11,True,10)
+,'Fe Retrig': ((21, 0),11,True,15)
+,'Fe R < Vel': ((-1, 0),11,True,12)
+,'Filt < Key': ((-1, 0),11,True,17)
+,'Filt < Vel': ((-1, 0),11,True,19)
+,'Filt < LFO': ((-1, 0),11,True,18)
+,'Shaper On': ((-1, 0),11,False,80)
+,'L 1 On': ((-1, 0),11,False,74)
+,'L 2 On': ((-1, 0),11,False,75)
+,'L 3 On': ((-1, 0),11,False,76)
+,'Ae On': ((-1, 0),11,False,64)
 }

@@ -47,7 +47,7 @@ class CCInfo:
             assert type(id) is tuple, f'Control id {id} should be an integer or a tuple.'
             (cid,vid) = id
             assert cid in range(-1,443), f'Control index {cid} out of range.'
-            assert vid in range(1,11), f'Value index {vid} out of range.'
+            assert vid in range(11), f'Value index {vid} out of range.'
             self._control_id = id
         assert self._midi_channel in range(1,17), f'MIDI channel {self._midi_channel} out of range.'
         assert self._is_cc14 in [IS_CC7,IS_CC14], f'CC14 flag {self._is_cc14} out of range.'

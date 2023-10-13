@@ -141,3 +141,66 @@ function dretrig(valueObject, value)
     dphase:setVisible(value ~= 0)
     dfeedback:setVisible(value == 0)
 end
+
+-- lfo
+
+lforate = controls.get(109)
+lfosync = controls.get(111)
+
+lfosync:setSlot(5,3)
+
+function lforange(valueObject, value)
+    lforate:setVisible(value ~= 2)
+    lfosync:setVisible(value == 2)
+end
+
+lerepeat = controls.get(122)
+leloop = controls.get(117)
+
+leloop:setSlot(20,3)
+
+function lemode(valueObject, value)
+    lerepeat:setVisible((value == 2) or (value == 3))
+    leloop:setVisible(value == 1)
+end
+
+-- filter 
+
+ferepeat = controls.get(84)
+feloop = controls.get(78)
+
+feloop:setSlot(32,4)
+
+function femode(valueObject, value)
+    ferepeat:setVisible((value == 2) or (value == 3))
+    feloop:setVisible(value == 1)
+end
+
+fdrive = controls.get(91)
+fmorph = controls.get(93)
+
+fmorph:setSlot(17,4)
+
+fcrctbp = controls.get(89)
+fcrctlp = controls.get(90)
+
+fcrctlp:setSlot(8,4)
+
+function ftype(valueObject, value)
+    fcrctlp:setVisible(value < 2)
+    fcrctbp:setVisible(value > 1)    
+    fdrive:setVisible(value ~= 4)
+    fmorph:setVisible(value == 4)
+end
+
+-- pitch
+
+perepeat = controls.get(185)
+peloop = controls.get(178)
+
+peloop:setSlot(32,5)
+
+function pemode(valueObject, value)
+    perepeat:setVisible((value == 2) or (value == 3))
+    peloop:setVisible(value == 1)
+end
