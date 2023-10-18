@@ -59,7 +59,7 @@ def get_predefined_preset_info(device_name):
 # Output file
 DEVICES = 'Devices.py'
 
-# Path to file containinf the default LUA script that always needs to be
+# Path to file containing the default LUA script that always needs to be
 # included
 DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 

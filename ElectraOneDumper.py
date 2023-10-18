@@ -699,7 +699,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - result: the preset (a JSON object in E1 .epr format); str
         """
         self.debug(4,'Construct JSON')
-        # create a random project id
+        # create a project id from the device_name 'randomly'
+        # so they are arbitrary but a device_name is always mapped to the same
+        # project id. This is necessary as the snapshot storage on the
+        # E1 uses the project id, creating a new folder for each new id
+        random.seed(device_name)
         project_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         # write everything to the underlying StringIO, a mutable string
         # for efficiency.
