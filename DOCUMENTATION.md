@@ -966,6 +966,27 @@ For smoother operation, values for such complex Ableton parameters are not immed
 
 ## Threading
 
+The remote script relies on threading to be able to asynchronously wait for confirmation that a certain command has properly been executed on the E1. 
+
+If ```DETECT_E1=True```, one thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
+
+The other thread (```_upload_preset_thread```) first tries to load a preloaded preset, and if that is not possible it sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). See [the section on uploading for more detais](#uploading_a_preset)
+
+In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
+
+### Dealing with ACKs and NACKs
+
+For allmost all SysEx commands, the E1 returns whether they were successfully executed or not by sending back an [ACK](https://docs.electra.one/developers/midiimplementation.html#ack) or [NACK](https://docs.electra.one/developers/midiimplementation.html#nack). 
+
+The way Ableton implements control scripts makes it hard to wait for them in a normal fashion. An incoming ACK or NACK will be passed by Ableton Live to the ```receive_midi()``` function, which is the only way for the remote script to learn about receipt of an ACK/NACK. But ```receive_midi()``` can only be called if the remote script is not active, which is *not* the case if the remote script is busy waiting for an ACK/NACK after sending a SysEx message!
+
+The ElectraOne remotescript solves this as follows.
+
+After sending a SysEx message for which an ACK/NACK is expected, the script calls ```_increment_acks_pending()``` which increments ```ElectraOneBase.acks_pending``` by 1 and records the current time. This creates a virtual ACk/NACK queue (representing the actual ACKs/NACKs sent by the E1 that still need to be consumed by the remote script).
+
+The threads use this mechanism as follows. First they consume all pending ACKs/NACks by calling ```_clear_acks_queue()```. This is a loop that waits for some timeout and sleeps inbetween (to release the thread and to allows Live to call ```receive_midi()``` to process and register incoming ACKs and NACKs, decrementing ```ElectraOneBase.acks_pending```. Then the threads start their actual commands, and wait for confirmation by calling ```_wait_for_ack_or_timeout()```.
+
+
 ### Uploading a preset
 
 The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
@@ -980,30 +1001,9 @@ Sometimes when the appointed device changes, it may not be possible to upload it
 In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
 
 
-## Dealing with ACKs and NACKs
-
-For allmost all SysEx commands, the E1 returns whether they were successfully executed or not by sending back an [ACK](https://docs.electra.one/developers/midiimplementation.html#ack) or [NACK](https://docs.electra.one/developers/midiimplementation.html#nack). 
-
-The way Ableton implements control scripts makes it hard to wait for them in a normal fashion. An incoming ACK or NACK will be passed by Ableton Live to the ```receive_midi()``` function, which is the only way for the remote script to learn about receipt of an ACK/NACK. But ```receive_midi()``` can only be called if the remote script is not active, which is *not* the case if the remote script is busy waiting for an ACK/NACK after sending a SysEx message!
-
-The ElectraOne remotescript solves this as follows.
-
-After sending a SysEx message for which an ACK/NACK is expected, the script calls ```_increment_acks_pending()``` which increments ```ElectraOneBase.acks_pending``` by 1 and records the current time. This creates a virtual ACk/NACK queue (representing the actual ACKs/NACKs sent by the E1 that still need to be consumed by the remote script).
-
-The upload thread subsequently first consumes all pending ACKs/NACks by calling
- ```_clear_acks_queue()```. This is a loop that waits for some timeout and sleeps inbetween (to release the thread and to allows Live to call ```receive_midi()``` to process and register incoming ACKs and NACKs, decrementing ```ElectraOneBase.acks_pending```. The select slot, upload preset and upload lua script (each a SysEx command) then wait for confirmation by calling ```_wait_for_ack_or_timeout()```.
 
 
-# Cutlist
-
-If ```DETECT_E1=True```, one thread (```_connect_E1```) sends out a request for a response from the Electra One controller repeatedly until an appropriate request response is received. It never stops doing so, so when no Electra One gets connected, the remote script never really starts.
-
-The other thread (```_upload_preset_thread```) first tries to load a preloaded preset, and if that is not possible it sends a select preset slot MIDI command to the Electra One controller, and waits for the ACK before uploading the actual preset (again waiting for an ACK as confirmation that the preset was successfully received). See [the section on uploading for more detais](#uploading_a_preset)
-
-
-In both cases a timeout is set (for the preset upload this timeout increases with the length of the preset) in case an ACK is missed and the remote script would stop working  forever. (In such cases, a user can always try again by reselecting a device.)
-
-
+## Switching views
 
 The PATCH REQUEST button on the E1 (right top button) is programmed to send the SysEx command ```0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7```. On receipt of this message, the main E1 remote script switches the visible preset form mixer to effect or vice versa (but only of ```CONTROL_MODE = CONTROL_EITHER```). It uses the global class variable   ```ElectraOneBase.current_visible_slot``` to keep track of this (already needed to prevent value updates for invisible presets. To implement this, the mixer and effect presets redefine the ```patch.onRequest(device)``` function (see ```default.lua``` and the mixer lua script).
 
