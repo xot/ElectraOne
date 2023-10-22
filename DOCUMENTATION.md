@@ -804,7 +804,7 @@ Module ```EffectController.py``` uses the same method as described above for the
 When the selected device changes (see [device appointment below](), ```EffectController``` does the following.
 
 1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixth bank).
-   - If a user-defined curated preset exists, that one is used: either using the preloaded version already stored on the E1, or the one stored in ```Devices.py```.
+   - If a user-defined [curated preset](https://github.com/xot/ElectraOne/blob/main/DOCUMENTATION.md#curated-presets) exists, that one is used: either using the preloaded version already stored on the E1, or the one stored in ```Devices.py```. In the latter case it is uploaded to the E1.
    - If not, the parameters for the newly selected device are retrieved from Live (using ```device.parameters```) and automatically converted to a Electra One patch (see ```ElectraOneDumper.py```) in the order specified by the configuration constant ```ORDER```. 
 
 2. All the parameters in the newly selected device are mapped to MIDI CC (using ```Live.MidiMap.map_midi_cc```). For a user-defined preset, an accompanying CC map must be defined to provide the necessary information. For presets constructed on the fly, ```ElectraOneDumper.py``` creates it. 
@@ -815,7 +815,15 @@ If *no* device is currently selected (e.g. initially, after deleting a device), 
 
 - ensure that the patch request button keeps on working, and
 - ensure that in ```CONTROL_BOTH``` mode (when a second E1 is connected to the USB Host input that controls the mixer) the necessary SysEx commands are forwarded to the second E1.
- 
+
+Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
+
+- the mixer preset is visible and we are in ```CONTROL_EITHER``` mode, or
+- the E1 is not yet ready for it (e.g. when a previous upload hasn't completed yet), or 
+- it may not even be necessary to do so (e.g. because a device appointment change should not immediately trigger  an upload, see the ```SWITCH_TO_EFFECT_IMMEDIATELY``` configuration option)
+
+In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
+
 ### Curated presets
 
 Curated presets are 
@@ -990,17 +998,6 @@ The threads use this mechanism as follows. First they consume all pending ACKs/N
 ### Uploading a preset
 
 The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
-
-
-Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
-
-- the mixer preset is visible and we are in ```CONTROL_EITHER``` mode, or
-- the E1 is not yet ready for it (e.g. when a previous upload hasn't completed yet), or 
-- it may not even be necessary to do so (e.g. because a device appointment change should not immediately trigger  an upload, see the ```SWITCH_TO_EFFECT_IMMEDIATELY``` configuration option)
-
-In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
-
-
 
 
 ## Switching views
