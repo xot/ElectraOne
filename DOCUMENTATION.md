@@ -801,7 +801,7 @@ Starting with E1 firmware version 3.4, the curated presets stored in ```Devices.
 Module ```EffectController.py``` uses the same method as described above for the different mixer classes to map MIDI controls to device parameters,  initialising controller values and keeping values in sync. This is relatively straightforward as all device parameters can be mapped using ```LiveMidiMap.map_midi_cc```. (Note that unfortunately certain devices omit certain controls from their parameter list.) The complexity lies in having the right preset to upload to the E1, and knowing how the CC parameters are assigned in this preset.
 
 
-When the selected device changes, ```EffectController``` does the following.
+When the selected device changes (see [device appointment below](), ```EffectController``` does the following.
 
 1. A patch for the newly selected device is uploaded to the Electra One to slot ```EFFECT_PRESET_SLOT``` (default the second slot of the sixth bank).
    - If a user-defined curated preset exists, that one is used: either using the preloaded version already stored on the E1, or the one stored in ```Devices.py```.
@@ -816,13 +816,11 @@ If *no* device is currently selected (e.g. initially, after deleting a device), 
 - ensure that the patch request button keeps on working, and
 - ensure that in ```CONTROL_BOTH``` mode (when a second E1 is connected to the USB Host input that controls the mixer) the necessary SysEx commands are forwarded to the second E1.
  
-
 ### Curated presets
 
 Curated presets are 
 - either stored preloaded on the E1, by default in the folder ```xot/ableton``` within ```ctrlv2/presets```, using the ```device.class_name``` as the file name (where the preset itself is stored in ```<name>.epr``` and any associated LUA code is stored in ```<name>.lua```),
 - or stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
-
 
 Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, a CC map, and some LUA scripting special to the preset. Certain presets use this to hide/show certain parts of the preset depending on the value of certain parameters (e.g. to show either a synchronised rate control or a free frequency control to control the speed of an LFO, depending on a 'sync' toggle button).
 
@@ -921,33 +919,17 @@ then the parameter is considered not an integer, and is assigned a 14 bit CC (al
 
 Note that the ```ElectraOneDumer``` actually is a subclass of ```io.StringIO``` to make the incremental construction of the preset string efficient. In Python strings are constants, so appending a string essentially means copying the old string to the new string and then appending the new part (some Python interpreters may catch this and optimise for this case, but we cannot rely on that). We use the ```write``` method of ```io.StringIO``` to define an ```append``` method that takes varying number of elements as parameter and writes (i.e. appends) their string representation to the output string. 
 
-## Device appointment
+### Default LUA script
 
-### Uploading a preset
-
-The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
-
-
-Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
-
-- the mixer preset is visible and we are in ```CONTROL_EITHER``` mode, or
-- the E1 is not yet ready for it (e.g. when a previous upload hasn't completed yet), or 
-- it may not even be necessary to do so (e.g. because a device appointment change should not immediately trigger  an upload, see the ```SWITCH_TO_EFFECT_IMMEDIATELY``` configuration option)
-
-In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
-
-### Preset LUA script
-
-Whenever a preset is uploaded, some default LUA script is sent along, taken from ```default.lua```. The script that creates ```Devices.py``` and the zip archive with preloaded presets that can be unpacked on the E1 file system ensure that this default LUA script is prepended to the device specific LUA script.
+Presets use some general functions defined in ```default.lua```. From firmware 3.4 onwards, this code is assumed to be preloaded on the E1, and included in the LUA for a particular preset using the line ```require("xot/default")```.
 
 It defines some formatting functions to format parameters with decibel values, frequency values, pan controllers, etc, that are used in both the curated presets and the presets generated on the fly. And it defines the functions ```aaa()``` and ```zzz()``` to pause and resume display updates.
 
 It also defines the function ```patch.onRequest``` that is called whenever the patch request button (top right) is pressed. It sends a special MIDI SysEx command ```(0xF0 0x00 0x21 0x45 0x7E 0x7E 0xF7)``` back to the remote script that then toggles between mixer and effect control. As complex presets may have more than one device defined (and patch.onRequest sends a message out for every device), we use device.id to diversify the outgoing message. (Effect presets always have device.id = 1 as the first device)
 
-  
 And it defines variants for the mixer display control functions (```aa()```, ```zz()```, ```utl()```, ```ursl()```, ```seqv()``` and ```smv()```) to forward them when ```CONTROL_MODE = CONTROL_BOTH```.
 
-## Value updates 
+### Value updates 
 
 Values are updated by a call to ```refresh_state```. This checks which of the presets is actually visible on the Electra One. This is possible because the Electra One sends out a SysEx whenever a preset is selected on the device (see 
 ```_do_preset_changed```). Both the mixer and effect controller call ```refresh_state``` after having (re)built their MIDI map. 
@@ -975,6 +957,27 @@ The resulting string is sent to the E1 by calling the LUA function ```svu``` def
 For device presets, the CC map tells the remote script which parameters need to be treated this way, see [here](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#device-preset-dumps).
 
 For smoother operation, values for such complex Ableton parameters are not immediately updated whenever their underlying MIDI value changes. Instead the ```update_display()``` function is used to update *all changed* values of such parameters, every ```EFFECT_REFRESH_PERIOD``` times.
+
+
+### Device appointment
+
+(TBD)
+
+
+## Threading
+
+### Uploading a preset
+
+The 'standard' way of uploading a preset is to send it as a SysEx message through the ```send_midi``` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that ```SENDMIDI_CMD``` points to the SendMIDI program, and set ```E1_CTRL_PORT``` to the right port (```Electra Controller Electra CTRL```).
+
+
+Sometimes when the appointed device changes, it may not be possible to upload it immediately because:
+
+- the mixer preset is visible and we are in ```CONTROL_EITHER``` mode, or
+- the E1 is not yet ready for it (e.g. when a previous upload hasn't completed yet), or 
+- it may not even be necessary to do so (e.g. because a device appointment change should not immediately trigger  an upload, see the ```SWITCH_TO_EFFECT_IMMEDIATELY``` configuration option)
+
+In that case ```EffectController``` keeps track of this delayed upload, and will initiate the actual upload when necessary. 
 
 
 ## Dealing with ACKs and NACKs
