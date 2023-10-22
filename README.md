@@ -4,13 +4,14 @@ Ableton Live MIDI Remote Script for the Electra One.
 
 ## What it does
 
-This Ableton Live MIDI Remote script allows you to [control the session mixer]((#the-mixer)) and the parameters of the [currently selected device](#controlling-the-currently-appointed-device) in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
+This Ableton Live MIDI Remote script allows you to control [the session mixer](#the-mixer) and the parameters of the [currently selected device](#controlling-the-currently-appointed-device) in Ableton Live using the [Electra One](https://electra.one), E1 for short. 
 
 It can also be used to dump E1 presets for Ableton Live devices with sensible default control assignments, which can be used to craft your own preset designs to control these devices.
 
 The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks, together with an [E1 mixer preset](#the-mixer) (```Mixer.eproj```) to control it.
 
 The remote script also comes with specially crafted presets for most of the Ableton Live effects and instruments.
+
 
 (*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5*)
 
@@ -174,30 +175,13 @@ at the start of the `device.lua` file. This includes some common LUA functions u
 
 When uploading a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as [described above](#device-preset-dumps)).
 
-## Switching between presets
+### Switching between presets
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
 
 There is a faster way however, when ```CONTROL_MODE=CONTROL_EITHER```.
 Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
 
-## Resetting the remote script
-
-Occasionally, the remote script or the E1 may get in a bad state.
-
-You can unplug and then replug the E1 to restart it and continue to use it with the remote script to see if that solves the problem. (See below for [how to completely reset](#recovering-from-errors) and remove all existing presets from it.)
-
-If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the E1) you can reset the remote script by selecting the 'reset slot' on the E1 (by default this is the last, lower right slot in the sixth bank).
-
-## Warning
-
-**This is *beta* software.**
-
-It was built using the [excellent resources](https://structure-void.com/ableton-live-midi-remote-scripts/) provided by Julien Bayle (StructureVoid), and Hanz Petrov's [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html). Also the incredibly well maintained [documentation](https://docs.electra.one) for the E1 itself was super useful.
-
-However, official documentation from Ableton to program MIDI remote scripts is unfortunately missing. This means the code seems to work, but I don't really know *why* it works. Clearly, this is dangerous. 
-
-**Use at your own risk!**
 
 ## Installation
 
@@ -224,6 +208,14 @@ A patch for the appointed device (indicated by the 'Blue Hand') will automatical
 
 See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS) (again note that ```~``` stands for your home folder).
 
+### Dependencies
+
+This project depends on:
+
+- Ableton Live 11, tested with version 11.1.1 upto 11.2.11 (code relies on Abelton Live supporting Python 3.6).
+- E1 firmware version 3.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
+
 ### Installing SendMidi
 
 Although not strictly necessary, the remote script becomes much more responsive (and usable) under MacOS if you install [SendMidi](https://github.com/gbevin/SendMIDI). (*It seems that sending larger MIDI messages natively through Live under Windows is faster than MacOS; SendMidi isn't necessary in that case, and is harder to install under Windows because it requires shared access to the MIDI port with which to communicate with the E1, which the default Windows MIDI driver does not support.*)
@@ -236,6 +228,23 @@ Set the following constants in the ```config.py``` (this is one of the files you
 
 - ```SENDMIDI_CMD = /usr/local/bin/sendmidi```
 - ```E1_CTRL_PORT = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default).
+
+### Current limitations
+
+- Externally stored, user-defined, presets are not implemented yet. (You *can* add them to ```Devices.py```.)
+- Uploading large patches is *slow*, unless you enable fast loading. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
+
+### Warning
+
+**This is *beta* software.**
+
+It was built using the [excellent resources](https://structure-void.com/ableton-live-midi-remote-scripts/) provided by Julien Bayle (StructureVoid), and Hanz Petrov's [introduction to remote scripts](http://remotescripts.blogspot.com/2010/03/introduction-to-framework-classes.html). Also the incredibly well maintained [documentation](https://docs.electra.one) for the E1 itself was super useful.
+
+However, official documentation from Ableton to program MIDI remote scripts is unfortunately missing. This means the code seems to work, but I don't really know *why* it works. Clearly, this is dangerous. 
+
+**Use at your own risk!**
+
+
 
 ## Configuring
 
@@ -291,21 +300,21 @@ The following constants deal with the equaliser devices managed through the mixe
 - ```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_DEVICE_NAME```: (class)name of the equaliser device (on the normal tracks and the master track respectively) to be managed by the mixer preset.
 - ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP```: CC mapping information describing which equaliser controls are mapped, and through which CC.
 
-## Current limitations
 
-- Externally stored, user-defined, presets are not implemented yet. (You *can* add them to ```Devices.py```.)
-- Uploading large patches is *slow*, unless you enable fast loading. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
+### Setting up logging
 
+To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). On the MAC, this should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
 
-## Dependencies
+To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
 
-This project depends on:
+Alternatively, leave the default ```E1_LOGGING_PORT=2``` as is which direct log messages from the E1 to its CTRL port, and catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
+for more information.
 
-- Ableton Live 11, tested with version 11.1.1 upto 11.2.11 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
-- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
+If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
 
 ## Recovering from errors
+
+### Resetting the E1 
 
 Should the E1 get bogged with presets or freeze, use this procedure for a 'factory reset'.
 
@@ -326,17 +335,13 @@ To completely erase the E1 and format the internal SD do the following
 
 After this you need to update the firmware. See the [section on dependencies](##dependencies) on how to do that.
 
+### Resetting the remote script
 
-## Setting up logging
+Occasionally, the remote script or the E1 may get in a bad state.
 
-To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). On the MAC, this should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
+You can unplug and then replug the E1 to restart it and continue to use it with the remote script to see if that solves the problem. (See below for [how to completely reset](#recovering-from-errors) and remove all existing presets from it.)
 
-To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
-
-Alternatively, leave the default ```E1_LOGGING_PORT=2``` as is which direct log messages from the E1 to its CTRL port, and catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
-for more information.
-
-If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
+If the remote script appears to have stopped working (typically noticeable if selecting a new device does not upload or change anything on the E1) you can reset the remote script by selecting the 'reset slot' on the E1 (by default this is the last, lower right slot in the sixth bank).
 
 ## Bug reports
 
