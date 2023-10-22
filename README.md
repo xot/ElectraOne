@@ -45,9 +45,9 @@ When fewer than 5 tracks and fewer than 6 return tracks are present in the Live 
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), specially crafted presets to control such appointed effects and instruments can be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#uploading-preloaded-presets).
+Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), specially crafted presets to control such appointed effects and instruments can be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
 
-The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It uses the first one it finds. You can add your own favourite preset layout in any of these locations. The easiest way to create such a preset (to ensure that it properly interfaces with this E1 remote script) is to modify dumps made by this script. See [below](#device-preset-dumps).
+The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It uses the first one it finds. You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
@@ -59,12 +59,6 @@ You can use the normal way of switching between presets on the E1 via the MENU b
 
 There is a faster way however, when ```CONTROL_MODE=CONTROL_EITHER```.
 Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
-
-### Racks
-
-When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1.
-
-*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets uploaded to the E1**. This is of course undesirable as the E1 would get swamped with preset uploads. To avoid this, hide the devices on a drum track!*
 
 ### Creating presets on the fly
 
@@ -78,7 +72,14 @@ When constructing presets:
 - Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.) 
 - Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. Other faders simply show a value within the minimum - maximum CC value range (although for faders with a large range this is currently not the case.).
 
-Note that large devices with many parameters may create a preset with several pages.
+Note that large devices with many parameters may create a preset with several pages. The generation of presets on the fly can be customised, see the [configuration section](https://github.com/xot/ElectraOne#configuring)
+
+### Racks
+
+When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1.
+
+*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets uploaded to the E1**. This is of course undesirable as the E1 would get swamped with preset uploads. To avoid this, hide the devices on a drum track!*
+
 
 ### VST or AU plugins
 
@@ -93,16 +94,6 @@ To more easily control the parameters of AU and VST plugins in Ableton, you need
 ```-_PluginAutoPopulateThreshold=128```
 
 Note the hyphen followed by the underscore! Also this is not guaranteed to work for all plugins; I've seen it work for AU plugins but not for VSTs on MacOS.
-
-
-
-
-
-
-### Uploading preloaded presets
-
-On a modern E1 (the mkII, i.e hardware revision 3.0 or larger) running firmware 3.4 or larger, preloaded presets can actually be uploaded *once* in advance for  super fast recall whenever their associated device gets appointed. Simply unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2/``` on the E1. See the installation instructions below for more details.
- 
 
 ## Installation
 
@@ -121,7 +112,7 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1.
 
-5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*), unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2/presets``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and associated LUA scripts.
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*), unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
 
 Start Ableton 
 
