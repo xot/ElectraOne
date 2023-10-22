@@ -36,7 +36,7 @@ require("xot/default")
 
 at the start of the `device.lua` file. This includes some common LUA functions used by the remote script and the preset.
 
-When uploading a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as [described above](#device-preset-dumps)).
+When uploading a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
 
 
 ### Device preset dumps

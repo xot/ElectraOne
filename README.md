@@ -72,7 +72,7 @@ When constructing presets:
 - Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.) 
 - Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. Other faders simply show a value within the minimum - maximum CC value range (although for faders with a large range this is currently not the case.).
 
-Note that large devices with many parameters may create a preset with several pages. The generation of presets on the fly can be customised, see the [configuration section](https://github.com/xot/ElectraOne#configuring)
+Note that large devices with many parameters may create a preset with several pages. The generation of presets on the fly can be customised, see the [configuration section](https://github.com/xot/ElectraOne#configuring).
 
 ### Racks
 
@@ -100,7 +100,7 @@ Note the hyphen followed by the underscore! Also this is not guaranteed to work 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions)
+1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
 
 2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
 
@@ -120,14 +120,6 @@ A patch for the appointed device (indicated by the 'Blue Hand') will automatical
 
 See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS) (again note that ```~``` stands for your home folder).
 
-### Dependencies
-
-This project depends on:
-
-- Ableton Live 11, tested with version 11.1.1 upto 11.2.11 (code relies on Abelton Live supporting Python 3.6).
-- E1 firmware version 3.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
-- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
-
 ### Installing SendMidi
 
 Although not strictly necessary, the remote script becomes much more responsive (and usable) under MacOS if you install [SendMidi](https://github.com/gbevin/SendMIDI). (*It seems that sending larger MIDI messages natively through Live under Windows is faster than MacOS; SendMidi isn't necessary in that case, and is harder to install under Windows because it requires shared access to the MIDI port with which to communicate with the E1, which the default Windows MIDI driver does not support.*)
@@ -140,6 +132,14 @@ Set the following constants in the ```config.py``` (this is one of the files you
 
 - ```SENDMIDI_CMD = /usr/local/bin/sendmidi```
 - ```E1_CTRL_PORT = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default).
+
+### Dependencies
+
+This project depends on:
+
+- Ableton Live 11, tested with version 11.1.1 upto 11.3.12 (code relies on Abelton Live supporting Python 3.6).
+- E1 firmware version 3.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
+- Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
 ### Current limitations
 
@@ -164,7 +164,7 @@ The behaviour of the remote script can be changed by editing ```config.py```. Be
 
 - ```LIBDIR``` determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
-- ```DETECT_E1``` controls whether to detect the E1 at startup, or not.
+- ```DETECT_E1``` controls whether to detect the E1 at startup, or not. Default is ```True```.
 - ```CONTROL_MODE``` whether the remote script controls both mixer and effect (```CONTROL_EITHER```), the mixer (```CONTROL_MIXER_ONLY```) or the effect only (```CONTROL_EFFECT_ONLY```), or if two E1s are connected each controlling one of them (```CONTROL_BOTH```).
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
 - ```SENDMIDI_CMD``` full path to the ```sendmidi```command. If ```None```(the default), fast uploading of presets is not supported.
@@ -181,7 +181,7 @@ The following constants *only* influence the construction of presets 'on the fly
 - ```PRESET_COLOR``` Default color to use for controls in a generated preset, as a hex-string (default is white, i.e.  ```FFFFFF```).
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```, the default). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They *are* included in the CC map for reference, with a mapping of ```None```, but *not* in the dumped preset; you may therefore want to use ```ORDER_SORTED``` when dumping presets.)
 - ```PARAMETERS_TO_IGNORE``` a dictionary, keyed by device name, containing for each device a list of names of parameters to ignore when constructing presets on the fly. The list with key "ALL" contains the names of parameters to ignore for all presets constructed on the fly. Can e.g. be used to exclude the "Device On" button normally included (setting ```{"ALL": ["Device On"]}```). Default ```{}```.
-- ```PERSONAL_DEVICE_DICT``` Personal DEVICE_DICT: for named devices, contains a tuple of tuples containing the names of the parameters to include if ```ORDER=DEVICE_DICT``` e.g. ```PERSONAL_DEVICE_DICT = { 'Emit': ( ('Attack', 'Decay' ), ) }```  Do not forget a trailing comma (,) if you only add one tuple! Takes precedence over any entry for the same device in the global ```DEVICE_DICT``` Default ```{}```.
+- ```PERSONAL_DEVICE_DICT``` Personal DEVICE_DICT: for named devices, contains a tuple of tuples containing the names of the parameters to include if ```ORDER=DEVICE_DICT``` e.g. ```PERSONAL_DEVICE_DICT = { 'Emit': ( ('Attack', 'Decay' ), ) }```  Do not forget a trailing comma (,) if you only add one tuple! Takes precedence over any entry for the same device in the global ```DEVICE_DICT```. Default ```{}```.
 
 
 ## Recovering from errors
