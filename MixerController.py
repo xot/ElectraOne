@@ -157,8 +157,7 @@ class MixerController(ElectraOneBase):
     # we have to see if now have to add a showing_chains_listener
     
     def _on_devices_changed(self):
-        for tc in self._track_controllers:
-            track = tc._track
+        for track in self.song().visible_tracks:
             if (type(track) == Live.Track.Track) and track.can_show_chains:
                 self.debug(5,f'Adding showing chains listener for track {track.name}')
                 if not track.is_showing_chains_has_listener(self._on_tracks_added_or_deleted):
@@ -168,8 +167,7 @@ class MixerController(ElectraOneBase):
         """Add listeners for changes in chain visibility, to copy changes to the
            controller.
         """
-        for tc in self._track_controllers:
-            track = tc._track
+        for track in self.song().visible_tracks:
             if type(track) == Live.Track.Track:
                 if not track.devices_has_listener(self._on_devices_changed):
                     track.add_devices_listener(self._on_devices_changed)
@@ -177,8 +175,7 @@ class MixerController(ElectraOneBase):
     def _remove_chain_visibility_listeners(self):
         """Remove all chain visibility listeners added.
         """
-        for tc in self._track_controllers:
-            track = tc._track
+        for track in self.song().visible_tracks:
             if type(track) == Live.Track.Track:
                 if track.devices_has_listener(self._on_devices_changed):
                     track.remove_devices_listener(self._on_devices_changed)
