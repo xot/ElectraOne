@@ -27,7 +27,8 @@ from .GenericDeviceController import GenericDeviceController
 # deletion triggers device selection, so
 # self._assigned_device_controller is updated (and no longer points to
 # the now deleted device). If no device is assigned, then self._assigned_device
-# equal None and an empty preset (teken froma  devicd with name "Empty")
+# equal None and an empty preset (taken from a devic with name "Empty")
+# is uploaded
 
 class EffectController(ElectraOneBase):
     """Control the currently selected device.
@@ -43,9 +44,7 @@ class EffectController(ElectraOneBase):
         # (corresponds typically to the currently appointed device by Ableton)
         self._assigned_device = None
         # generic controller associated with assigned device
-        # (only created when preset actually uploaded, so
-        # _assigned_device != None while _assigned_device_controller = None
-        # indicates that the device still needs to be uploaded)
+        # (only created for non-Empty preset when actually uploaded)
         self._assigned_device_controller = None
         # set when device uploading is delayed (and upload most be done at
         # a later suitable time); initially true because the effect slot
@@ -68,6 +67,8 @@ class EffectController(ElectraOneBase):
         else:
             self._default_lua_script = DEFAULT_LUA_SCRIPT 
         self.debug(0,'EffectController loaded.')
+
+    # --- functions to check state ---
 
     def _slot_is_visible(self):
         """Returh whether the effect preset slot is currently visible on the E1
@@ -95,6 +96,8 @@ class EffectController(ElectraOneBase):
             self._assigned_device_is_uploaded() and \
             self._slot_is_visible()
         
+    # --- refresh / update ---
+    
     def refresh_state(self):
         """Send the values of the controlled elements to the E1
            (to bring them in sync)
@@ -108,29 +111,41 @@ class EffectController(ElectraOneBase):
         else:
             self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
             
-    # --- initialise values ---
-    
     def update_display(self):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton
         """
         self.debug(6,'EffCont update display; checkig upload status.')
-        # Upload the assigned device preset if 
+        # Upload the assigned device preset if possible and needed
         if not self._assigned_device_is_uploaded():
-            self._upload_assigned_device_if_possible_and_needed()
+            if self.is_ready() and self._slot_is_visible():
+                self._upload_assigned_device()
         # Update the display after the refresh period
         if self._assigned_device_is_visible() and (self._update_ticks == 0):
             self.debug(6,'EffCont updating display.')
             self._assigned_device_controller.update_display()
             self.debug(6,'EffCont display updated.')
         self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
-        
+
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
         self.remove_preset_from_slot(EFFECT_PRESET_SLOT)
         self.song().remove_appointed_device_listener(self._handle_appointed_device_change)
 
+    def select(self):
+        """Select the effect preset and upload the currently assigned device
+           if necessary. (Warning: assumes E1 is ready)
+        """
+        self.debug(2,'Select Effect')
+        if not self._assigned_device_is_uploaded():
+            # also rebuilds midi map and causes state refresh
+            self._upload_assigned_device()
+        else:
+            # will send a preset changed message in response which will trigger
+            # a state refresh
+            self.activate_preset_slot(EFFECT_PRESET_SLOT)
+            
     # --- MIDI ---
 
     def build_midi_map(self, midi_map_handle):
@@ -162,7 +177,6 @@ class EffectController(ElectraOneBase):
             if DUMP:
                 # determine path to store the dumps in (created if it doesnt exist)
                 path = self._ensure_in_libdir('dumps')
-                device_name = self.get_device_name(device)
                 preset_info.dump(device,device_name,path,self.debug)
         # check preset integrity; any warnings will be reported in the log
         preset_info.validate(device, device_name, self.warning)
@@ -180,19 +194,6 @@ class EffectController(ElectraOneBase):
             self._assigned_device_locked = False
             self._assign_device(self.song().appointed_device)
 
-    def select(self):
-        """Select the effect preset and upload the currently assigned device
-           if necessary. (Warning: assumes E1 is ready)
-        """
-        self.debug(2,'Select Effect')
-        if not self._assigned_device_is_uploaded():
-            # also rebuilds midi map and causes state refresh
-            self._upload_assigned_device()
-        else:
-            # will send a preset changed message in response which will trigger
-            # a state refresh
-            self.activate_preset_slot(EFFECT_PRESET_SLOT)
-            
     def _upload_assigned_device(self):
         """Upload the currently assigned device to the effect preset slot on
            the E1 and create a device controller for it.
@@ -209,6 +210,10 @@ class EffectController(ElectraOneBase):
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
         else:
+            # If device == None then no device appointed. In this case
+            # assigns the empty device (needed to install some LUA script
+            # when comamnds need to be forwarded to a mixer when
+            # in CONTROL_BOTH_MODE 
             device_name = 'Empty'
             self.debug(2,'Uploading empty device')
             # 'Empty' guaranteed to exist
@@ -223,10 +228,15 @@ class EffectController(ElectraOneBase):
         # false; then update_display will try to upload again every 100ms (when
         # the E1 is ready, of course).
         
-    def _upload_assigned_device_if_possible_and_needed(self):
-        """Upload the currently assigned device to the effect preset slot on
-           the E1 if needed (and possible) and create a device controller for it.
+    def _assign_device(self, device):
+        """Assign the device to the E1 effect preset. Upload it immediately if
+           possible and needed.
+           - device: device to assign; Live.Device.Device
         """
+        self._assigned_device = device
+        self._assigned_device_controller = None
+        # upload preset if possible and needed: will also request midi map
+        # (which will also refresh state)
         if self.is_ready() and \
            (SWITCH_TO_EFFECT_IMMEDIATELY or self._slot_is_visible()):
             self._upload_assigned_device()
@@ -235,43 +245,26 @@ class EffectController(ElectraOneBase):
             # device currently assigned device still needs uploading.
             self.debug(2,'Device upload delayed.')
             self._assigned_device_upload_delayed = True
-        
-    def _assign_device(self, device):
-        """Assign the device to the E1 effect preset. Upload it immediately if
-           possible and necessary.
-           - device: device to assign; Live.Device.Device
-        """
-        # If device == None then no device appointed
-        if device != None:
-            device_name = self.get_device_name(device)
-            self.debug(1,f'Assignment of device { device_name } detected')
-            # Note: even if this is not the case, Ableton rebuilds the midi map
-            # and initiates a state refresh. As hot-swapping a device
-            # apparently triggers a device appointment of the same device,
-            # this (luckily) triggers the required state refresh
-            if device != self._assigned_device:
-                self.debug(1,'\ (This is an assignment of a different device.)')
-                self._assigned_device = device
-                self._assigned_device_controller = None
-                # upload preset: will also request midi map (which will also refresh state)                
-                self._upload_assigned_device_if_possible_and_needed()
-        else:
-            # assigns the empty device (needed to install some LUA script
-            # when comamnds need to be forwarded to a mixer when
-            # in CONTROL_BOTH_MODE 
-            self._assigned_device = None
-            self._assigned_device_controller = None
-            self.debug(1,'Assigning an empty device.')
-            # upload preset: will also request midi map (which will also refresh state)
-            self._upload_assigned_device_if_possible_and_needed()
-            
+
     def _handle_appointed_device_change(self):
         """Handle an appointed device change: change the currently assigned
            device unless it is locked.
         """
         device = self.song().appointed_device
-        if not self._assigned_device_locked:
-            self._assign_device(device)
+        if device != None:
+            device_name = self.get_device_name(device)
         else:
-            self.debug(1,'Device appointment ignored because device locked.')
+            device_name = 'Empty'
+        if not self._assigned_device_locked:
+            # Note: even if condition below is not true, Ableton rebuilds the
+            # midi map and initiates a state refresh. As hot-swapping a device
+            # apparently triggers a device appointment of the same device,
+            # this (luckily) triggers the required state refresh
+            if device != self._assigned_device:
+                self.debug(1,f'Assignment of device {device_name} detected.')
+                self._assign_device(device)
+            else:
+                self.debug(1,f'Appointed device {device_name} already assigned.')
+        else:
+            self.debug(1,f'Device appointment of {device_name} ignored because device locked.')
             
