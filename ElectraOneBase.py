@@ -785,6 +785,19 @@ class ElectraOneBase(Log):
           command = f'seqv({idx},false)'
         self._send_lua_command(command)
 
+    def set_arm_visibility_on_track(self,idx,flag):
+        """Set the visibility of the arm button for the specified track.
+           - idx: index of the track (starting at 0
+           - flag: whether the arm button should be visible; bool
+        """
+        assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
+        self.debug(4,f'Setting arm button visibility for track {idx} to {flag}.')
+        if flag:
+          command = f'sav({idx},true)'
+        else:
+          command = f'sav({idx},false)'
+        self._send_lua_command(command)
+        
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

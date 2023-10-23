@@ -578,8 +578,8 @@ At most six return tracks (labelled A to E below) are controlled through the mix
 |  64 | Play/Stop  | Record     | Rewind     | Forward    | 
 |  68 | Prev Trcks | Next Trcks | RTRN Mut A | RTRN Mut B |
 |  72 | RTRN Mut C | RTRN Mut D | RTRN Mut E | RTRN Mut F |
-|  76 | -          | -          | -          | -          | 
-|  80 | -          | -          | -          | -          | 
+|  76 | RTRN Arm A | RTRN Arm B | RTRN Arm C | RTRN Arm D | 
+|  80 | RTRN Arm E | RTRN Arm F | -          | -          | 
 |  84 | -          | -          | -          | -          | 
 |  88 | -          | -          | -          | -          | 
 |  92 | -          | -          | -          | -          | 

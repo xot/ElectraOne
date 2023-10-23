@@ -230,12 +230,16 @@ class MixerController(ElectraOneBase):
             self.set_mixer_visibility(len(self._track_controllers),len(self._return_controllers))
             # set visibility of the channel-eq devices
             for t in self._track_controllers:
-                self.set_channel_eq_visibility_on_track(t._offset,t._eq_device_controller != None)
-            if self._master_controller._eq_device_controller:
-                self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,True)
-            else:
-                self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,False)
-            
+                self.set_channel_eq_visibility_on_track(t._offset, t._eq_device_controller != None)
+            #if self._master_controller._eq_device_controller:
+            #    self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,True)
+            #else:
+            #    self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,False)
+            self.set_channel_eq_visibility_on_track(NO_OF_TRACKS, self._master_controller._eq_device_controller != None)
+            # set visibility of the arm button (hidden for group tracks and chains)
+            for t in self._track_controllers:
+                self.set_arm_visibility_on_track(t._offset, t._base_arm_cc != None)
+                
     def _on_tracks_added_or_deleted(self):
         """ Call this whenever tracks are added or deleted (this includes
             the Return tracks). Updates MIDI mapping, listeners and the
