@@ -196,6 +196,10 @@ class MixerController(ElectraOneBase):
            (unmap and destroy existing track controllers). Show a message
            to the user to tell which tracks are currently mapped.
         """
+        # TODO: unfortunately, even if tracks are added/removed or
+        # folded/expanded that would not altered the visibility of the tracks
+        # currently shown in the mixer, the mixer is updated and may show
+        # a different view because self._first_track_index points to another track
         self._remove_chain_visibility_listeners()
         for tc in self._track_controllers:
             tc.disconnect()
@@ -205,9 +209,6 @@ class MixerController(ElectraOneBase):
         self._track_controllers = [ TrackController(self.get_c_instance(), visible_torcs[i], i-self._first_track_index)
                                     for i in track_range ]
         self._add_chain_visibility_listeners()
-        # TODO: this is no longer correct if we also hide/show chains
-        # highlight the tracks currently controlled in Live too
-        #self.get_c_instance().set_session_highlight(self._first_track_index, 0, len(track_range), 1, True)
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         
     def _handle_selected_tracks_change(self):
