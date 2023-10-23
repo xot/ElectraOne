@@ -19,6 +19,7 @@ from .GenericTrackController import GenericTrackController
 RETURNS_PAN_CC = 10 
 RETURNS_VOLUME_CC = 16
 RETURNS_MUTE_CC = 70
+RETURNS_SOLO_CUE_CC = 76
 #
 
 class ReturnController(GenericTrackController):
@@ -51,7 +52,7 @@ class ReturnController(GenericTrackController):
         # buttons
         self._base_mute_cc = RETURNS_MUTE_CC
         self._base_arm_cc = None # not present on a return track
-        self._base_solo_cue_cc = None # not present on a return track
+        self._base_solo_cue_cc = RETURNS_SOLO_CUE_CC
         #
         self.add_listeners()
         self._init_cc_handlers()
@@ -77,5 +78,6 @@ class ReturnController(GenericTrackController):
         """
         self._CC_HANDLERS = {
                 (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_MUTE_CC) ) : self._handle_mute_button
+              , (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_SOLO_CUE_CC) ) : self._handle_solo_cue_button
             }
 

@@ -87,6 +87,8 @@ class TrackController(GenericTrackController):
     def _init_cc_handlers(self):
         """Define handlers for incoming MIDI CC messages.
            (Mute, solo/cue and arm button for the normal track)
+           The test whether these button actually exist for this particular
+           track is done within the corresponding handler.
         """
         self._CC_HANDLERS = {
                 (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) )     : self._handle_mute_button

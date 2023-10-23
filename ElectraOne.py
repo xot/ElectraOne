@@ -95,6 +95,9 @@ class ElectraOne(ElectraOneBase):
                 self._request_response_received = False
                 # repeatedly request response until it is received 
                 # (E1_SYSEX_REQUEST_RESPONSE, see _do_request_response called)
+                # Note that the 1st response to this request is sent back
+                # immediately but not caught by the remote script
+                #  (this is because the init() isnt finished yet!)
                 while not self._request_response_received:
                     self.send_e1_request()
                     time.sleep(0.5)
