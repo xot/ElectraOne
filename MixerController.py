@@ -202,9 +202,10 @@ class MixerController(ElectraOneBase):
         self._remove_chain_visibility_listeners()
         for tc in self._track_controllers:
             tc.disconnect()
-        last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(self.get_visible_torcs()))
+        visible_torcs = self.get_visible_torcs()            
+        last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(visible_torcs))
         track_range = range(self._first_track_index, last_track_index)
-        self._track_controllers = [ TrackController(self.get_c_instance(), i, i-self._first_track_index)
+        self._track_controllers = [ TrackController(self.get_c_instance(), visible_torcs[i], i-self._first_track_index)
                                     for i in track_range ]
         self._add_chain_visibility_listeners()
         # TODO: this is no longer correct if we also hide/show chains

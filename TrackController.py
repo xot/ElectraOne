@@ -35,17 +35,14 @@ class TrackController(GenericTrackController):
        for each track present.
     """
     
-    def __init__(self, c_instance, idx, offset):
+    def __init__(self, c_instance, track, offset):
         """Initialise a track controller for track idx.
            - c_instance: Live interface object (see __init.py__)
-           - idx: index in the list of tracks, 0=first; int
+           - track: reference to the actual track
            - offset: offset of this track realtive to the first mapped track; int
         """
         GenericTrackController.__init__(self, c_instance)
-        # keep reference of track because if tracks added/deleted, idx
-        # points to a different track, which breaks _remove_listeners()
-        visible_torcs = self.get_visible_torcs()
-        self._track = visible_torcs[idx]
+        self._track = track
         # offset of this track relative to the first mapped track
         self._offset = offset
         # EQ device
