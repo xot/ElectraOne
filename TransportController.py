@@ -169,8 +169,7 @@ class TransportController(ElectraOneBase):
             return False
     
     def build_midi_map(self, script_handle, midi_map_handle):
-        """Map all track controls on their associated MIDI CC numbers; either
-           map them completely (Live handles all MIDI automatically) or make sure
+        """Map all transport controls on their associated MIDI CC numbers; make sure
            the right MIDI CC messages are forwarded to the remote script to be
            handled by the MIDI CC handlers defined here.
            - script_handle: reference to the main remote script class
