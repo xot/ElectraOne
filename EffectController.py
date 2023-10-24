@@ -172,14 +172,17 @@ class EffectController(ElectraOneBase):
             self.debug(3,'Predefined preset found')
         else:
             self.debug(3,'Constructing preset on the fly...')
+            assert device, 'None device cannot be dumped'
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             preset_info = dumper.get_preset()
             if DUMP:
                 # determine path to store the dumps in (created if it doesnt exist)
                 path = self._ensure_in_libdir('dumps')
                 preset_info.dump(device,device_name,path,self.debug)
-        # check preset integrity; any warnings will be reported in the log
-        preset_info.validate(device, device_name, self.warning)
+        # check preset integrity if device != 'Empty'
+        # any warnings will be reported in the log
+        if device:
+            preset_info.validate(device, device_name, self.warning)
         return preset_info
 
     # --- handle device selection ---
@@ -199,24 +202,24 @@ class EffectController(ElectraOneBase):
            the E1 and create a device controller for it.
         """
         device = self._assigned_device
-        device_name = self.get_device_name(device)
+        device_name = self.get_device_name(device) # 'Empty' if device==None
         self.debug(2,f'Uploading device { device_name }')
         # TODO: we get the (complex) preset from DEVICES.py even if
         # it is already preloaded on the E1; luckily we do not construct
         # the preset on the fly unneccessarily (as it is then also not
         # preloaded); we do validate though...
+        #
+        # device_name == 'Empty' guaranteed to exist
+        preset_info = self._get_preset_info(device)
+        # If device == None then no device appointed. In this case
+        # assigns the empty device (needed to install some LUA script
+        # when commands need to be forwarded to a mixer when
+        # in CONTROL_BOTH_MODE), but no DeviceController necessary
         if device:
-            preset_info = self._get_preset_info(device)
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
-        else:
-            # If device == None then no device appointed. In this case
-            # assigns the empty device (needed to install some LUA script
-            # when comamnds need to be forwarded to a mixer when
-            # in CONTROL_BOTH_MODE 
-            # device_name == 'Empty' guaranteed to exist
-            preset_info = get_predefined_preset_info(device_name)
         preset = preset_info.get_preset()
+        # get the default lua script and append the preset specific lua script
         script = self._default_lua_script
         script += preset_info.get_lua_script() 
         # upload preset: will also request midi map (which will also refresh state)
