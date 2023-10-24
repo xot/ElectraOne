@@ -64,7 +64,7 @@ class TrackController(GenericTrackController):
         self._base_solo_cue_cc = SOLO_CUE_CC 
         #
         self.add_listeners()
-        self._init_cc_handlers()
+        self.init_cc_handlers()
         self.debug(0,'TrackController loaded.')
 
     def _refresh_track_name(self):
@@ -81,16 +81,5 @@ class TrackController(GenericTrackController):
         """
         return base_cc + self._offset
     
-    def _init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages.
-           (Mute, solo/cue and arm button for the normal track)
-           The test whether these button actually exist for this particular
-           track is done within the corresponding handler.
-        """
-        self._CC_HANDLERS = {
-                (MIDI_TRACKS_CHANNEL, self._my_cc(MUTE_CC) )     : self._handle_mute_button
-              , (MIDI_TRACKS_CHANNEL, self._my_cc(SOLO_CUE_CC) ) : self._handle_solo_cue_button
-              , (MIDI_TRACKS_CHANNEL, self._my_cc(ARM_CC) )      : self._handle_arm_button
-        }
 
         

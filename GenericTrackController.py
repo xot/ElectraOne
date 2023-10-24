@@ -302,11 +302,23 @@ class GenericTrackController(ElectraOneBase):
     
     # --- Handlers ---
     
-    def _init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages.
-           (to be defined by subclass)
+    def init_cc_handlers(self):
+        """Define handlers for incoming MIDI CC messages for the mute, solo/cue
+           and arm button (if necessary; depending on track type)
         """
-        pass
+        self._CC_HANDLERS = {}
+        # only define them when necessary
+        if self._base_mute_cc:
+            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_mute_cc) )] \
+                = self._handle_mute_button
+        if self._base_solo_cue_cc:
+            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_solo_cue_cc) )] \
+                = self._handle_solo_cue_button
+        if self._base_arm_cc:
+            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_arm_cc) )] \
+                = self._handle_arm_button
+            
+        
     
     def _handle_mute_button(self,value):
         """Default handler for Mute button

@@ -46,7 +46,7 @@ class MasterController(GenericTrackController):
         self._base_solo_cue_cc = None # present, but somehow not mappable
         #
         self.add_listeners()
-        self._init_cc_handlers()
+        self.init_cc_handlers()
         self.debug(0,'MasterController loaded.')
 
     def _my_cc(self,base_cc):
@@ -57,10 +57,4 @@ class MasterController(GenericTrackController):
         """
         return base_cc
     
-    def _init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages.
-           (None for the master track)
-        """
-        self._CC_HANDLERS = {}
-
     

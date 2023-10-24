@@ -55,7 +55,7 @@ class ReturnController(GenericTrackController):
         self._base_solo_cue_cc = RETURNS_SOLO_CUE_CC
         #
         self.add_listeners()
-        self._init_cc_handlers()
+        self.init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
 
     def _refresh_track_name(self):
@@ -72,12 +72,4 @@ class ReturnController(GenericTrackController):
         """
         return base_cc + self._idx
 
-    def _init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages.
-           (Mute button only for the return track)
-        """
-        self._CC_HANDLERS = {
-                (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_MUTE_CC) ) : self._handle_mute_button
-              , (MIDI_MASTER_CHANNEL, self._my_cc(RETURNS_SOLO_CUE_CC) ) : self._handle_solo_cue_button
-            }
 
