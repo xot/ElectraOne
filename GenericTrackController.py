@@ -56,7 +56,7 @@
 # they manage and therefore need to call _my_cc() to obtain the correct CC
 # parameter number.
 #
-# Send controllers on audio/midi tracks, i.e those for which _sends_cc != None
+# Send controllers on audio/midi tracks, i.e those for which _base_sends_cc != None
 # are assumed to listen to MIDI_SENDS_CHANNEL
 
 # Ableton Live imports
@@ -91,7 +91,7 @@ class GenericTrackController(ElectraOneBase):
         self._base_pan_cc = None
         self._base_volume_cc = None
         self._base_cue_volume_cc = None  # if None, not present (ie all non master tracks)
-        self._sends_cc = None # if None, not present (ie all non audio/midi tracks)
+        self._base_sends_cc = None # if None, not present (ie all non audio/midi tracks)
         # button CC numbers
         self._base_mute_cc = None # if None, not present (i.e. master track)
         self._base_arm_cc = None # if None, not present (i.e. groups and returns)
@@ -205,10 +205,10 @@ class GenericTrackController(ElectraOneBase):
         if self._base_cue_volume_cc:  # master track only
             self.send_parameter_as_cc14(track.mixer_device.cue_volume, self._midichannel, self._my_cc(self._base_cue_volume_cc))
         # send sends
-        if self._sends_cc != None: # audio/midi track only
+        if self._base_sends_cc != None: # audio/midi track only
             # note: if list is shorter, less sends included
             sends = track.mixer_device.sends[:MAX_NO_OF_SENDS]
-            cc_no = self._my_cc(self._sends_cc)
+            cc_no = self._my_cc(self._base_sends_cc)
             for send in sends:
                 self.send_parameter_as_cc14(send,MIDI_SENDS_CHANNEL,cc_no)
                 cc_no += NO_OF_TRACKS
@@ -394,9 +394,9 @@ class GenericTrackController(ElectraOneBase):
             Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, self._midichannel-1, self._my_cc(self._base_cue_volume_cc), map_mode, not needs_takeover)
         # map sends (if present): send i for this track is mapped to
         # cc = base_send_cc (for this track) + i * NO_OF_TRACKS
-        if self._sends_cc != None:
+        if self._base_sends_cc != None:
             sends = track.mixer_device.sends[:MAX_NO_OF_SENDS] # never map more than MAX_NO_OF_SENDS
-            cc_no = self._my_cc(self._sends_cc)
+            cc_no = self._my_cc(self._base_sends_cc)
             for send in sends:
                 self.debug(4,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_SENDS_CHANNEL-1, cc_no, map_mode, not needs_takeover)

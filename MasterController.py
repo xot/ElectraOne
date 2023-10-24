@@ -39,7 +39,7 @@ class MasterController(GenericTrackController):
         self._base_pan_cc = MASTER_PAN_CC
         self._base_volume_cc = MASTER_VOLUME_CC
         self._base_cue_volume_cc = MASTER_CUE_VOLUME_CC 
-        self._sends_cc = None # not present on a master track
+        self._base_sends_cc = None # not present on a master track
         # buttons
         self._base_mute_cc = None # not present on a master track
         self._base_arm_cc = None # not present on a master track

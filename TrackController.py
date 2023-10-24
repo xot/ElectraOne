@@ -53,7 +53,7 @@ class TrackController(GenericTrackController):
         self._base_pan_cc = PAN_CC
         self._base_volume_cc = VOLUME_CC
         self._base_cue_volume_cc = None  # not present on a normal track
-        self._sends_cc = SENDS_CC
+        self._base_sends_cc = SENDS_CC
         # buttons
         self._base_mute_cc = MUTE_CC
         # _track can also be a chain
