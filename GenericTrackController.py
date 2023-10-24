@@ -181,9 +181,8 @@ class GenericTrackController(ElectraOneBase):
             
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be
-           overriden by subclass.
+           overriden by subclass to correctly set track name.
         """
-        # Overriden by TrackController and ReturnController to rename track names
         pass
 
     def refresh_state(self):
@@ -317,32 +316,30 @@ class GenericTrackController(ElectraOneBase):
         if self._base_arm_cc:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_arm_cc) )] \
                 = self._handle_arm_button
-            
-        
-    
+                
     def _handle_mute_button(self,value):
         """Default handler for Mute button
            - value: incoming MIDI CC value; int
         """
         self.debug(4,f'Track { self._track.name } activation button action.')
-        if self._base_mute_cc != None:
-            self._track.mute = (value < 64)
+        assert self._base_mute_cc != None, 'Bad mute button handler.'
+        self._track.mute = (value < 64)
 
     def _handle_arm_button(self,value):
         """Default handler for Arm button
            - value: incoming MIDI CC value; int
         """
         self.debug(4,f'Track { self._track.name } arm button action.')
-        if self._base_arm_cc != None:
-            self._track.arm = (value > 63)
+        assert self._base_arm_cc != None, 'Bad arm button handler.'
+        self._track.arm = (value > 63)
 
     def _handle_solo_cue_button(self,value):
         """Default handler for Solo/Cue button
            - value: incoming MIDI CC value; int
         """
         self.debug(4,f'Track { self._track.name } solo/cue button action.')
-        if self._base_solo_cue_cc != None:
-            self._track.solo = (value > 63)
+        assert self._base_solo_cue_cc != None, 'Bad solo/cue button handler.'
+        self._track.solo = (value > 63)
 
     # --- MIDI ---
     
