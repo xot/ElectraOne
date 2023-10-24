@@ -256,7 +256,7 @@ class ElectraOneBase(Log):
     def get_device_name(self, device):
         """Return the (fixed) name of the device (i.e. not the name of the preset)
            - device: the device; Live.Device.Device
-           - result: device name; str
+           - result: device name ('Empty' when None); str
         """
         # For native devices and instruments, device.class_name is the name of
         # the device/instrument, and device.name equals the selected preset
@@ -270,6 +270,9 @@ class ElectraOneBase(Log):
         # To distinguish names for plugins/max devices (for which we derive
         # the name from the enclosing rack) from the name of the enclosing
         # rack itself, append a hypen to the name to the derived plugin/max name
+        if not device:
+            self.debug(7,'Getting name for empty device.')
+            return 'Empty'
         self.debug(7,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent

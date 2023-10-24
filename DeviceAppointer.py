@@ -77,13 +77,10 @@ class DeviceAppointer(ElectraOneBase):
         # song may not contain any tracks
         if track:
             device = track.view.selected_device
-            if device:
-                device_name = self.get_device_name(device)
-                self.debug(1,f'Device { device_name } selected. Now appoint it.')
-            else:
-                self.debug(1,f'No device selected. Now unappoint it.')
+            device_name = self.get_device_name(device)
+            self.debug(1,f'Device { device_name } selected. Now appoint it.')
             if self.song().appointed_device != device:
-                self.debug(1,f'\ Set as appointed device (unappointed if none).')
+                self.debug(1,f'\ Set as appointed device (unappointed if Empty).')
                 # this will trigger the _handle_appointed_device_change
                 # listener registered by EffectController
                 self.song().appointed_device = device

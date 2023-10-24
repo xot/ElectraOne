@@ -199,13 +199,13 @@ class EffectController(ElectraOneBase):
            the E1 and create a device controller for it.
         """
         device = self._assigned_device
+        device_name = self.get_device_name(device)
+        self.debug(2,f'Uploading device { device_name }')
         # TODO: we get the (complex) preset from DEVICES.py even if
         # it is already preloaded on the E1; luckily we do not construct
-        # the preset on the fly unneccessarily (as it is then  also not
+        # the preset on the fly unneccessarily (as it is then also not
         # preloaded); we do validate though...
         if device:
-            device_name = self.get_device_name(device)
-            self.debug(2,f'Uploading device { device_name }')
             preset_info = self._get_preset_info(device)
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
@@ -214,9 +214,7 @@ class EffectController(ElectraOneBase):
             # assigns the empty device (needed to install some LUA script
             # when comamnds need to be forwarded to a mixer when
             # in CONTROL_BOTH_MODE 
-            device_name = 'Empty'
-            self.debug(2,'Uploading empty device')
-            # 'Empty' guaranteed to exist
+            # device_name == 'Empty' guaranteed to exist
             preset_info = get_predefined_preset_info(device_name)
         preset = preset_info.get_preset()
         script = self._default_lua_script
@@ -251,10 +249,7 @@ class EffectController(ElectraOneBase):
            device unless it is locked.
         """
         device = self.song().appointed_device
-        if device != None:
-            device_name = self.get_device_name(device)
-        else:
-            device_name = 'Empty'
+        device_name = self.get_device_name(device)
         if not self._assigned_device_locked:
             # Note: even if condition below is not true, Ableton rebuilds the
             # midi map and initiates a state refresh. As hot-swapping a device
