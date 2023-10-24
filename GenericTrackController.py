@@ -364,7 +364,7 @@ class GenericTrackController(ElectraOneBase):
                which MIDI mappings must be added.
         """
         self.debug(3,f'Building MIDI map of track { self._track.name }.')
-        # Map button CCs to be forwarded as defined in MIXER_CC_HANDLERS
+        # Map button CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
