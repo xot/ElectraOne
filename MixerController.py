@@ -38,13 +38,16 @@ class MixerController(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # mixer preset is assumed to be uploaded by the user in advance
         # (with configuration constants set accordingly)
+        #
+        # initialise transport and master controller
         self._transport_controller = TransportController(c_instance)        
         self._master_controller = MasterController(c_instance)
-        # allocate return track controllers (at most two, but take existence into account)
+        # initialise return track controllers
         self._return_controllers = []
         self._remap_return_tracks()
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
+        # initialise track controllers
         self._track_controllers = []
         self._remap_tracks()
         # init MIDI handlers
