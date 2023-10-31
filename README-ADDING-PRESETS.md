@@ -116,7 +116,8 @@ The following constants deal with the mixer preset.
 - ```MIDI_MASTER_CHANNEL```,  ```MIDI_TRACKS_CHANNEL``` and ```MIDI_SENDS_CHANNEL``` set the distinct MIDI channels to map the master, track, and sends controls to. See the [technical documentation](./DOCUMENTATION.md) for details.
 - ```MAX_NO_OF_SENDS``` sets the maximum number of sends (and return tracks) present on the controller (currently 6).
 - ```NO_OF_TRACKS``` sets the number of tracks present on the controller (currently 5).
-- ```FORW_REW_JUMP_BY_AMOUNT```the number of beats to jump ahead or back when rewinding or moving forward. The default is 1.
+- ```FORW_REW_JUMP_BY_AMOUNT``` the number of beats (i.e. quarter notes) to jump ahead or back when rewinding or moving forward. The default is 1. 
+- ```TEMPO_JUMP_BY_AMOUNT``` the amount to increase or decrease the tempo with. The default is 0.5. 
 
 The following constants deal with the equaliser devices managed through the mixer preset
 

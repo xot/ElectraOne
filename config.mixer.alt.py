@@ -188,8 +188,11 @@ MIDI_EFFECT_CHANNEL = 11
 # all the way up to and including channel 16)
 MAX_MIDI_EFFECT_CHANNELS = -1
 
-# Amount to rewind or forward by
-FORW_REW_JUMP_BY_AMOUNT = 1
+# Amount to rewind or forward by (in querter notes)
+FORW_REW_JUMP_BY_AMOUNT = 0.5
+
+# Amount to increase/decrease tempo with
+TEMPO_JUMP_BY_AMOUNT = 0.5
 
 # Number of mappable tracks on the E1
 NO_OF_TRACKS = 5

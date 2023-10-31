@@ -19,9 +19,11 @@ from .ElectraOneBase import ElectraOneBase
 # CCs (see DOCUMENTATION.md)
 PLAY_STOP_CC = 64
 RECORD_CC = 65
-REWIND_CC = 66
-FORWARD_CC = 67
+POSITION_CC = 66
+TEMPO_CC = 67
 
+POSITION_CONTROL_IDX = [35,78,106,129]
+TEMPO_CONTROL_IDX = [36,84,107,130]
 
 class TransportController(ElectraOneBase):
     """Manage the transport (play/stop, record, rewind, forward).
@@ -32,10 +34,6 @@ class TransportController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
-        # keep track of rewind/forward button states (to move while
-        # button pressed, see update_display)
-        self._rewind_pressed = False
-        self._forward_pressed = False
         self._add_listeners()
         self._init_cc_handlers()
         self.debug(0,'TransportController loaded.')
@@ -51,18 +49,16 @@ class TransportController(ElectraOneBase):
         self.debug(2,'Refreshing transport state.')
         self._on_record_mode_changed()
         self._on_is_playing_changed()
+        self._on_position_changed()
+        self._on_tempo_changed()
 
     def update_display(self):
         """ Called every 100 ms. Used to monitor rewind/forward buttons 
             (move backward or forward in a song while rewind or forward
              button pressed)
         """
-        # 
-        if self._rewind_pressed:
-            self.song().jump_by(-FORW_REW_JUMP_BY_AMOUNT)
-        if self._forward_pressed:
-            self.song().jump_by(FORW_REW_JUMP_BY_AMOUNT)
-    
+        pass 
+        
     def disconnect(self):
         """Called right before we get disconnected from Live.
            Cleans up.
@@ -77,6 +73,8 @@ class TransportController(ElectraOneBase):
         """
         self.song().add_record_mode_listener(self._on_record_mode_changed)
         self.song().add_is_playing_listener(self._on_is_playing_changed)
+        self.song().add_current_song_time_listener(self._on_position_changed)        
+        self.song().add_tempo_listener(self._on_tempo_changed)
 
 
     def _remove_listeners(self):
@@ -84,6 +82,8 @@ class TransportController(ElectraOneBase):
         """
         self.song().remove_record_mode_listener(self._on_record_mode_changed)
         self.song().remove_is_playing_listener(self._on_is_playing_changed)
+        self.song().remove_current_song_time_listener(self._on_position_changed)        
+        self.song().remove_tempo_listener(self._on_tempo_changed)
 
     def _on_record_mode_changed(self):
         """Update the value shown for the record control on the E1.
@@ -105,32 +105,62 @@ class TransportController(ElectraOneBase):
             value = 0
         self.send_midi_cc7(MIDI_MASTER_CHANNEL, PLAY_STOP_CC, value)
         
+    def _on_position_changed(self):
+        """Update the value shown for the position control on the E1.
+        """
+        pos = f'{self.song().get_current_beats_song_time()}'
+        self.debug(3,f'Position changed to {pos}.')
+        # TODO: in control both mode, control idx may clash with effect preset!
+        if (CONTROL_MODE == CONTROL_BOTH) or \
+             (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            for cidx in POSITION_CONTROL_IDX:
+                self.send_value_update(cidx,0,pos)
+        
+    def _on_tempo_changed(self):
+        """Update the value shown for the tempo control on the E1.
+        """
+        tempo = f'{self.song().tempo:.2f}'
+        self.debug(3,f'Tempo changed to {tempo}.')
+        # TODO: in control both mode, control idx may clash with effect preset!
+        if (CONTROL_MODE == CONTROL_BOTH) or \
+             (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            for cidx in TEMPO_CONTROL_IDX:
+                self.send_value_update(cidx,0,tempo)
+        
     # --- Handlers ---
     
     def _init_cc_handlers(self):
         """Define handlers for incoming MIDI CC messages.
         """
         self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, REWIND_CC)    : self._handle_rewind
-            ,  (MIDI_MASTER_CHANNEL, FORWARD_CC)   : self._handle_forward
+               (MIDI_MASTER_CHANNEL, POSITION_CC)  : self._handle_position
+            ,  (MIDI_MASTER_CHANNEL, TEMPO_CC)     : self._handle_tempo
             ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
             ,  (MIDI_MASTER_CHANNEL, RECORD_CC)    : self._handle_record
             }
 
-    def _handle_rewind(self,value):
-        """Handle rewind button press.
-           - value: incoming MIDI CC value; int
+    def _handle_position(self,value):
+        """Handle position relative dial
+           - value: incoming MIDI CC value: 7F,7E,.. is rewind, 01,02 is forward
         """
-        self.debug(3,'Rewind button action.')
-        self._rewind_pressed = (value > 63)
-
-    def _handle_forward(self,value):        
-        """Handle forward button press.
-           - value: incoming MIDI CC value; int
+        self.debug(3,'Position dial action.')
+        if value > 63:
+            delta = (value-128) * FORW_REW_JUMP_BY_AMOUNT
+        else:
+            delta = value * FORW_REW_JUMP_BY_AMOUNT
+        self.song().jump_by(delta)
+        
+    def _handle_tempo(self,value):
+        """Handle tempo relative dial
+           - value: incoming MIDI CC value: 7F,7E,.. is slower, 01,02 is faster
         """
-        self.debug(3,'Forward button action.')
-        self._forward_pressed = (value > 63)
-
+        self.debug(3,'Tempo dial action.')
+        if value > 63:
+            delta = (value-128) * TEMPO_JUMP_BY_AMOUNT
+        else:
+            delta = value * TEMPO_JUMP_BY_AMOUNT
+        self.song().tempo += delta
+        
     def _handle_play_stop(self,value):        
         """Handle play/stop button press.
            - value: incoming MIDI CC value; int

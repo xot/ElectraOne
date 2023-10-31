@@ -575,7 +575,7 @@ At most six return tracks (labelled A to E below) are controlled through the mix
 |  52 | X          | X          | -          | -          |
 |  56 | -          | -          | -          | -          | 
 |  60 | -          | -          | -          | -          | 
-|  64 | Play/Stop  | Record     | Rewind     | Forward    | 
+|  64 | Play/Stop  | Record     | Position   | Tempo      | 
 |  68 | Prev Trcks | Next Trcks | RTRN Mut A | RTRN Mut B |
 |  72 | RTRN Mut C | RTRN Mut D | RTRN Mut E | RTRN Mut F |
 |  76 | RTRN Arm A | RTRN Arm B | RTRN Arm C | RTRN Arm D | 
@@ -777,10 +777,10 @@ For example, ```TransportController.py``` defines
 
 ```
 self._CC_HANDLERS = {
-	   (MIDI_MASTER_CHANNEL, REWIND_CC) : self._do_rewind
-	,  (MIDI_MASTER_CHANNEL, FORWARD_CC) : self._do_forward
-	,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._do_play_stop
-	,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._do_record
+	   (MIDI_MASTER_CHANNEL, POSITION_CC) : self._handle_position
+	,  (MIDI_MASTER_CHANNEL, TEMPO_CC) : self._handle_tempo
+	,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
+	,  (MIDI_MASTER_CHANNEL, RECORD_CC) : self._handle_record
 	}
 ```
 
