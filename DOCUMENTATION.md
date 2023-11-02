@@ -600,7 +600,7 @@ Legend:
 
 #### Tracks
 
-Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments. 
+Five tracks (each with an optional ChannelEq device) are simultaneously controlled through MIDI channel ```MIDI_TRACKS_CHANNEL```, with the following CC parameter assignments (which assures that the CC's for the same control on adjacent tracks differ by 1; in other words the CC for the control on track x equals the CC for the control on track 0 + x)
 
 |  CC | Controls   |            |            |            |            |
 |----:|:-----------|:-----------|:-----------|:-----------|:-----------|
@@ -642,7 +642,7 @@ Note that EQ Out i is mapped as a 7bit controller due to space constraints. (Oth
 #### Sends
 
 The sends of the five tracks are controlled over another MIDI channel, ```MIDI_SENDS_CHANNEL```, with the following CC parameter assignments. Note that
-not all sends may be present on a track. The first six sends of a track are controlled by the mixer.
+not all sends may be present on a track. The first six sends of a track are controlled by the mixer. CC assignments are such that the x-th send on track y equals  x*<no-of-sends> + y
 
 
 |  CC | Controls   |            |            |            |            |
