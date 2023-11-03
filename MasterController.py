@@ -14,12 +14,6 @@
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see DOCUMENTATION.md)
-MASTER_PAN_CC = 0
-MASTER_VOLUME_CC = 1
-MASTER_CUE_VOLUME_CC = 2
-MASTER_SOLO_CC = 9
-
 class MasterController(GenericTrackController):
     """Manage the master track. Instantiates GenericTrackController
        with the correct data for the master track.

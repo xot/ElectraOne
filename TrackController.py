@@ -16,19 +16,6 @@ import Live
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see DOCUMENTATION.md)
-# These are base values, to which the track index is added for each track
-PAN_CC = 0
-VOLUME_CC = 5
-MUTE_CC = 116   
-SOLO_CUE_CC = 84
-ARM_CC = 89
-
-# Sends (on MIDI_SENDS_CHANNEL)
-# The code in GenericTrackController assumes send i for track t
-# is mapped to cc = SENDS_CC+ t + i * NO_OF_TRACKS
-SENDS_CC = 0  
-
 class TrackController(GenericTrackController):
     """Manage an audio or midi track. Instantiates GenericTrackController
        with the correct data for the track. At most five instances, one

@@ -100,6 +100,16 @@ EFFECT_REFRESH_PERIOD = 2
 # is stored. Specified by bank index (0..5) followed by preset index (0.11)
 EFFECT_PRESET_SLOT = (5,1)
 
+# First MIDI channel used when creating effect/device presets on the fly;
+# range of MIDI channels used is
+# [MIDI_EFFECT_CHANNEL, .. , MIDI_EFFECT_CHANNEL + MAX_MIDI_CHANNELS-1]
+MIDI_EFFECT_CHANNEL = 11
+
+# Limit the number of MIDI channels used in a preset constructed on the fly;
+# -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
+# all the way up to and including channel 16)
+MAX_MIDI_EFFECT_CHANNELS = -1
+
 # Default color to use for controls in a generated preset
 PRESET_COLOR = 'FFFFFF'
 
@@ -151,6 +161,18 @@ MIDI_SENDS_CHANNEL = 9
 # Max nr of SENDS
 MAX_NO_OF_SENDS = 6
 
+# Number of mappable tracks on the E1
+NO_OF_TRACKS = 5
+
+# TrackController CCs  (see DOCUMENTATION.md)
+# - On MIDI_TRACKS_CHANNEL
+
+PAN_CC = 0
+VOLUME_CC = 5
+MUTE_CC = 116   
+SOLO_CUE_CC = 84
+ARM_CC = 89
+
 # Change this to manage a different EQ like device on every track
 # Specify the device.class_name here
 TRACK_EQ_DEVICE_NAME = 'ChannelEq'
@@ -167,6 +189,45 @@ TRACK_EQ_CC_MAP = {
             , 'Gain'       : (UNMAPPED_ID, MIDI_TRACKS_CHANNEL, 0, 64)
             }
 
+# Sends (see DOCUMENTATION.md)
+# - On MIDI_SENDS_CHANNEL
+
+SENDS_CC = 0  
+
+# Transport controller CCs (see DOCUMENTATION.md)
+# - On MIDI_MASTER_CHANNEL
+
+PLAY_STOP_CC = 64
+RECORD_CC = 65
+POSITION_CC = 66
+TEMPO_CC = 67
+
+# control-ids (TODO)
+POSITION_CONTROL_IDX = [35,78,106,129]
+TEMPO_CONTROL_IDX = [36,84,107,130]
+
+# MixerController CCs (see DOCUMENTATION.md)
+# - On MIDI_MASTER_CHANNEL
+
+PREV_TRACKS_CC = 68
+NEXT_TRACKS_CC = 69
+
+# Returns (see DOCUMENTATION.md)
+# - On MIDI_MASTER_CHANNEL
+
+RETURNS_PAN_CC = 10 
+RETURNS_VOLUME_CC = 16
+RETURNS_MUTE_CC = 70
+RETURNS_SOLO_CUE_CC = 76
+
+# Master (see DOCUMENTATION.md)
+# - On MIDI_MASTER_CHANNEL
+
+MASTER_PAN_CC = 0
+MASTER_VOLUME_CC = 1
+MASTER_CUE_VOLUME_CC = 2
+MASTER_SOLO_CC = 9
+
 # Change this to manage a different EQ like device on the master track
 # Specify the device.class_name here
 MASTER_EQ_DEVICE_NAME = 'ChannelEq'
@@ -181,24 +242,11 @@ MASTER_EQ_CC_MAP = {
             , 'Gain':        (UNMAPPED_ID, MIDI_MASTER_CHANNEL, 1, 7)
             }
 
-# First MIDI channel used when creating effect/device presets on the fly;
-# range of MIDI channels used is
-# [MIDI_EFFECT_CHANNEL, .. , MIDI_EFFECT_CHANNEL + MAX_MIDI_CHANNELS-1]
-MIDI_EFFECT_CHANNEL = 11
-
-# Limit the number of MIDI channels used in a preset constructed on the fly;
-# -1 means all possible MIDI channels are used  (starting from MIDI_CHANNEL
-# all the way up to and including channel 16)
-MAX_MIDI_EFFECT_CHANNELS = -1
-
 # Amount to rewind or forward by (in quarter note increments)
 FORW_REW_JUMP_BY_AMOUNT = 1
 
 # Amount to increase/decrease tempo with
 TEMPO_JUMP_BY_AMOUNT = 0.5
-
-# Number of mappable tracks on the E1
-NO_OF_TRACKS = 5
 
 # === CHECKING CONFIGURATION
 

@@ -21,10 +21,6 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
-# CCs (see DOCUMENTATION.md)
-PREV_TRACKS_CC = 68
-NEXT_TRACKS_CC = 69
-
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
        Also initialises and manages the E1 mixer preset.

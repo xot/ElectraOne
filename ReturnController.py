@@ -14,14 +14,6 @@
 from .config import *
 from .GenericTrackController import GenericTrackController
 
-# CCs (see DOCUMENTATION.md)
-# These are base values, to which the return index is added for each return track
-RETURNS_PAN_CC = 10 
-RETURNS_VOLUME_CC = 16
-RETURNS_MUTE_CC = 70
-RETURNS_SOLO_CUE_CC = 76
-#
-
 class ReturnController(GenericTrackController):
     """Manage a return track. Instantiates GenericTrackController
        with the correct data for a return track. One instance for

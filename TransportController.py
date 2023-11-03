@@ -16,15 +16,6 @@ import Live
 from .config import *
 from .ElectraOneBase import ElectraOneBase
 
-# CCs (see DOCUMENTATION.md)
-PLAY_STOP_CC = 64
-RECORD_CC = 65
-POSITION_CC = 66
-TEMPO_CC = 67
-
-POSITION_CONTROL_IDX = [35,78,106,129]
-TEMPO_CONTROL_IDX = [36,84,107,130]
-
 class TransportController(ElectraOneBase):
     """Manage the transport (play/stop, record, rewind, forward).
     """
