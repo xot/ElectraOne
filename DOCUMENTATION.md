@@ -668,54 +668,15 @@ not all sends may be present on a track. The first six sends of a track are cont
 
 Each control and label in the Mixer has fixed id, used to change the label or the visibility (this allows different layouts of the mixer to be handled seamlessly). 
 
-In fact the actual update of labels and visibility is implemented in LUA scripts embedded in the ```Mixer.eproj```. The E1 remote scripts expects the following LUA functions to be implemented by the mixer (see ```ElectraOnebase.py``` and of course the LUA code in ```Mixer.eproj```).
+The control script is designed such that it doesn't need to be aware of the actual control identifier  assignments. Instead, the actual update of labels and visibility is implemented in LUA scripts embedded in the ```Mixer.eproj```. The E1 remote scripts expects the following LUA functions to be implemented by the mixer (see ```ElectraOnebase.py``` and of course the LUA code in ```Mixer.eproj```).
 
-- ```utl(idx,label)```: update the track label for the track with index ```idx``` (starting at 0) with the specified ```label``` string on the Main, Channle EQs and Sends pages.
-- ```ursl(idx,label)```: update the return track labels for track with index ```idx``` (starting at 0) with the specified ```label``` string on the Returns page and the associated control labels on the Sends page.
-- ```smv(tc,rc)```: make ```tc``` tracks and ```rc``` return tracks visible (tc: 1..5, rc: 1..6).
-
-
-The assignment of identifiers on each of the mixer preset pages is as follows.
-
-#### Main page
-
-- Track labels: *track-offset* + 145 , i.e. 145 .. 149 for the regular tracks, and 150 for the master track.
-- Track controls:
-  - Pan: *track-offset* + 1; master: 6.
-  - Volume: *track-offset* + 7; master: 12.
-  - Active:  *track-offset* + 13; master: 18.
-  - Solo/Cue: *track-offset* + 19; master: 24.
-  - Arm: *track-offset* + 25, not for master track.
- 
-#### Channel EQs page
-
-- Track labels: *track-offset* + 153, master: 158.
-- Track Channel EQ controls:
-  - High: *track-offset* + 37
-  - Mid Freq: *track-offset* + 43
-  - Mid: *track-offset* + 49
-  - Low: *track-offset* + 55
-  - Rumble: *track-offset* + 61
-  - Output: *track-offset* + 67
-  
-#### Sends page
-
-- Track labels: *track-offset* + 159, not for master track.
-- Track send controls:
-  - Send A: *track-offset* + 73 (5 controls)
-  - Send B: *track-offset* + 79 (5 controls)
-  - Send C: *track-offset* + 85 (5 controls)
-  - Send D: *track-offset* + 91 (5 controls)
-  - Send E: *track-offset* + 97 (5 controls)
-  - Send F: *track-offset* + 103 (5 controls)
-
-#### Returns page
-
-- Return track labels: *return-index* + 164 (6 return tracks maximum)
-- Return track controls:
-  - Pan: *return-index* + 109
-  - Volume: *return-index* + 115
-  - Active: *return-index* + 121
+- ```aa()```: send at the start of a large number of display updates to be sent to the E1 to temporarily suspends display updates on the E1
+- ```zz()```: send at the end of a large number of updates to resume disdplay updates (and execute all pending ones in one go).
+- ```utl(idx,label)```: update the track label for the track with index ```idx``` (starting at 0) with the specified ```label``` string on all relevant pages (e.g. the Main, Channel EQs and Sends pages).
+- ```ursl(idx,label)```: update the return track labels for track with index ```idx``` (starting at 0) with the specified ```label``` string on all relevant pages (e.g. the Returns page) and the associated control labels on the relevant pages (e.g. the Sends page).
+- ```seqv(idx,flag)```: Set the visibility of the channel eq device on the specified track (if idx=```NO_OF_TRACKS```) this signals the master track.
+- ```sav(idx,flag)```: Set the visibility of the arm button on the specified track.
+- ```smv(tc,rc)```: make ```tc``` tracks and ```rc``` return tracks visible. This mat also impact other pages (eg the Channel EQ and Sends pages).
 
 ### Internally
 
