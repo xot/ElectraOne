@@ -9,6 +9,8 @@
 #
 # Distributed under the MIT License, see LICENSE
 
+from .UniqueParameters import make_device_parameters_unique
+
 class PresetInfo:
     """ Class containing an E1 JSON preset,a LUA scripty and the
         associated CC-map
@@ -67,8 +69,9 @@ class PresetInfo:
             ccmap = self.get_cc_map()
             with open(fname,'w') as f:
                 f.write('{')
-                comma = False                                                   # concatenate list items with a comma; don't write a comma before the first list entry
-                for p in device.parameters:
+                comma = False # concatenate list items with a comma; don't write a comma before the first list entry
+                device_parameters = make_device_parameters_unique(device)
+                for p in device_parameters:
                     if comma:
                         f.write(',')
                     comma = True

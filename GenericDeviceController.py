@@ -17,6 +17,7 @@ import Live
 from .config import USE_ABLETON_VALUES
 from .CCInfo import CCInfo, CCMap, UNMAPPED_ID
 from .ElectraOneBase import ElectraOneBase
+from .UniqueParameters import make_device_parameters_unique
 
 class GenericDeviceController(ElectraOneBase):
     """Control devices (both selected ones and the ChannelEq devices
@@ -49,10 +50,10 @@ class GenericDeviceController(ElectraOneBase):
             return
         assert self._cc_map
         self.debug(3,f'Building MIDI map for device { self._device_name }')
-        parameters = self._device.parameters
+        device_parameters = make_device_parameters_unique(self._device)
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
-        for p in parameters:
+        for p in device_parameters:
             ccinfo = self._cc_map.get_cc_info(p)
             if ccinfo.is_mapped():
                 if ccinfo.is_cc14():
@@ -130,7 +131,8 @@ class GenericDeviceController(ElectraOneBase):
         # meter name, so both parameters are mapped to the same control)
         # TODO: fix this in a more rigorous manner (seems to be hard...)
         refreshed = {}
-        for p in self._device.parameters:
+        device_parameters = make_device_parameters_unique(self._device)
+        for p in device_parameters:
             if not p.original_name in refreshed:
                 refreshed[p.original_name] = True
                 ccinfo = self._cc_map.get_cc_info(p)

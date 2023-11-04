@@ -98,7 +98,9 @@ end
 
 
 midfreq = controls.get(23)
+bandwidth = controls.get(46)
 
 function setfilter(valueObject, value)
     midfreq:setVisible(value ~= 0)
+    bandwidth:setVisible(value ~= 0)
 end

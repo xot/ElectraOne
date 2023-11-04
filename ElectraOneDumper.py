@@ -21,6 +21,7 @@ from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
 from .CCInfo import CCInfo, CCMap, UNMAPPED_CC, UNMAPPED_ID, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
 from .Devices import get_predefined_preset_info
+from .UniqueParameters import make_device_parameters_unique
 
 # --- constants
 
@@ -876,11 +877,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         device_name = self.get_device_name(device)
         self.debug(4,f'Dumper for device { device_name } loaded.')
         self.debug(6,'Dumper found the following parameters and their range:')
-        for p in device.parameters:
+        device_parameters = make_device_parameters_unique(device)
+        for p in device_parameters:
             min_value_as_str = p.str_for_value(p.min)
             max_value_as_str = p.str_for_value(p.max)
             self.debug(6,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}.')
-        parameters = self._filter_and_order_parameters(device_name, device.parameters)
+        parameters = self._filter_and_order_parameters(device_name, device_parameters)
         self._cc_map = self._construct_cc_map(device_name, parameters)
         # constructing the preset may modify the cc_map to set the control
         # indices for parameters that need to use Ableton generated value

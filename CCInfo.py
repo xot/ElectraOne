@@ -17,7 +17,7 @@ IS_CC14 = True
 UNMAPPED_CC = -1
 
 from .config import MIDI_EFFECT_CHANNEL, UNMAPPED_ID
-
+from .UniqueParameters import make_device_parameters_unique
 
 class CCInfo:
     """Class storing the channel and parameter number of a CC mapping, and
@@ -197,7 +197,8 @@ class CCMap ( dict ) :
             else:
                 seen.append(seeing)
         # check parameter mappings
-        pnames = [p.original_name for p in device.parameters]
+        device_parameters = make_device_parameters_unique(device)
+        pnames = [p.original_name for p in device_parameters]
         ccnames = self.keys()
         for name in pnames:
             if not name in ccnames:
