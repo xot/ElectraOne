@@ -559,6 +559,27 @@ For the send controls on a track this is slightly more complicated, because trac
 
 Unfortunately, the number of 14 bit controls in one MIDI channel is limited to 32. As we would like the send controls to be fine grained, and therefore 14 bit, ```MAX_NO_OF_SENDS``` times ```NO_OF_TRACKS``` can never exceed 32.
 
+The mixer MIDI map is limited to using three MIDI channels, each using CC parameters or parameter ranges as specified by  the constants defined below
+
+- ```MIDI_MASTER_CHANNEL``` (default 7)
+  - transport controls: momentary buttons ```PLAY_STOP_CC```, and ```RECORD_CC```; relative dials (with acceleration): ```POSITION_CC```, and ```TEMPO_CC```.
+  - track selection controls: momentary buttons ```PREV_TRACKS_CC``` and ```NEXT_TRACKS_CC```.
+  - return track controls, each defining a range of ```MAX_NR_OF_SENDS``` consecutive CC parameters: 14 bit faders ```RETURNS_PAN_CC``` and ```RETURNS_VOLUME_CC```, toggle buttons ```RETURNS_MUTE_CC``` and ```RETURNS_SOLO_CUE_CC```
+  - mater track controls: 14 bit faders ```MASTER_PAN_CC```, ```MASTER_VOLUME_CC```, ```MASTER_CUE_VOLUME_CC```; toggle button ```MASTER_SOLO_CC```.
+  - the master equaliser device is defined using ```MASTER_EQ_DEVICE_NAME``` and
+  ```MASTER_EQ_CC_MAP```. (Even thought the latter is supposed to also use ```MIDI_MASTER_CHANNEL```, it can be defined not to.)
+
+
+- ```MIDI_TRACKS_CHANNEL```  (default 8)
+  - track controls, each defining a range of ```NO_OF_TRACKS``` consecutive CC parameters: 14 bit faders ```PAN_CC``` and ```VOLUME_CC```, and toggle buttons ```MUTE_CC```, ```SOLO_CUE_CC```, and ```ARM_CC```.
+  - the track equaliser device is defined using ```TRACK_EQ_DEVICE_NAME``` and
+  ```TRACK_EQ_CC_MAP```. (Even thought the latter is supposed to also use ```MIDI_TRACKS_CHANNEL```, it can be defined not to.)
+
+- ```MIDI_SENDS_CHANNEL``` (default 9)
+  - the send control, defining a matrix of ```NO_OF_TRACKS``` columns and ```MAX_NO_OF SENDS``` rows: 14 bit faders ```SENDS_CC```.
+
+
+
 #### Specific choices made in the mixers supplied with the remote script
 
 Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, which are essentially just buttons sending 0 for off and 127 for on values. Controls are mapped to CC as explained below. We assume 5 tracks, and at most 6 return tracks.
