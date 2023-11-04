@@ -104,8 +104,7 @@ class TransportController(ElectraOneBase):
         # TODO: in control both mode, control idx may clash with effect preset!
         if (CONTROL_MODE == CONTROL_BOTH) or \
              (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-            for cidx in POSITION_CONTROL_IDX:
-                self.send_value_update(cidx,0,pos)
+            self.set_position(pos)
         
     def _on_tempo_changed(self):
         """Update the value shown for the tempo control on the E1.
@@ -115,8 +114,7 @@ class TransportController(ElectraOneBase):
         # TODO: in control both mode, control idx may clash with effect preset!
         if (CONTROL_MODE == CONTROL_BOTH) or \
              (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-            for cidx in TEMPO_CONTROL_IDX:
-                self.send_value_update(cidx,0,tempo)
+            self.set_tempo(tempo)
         
     # --- Handlers ---
     

@@ -801,6 +801,22 @@ class ElectraOneBase(Log):
           command = f'sav({idx},false)'
         self._send_lua_command(command)
         
+    def set_tempo(self,valuestr):
+        """Set the tempo dial value to the specified value string
+           - valuestr: string representing value to display; str
+        """
+        self.debug(4,f'Setting the tempo string to {valuestr}.')
+        command = f'st("{valuestr}")'
+        self._send_lua_command(command)
+        
+    def set_position(self,valuestr):
+        """Set the position dial value to the specified value string
+           - valuestr: string representing value to display; str
+        """
+        self.debug(4,f'Setting the position string to {valuestr}.')
+        command = f'sp("{valuestr}")'
+        self._send_lua_command(command)
+        
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

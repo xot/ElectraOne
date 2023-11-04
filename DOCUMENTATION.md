@@ -549,7 +549,19 @@ Note that all these faders operate at their full 14bit potential.
 
 ### The Mixer MIDI map
 
-Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, which are essentially just buttons sending 0 for off and 127 for on values. Controls are mapped to CC as explained below
+The Mixer MIDI map is essentially defined using several constants, assigning certain MIDI channels and CC parameter ranges to MIDI controllable elements in the transport bar, the audio and MIDI tracks, the master track, and the return track.
+
+```NO_OF_TRACKS``` defines the maximum number of tracks the mixer can manage at the same time in a single page. (Shifting tracks allows one to manage different tracks.) ```MAX_NO_OF_SENDS``` defines the maximum number of return tracks the mixer can manage. 
+
+For audio, MIDI and return tracks the remote script assumes that the same controls for adjacent tracks in the mixer have consecutive CC parameter numbers. (For example, the PAN control on the first controlled track has CC parameter number 0, the PAN control on the second controlled track has CC parameter number 1, etc.). This allows the remote script to compute the necessary CC parameter numbers when only given the CC parameter number for the first, in the case of PAN controls defined by the constant ```PAN_CC```.
+
+For the send controls on a track this is slightly more complicated, because tracks can have more sends, depending on the number of return tracks (limited to a maximum of ```MAX_NO_OF_SENDS```). In this case, the CC parameter for the x-th send on the y-th track equals ```SEND_CC``` + (x-1) *```NO_OF_TRACKS``` + (y-1).
+
+Unfortunately, the number of 14 bit controls in one MIDI channel is limited to 32. As we would like the send controls to be fine grained, and therefore 14 bit, ```MAX_NO_OF_SENDS``` times ```NO_OF_TRACKS``` can never exceed 32.
+
+#### Specific choices made in the mixers supplied with the remote script
+
+Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, which are essentially just buttons sending 0 for off and 127 for on values. Controls are mapped to CC as explained below. We assume 5 tracks, and at most 6 return tracks.
 
 
 #### Master, return tracks and the transport.
@@ -676,6 +688,8 @@ The control script is designed such that it doesn't need to be aware of the actu
 - ```ursl(idx,label)```: update the return track labels for track with index ```idx``` (starting at 0) with the specified ```label``` string on all relevant pages (e.g. the Returns page) and the associated control labels on the relevant pages (e.g. the Sends page).
 - ```seqv(idx,flag)```: Set the visibility of the channel eq device on the specified track (if idx=```NO_OF_TRACKS```) this signals the master track.
 - ```sav(idx,flag)```: Set the visibility of the arm button on the specified track.
+- ```st(str)```: set the value for the tempo dial to the string ```str```.
+- ```sp(str)```: set the value for the position dial to the string ```str```.
 - ```smv(tc,rc)```: make ```tc``` tracks and ```rc``` return tracks visible. This mat also impact other pages (eg the Channel EQ and Sends pages).
 
 ### Internally
