@@ -25,12 +25,12 @@ class TransportController(ElectraOneBase):
            - c_instance: Live interface object (see __init.py__)
         """
         ElectraOneBase.__init__(self, c_instance)
+        # keep last displayed position to throttle updates
+        self._lastpos = None
         self._add_listeners()
         self._init_cc_handlers()
         self.debug(0,'TransportController loaded.')
 
-    # --- helper functions ---
-    
     # --- initialise values ---
     
     def refresh_state(self):
@@ -99,19 +99,24 @@ class TransportController(ElectraOneBase):
     def _on_position_changed(self):
         """Update the value shown for the position control on the E1.
         """
-        pos = f'{self.song().get_current_beats_song_time()}'
-        self.debug(3,f'Position changed to {pos}.')
-        # TODO: in control both mode, control idx may clash with effect preset!
-        if (CONTROL_MODE == CONTROL_BOTH) or \
-             (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-            self.set_position(pos)
+        pos = self.song().get_current_beats_song_time()
+        # throttle updates
+        # TODO: fix this to allow precise postioning with dial
+        if (self._lastpos == None) or \
+           (pos.bars != self._lastpos.bars) or \
+           (pos.beats != self._lastpos.beats) or \
+           (pos.sub_division != self._lastpos.sub_division):
+            self._lastpos = pos
+            self.debug(3,f'Position changed to {pos}.')
+            if (CONTROL_MODE == CONTROL_BOTH) or \
+               (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+                self.set_position(str(pos))
         
     def _on_tempo_changed(self):
         """Update the value shown for the tempo control on the E1.
         """
         tempo = f'{self.song().tempo:.2f}'
         self.debug(3,f'Tempo changed to {tempo}.')
-        # TODO: in control both mode, control idx may clash with effect preset!
         if (CONTROL_MODE == CONTROL_BOTH) or \
              (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
             self.set_tempo(tempo)
