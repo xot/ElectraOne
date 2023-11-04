@@ -338,10 +338,10 @@ class ElectraOneBase(Log):
         else:
             ElectraOneBase.E1_version_supported = True
             ElectraOneBase.E1_FORWARDS_ACK = (sw_version >= (3,2,0))
-            ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0)) 
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
+                ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0)) 
                 ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
                 ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
@@ -352,6 +352,7 @@ class ElectraOneBase(Log):
                 ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 100
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
+                ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = False
                 ElectraOneBase.MIN_TIMEOUT = 60
                 ElectraOneBase.MAX_TIMEOUT = 250                 
                 ElectraOneBase.MIDI_SLEEP = 0
