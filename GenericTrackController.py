@@ -137,7 +137,6 @@ class GenericTrackController(ElectraOneBase):
         """
         cc_map = CCMap({})
         for p in eq_cc_map:
-            # TODO: eq_cc_map is just a dict, not a CCMap
             (channel_id, channel, is_cc14, cc_no) = eq_cc_map[p]
             # adjust the CC
             cc_map.map_name(p, CCInfo((channel_id, channel, is_cc14, self._my_cc(cc_no))))

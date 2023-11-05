@@ -124,20 +124,11 @@ class GenericDeviceController(ElectraOneBase):
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
             self.debug(6,f'Partial state refresh for device { self._device_name }')            
-        # WARNING! Some devices have name clashes in their parameter list
-        # so make sure only the first one is refreshed (to avoid continually
-        # refreshing two parameters with the same name but different values;
-        # the problem being that the CC map has only *one* entry for this para
-        # meter name, so both parameters are mapped to the same control)
-        # TODO: fix this in a more rigorous manner (seems to be hard...)
-        refreshed = {}
         device_parameters = make_device_parameters_unique(self._device)
         for p in device_parameters:
-            if not p.original_name in refreshed:
-                refreshed[p.original_name] = True
-                ccinfo = self._cc_map.get_cc_info(p)
-                if ccinfo.is_mapped():
-                    self._refresh_parameter(p,ccinfo,full_refresh)
+            ccinfo = self._cc_map.get_cc_info(p)
+            if ccinfo.is_mapped():
+                self._refresh_parameter(p,ccinfo,full_refresh)
 
     def refresh_state(self):
         """Update both the MIDI CC values and the displayed values for the

@@ -196,9 +196,10 @@ class MixerController(ElectraOneBase):
            to the user to tell which tracks are currently mapped.
         """
         # TODO: unfortunately, even if tracks are added/removed or
-        # folded/expanded that would not altered the visibility of the tracks
-        # currently shown in the mixer, the mixer is updated and may show
-        # a different view because self._first_track_index points to another track
+        # folded/expanded that would not alter the visibility of the tracks
+        # currently shown in the mixer, the mixer is still updated and may show
+        # a different view because self._first_track_index points to
+        # another track
         self._remove_chain_visibility_listeners()
         for tc in self._track_controllers:
             tc.disconnect()
