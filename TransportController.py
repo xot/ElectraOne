@@ -95,13 +95,12 @@ class TransportController(ElectraOneBase):
         else:
             value = 0
         self.send_midi_cc7(MIDI_MASTER_CHANNEL, PLAY_STOP_CC, value)
-        
+
     def _on_position_changed(self):
         """Update the value shown for the position control on the E1.
         """
         pos = self.song().get_current_beats_song_time()
-        # throttle updates
-        # TODO: fix this to allow precise postioning with dial
+        # throttle updates; ignore changes in ticks
         if (self._lastpos == None) or \
            (pos.bars != self._lastpos.bars) or \
            (pos.beats != self._lastpos.beats) or \
@@ -137,18 +136,25 @@ class TransportController(ElectraOneBase):
         """Handle position relative dial
            - value: incoming MIDI CC value: 7F,7E,.. is rewind, 01,02 is forward
         """
-        self.debug(3,'Position dial action.')
+        self.debug(3,f'Position dial action: {value}.')
         if value > 63:
             delta = (value-128) * FORW_REW_JUMP_BY_AMOUNT
         else:
             delta = value * FORW_REW_JUMP_BY_AMOUNT
         self.song().jump_by(delta)
+        # update in any case, because _on_position_changed (which will be called)
+        # is throttled and may ignore fine manua adjustments
+        pos = self.song().get_current_beats_song_time()
+        self.debug(3,f'Position changed to {pos}.')
+        if (CONTROL_MODE == CONTROL_BOTH) or \
+           (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            self.set_position(str(pos))
         
     def _handle_tempo(self,value):
         """Handle tempo relative dial
            - value: incoming MIDI CC value: 7F,7E,.. is slower, 01,02 is faster
         """
-        self.debug(3,'Tempo dial action.')
+        self.debug(3,f'Tempo dial action: {value}.')
         if value > 63:
             delta = (value-128) * TEMPO_JUMP_BY_AMOUNT
         else:
@@ -159,7 +165,7 @@ class TransportController(ElectraOneBase):
         """Handle play/stop button press.
            - value: incoming MIDI CC value; int
         """
-        self.debug(3,'Play/stop button action.')
+        self.debug(3,f'Play/stop button action: {value}.')
         if (value > 63):
             self.song().start_playing()
         else:
@@ -169,7 +175,7 @@ class TransportController(ElectraOneBase):
         """Handle record button press.
            - value: incoming MIDI CC value; int
         """
-        self.debug(3,'Record button action.')
+        self.debug(3,f'Record button action: {value}.')
         self.song().record_mode = (value > 63)
 
     # --- MIDI ---
