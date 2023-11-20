@@ -1,0 +1,13 @@
+{'Device On': ((-1, 0),11,False,7)
+,'Left Inv': ((-1, 0),11,False,8)
+,'Right Inv': ((-1, 0),11,False,11)
+,'Channel Mode': ((-1, 0),11,False,5)
+,'Stereo Width': ((-1, 0),11,True,3)
+,'Mono': ((-1, 0),11,False,9)
+,'Bass Mono': ((-1, 0),11,False,4)
+,'Bass Freq': ((2, 0),11,True,1)
+,'Balance': ((-1, 0),11,True,0)
+,'Gain': ((7, 0),11,True,2)
+,'Mute': ((-1, 0),11,False,10)
+,'DC Filter': ((-1, 0),11,False,6)
+}
