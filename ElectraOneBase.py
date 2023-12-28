@@ -44,6 +44,7 @@ def _get_cc_statusbyte(channel):
        - result: statusbyte; int (0..127)
     """
     # status byte encodes midi channel (-1!) in the least significant nibble
+    assert channel in range(1,17), f'MIDI channel {channel} out of range.'
     return CC_STATUS + channel - 1
 
 def is_cc_statusbyte(statusbyte):
@@ -58,7 +59,9 @@ def get_cc_midichannel(statusbyte):
        - statusbyte; int (0..127)
        - result: MIDI channel; int (1..16)
     """
-    return statusbyte - CC_STATUS + 1
+    channel = statusbyte - CC_STATUS + 1
+    assert channel in range(1,17), f'MIDI channel {channel} out of range.'
+    return channel
 
 def cc_value_for_item_idx(idx, items):
     """Return the MIDI CC control value corresponding to the idx-th item
@@ -69,7 +72,8 @@ def cc_value_for_item_idx(idx, items):
     """
     # quantized parameters have a list of values. For such a list with
     # n items, item i (staring at 0) has MIDI CC control value
-    # round(i * 127/(n-1)) 
+    # round(i * 127/(n-1))
+    assert idx in range(len(items)), f'Value index {idx} out of range for list of length {len(items)}.'
     return round( idx * (127 / (len(items)-1) ) )
 
 def cc_value(p, max):
@@ -610,6 +614,7 @@ class ElectraOneBase(Log):
            - cc_no: CC parameter number; int (0..127)
         """
         self.debug(4,f'Sending value for {p.original_name} over MIDI channel {channel} as CC parameter {cc_no} in 14bit.')
+        # a quantized parameter is never a 14bit CC 
         value = cc_value(p,16383)
         self.send_midi_cc14(channel, cc_no, value)
 
