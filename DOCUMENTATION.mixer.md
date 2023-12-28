@@ -4,9 +4,9 @@
 
 Faders (except the Channel EQ Output faders) are 14 bit, all other controls are 7bit, which are essentially just buttons sending 0 for off and 127 for on values. Controls are mapped to CC as explained below. 
 
-For the standard mixer (```Mixer.eproj```) we assume 5 tracks (```NO_OF_TRACKS = 5```) and at most 6 return tracks (```MAX_NO_OF_SENDS = 6```). The CC map is defined  setting the constants to their values as documented in ```config.mixer.py```.
+For the standard mixer (```Mixer.eproj```) we assume 5 tracks (```NO_OF_TRACKS = 5```) and at most 6 return tracks (```MAX_NO_OF_SENDS = 6```). The CC map is defined  setting the constants to their values as documented in ```config_mixer.py```.
 
-For the alternative map (```Mixer.alt.eproj```, with transport controls on each page) we assume 5 tracks (```NO_OF_TRACKS = 5```) and at most 5 return tracks (```MAX_NO_OF_SENDS = 5```). The master and track Channel Eq devices do not have a highpass control in their mapping. Apart from that there are no other differences in the CC assignments themselves. The CC map is defined setting the constants to their values as documented in ```config.mixer.alt.py```.
+For the alternative map (```Mixer.alt.eproj```, with transport controls on each page) we assume 5 tracks (```NO_OF_TRACKS = 5```) and at most 5 return tracks (```MAX_NO_OF_SENDS = 5```). The master and track Channel Eq devices do not have a highpass control in their mapping. Apart from that there are no other differences in the CC assignments themselves. The CC map is defined setting the constants to their values as documented in ```config_mixer_alt.py```.
 
 
 ## Master, return tracks and the transport.

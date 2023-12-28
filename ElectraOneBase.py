@@ -827,6 +827,8 @@ class ElectraOneBase(Log):
         """
         self.debug(4,f'Send value update {valuestr} for control ({cid},{vid}).')
         # see https://docs.electra.one/developers/midiimplementation.html#override-value-text
+        assert cid in range(1,433), f'Control id {cid} out of range.' 
+        assert vid in range(17), f'Value id {vid} out of range.' 
         sysex_command = (0x14, 0x0E)
         sysex_controlid = (cid % 128 , cid // 128)
         sysex_valueid = (vid, ) 

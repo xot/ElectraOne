@@ -300,6 +300,14 @@ If your remote script supports device locking, ```can_lock_to_device``` should r
 
 *Note: hot-swapping a device preset in Ableton apparently sets the appointed device, even if that device was already appointed, and thus hot swapping presets always triggers the appointed device listener. It also triggers the MIDI map to be rebuilt and the state to be refreshed. The latter is a happy coincidence because it automatically ensures the state of the preset on the E1 is updated.*
 
+### Device selection
+
+Device *appointment* is different from device *selection*. Initially, when you open a song, no device on no track is selected. Once a device is selected on a track, the track remembers this. In other words, every track can have a selected device (accesible trhough ```Live.Track.Track.View.selected_device```). If you delete a device, another one is selected (unless the track has no more devices).
+
+You can listen to changes to the selected device on a track using ```Live.Track.Track.View.add_selected_device_listener()```.
+
+
+
 ## Value mapping
 
 The Live API also offers additional functionality for retrieving the value of a parameter. Every parameter ```p``` has properties ```p.min```, ```p.value``` and ```p.max``` to obtain the minimum, current, and maximum value. These functions *always* return floating point values. 
@@ -848,6 +856,7 @@ For smoother operation, values for such complex Ableton parameters are not immed
 
 
 ### Device appointment
+
 
 (TBD)
 
