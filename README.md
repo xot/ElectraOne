@@ -118,7 +118,21 @@ Start Ableton
 
 A patch for the appointed device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the E1
 
-See ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` for any error messages (on MacOS) (again note that ```~``` stands for your home folder).
+### Log files
+
+See 
+
+- ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (on MacOS), or
+- ```~\AppData\Roaming\Ableton\Live <version>\Preferences\Log.txt``` (on Windows)
+
+for any error messages (again note that ```~``` stands for your home folder).
+
+The log files in
+
+- ```~/Library/Application\ Support/Ableton/Live\ Reports/Usage``` (MacOS), or
+- ```~\AppData\Roaming\Ableton\Live Reports\Usage\``` (Windows)
+
+are also useful.
 
 ### Installing SendMidi
 
@@ -225,6 +239,6 @@ In the bug report please include:
 - the firmware version your E1 runs,
 - the version of Ableton Live you are running,
 - the operating system (and version) Live runs on, and 
-- a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see above). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again. See above for how to create a useful log.
+- a longer description of the bug, including what conditions seem to cause it and how exactly the bug manifests itself. Includes the (relevant contents) of the log-file (see [above](#log-files)). If necessary, increase ```DEBUG```, restart Live, and trigger the bug again. See above for how to create a useful log.
 
 Before submitting a bug report, please have a look at the [current issues](https://github.com/xot/ElectraOne/issues) to see whether your bug has already been reported on earlier. You can also monitor this page to keep track of how your bug is being resolved.
