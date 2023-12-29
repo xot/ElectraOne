@@ -5,7 +5,7 @@ author: Jaap-Henk Hoepman (info@xot.nl)
 
 # Introduction 
 
-This is the *technical* documentation describing the internals of the Ableton Live Remote Script for the Electra One (aka E1). For the user guide, see the [Read Me](README). 
+This is the *technical* documentation describing the internals of the Ableton Live Remote Script for the Electra One (aka E1). For the user guide, see the [Read Me](README.md). 
 
 The remote script essentially supports two control surfaces
 - a [mixer](#the-mixer) with a E1 preset in bank 6 slot 1 (```MIXER_PRESET_SLOT```), and
@@ -448,7 +448,7 @@ The mixer preset (in ```Mixer.eporj```) controls
 
 The tracks controlled can be switched. Also, each track (audio, MIDI but also the master) can contain a Live Channel EQ device. If present it is automatically mapped to controls on the default E1 mixer preset as well.
 
-The remote scripts comes with a default E1 mixer preset that matches the MIDI map defined below. But the layout, value formatting, colours etc. can all be changed, see [below](https://github.com/xot/ElectraOne/blob/main/DOCUMENTATION.md#alternative-mixer-design).
+The remote scripts comes with a default E1 mixer preset. But the layout, value formatting, colours etc. can all be changed, see [below](https://github.com/xot/ElectraOne/blob/main/DOCUMENTATION.md#alternative-mixer-design).
 
 ### Value formatting
 
@@ -586,7 +586,7 @@ The mixer MIDI map is limited to using three MIDI channels, each using CC parame
 - ```MIDI_SENDS_CHANNEL``` (default 9):
   - the send control, defining a matrix of ```NO_OF_TRACKS``` columns and ```MAX_NO_OF SENDS``` rows: 14 bit faders ```SENDS_CC```.
 
-The actual settings of these constants and the resulting CC map for a particular mixer design is documented separately.
+The actual settings of these constants and the resulting CC map for a particular mixer design is [documented separately](DOCUMENTATION.mixer.md).
 
 
 ### Mixer control identifiers for labels and visibility
