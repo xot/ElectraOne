@@ -109,7 +109,7 @@ class TransportController(ElectraOneBase):
             self.debug(3,f'Position changed to {pos}.')
             if (CONTROL_MODE == CONTROL_BOTH) or \
                (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-                self.set_position(str(pos))
+                self.set_position(str(pos)[:-4])
         
     def _on_tempo_changed(self):
         """Update the value shown for the tempo control on the E1.
@@ -141,14 +141,9 @@ class TransportController(ElectraOneBase):
             delta = (value-128) * FORW_REW_JUMP_BY_AMOUNT
         else:
             delta = value * FORW_REW_JUMP_BY_AMOUNT
-        self.song().jump_by(delta)
-        # update in any case, because _on_position_changed (which will be called)
-        # is throttled and may ignore fine manua adjustments
-        pos = self.song().get_current_beats_song_time()
-        self.debug(3,f'Position changed to {pos}.')
-        if (CONTROL_MODE == CONTROL_BOTH) or \
-           (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
-            self.set_position(str(pos))
+        self.song().jump_by(delta) # strange; this does NOT update the position straight away
+        # when position is actually chagned, _on_position_changed is called
+        # and the new position is sent to the E1
         
     def _handle_tempo(self,value):
         """Handle tempo relative dial

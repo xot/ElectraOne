@@ -151,6 +151,8 @@ MAX_CC14_PARAMETERS = -1
 # followed by preset index (0.11)
 MIXER_PRESET_SLOT = (5,0)
 
+# load the mixer configuration; make sure this corresponds to the mixer
+# loaded in the MIXER_PRESET_SLOT
 from .config_mixer import *
 
 # Amount to rewind or forward by (in quarter note increments)
@@ -179,6 +181,7 @@ def check_configuration():
     assert ORDER in [ORDER_ORIGINAL, ORDER_SORTED, ORDER_DEVICEDICT] \
                , f'Configuration error: ORDER set to { ORDER }.'
 
+# try to load local configuration adjustments (not in the repository)
 try:
     from .myconfig import *
 except ImportError:
