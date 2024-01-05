@@ -74,7 +74,7 @@ def process_preset(outf,preset_path):
     lua_script_path = preset_path.with_suffix('.lua')
     ccmap_path = preset_path.with_suffix('.ccmap')
     device_name = preset_path.stem
-    print(f'Preloading {device_name}')
+    print(f'Predefining {device_name}')
     # write a comma to outf if needed
     if flag:
         outf.write(',\n')
@@ -125,8 +125,17 @@ def process_preset(outf,preset_path):
 
 print(f'MAKEDEVICES (version of {COMMITDATE}): fill ./Devices.py with presets in ./preloaded')
 # load the defualt lua script
-with open(DEFAULT_LUA_SCRIPT_FILE,'r') as inf:
-    DEFAULT_LUA_SCRIPT = inf.read()
+if os.path.exists(DEFAULT_LUA_SCRIPT_FILE):
+    with open(DEFAULT_LUA_SCRIPT_FILE,'r') as inf:
+        DEFAULT_LUA_SCRIPT = inf.read()
+else:
+    print('ERROR: file ./defualt.lua does not exist.')
+    print('-> run this script in the root of the remote script directory.')
+    exit()
+if not os.path.exists('preloaded'):
+    print('ERROR: folder ./preloaded does not exist.')
+    print('-> run this script in the root of the remote script directory.')
+    exit()
 # find the paths to all presets to preload
 here = Path('.')
 allpresets_paths = here.glob('preloaded/*.epr')
