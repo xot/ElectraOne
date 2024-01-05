@@ -62,7 +62,7 @@ class EffectController(ElectraOneBase):
         # set the default lua script
         path = self._get_libdir()
         if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
-            # in this case defualt.lua preloaded on E1
+            # in this case we assume (!) the defualt.lua is preloaded on E1
             self._default_lua_script = 'require("xot/default")\n'
         else:
             self._default_lua_script = DEFAULT_LUA_SCRIPT 

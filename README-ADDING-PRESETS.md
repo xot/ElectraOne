@@ -23,25 +23,19 @@ Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is s
 
 (*Both controllers apparently need to run firmware 3.1.5. or larger for this to work.*)
 
-## Adding preloaded device presets
+## Adding predefined device presets
 
-You can modify existing presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
+You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
  
-When changing existing preloaded presets, you only need to upload the new versions of both `device.epr` (created with `Download Preset` in the web editor) and the `device.lua` (cut and paste from the web editor) to the E1 
-at `ctrlv2/presets/xot/ableton`. Make sure to include the following line
+When changing existing predefined presets, you only need to save the new versions of both `<device>.epr` (created with `Download Preset` in the web editor) and the `<device>.lua` (cut and paste from the web editor) to the `./preloaded` directory.
 
-```
-require("xot/default")
-```
+When creating a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
 
-at the start of the `device.lua` file. This includes some common LUA functions used by the remote script and the preset.
-
-When uploading a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
-
+Use ```makedevices``` (see [below](#predefined-presets) to add the updated or new preset to the remote script.
 
 ### Device preset dumps
 
-Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [preloaded preset](#preloaded-presets).
+Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [predefined preset](#predefined-presets).
 
 Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
@@ -65,17 +59,19 @@ See the [documentation of configuration options](#configuring) below.)
 
 ### Names used for plugins and Max devices
 
-There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or defining preloaded presets (see below).
+There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or predefining presets (see below).
 
-The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
+The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
 
-### Preloaded presets
+### Predefined presets
 
-Preloaded presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded```, using the following files
+Predefined presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded```, using the following files in that folder
 
 - ```<devicename>.epr```, the preset in JSON format, as [documented here](https://docs.electra.one/developers/presetformat.html#preset-json-format); it is minified by the script, 
 - ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
 - ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
+
+It also uses the contents of ```./default.lua``` as the default lua script to use for predefined and generated presets.
 
 See [further documentation here](./makedevices-README.md)
 
@@ -87,11 +83,20 @@ If you set the control identifier in the CC-map of a parameter to the actual ide
 
 Apart from that, anything goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
+## Preloaded presets
+
+You can also manually upload a preset to the E1 (mkII only!) to create a preloaded version of it. For this, upload the new versions of both device.epr and the device.lua to the E1 at ```ctrlv2/presets/xot/ableton```. Make sure to include the following line
+```
+require("xot/default")
+```
+
+at the start of the device.lua file. This includes some common LUA functions used by the remote script and the preset.
+
 ## Advanced configuration
 
 The behaviour of the remote script can be changed by editing ```config.py```:
 
-- ```E1_PRESET_FOLDER``` subfolder on the E1 where the preloaded presets are stored, relative to ```ctrlv2/presets``` (only possible for E1 with firmware 3.4 and higher). The default is ```xot/ableton```.
+- ```E1_PRESET_FOLDER``` subfolder on the E1 where the preloaded presets are stored, relative to ```ctrlv2/presets``` (only possible for E1 mkII with firmware 3.4 and higher). The default is ```xot/ableton```.
 - ```E1_LOGGING``` controls whether the E1 should send log messages, and if so how detailed. Default ```-1``` (which means no logging). Other possible levels: ```0``` (critical messages and errors only), ```1``` (warning messages), ```2``` (informative messages), or ```3``` (tracing messages).
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
 - ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
@@ -104,7 +109,7 @@ The following constant deals with the slot where device presets are loaded.
 
 - ```EFFECT_PRESET_SLOT``` E1 preset slot where the preset controlling the currently appointed device is stored. Specified by bank index (0..5) followed by preset index (0.11). The default is ```(5,1)```.
 
-The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
+The following constants *only* influence the construction of presets 'on the fly' and do not affect predefined or preloaded presets:
 
 - ```MAX_CC7_PARAMETERS``` and ```MAX_CC14_PARAMETERS``` limits the number of parameters assigned as CC7 or CC14 parameters. If ```-1``` (the default) all parameters are included (limited by the number of available MIDI channels and CC parameter slots): this is a good setting when dumping devices and/or when setting ```ORDER = ORDER_DEVICEDICT```
 - ```MIDI_EFFECT_CHANNEL``` is the first MIDI channel to use to assign device parameters controls to. The default value is 11.

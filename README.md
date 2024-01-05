@@ -10,7 +10,7 @@ It can also be used to dump E1 presets for Ableton Live devices with sensible de
 
 The remote script comes with a default Ableton Live template (```Live template.als```) that has several Channel EQs configured on the tracks, together with an [E1 mixer preset](#the-mixer) (```Mixer.eproj```) to control it.
 
-The remote script also comes with specially crafted presets for most of the Ableton Live effects and instruments.
+The remote script also comes with specially crafted predefined presets for most of the Ableton Live effects and instruments.
 
 
 (*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5*)
@@ -45,9 +45,12 @@ When fewer than 5 tracks and fewer than 6 return tracks are present in the Live 
 
 In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), specially crafted presets to control such appointed effects and instruments can be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
+The remote script comes with predefined presets for many of Ableton Live's effects and instruments. The layout and control information for these predefined devices is stored in ```Devices.py```.
 
-The remote script looks for a preloaded preset for the appointed device using the device name, first on the E1 itself, and then in ```Devices.py```. It uses the first one it finds. You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
+
+Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), these predefined devices can be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
+
+The remote script looks for a preset for the appointed device using the device name, first as a preloaded device on the E1 itself, and then as a predefined device in ```Devices.py```. (For older, mkI, E1 the first step is skipped.) It uses the first one it finds. You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
 
 ![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
 
@@ -62,7 +65,7 @@ Pressing the PRESET REQUEST button on the E1 (right column, top button) switches
 
 ### Creating presets on the fly
 
-If no preloaded preset exists, the remote script creates a preset on the fly. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+If no preloaded or predefined preset exists, the remote script creates a preset on the fly. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
@@ -78,7 +81,7 @@ Note that large devices with many parameters may create a preset with several pa
 
 When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1.
 
-*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets uploaded to the E1**. This is of course undesirable as the E1 would get swamped with preset uploads. To avoid this, hide the devices on a drum track!*
+*Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets (up)loaded to the E1**. This is of course undesirable as the E1 would get swamped with preset (up)loads. To avoid this, hide the devices on a drum track!*
 
 
 ### VST or AU plugins
@@ -112,11 +115,11 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1.
 
-5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*), unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
 
 Start Ableton 
 
-A patch for the appointed device (indicated by the 'Blue Hand') will automatically be constructed (or loaded), uploaded and then mapped to the E1
+A patch for the appointed device (indicated by the 'Blue Hand') will automatically be created and/or (up)loaded and then mapped to the E1
 
 ### Log files
 
@@ -190,7 +193,7 @@ The following constants configure when a device is *appointed* (becomes the devi
 - ```APPOINT_ON_TRACK_CHANGE``` Whether to appoint the currently selected device on a selected track (only guaranteed to work if this is the only remote script handling device appointment), or only do this when device is explicitly selected. Default is ```True```.
 - ```SWITCH_TO_EFFECT_IMMEDIATELY```  Whether to switch immediately from the mixer preset to the effect preset whenever a new device is appointed in Ableton, or only switch when explicitly requested by the user by pressing the upper right preset request button on the E1. Default is ```True```.
 
-The following constants *only* influence the construction of presets 'on the fly' and do not affect preloaded presets:
+The following constants *only* influence the construction of presets 'on the fly' and do not affect predefined or preloaded presets:
 
 - ```PRESET_COLOR``` Default color to use for controls in a generated preset, as a hex-string (default is white, i.e.  ```FFFFFF```).
 - ```ORDER``` specifies whether presets that are constructed on the fly arrange parameters in the preset in alphabetical order (```ORDER_SORTED```),  simply in the order given by Ableton (```ORDER_ORIGINAL```) or in the order defined in the Ableton Live remote script framework (```ORDER_DEVICEDICT```, the default). This is the same order as used by most other remote controllers, as this limits the shown controllers to only the most significant devices. Indeed, when selecting the latter option, any parameters not in the 'DEVICE_DICT' are not included in the JSON preset. (They *are* included in the CC map for reference, with a mapping of ```None```, but *not* in the dumped preset; you may therefore want to use ```ORDER_SORTED``` when dumping presets.)

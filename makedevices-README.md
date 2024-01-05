@@ -9,3 +9,4 @@ The input to the script are the following types of files stored in the folder  `
 - ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. This file must exist.
 - ```<devicename>.lua```, containing additional LUA functions used within the preset. This file is optional.
 
+Note: makedevices must be run in the directory containing the directory ```./preloaded``` and the default lua script ```default.lua```.
