@@ -67,9 +67,11 @@ end
 -- handling patch requests to switch between mixer/effect 
 
 function patch.onRequest (device)
-  print ("Patch Request pressed");
+  print ("Patch Request pressed",device.id);
   if device.id == 1
-    then midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E})
+    then print ("Sending patch request MIDI");
+    	 midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E}) ;
+	 print ("Sent patch request MIDI");	 
   end
 end
 
