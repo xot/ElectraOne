@@ -967,7 +967,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Uploading LUA script {luascript}.')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_command = (0x01, 0x0C)
-        sysex_script = tuple([ ord(c) for c in luascript ])
+        sysex_script = tuple([ self._safe_ord(c) for c in luascript ])
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_script)
@@ -980,7 +980,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Uploading preset (size {len(preset)} bytes).')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
         sysex_command = (0x01, 0x01)
-        sysex_preset = tuple([ ord(c) for c in preset ])
+        sysex_preset = tuple([ self._safe_ord(c) for c in preset ])
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
         # this SysEx command repsonds with an ACK/NACK 
