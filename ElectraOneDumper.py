@@ -312,6 +312,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self._append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
         assert pagecount <=  MAX_PAGE_ID, f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }).'
+        self.debug(5,f'Appending {pagecount} pages.')
         flag = False
         for i in range(1,pagecount+1):
             flag = self._append_comma(flag)
@@ -324,6 +325,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self._append(',"devices":[')
         channels = { c.get_midi_channel() for c in cc_map.values() }
+        self.debug(5,f'Appending {len(channels)} devices.')
         flag = False
         for channel in channels:
             assert channel in range(1,17), f'MIDI channel { channel } not in range.'
@@ -366,6 +368,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameter; Live.DeviceParameter.DeviceParameter
         """
         assert idx in range (1,MAX_OVERLAY_ID+1), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
+        self.debug(6,f'Appending overlay for {parameter.original_name} with values {parameter.value_items}.')
         self._overlay_map[parameter.original_name] = idx
         # {{ to escape { in f string
         self._append(f'{{"id":{ idx }')
@@ -382,6 +385,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self._append(',"overlays":[')
         overlay_idx = 1
+        self.debug(5,f'Appending overlays.')
         flag = False
         for p in parameters:
             cc_info = cc_map.get_cc_info(p)
