@@ -31,11 +31,11 @@ When changing existing predefined presets, you only need to save the new version
 
 When creating a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
 
-Use ```makedevices``` (see [below](#predefined-presets) to add the updated or new preset to the remote script.
+Use ```makedevices``` (see [below](#predefined-presets)) to add the updated or new preset to the remote script.
 
 ### Device preset dumps
 
-Constructed presets can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [predefined preset](#predefined-presets).
+Presets created by the remote script on the fly can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [predefined preset](#predefined-presets).
 
 Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
 
