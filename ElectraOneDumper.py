@@ -345,8 +345,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self._append(',"items":[')
         flag = False
+        assert (len(value_items) <= 127), f'Too many overlay items { len(value_items) }.'
         for (idx,item) in enumerate(value_items):
-            assert (len(value_items) <= 127), f'Too many overly items { len(value_items) }.'
             item_cc_value = cc_value_for_item_idx(idx, value_items)
             assert (0 <= item_cc_value) and (item_cc_value <= 127), f'MIDI CC value out of range { item_cc_value }.'
             flag = self._append_comma(flag)
