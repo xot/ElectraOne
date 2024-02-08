@@ -77,15 +77,26 @@ class CCInfo:
         """
         return self._cc_no
 
+    def set_cc_no(self,cc_no):
+        """Set the CC parameter number of this object.
+           - cc_no: the CC parameter number (-1 if not mapped); int (-1..127)
+        """
+        assert cc_no in range(-1,128), f'CC-no out of range {cc_no}.'
+        self._cc_no = cc_no
+    
     def get_control_id(self):
         """Return the E1 preset control id of this object; always returned as a tuple!.
-           - result: the control id, (-1,dc) if not mapped; tuple (int,int) 
+           - result: the control id; tuple (int,int) 
+             If (-1,dc) then E1 will locally generate value to display; otherwise
+             Ableton is expected to send value string to display
         """
         return self._control_id
 
     def set_control_id(self,id):
         """Set the E1 preset control id of this object.
            - id: value to set control id to; tuple of int,int
+             If (-1,dc) then E1 will locally generate value to display; otherwise
+             Ableton is expected to send value string to display
         """
         assert type(id) is tuple, f'Control id {id} should be tuple.'
         (cid,vid) = id

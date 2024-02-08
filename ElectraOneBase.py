@@ -73,6 +73,7 @@ def cc_value_for_item_idx(idx, items):
     # quantized parameters have a list of values. For such a list with
     # n items, item i (staring at 0) has MIDI CC control value
     # round(i * 127/(n-1))
+    assert len(items) <= 128, f'List of values too long: {len(items)} > 128.'
     assert idx in range(len(items)), f'Value index {idx} out of range for list of length {len(items)}.'
     return round( idx * (127 / (len(items)-1) ) )
 
@@ -600,6 +601,8 @@ class ElectraOneBase(Log):
         """
         self.debug(4,f'Sending value for {p.original_name} ({p.name}) over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
+            # this is either an on/off button or a control with overlays on the E1
+            # (by assumption such parameters are always 7but CC)
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
         else:

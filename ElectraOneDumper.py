@@ -132,11 +132,13 @@ def _get_par_value_info(p,v):
           both as strings; (str,str)
     """
     value_as_str = p.str_for_value(v) # get value as a string
+    assert len(value_as_str) > 0, f'Value string for parameter {p.original_name} is empty.'
     i = 0
     # skip leading spaces (string guaranteed not to be empty)
     while value_as_str[i] == ' ':
         i += 1
     (number_part,sep,type) = value_as_str[i:].partition(' ') # split at the first space
+    assert len(number_part) > 0, f'Numeric part of value string {value_as_str} for parameter {p.original_name} is empty.'
     # detect special cases:
     if number_part[-1] == '°':
         return (number_part[:-1],'°')
@@ -151,22 +153,15 @@ def _get_par_value_info(p,v):
     else:
         return (number_part,type)
 
-def _get_par_min_max(p, factor):
+def _get_par_min_max(p):
     """Return the minimum and maximum value for parameter p as reported
-       by live, scaled by a factor, and cast to an integer.
-       Use factor to create a reasonable range of integers to represent
-       a float value (e.g. use 10 for a volume/dB fader); the integer
-       value is converted back to a float, dividing out the same factor,
-       with an appropriate formatter function by the E1 preset.
-       - p: parameter; Live.DeviceParameter.DeviceParameter
-       - factor: multiplication factor; int
-       - result: tuple of minimum and maximum integer values; (int,int)
+       by live in their string representation,
+       - parameter; Live.DeviceParameter.DeviceParameter
+       - result: tuple of minimum and maximum integer values; (float,floar)
     """
     (vmin_str,mintype) = _get_par_value_info(p,p.min)
     (vmax_str,maxtype) = _get_par_value_info(p,p.max)
-    vmin = int(factor * float(vmin_str))
-    vmax = int(factor * float(vmax_str))
-    return (vmin,vmax)
+    return ( float(vmin_str) , float(vmax_str) )
         
 def _is_int_str(s):
     """Return whether string represents an integer
@@ -277,7 +272,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     def _append_comma(self,flag):
         """Append a comma if flag; return true.
            Use as:
-           flag = false
+           flag = False
            ...
            flag = _append_comma(flag)
         """
@@ -301,18 +296,20 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             return(truncated)
         else:
             return(name)
-        
-                        
+                              
     def _append_json_pages(self, parameters) :
         """Append the necessary number of pages (and their names).
            - parameters: the list of parameters in the preset.
         """
         # WARNING: this code assumes all parameters are included in the preset
         # (Also wrong once we start auto-detecting ADSRs)
-        self._append(',"pages":[')
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
-        assert pagecount <=  MAX_PAGE_ID, f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }).'
         self.debug(5,f'Appending {pagecount} pages.')
+        if  pagecount >  MAX_PAGE_ID:
+            # TODO: later on also check for out of bounds page id
+            self.debug(4,f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }). Truncating.')
+            pagecount =  MAX_PAGE_ID
+        self._append(',"pages":[')
         flag = False
         for i in range(1,pagecount+1):
             flag = self._append_comma(flag)
@@ -323,21 +320,23 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """Append the necessary number of devices
            - cc_map: the CC map constructed for the preset; CCMap
         """
-        self._append(',"devices":[')
         channels = { c.get_midi_channel() for c in cc_map.values() }
         self.debug(5,f'Appending {len(channels)} devices.')
+        self._append(',"devices":[')
         flag = False
         for channel in channels:
-            assert channel in range(1,17), f'MIDI channel { channel } not in range.'
-            flag = self._append_comma(flag)
-            device_id = device_idx_for_midi_channel(channel)
-            # double {{ to escape { in f-string
-            self._append( f'{{"id":{ device_id }'
-                        ,  ',"name":"Generic MIDI"'
-                        , f',"port":{ MIDI_PORT }'
-                        , f',"channel":{ channel }'
-                        ,  '}'
-                         )
+            if channel not in range(1,17):
+                self.debug(4,f'MIDI channel { channel } not in range. Skipped.')
+            else:
+                flag = self._append_comma(flag)
+                device_id = device_idx_for_midi_channel(channel)
+                # double {{ to escape { in f-string
+                self._append( f'{{"id":{ device_id }'
+                            ,  ',"name":"Generic MIDI"'
+                            , f',"port":{ MIDI_PORT }'
+                            , f',"channel":{ channel }'
+                            ,  '}'
+                        )
         self._append(']')
         
     def _append_json_overlay_items(self, value_items):
@@ -347,33 +346,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self._append(',"items":[')
         flag = False
-        assert (len(value_items) <= 127), f'Too many overlay items { len(value_items) }.'
         for (idx,item) in enumerate(value_items):
             item_cc_value = cc_value_for_item_idx(idx, value_items)
-            assert (0 <= item_cc_value) and (item_cc_value <= 127), f'MIDI CC value out of range { item_cc_value }.'
-            flag = self._append_comma(flag)
-            self._append(f'{{"label":"{ item }"' # {{ = {
-                        , f',"index":{ idx }'
-                        , f',"value":{ item_cc_value }'
-                        ,  '}'
-                        )
+            if item_cc_value not in range(128):
+                self.debug(4,f'MIDI CC value out of range { item_cc_value }. Skipping.')
+            else:
+                flag = self._append_comma(flag)
+                self._append( f'{{"label":"{ item }"' # {{ = {
+                            , f',"index":{ idx }'
+                            , f',"value":{ item_cc_value }'
+                            , '}'
+                            )
         self._append(']')
-
-    def _append_json_overlay(self, idx, parameter):
-        """Append an overlay for the values associated with a quantised
-           parameter. The mapping between overlay index and parameter name
-           is stored in self._overlay_map (so the overlay index can later be
-           retrieved when dumping the actual control for the parameter).
-           - idx: the index of the overlay to construct
-           - parameter; Live.DeviceParameter.DeviceParameter
-        """
-        assert idx in range (1,MAX_OVERLAY_ID+1), f'{ id } exceeds max number of overlays ({ MAX_OVERLAY_ID }).'
-        self.debug(6,f'Appending overlay for {parameter.original_name} with values {parameter.value_items}.')
-        self._overlay_map[parameter.original_name] = idx
-        # {{ to escape { in f string
-        self._append(f'{{"id":{ idx }')
-        self._append_json_overlay_items(parameter.value_items)
-        self._append('}')
 
     def _append_json_overlays(self, parameters, cc_map):
         """Append the necessary overlays for all quantised parameters (that
@@ -383,16 +367,29 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameters: list of all parameters in the device; list of Live.DeviceParameter.DeviceParameter
            - cc_map: CC map for all parameters in the device; CCMap
         """
+        self.debug(5,f'Appending overlays.')
         self._append(',"overlays":[')
         overlay_idx = 1
-        self.debug(5,f'Appending overlays.')
         flag = False
         for p in parameters:
             cc_info = cc_map.get_cc_info(p)
             if cc_info.is_mapped() and _needs_overlay(p):
-                flag = self._append_comma(flag)
-                self._append_json_overlay(overlay_idx,p)
-                overlay_idx += 1
+                if overlay_idx > MAX_OVERLAY_ID:
+                    self.debug(4,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
+                    # stop adding overlays
+                    return
+                if len(p.value_items) > 128:
+                    # do not the overlay in this case
+                    self.debug(4,f'Too many overlay items { len(p.value_items) }. Skipping all.')
+                else:
+                    flag = self._append_comma(flag)
+                    self.debug(6,f'Appending overlay for {p.original_name} with values {p.value_items}.')
+                    self._overlay_map[p.original_name] = overlay_idx
+                    # {{ to escape { in f string
+                    self._append(f'{{"id":{ overlay_idx }')
+                    self._append_json_overlay_items(p.value_items)
+                    self._append('}')
+                    overlay_idx += 1
         self._append(']')
 
     def _append_json_bounds(self, idx):
@@ -413,16 +410,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append( ',"type":"pad"'
-                   , ',"mode":"toggle"'
-                   , ',"values":[{"message":{"type":"cc7"'
-                   ,                       ',"offValue": 0'
-                   ,                       ',"onValue": 127'
-                   ,                      f',"parameterNumber":{ cc_info.get_cc_no() }'
-                   ,                      f',"deviceId":{ device_id }'
-                   ,                       '}' 
-                   ,            ',"id":"value"'
-                   ,            '}]'
-                   )
+                    , ',"mode":"toggle"'
+                    , ',"values":[{"message":{"type":"cc7"'
+                    ,                       ',"offValue": 0'
+                    ,                       ',"onValue": 127'
+                    ,                      f',"parameterNumber":{ cc_info.get_cc_no() }'
+                    ,                      f',"deviceId":{ device_id }'
+                    ,                       '}' 
+                    ,            ',"id":"value"'
+                    ,            '}]'
+                    )
 
     def _append_json_list(self, overlay_idx, cc_info):
         """Append a list control, with values as specified in the overlay.
@@ -431,22 +428,22 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append( ',"type":"list"'
-                   ,  ',"values":[{"message":{"type":"cc7"' 
-                   ,                       f',"parameterNumber":{ cc_info.get_cc_no() } '
-                   ,                       f',"deviceId":{ device_id }'
-                   ,                        '}' 
-                   ,            f',"overlayId":{ overlay_idx }'
-                   ,             ',"id":"value"'
-                   ,             '}]'
-                   )
+                    , ',"values":[{"message":{"type":"cc7"' 
+                    ,                      f',"parameterNumber":{ cc_info.get_cc_no() } '
+                    ,                      f',"deviceId":{ device_id }'
+                    ,                       '}' 
+                    ,           f',"overlayId":{ overlay_idx }'
+                    ,            ',"id":"value"'
+                    ,            '}]'
+                    )
 
     def _append_json_generic_fader(self, cc_info, thin
                                   ,vmin, vmax, formatter):
         """Append a fader (generic constructor).
            - cc_info: channel, cc_no, is_cc14 information; CCInfo
            - thin: whether to use a thin variant; bool
-           - vmin: minimum value; int (or None if not used)
-           - vmax: maximum value; int 
+           - vmin: minimum value; float (or None if not used)
+           - vmax: maximum value; float 
            - formatter: name of LUA formatter function; str (None if not used)
              (see default.lua for possible values)
            If vmin != None, vmin and vmax specify the minimal and maximal value
@@ -455,6 +452,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            its MIDI value/position. These min and max values must be
            integers.
         """
+        # Convert min and max to integers
+        if vmin:
+            vmin = int(vmin)
+            vmax = int(vmax)
         self.debug(6,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append(    ',"type":"fader"')
@@ -490,76 +491,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     ,     ']'
                     )
 
-    def _append_json_symmetric_dB_fader(self, id, p, cc_info):
-        """Append a fader showing symmetric dB values.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,10)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatdB")
-            
-    def _append_json_pan_fader(self, id, p, cc_info):
-        """Append a PAN fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,1)
-        # p.min typically equals 50L, so vmin=50
-        self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan")
-
-    def _append_json_percent_fader(self, id, p, cc_info):
-        """Append a percentage fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,10)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatPercent")
-
-    def _append_json_degree_fader(self, id, p, cc_info):
-        """Append a (phase)degree fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatDegree")
-
-    def _append_json_semitone_fader(self, id, p, cc_info):
-        """Append a semitone fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatSemitone")
-
-    def _append_json_detune_fader(self, id, p, cc_info):
-        """Append a detune fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control; CCInfo
-        """
-        (vmin,vmax) = _get_par_min_max(p,1)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDetune")
-        
-    def _append_json_int_fader(self, id, p, cc_info):
-        """Append an integer valued, untyped, fader.
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control
-        """
-        (vmin,vmax) = _get_par_min_max(p,1)
-        # TODO: why would you ever want to use ableton string values for integer parameters?
-        #if USE_ABLETON_VALUES:
-        #    self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
-        #    cc_info.set_control_id((id+1,0))
-        #else:
-        #    self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
-        self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
-    
     def _append_json_float_fader(self, id, p, cc_info):
         """Append a float valued, untyped, fader.
            cc_info is updated if control_id must be set because parameter
@@ -570,33 +501,18 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - return: updated cc_info; CCInfo.
         """
         try: # vmin/vmax may be too large to turn into an int (eg if "inf")
-            (vmin,vmax) = _get_par_min_max(p,100)
-            if vmax > 1000:
-                self._append_json_generic_fader(cc_info, True, vmin/10, vmax/10,"formatLargeFloat")
+            (vmin,vmax) = _get_par_min_max(p)
+            if vmax > 100:
+                self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax,"formatLargeFloat")
             else:
-                self._append_json_generic_fader(cc_info, True, vmin, vmax,"formatFloat")
+                self._append_json_generic_fader(cc_info, True, 100*vmin, 100*vmax,"formatFloat")
             return cc_info
         except:
             self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
+            # update control id to signal ableton must provide its values
             cc_info.set_control_id((id+1,0))
             return cc_info
-            
-    def _append_json_plain_fader(self, id, p, cc_info):
-        """Append a plain fader, showing no values.
-           cc_info is updated because parameter
-           needs to be sent value strings generated by Ableton live
-           - id: id of the control
-           - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
-           - cc_info: CC information for the parameter/control
-           - return: updated cc_info; CCInfo.
-        """
-        if USE_ABLETON_VALUES:
-            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
-            cc_info.set_control_id((id+1,0))
-        else:
-            self._append_json_generic_fader(cc_info, False, None, None, None)
-        return cc_info
-            
+                        
     def _append_json_fader(self, id, parameter, cc_info):
         """Append a fader (depending on the parameter type)
            cc_info is updated if control_id must be set because parameter
@@ -606,24 +522,33 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_info: CC information for the parameter/control. 
            - return: updated cc_info; CCInfo.
         """
+        self.debug(6,f'Appending fader for {parameter.name}')
+        (vmin,vmax) = _get_par_min_max(parameter)
         if _is_pan(parameter):
-            self._append_json_pan_fader(id,parameter,cc_info)
+            # invert vmin; p.min typically equals 50L, so vmin=50
+            self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan")
         elif _is_percent(parameter):
-            self._append_json_percent_fader(id,parameter,cc_info)
+            # scale by factor 10 to allow fractional percentages
+            self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatPercent")
         elif _is_degree(parameter):
-            self._append_json_degree_fader(id,parameter,cc_info)
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDegree")
         elif _is_semitone(parameter):
-            self._append_json_semitone_fader(id,parameter,cc_info)
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatSemitone")
         elif _is_detune(parameter):
-            self._append_json_detune_fader(id,parameter,cc_info)
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, "formatDetune")
         elif _is_symmetric_dB(parameter):
-            self._append_json_symmetric_dB_fader(id,parameter,cc_info)            
+            # scale by factor 10 to allow fractional dBs
+            self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatdB")
         elif _is_int_parameter(parameter) != NON_INT:
-            self._append_json_int_fader(id,parameter,cc_info)            
+            self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         elif _is_untyped_float(parameter):
             cc_info = self._append_json_float_fader(id,parameter,cc_info)            
+        elif USE_ABLETON_VALUES:
+            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
+            # update control id to signal ableton must provide its values
+            cc_info.set_control_id((id+1,0))
         else:
-            cc_info = self._append_json_plain_fader(id,parameter,cc_info)
+            self._append_json_generic_fader(cc_info, False, None, None, None)
         return cc_info
     
     def _append_json_control(self, id, parameter, cc_info):
@@ -638,26 +563,42 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - return: updated cc_info; CCInfo.
         """
         self.debug(5,f'Appending JSON control for {parameter.name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
-        assert id in range(MAX_ID), f'{ id } exceeds max number of IDs ({ MAX_ID }).'
+        # set and check main control attributes
+        if id not in range(MAX_ID):
+            self.debug(4,f'{ id } exceeds max number of IDs ({ MAX_ID }).')
+            return
         page = 1 + (id // PARAMETERS_PER_PAGE)
-        assert page <= MAX_PAGE_ID, f'{ page } exceeds max number of pages ({ MAX_PAGE_ID }).'
+        if page > MAX_PAGE_ID:
+            self.debug(4,f'{ page } exceeds max number of pages ({ MAX_PAGE_ID }).')
+            return
         controlset = 1 + ((id % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         # This is more strict than the Electra One documentation requires
-        assert controlset <= MAX_CONTROLSET_ID, f'{ controlset } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).'
+        if controlset > MAX_CONTROLSET_ID:
+            self.debug(4,f'{ controlset } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).')
+            return
         pot = 1 + (id % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
-        assert pot <= MAX_POT_ID, f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).'
-        self._append( f'{{"id":{ id+1 }'
-                  , f',"name":"{ self._truncate_parameter_name(parameter.name) }"'
-                  ,  ',"visible":true' 
-                  , f',"color":"{ PRESET_COLOR }"' 
-                  , f',"pageId":{ page }'
-                  , f',"controlSetId":{ controlset }'
-                  , f',"inputs":[{{"potId":{ pot },"valueId":"value"}}]'
-                  )
+        if pot > MAX_POT_ID:
+            self.debug(4,f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).')
+            return
+        self._append( f'{{"id":{ id+1 }' # {{ is esapced {
+                    , f',"name":"{ self._truncate_parameter_name(parameter.name) }"'
+                    ,  ',"visible":true' 
+                    , f',"color":"{ PRESET_COLOR }"' 
+                    , f',"pageId":{ page }'
+                    , f',"controlSetId":{ controlset }'
+                    , f',"inputs":[{{"potId":{ pot },"valueId":"value"}}]'
+                    )
         self._append_json_bounds(id)
+        # append the actual contro: a list, an on/off or a fader
+        # TODO: ADSR
         if _needs_overlay(parameter):
-            overlay_id = self._overlay_map[parameter.original_name]
-            self._append_json_list(overlay_id,cc_info)
+            # check if overlay succesfully created
+            if parameter.original_name in self._overlay_map:
+                overlay_id = self._overlay_map[parameter.original_name]
+                self._append_json_list(overlay_id,cc_info)
+            else: # overlay not constructed so dummy added to this control; unmap it for safety
+                self._append_json_list(0,cc_info) 
+                cc_info.set_cc_no(UNMAPPED_CC)
         elif _is_on_off_parameter(parameter):
             self._append_json_toggle(cc_info)
         else:
@@ -678,6 +619,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_map: CC information for the parameters/control; CCMap
            - returns: updated CCmap; CCmap
         """
+        self.debug(5,f'Appending (at most) {len(parameters)} controls.')
         self._append(',"controls":[')
         id = 0  # control identifier
         flag = False
@@ -703,7 +645,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
              _construct_cc_map. 
            - result: the preset (a JSON object in E1 .epr format); str
         """
-        self.debug(4,'Construct JSON')
+        self.debug(4,'Construct JSON preset')
         # create a project id from the device_name 'randomly'
         # so they are arbitrary but a device_name is always mapped to the same
         # project id. This is necessary as the snapshot storage on the
@@ -717,14 +659,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                    , f',"projectId":"{ project_id }"'
                    )
         self._append_json_pages(parameters)
-        self._append_json_devices(cc_map)        
+        self._append_json_devices(cc_map)
+        # indexes for overlays constructed for parameters; recorded by
+        # _append_json_overlays() and used by _append_json_controls()
         self._overlay_map = {}
         self._append_json_overlays (parameters,cc_map)
         self._append( ',"groups":[]')
         cc_map = self._append_json_controls(parameters,cc_map)
         self._append( '}' )
         # return the string constructed within the StringIO object as preset
-        # and the (possibly modified) cc map
+        # as well as the (possibly modified) cc map
         return (self.getvalue(),cc_map)
 
     def _construct_cc_map(self, device_name, parameters):
@@ -893,7 +837,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # strings.
         (self._preset_json, self._cc_map) = self._construct_json_preset(device_name, parameters, self._cc_map)
 
-    def get_preset(self):
+    def get_preset_info(self):
         """Return the constructed preset and CC map, and default lua script
            as PresetInfo.
            - result: preset, lua and cc map; PresetInfo

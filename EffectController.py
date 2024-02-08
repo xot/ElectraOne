@@ -174,7 +174,7 @@ class EffectController(ElectraOneBase):
             self.debug(3,'Constructing preset on the fly...')
             assert device, 'None device cannot be dumped'
             dumper = ElectraOneDumper(self.get_c_instance(), device)
-            preset_info = dumper.get_preset()
+            preset_info = dumper.get_preset_info()
             if DUMP:
                 # determine path to store the dumps in (created if it doesnt exist)
                 path = self._ensure_in_libdir('dumps')
