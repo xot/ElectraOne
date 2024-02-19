@@ -205,6 +205,7 @@ def _is_int_parameter(p):
        (not _is_int_str(max_number_part)) or \
        (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
         return NON_INT
+    # TODO: why 64 and not 128?
     if int(max_number_part) - int(min_number_part) > 64:
         return BIG_INT
     else:

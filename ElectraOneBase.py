@@ -387,7 +387,7 @@ class ElectraOneBase(Log):
             majorstr = sw_versionstr[-11:-8]
             minorstr = sw_versionstr[-8:-5]
             substr =  sw_versionstr[-5:-2]    
-            sw_version = (int(majorstr),int(minorstr),0)
+            sw_version = (int(majorstr),int(minorstr),int(substr))
         except ValueError:
             self.debug(2,f'Failed to parse software version string { sw_versionstr }.')
             sw_version = (0,0,0)
@@ -602,7 +602,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Sending value for {p.original_name} ({p.name}) over MIDI channel {channel} as CC parameter {cc_no} in 7bit.')
         if p.is_quantized:
             # this is either an on/off button or a control with overlays on the E1
-            # (by assumption such parameters are always 7but CC)
+            # (by assumption such parameters are always 7bit CC)
             idx = int(p.value)
             value = cc_value_for_item_idx(idx,p.value_items)
         else:

@@ -27,7 +27,7 @@ Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is s
 
 You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
  
-When changing existing predefined presets, you only need to save the new versions of both `<device>.epr` (created with `Download Preset` in the web editor) and the `<device>.lua` (cut and paste from the web editor) to the `./preloaded` directory.
+When changing existing predefined presets, you only need to save the new versions of both `<device>.epr` (created with `Download Preset` in the web editor) and the `<device>.lua` (cut and paste from the web editor) to the `./preloaded` directory. (Here `<device>` is the device name used by Ableton or the device, e.g. `Echo`; for Max devices and external plugins a slightly different naming scheme is used, see [here](#names-used-for-plugins-and-max-devices).)
 
 When creating a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
 
@@ -61,7 +61,7 @@ See the [documentation of configuration options](#configuring) below.)
 
 There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or predefining presets (see below).
 
-The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
+The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
 
 ### Predefined presets
 
