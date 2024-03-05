@@ -91,6 +91,8 @@ class ElectraOne(ElectraOneBase):
         # should anything happen inside this thread, make sure we write to debug
         try:
             if DETECT_E1:
+                sleep = 0.5
+                attempts = 0
                 self.debug(2,'Connection thread: detecting E1...')
                 self._request_response_received = False
                 # repeatedly request response until it is received 
@@ -98,9 +100,15 @@ class ElectraOne(ElectraOneBase):
                 # Note that the 1st response to this request is sent back
                 # immediately but not caught by the remote script
                 #  (this is because the init() isnt finished yet!)
-                while not self._request_response_received:
+                # stop trying after 30 times
+                while (not self._request_response_received) and (attempt < 30):
                     self.send_e1_request()
-                    time.sleep(0.5)
+                    time.sleep(sleep)
+                    sleep = sleep*1.5 # sleep progressively longer
+                    attempt +=1 
+                if not self._request_response_received:
+                    self.debug(2,'Connection thread aborts detection.')
+                    return
             else:
                 self.debug(2,'Connection thread skipping detection.')
             if not ElectraOneBase.E1_version_supported:
@@ -392,16 +400,17 @@ class ElectraOne(ElectraOneBase):
         pass
 
     def disconnect(self):
-        """Called right before we get disconnected from Live. Ignore if
-           connecting to E1 failed.
+        """Called right before we get disconnected from Live.
         """
+        self.debug(1,'Main disconnect called.') 
         if ElectraOneBase.E1_connected:
-            self.debug(1,'Main disconnect called.') 
             if self._effect_controller:
                 self._effect_controller.disconnect()
             if self._mixer_controller:
                 self._mixer_controller.disconnect()
         else:
-            self.debug(1,'Main disconnect ignored because E1 not connected.')
+            # TODO: kill possibly still running E1 detection thread here
+            # (but this is apparently not easy, so we leave it for now.)
+            pass
 
 
