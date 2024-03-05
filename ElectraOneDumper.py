@@ -526,7 +526,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_info: CC information for the parameter/control. 
            - return: updated cc_info; CCInfo.
         """
-        self.debug(6,f'Appending fader for {parameter.name}')
+        self.debug(6,f'Appending fader for {parameter.original_name}')
         (vmin,vmax) = _get_par_min_max(parameter)
         if (not vmin) or (not vmax):
             self._append_json_generic_fader(cc_info, False, None, None, None)
@@ -568,7 +568,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_info: CC information for the parameter/control; CCInfo
            - return: updated cc_info; CCInfo.
         """
-        self.debug(5,f'Appending JSON control for {parameter.name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
+        self.debug(5,f'Appending JSON control for {parameter.original_name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
         # set and check main control attributes
         if id not in range(MAX_ID):
             self.debug(4,f'{ id } exceeds max number of IDs ({ MAX_ID }).')
@@ -587,7 +587,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             self.debug(4,f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).')
             return
         self._append( f'{{"id":{ id+1 }' # {{ is esapced {
-                    , f',"name":"{ self._truncate_parameter_name(parameter.name) }"'
+                    , f',"name":"{ self._truncate_parameter_name(parameter.name) }"' # use name as label for control
                     ,  ',"visible":true' 
                     , f',"color":"{ PRESET_COLOR }"' 
                     , f',"pageId":{ page }'
@@ -835,7 +835,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         for p in device_parameters:
             min_value_as_str = p.str_for_value(p.min)
             max_value_as_str = p.str_for_value(p.max)
-            self.debug(6,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}.')
+            self.debug(6,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}. Quantized: {p.is_quantized}.')
         parameters = self._filter_and_order_parameters(device_name, device_parameters)
         self._cc_map = self._construct_cc_map(device_name, parameters)
         # constructing the preset may modify the cc_map to set the control
