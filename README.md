@@ -154,7 +154,7 @@ Set the following constants in the ```config.py``` (this is one of the files you
 
 This project depends on:
 
-- Ableton Live 11, tested with version 11.1.1 upto 11.3.12 (code relies on Abelton Live supporting Python 3.6).
+- Ableton Live 12 (tested with 12.0) or Ableton Live 11, tested with version 11.1.1 upto 11.3.12; code relies on Abelton Live supporting Python 3.6 or later.
 - E1 firmware version 3.5 or later. See [these instructions for uploading firmware](https://docs.electra.one/troubleshooting/hardrestart.html#recovering-from-a-system-freeze) that you can [download here](https://docs.electra.one/downloads/firmware.html).
 - Optional: [SendMidi](https://github.com/gbevin/SendMIDI), for faster preset uploading. 
 
