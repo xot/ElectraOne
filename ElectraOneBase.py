@@ -298,6 +298,9 @@ class ElectraOneBase(Log):
     
     # --- dealing with fimrware versions
 
+    # Live version info as a tuple of integers (major, minor, bugfix).
+    LIVE_VERSION = (0,0,0)
+    
     # E1 software version info as a tuple of integers (major, minor, sub).
     _E1_sw_version = (0,0,0)
 
@@ -404,8 +407,14 @@ class ElectraOneBase(Log):
             self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
             hw_version = (0,0)
         self.configure_for_version(sw_version,hw_version)
-        self.debug(2,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.')
-        
+        self.debug(2,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.') 
+        # set live version
+        live_major_version = Live.Application.get_application().get_major_version()
+        live_minor_version = Live.Application.get_application().get_minor_version()
+        live_bugfix_version = Live.Application.get_application().get_bugfix_version()
+        ElectraOneBase.LIVE_VERSION = (live_major_version,live_minor_version,live_bugfix_version)
+        self.debug(2,f'Live version {ElectraOneBase.LIVE_VERSION}.')
+       
     # --- Fast MIDI sysex upload handling
 
     # Unfortunately, Ableton appears not to support subporcess. Importing

@@ -20,7 +20,6 @@ from .config import *
 from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
 from .CCInfo import CCInfo, CCMap, UNMAPPED_CC, UNMAPPED_ID, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
-from .Devices import get_predefined_preset_info
 from .UniqueParameters import make_device_parameters_unique
 
 # --- constants

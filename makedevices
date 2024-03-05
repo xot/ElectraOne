@@ -29,6 +29,8 @@ PREAMBLE = """
 # Distributed under the MIT License, see LICENSE
 #
 
+from .ElectraOneBase import ElectraOneBase
+
 from .PresetInfo import PresetInfo
 from .CCInfo import CCMap
 
@@ -48,12 +50,23 @@ from .CCInfo import CCMap
 
 POSTSCRIPT = """
 # Return the predefined preset information for a device, None if it doesn't exist
+# Tries to find Live version specific presets for a device, so returns
+# also the version specific name if found
 def get_predefined_preset_info(device_name):
     # FIXME: try to read from file
-    if device_name in DEVICES:
-        return DEVICES[device_name]
+    # try loading version specific definitions first
+    # e.g. Echo.12.0 or Echo.12
+    (major,minor,bugfix) = ElectraOneBase.LIVE_VERSION
+    minor_device_name = f'{device_name}.{major}.{minor}'
+    major_device_name = f'{device_name}.{major}'
+    if minor_device_name in DEVICES:
+        return (minor_device_name, DEVICES[minor_device_name])
+    elif major_device_name in DEVICES:
+        return (major_device_name, DEVICES[major_device_name])
+    elif device_name in DEVICES:
+        return (device_name, DEVICES[device_name])
     else:
-        return None
+        return (None,None)
 """
 
 # Output file

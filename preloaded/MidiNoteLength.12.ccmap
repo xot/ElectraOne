@@ -1,0 +1,11 @@
+{'Device On': ((-1, 0),11,False,6)
+,'Trigger Source': ((-1, 0),11,False,9)
+,'Latch': ((-1, 0),11,False,7)
+,'Sync On': ((-1, 0),11,False,8)
+,'Synced Length': ((-1, 0),11,True,4)
+,'Time Length': ((9, 0),11,True,5)
+,'Gate': ((-1, 0),11,True,2)
+,'Release Velocity': ((-1, 0),11,True,3)
+,'Decay Time': ((2, 0),11,True,1)
+,'Decay Key Scale': ((-1, 0),11,True,0)
+}

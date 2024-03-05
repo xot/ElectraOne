@@ -164,13 +164,18 @@ class EffectController(ElectraOneBase):
     def _get_preset_info(self, device):
         """Get the preset info for the specified device, either externally,
            predefined or else construct it on the fly.
+           - device: device to get preset for; Live.Device.Device
+           - return (versioned_device_name,preset_info)
+           where versioned_device_name is the version specific name of the
+           device (e.g Echo.12.0) when a Live specific version preset is found
         """
         device_name = self.get_device_name(device)
         self.debug(3,f'Getting preset for { device_name }.')
-        preset_info = get_predefined_preset_info(device_name)
+        (versioned_device_name,preset_info) = get_predefined_preset_info(device_name)
         if preset_info:
-            self.debug(3,'Predefined preset found')
+            self.debug(3,f'Predefined preset {versioned_device_name} found')
         else:
+            versioned_device_name = device_name
             self.debug(3,'Constructing preset on the fly...')
             assert device, 'None device cannot be dumped'
             dumper = ElectraOneDumper(self.get_c_instance(), device)
@@ -183,7 +188,7 @@ class EffectController(ElectraOneBase):
         # any warnings will be reported in the log
         if device:
             preset_info.validate(device, device_name, self.warning)
-        return preset_info
+        return (versioned_device_name,preset_info)
 
     # --- handle device selection ---
     
@@ -210,7 +215,7 @@ class EffectController(ElectraOneBase):
         # preloaded); we do validate though...
         #
         # device_name == 'Empty' guaranteed to exist
-        preset_info = self._get_preset_info(device)
+        (versioned_device_name,preset_info) = self._get_preset_info(device)
         # If device == None then no device appointed. In this case
         # assigns the empty device (needed to install some LUA script
         # when commands need to be forwarded to a mixer when
@@ -223,7 +228,8 @@ class EffectController(ElectraOneBase):
         script = self._default_lua_script
         script += preset_info.get_lua_script() 
         # upload preset: will also request midi map (which will also refresh state)
-        self.upload_preset(EFFECT_PRESET_SLOT,device_name,preset,script)
+        # use versioned_device_name to look up correct preloaded preset
+        self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
         self._assigned_device_upload_delayed = False
         # if this upload fails, ElectraOneBase.preset_upload_successful will be
         # false; then update_display will try to upload again every 100ms (when
