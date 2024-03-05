@@ -101,11 +101,11 @@ class ElectraOne(ElectraOneBase):
                 # immediately but not caught by the remote script
                 #  (this is because the init() isnt finished yet!)
                 # stop trying after 30 times
-                while (not self._request_response_received) and (attempt < 30):
+                while (not self._request_response_received) and (attempts < 30):
                     self.send_e1_request()
                     time.sleep(sleep)
                     sleep = sleep*1.5 # sleep progressively longer
-                    attempt +=1 
+                    attempts +=1 
                 if not self._request_response_received:
                     self.debug(2,'Connection thread aborts detection.')
                     return
