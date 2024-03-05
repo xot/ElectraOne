@@ -63,6 +63,8 @@ There is unfortunately no reliable way for the remote script to get the *device*
 
 The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. The remote script uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
 
+*Note: a preset name should only contain ASCII characters. Accented (Unicode) characters no not reliably work, even thought the remote script appears to dump them just fine*.
+
 ### Predefined presets
 
 Predefined presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded```, using the following files in that folder
