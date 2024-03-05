@@ -153,16 +153,6 @@ def _get_par_value_info(p,v):
     else:
         return (number_part,type)
 
-def _get_par_min_max(p):
-    """Return the minimum and maximum value for parameter p as reported
-       by live in their string representation,
-       - parameter; Live.DeviceParameter.DeviceParameter
-       - result: tuple of minimum and maximum integer values; (float,floar)
-    """
-    (vmin_str,mintype) = _get_par_value_info(p,p.min)
-    (vmax_str,maxtype) = _get_par_value_info(p,p.max)
-    return ( float(vmin_str) , float(vmax_str) )
-        
 def _is_int_str(s):
     """Return whether string represents an integer
        - s; string
@@ -183,6 +173,19 @@ def _is_float_str(s):
     except:
         return False
     
+def _get_par_min_max(p):
+    """Return the minimum and maximum value for parameter p as reported
+       by live in their string representation,
+       - parameter; Live.DeviceParameter.DeviceParameter
+       - result: tuple of minimum and maximum integer values; (float,float)
+           (return (None,None) if conversion failed
+    """
+    (vmin_str,mintype) = _get_par_value_info(p,p.min)
+    (vmax_str,maxtype) = _get_par_value_info(p,p.max)
+    if _is_float_str(vmin_str) and _is_float_str(vmax_str):
+        return ( float(vmin_str) , float(vmax_str) )
+    else:
+        return ( None, None )
   
 # type strings that (typically) indicate a non-integer valued parameter
 # (the : occurs as part of a compression ratio...)
@@ -525,7 +528,9 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self.debug(6,f'Appending fader for {parameter.name}')
         (vmin,vmax) = _get_par_min_max(parameter)
-        if _is_pan(parameter):
+        if (not vmin) or (not vmax):
+            self._append_json_generic_fader(cc_info, False, None, None, None)
+        elif _is_pan(parameter):
             # invert vmin; p.min typically equals 50L, so vmin=50
             self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan")
         elif _is_percent(parameter):
