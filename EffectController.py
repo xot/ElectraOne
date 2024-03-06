@@ -163,7 +163,8 @@ class EffectController(ElectraOneBase):
 
     def _get_preset_info(self, device):
         """Get the preset info for the specified device, either externally,
-           predefined or else construct it on the fly.
+           predefined or else construct it on the fly. Dump constructed
+           preset if DUMP=True.
            - device: device to get preset for; Live.Device.Device
            - return (versioned_device_name,preset_info)
            where versioned_device_name is the version specific name of the
@@ -174,16 +175,21 @@ class EffectController(ElectraOneBase):
         (versioned_device_name,preset_info) = get_predefined_preset_info(device_name)
         if preset_info:
             self.debug(3,f'Predefined preset {versioned_device_name} found')
-        else:
-            versioned_device_name = device_name
-            self.debug(3,'Constructing preset on the fly...')
-            assert device, 'None device cannot be dumped'
-            dumper = ElectraOneDumper(self.get_c_instance(), device)
-            preset_info = dumper.get_preset_info()
+        if device and (not preset_info or DUMP):
+            # construct a preset if none found or DUMP requested
             if DUMP:
-                # determine path to store the dumps in (created if it doesnt exist)
-                path = self._ensure_in_libdir('dumps')
-                preset_info.dump(device,device_name,path,self.debug)
+                self.debug(3,'Constructing preset on the fly to dump...')
+            else:
+                self.debug(3,'Constructing preset on the fly...')
+            dumper = ElectraOneDumper(self.get_c_instance(), device)
+            dump_preset_info = dumper.get_preset_info()
+        if DUMP:
+            # determine path to store the dumps in (created if it doesnt exist)
+            path = self._ensure_in_libdir('dumps')
+            dump_preset_info.dump(device,device_name,path,self.debug)
+        if not preset_info:
+            versioned_device_name = device_name
+            preset_info = dump_preset_info
         # check preset integrity if device != 'Empty'
         # any warnings will be reported in the log
         if device:

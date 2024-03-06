@@ -8,6 +8,8 @@
 # Distributed under the MIT License, see LICENSE
 #
 
+import Live
+
 # Python imports
 import json
 import threading
@@ -66,6 +68,13 @@ class ElectraOne(ElectraOneBase):
         # make sure that all configuration constants make sense
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
+        self.debug(0,f'ElectraOne Remote Script version of { COMMITDATE }.')
+        # set live version
+        live_major_version = Live.Application.get_application().get_major_version()
+        live_minor_version = Live.Application.get_application().get_minor_version()
+        live_bugfix_version = Live.Application.get_application().get_bugfix_version()
+        ElectraOneBase.LIVE_VERSION = (live_major_version,live_minor_version,live_bugfix_version)
+        self.debug(1,f'Live version {ElectraOneBase.LIVE_VERSION}.')
         # 'close' the interface until E1 detected.
         ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
         # start a thread to detect the E1, if found thread will complete the
@@ -75,7 +84,6 @@ class ElectraOne(ElectraOneBase):
         # and opening the interface so the remote script becomes active
         self._mixer_controller = None
         self._effect_controller = None
-        self.debug(0,f'ElectraOne Remote Script version of { COMMITDATE }.')
         self.debug(0,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
