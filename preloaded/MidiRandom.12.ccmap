@@ -1,0 +1,8 @@
+{'Device On': ((-1, 0),11,False,2)
+,'Chance': ((-1, 0),11,True,0)
+,'Choices': ((-1, 0),11,False,1)
+,'Interval': ((-1, 0),11,False,3)
+,'Sign': ((-1, 0),11,False,5)
+,'Mode': ((-1, 0),11,False,4)
+,'Use Song Scale': ((-1, 0),11,False,6)
+}

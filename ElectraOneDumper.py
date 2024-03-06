@@ -527,7 +527,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self.debug(6,f'Appending fader for {parameter.original_name}')
         (vmin,vmax) = _get_par_min_max(parameter)
-        if (not vmin) or (not vmax):
+        if (vmin == None) or (vmax == None):
             self._append_json_generic_fader(cc_info, False, None, None, None)
         elif _is_pan(parameter):
             # invert vmin; p.min typically equals 50L, so vmin=50
