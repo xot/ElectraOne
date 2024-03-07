@@ -718,7 +718,16 @@ Curated presets are
 - either stored preloaded on the E1, by default in the folder ```xot/ableton``` within ```ctrlv2/presets```, using the ```device.class_name``` as the file name (where the preset itself is stored in ```<name>.epr``` and any associated LUA code is stored in ```<name>.lua```),
 - or stored in a dictionary ```DEVICES``` defined in ```Devices.py```. The keys of this dictionary are the names of devices as returned by ```device.class_name```. This is not perfect as MaxForLive devices return a generic Max device name and not the actual name of the device. The same is true for plugins. See [below](#getting-the-name-of-a-plugin-or-max-device) for how the script somewhat solves this.
 
-Using a device name as its key, the dictionary stores information about a preset as a ```PresetInfo``` object (defined in ```PresetInfo.py```). This is essentially a tuple containing the E1 preset JSON as a string, a CC map, and some LUA scripting special to the preset. Certain presets use this to hide/show certain parts of the preset depending on the value of certain parameters (e.g. to show either a synchronised rate control or a free frequency control to control the speed of an LFO, depending on a 'sync' toggle button).
+To make it possible to define presets for specific versions of Live, a version number can be appended to the devicename. E.g. ```MidiRandom.12.epr``` would be used for all version of Live equal or above version 12. And, say ```Echo.11.3.10``` would be used for all version of Live equal or above version 11.3.10.
+
+To allow this ```DEVICES``` has the following structure:
+- it is a dictionary indexed by ```device.class_name```
+- this returns another dictionary indexed by a Live version tuple ```(<major>,<minor>,<bugfix>)```; this dictionary contains all versions of a preset for the device, the default preset has key ```(0,0,0)```
+- this second dictionary contains tuples ```(versioned_device_name,PresetInfo)```.
+
+```get_predefined_preset_info(device_name)``` returns the versioned device name (matching the current Live version, e.g. ```Echo.11.3.10``` or just the default name ```Echo```) and the associated ```PresetInfo``` object for ```device_name``` passed as parameter.
+
+The ```PresetInfo``` object (defined in ```PresetInfo.py```) is essentially a tuple containing the E1 preset JSON as a string, a CC map, and some LUA scripting special to the preset. Certain presets use this to hide/show certain parts of the preset depending on the value of certain parameters (e.g. to show either a synchronised rate control or a free frequency control to control the speed of an LFO, depending on a 'sync' toggle button).
 
 The E1 JSON preset format is described [here](https://docs.electra.one/developers/presetformat.html#preset-json-format). A control in the preset is assigned a CC parameter number, a MIDI channel, a type and whether it transmits/listens to 7bit or 14 bit CC values. (All controls are CC type.)
 

@@ -109,6 +109,8 @@ class ElectraOne(ElectraOneBase):
                 # immediately but not caught by the remote script
                 #  (this is because the init() isnt finished yet!)
                 # stop trying after 30 times
+                #
+                # note that _do_request_response_called() sets the firmware and hardware version
                 while (not self._request_response_received) and (attempts < 30):
                     self.send_e1_request()
                     time.sleep(sleep)
@@ -117,11 +119,12 @@ class ElectraOne(ElectraOneBase):
                 if not self._request_response_received:
                     self.debug(2,'Connection thread aborts detection.')
                     return
+                self.debug(2,'Connection thread detected an E1.')
             else:
                 self.debug(2,'Connection thread skipping detection.')
-            if not ElectraOneBase.E1_version_supported:
+            if DETECT_E1 and not ElectraOneBase.E1_version_supported:
+                self.debug(2,'Connection thread: this E1 not supported.')
                 return
-            self.debug(2,'Connection thread: supported E1 found')
             # complete the initialisation
             self.setup_fast_sysex()
             self.setup_logging()

@@ -456,7 +456,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            integers.
         """
         # Convert min and max to integers
-        if vmin:
+        if vmin != None:
             vmin = int(vmin)
             vmax = int(vmax)
         self.debug(6,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')

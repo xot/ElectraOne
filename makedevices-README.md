@@ -1,6 +1,6 @@
 # makedevices documentation
 
-The makedevices script collects preloadable presets and stores them in Devices.py for use by the E1 remote script.
+The makedevices script collects preloadable presets and stores them in ```Devices.py``` for use by the E1 remote script.
 
 The input to the script are the following types of files stored in the folder  ```./preloaded```:
 
@@ -10,3 +10,5 @@ The input to the script are the following types of files stored in the folder  `
 - ```<devicename>.lua```, containing additional LUA functions used within the preset. This file is optional.
 
 Note: makedevices must be run in the directory containing the directory ```./preloaded``` and the default lua script ```default.lua```.
+
+To include presets for specific versions of Live, append the version number to the devicename. E.g. ```MidiRandom.12.epr``` would be used for all version of Live equal or above version 12. And, say ```Echo.11.3.10``` would be used for all version of Live equal or above version 11.3.10.

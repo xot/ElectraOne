@@ -54,45 +54,52 @@ POSTSCRIPT = """
 # also the version specific name if found
 def get_predefined_preset_info(device_name):
     # FIXME: try to read from file
-    # try loading version specific definitions first
+    # try loading version specific definitions
     # e.g. Echo.12.0 or Echo.12
-    (major,minor,bugfix) = ElectraOneBase.LIVE_VERSION
-    minor_device_name = f'{device_name}.{major}.{minor}'
-    major_device_name = f'{device_name}.{major}'
-    if minor_device_name in DEVICES:
-        return (minor_device_name, DEVICES[minor_device_name])
-    elif major_device_name in DEVICES:
-        return (major_device_name, DEVICES[major_device_name])
-    elif device_name in DEVICES:
-        return (device_name, DEVICES[device_name])
+    if device_name in DEVICES:
+        presets = DEVICES[device_name]
+        versions = list(presets.keys())
+        versions.sort()
+        i = 0
+        # versions[0]=(0,0,0) always
+        while (i < len(versions)) and (versions[i] <= ElectraOneBase.LIVE_VERSION):
+            i += 1
+        assert i > 0, 'Empty preset dict encountered.'
+        return presets[versions[i-1]]
     else:
         return (None,None)
 """
 
 # Output file
-DEVICES = 'Devices.py'
+DEVICES_FILE = 'Devices.py'
 
 # Path to file containing the default LUA script that always needs to be
 # included
 DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
 
-flag = False
+# Dictionary of device presets to construct and dump
 
-def process_preset(outf,preset_path):
-    """Process one preset, writing its data to outf 
+DEVICES = {}
+
+def extract_version_from_name(device_versioned_name):
+    """Return a tuple (name, version-3-tuple)
     """
-    global flag
-    # get the paths to the data files, and the device name
+    extended_name = device_versioned_name + '.0.0.0' # make sure enough version fields exist
+    splits = extended_name.rsplit('.')
+    return (splits[0] , (int(splits[1]),int(splits[2]),int(splits[3])))
+
+def process_preset(preset_path):
+    """Process one preset, storing its data in DEVICES
+    """
     json_preset_path = preset_path
     lua_script_path = preset_path.with_suffix('.lua')
     ccmap_path = preset_path.with_suffix('.ccmap')
-    device_name = preset_path.stem
-    print(f'Predefining {device_name}')
-    # write a comma to outf if needed
-    if flag:
-        outf.write(',\n')
-    flag = True
-    # load and process the .epr preset, remapping controls if necessary
+    device_versioned_name = preset_path.stem
+    (device_name,version) = extract_version_from_name(device_versioned_name)
+    if device_name not in DEVICES:
+        DEVICES[device_name]={}
+    print(f'Predefining {device_name} ({device_versioned_name}) for Live version {version} or higher.')
+    # load and process the .epr preset
     with open(json_preset_path,'r') as inf:
         #print('- Loading preset JSON.')
         json_load = json.load(inf)
@@ -101,8 +108,7 @@ def process_preset(outf,preset_path):
         # as a single-quoted string to Devices.py
         filter_quotes = str.maketrans({ "'": "\\'"})
         filtered_json_preset = json_preset.translate(filter_quotes)
-    # load the .lua script if it exist; always add DEFAULT_LUA_SCRIPT
-    #lua_script = DEFAULT_LUA_SCRIPT
+    # load the .lua script if it exist
     lua_script = ""
     # append the .lua if it exists
     if os.path.exists(lua_script_path):
@@ -121,18 +127,49 @@ def process_preset(outf,preset_path):
         # TODO: commented out to allow comments in CC-maps
         #filter_newlines = str.maketrans({ '\n': None})
         #ccmap = ccmap.translate(filter_newlines)
+    preset_info = (filtered_json_preset,filtered_lua_script,ccmap)
+    preset = (device_versioned_name,preset_info)
+    DEVICES[device_name][version]=preset
+
+def dump_preset(outf,preset):
     # write the preset information to DEVICES.py
-    outf.write(f"'{ device_name }': PresetInfo('")
-    outf.write(filtered_json_preset)
+    (device_name,preset_info) = preset
+    (json,lua,ccmap) = preset_info
+    outf.write(f"('{ device_name }', PresetInfo('")
+    outf.write(json)
     outf.write("',\n    ")
     # LUA script may contain newlines
     outf.write('"""')
-    outf.write(filtered_lua_script)
+    outf.write(lua)
     outf.write('""",\n    ')
     outf.write(f'CCMap({ccmap})')
-    outf.write(')')
+    outf.write('))')
 
-
+def dump_device(outf,device):
+    inner_flag = False
+    outf.write('{')
+    for preset_version in device.keys():
+        # write a comma to outf if needed
+        if inner_flag:
+            outf.write(',\n')
+        inner_flag = True
+        outf.write(f"{preset_version}:")
+        dump_preset(outf,device[preset_version])
+    outf.write('}')
+               
+def dump_devices(outf):
+    """Dump all devices in DEVICES to outf
+    """
+    outer_flag = False
+    outf.write('DEVICES = {\n')
+    for device_name in DEVICES.keys():
+        # write a comma to outf if needed
+        if outer_flag:
+            outf.write(',\n')
+        outer_flag = True
+        outf.write(f"'{ device_name }':")
+        dump_device(outf,DEVICES[device_name])
+    outf.write('\n}\n')
 
 # === MAIN ===
 
@@ -152,13 +189,13 @@ if not os.path.exists('preloaded'):
 # find the paths to all presets to preload
 here = Path('.')
 allpresets_paths = here.glob('preloaded/*.epr')
-# open the output for writing
-with open(DEVICES,'w') as outf:
+# process each preset path and store in DEVICES
+for preset_path in allpresets_paths:
+    process_preset(preset_path)
+# open the output for writing and dump DEVICES
+with open(DEVICES_FILE,'w') as outf:
     outf.write(PREAMBLE)
-    outf.write(f'\nDEFAULT_LUA_SCRIPT="""{DEFAULT_LUA_SCRIPT}"""\n')
-    outf.write('\nDEVICES = {\n')
-    # process each preset path
-    for preset_path in allpresets_paths:
-        process_preset(outf,preset_path)
-    outf.write('\n}\n\n')
+    outf.write(f'\nDEFAULT_LUA_SCRIPT="""{DEFAULT_LUA_SCRIPT}"""\n\n')
+    dump_devices(outf)
+    outf.write('\n')
     outf.write(POSTSCRIPT)
