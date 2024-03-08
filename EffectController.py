@@ -60,7 +60,6 @@ class EffectController(ElectraOneBase):
         # appointments)
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
         # set the default lua script
-        path = self._get_libdir()
         if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
             # in this case we assume (!) the defualt.lua is preloaded on E1
             self._default_lua_script = 'require("xot/default")\n'
@@ -184,9 +183,7 @@ class EffectController(ElectraOneBase):
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             dump_preset_info = dumper.get_preset_info()
         if DUMP:
-            # determine path to store the dumps in (created if it doesnt exist)
-            path = self._ensure_in_libdir('dumps')
-            dump_preset_info.dump(device,device_name,path,self.debug)
+            dump_preset_info.dump(device, device_name, ElectraOneBase.DUMP_PATH, self.debug)
         if not preset_info:
             versioned_device_name = device_name
             preset_info = dump_preset_info

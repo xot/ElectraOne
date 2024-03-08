@@ -145,6 +145,8 @@ class ElectraOneBase(Log):
     
     # --- LIBDIR handling
 
+    DUMP_PATH = None
+    
     def _get_libdir(self):
         """Determine library path based on LIBDIR.
            Either ~/LIBDIR, /LIBDIR, or the user home directory,
@@ -197,6 +199,9 @@ class ElectraOneBase(Log):
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         Log.__init__(self, c_instance)
+        if not ElectraOneBase.DUMP_PATH:
+            ElectraOneBase.DUMP_PATH = self._ensure_in_libdir('dumps')
+
         
     def is_ready(self):
         """Return whether the remote script is ready to process requests
@@ -858,18 +863,17 @@ class ElectraOneBase(Log):
            and respond to them.
            NOTE: waits for receipt of ACK, so MUST only be called within a thread!
         """
-        if E1_LOGGING >= 0:
-            self.debug(1,'Enable logging.')
-        else:
-            self.debug(1,'Disable logging.')
         # Set the logging port
         if E1_LOGGING >= 0 :
+            self.debug(1,'Enable logging.')
             # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
             sysex_command = (0x14, 0x7D)
             sysex_port = (E1_LOGGING_PORT, 0x00)
             # this SysEx command repsonds with an ACK/NACK over the correct post since 3.1.4
             self._increment_acks_pending()
             self._send_midi_sysex(sysex_command + sysex_port)
+        else:
+            self.debug(1,'Disable logging.')
         # Enable/disable logging
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_command = (0x7F, 0x7D)
