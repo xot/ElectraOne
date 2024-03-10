@@ -273,6 +273,7 @@ class ElectraOneBase(Log):
         # the device/instrument, and device.name equals the selected preset
         # (or the device/instrumettn name).
         # For plugins and max devices however, device.class_name is useless
+        # and device.name is returned instead (with spaces removed)
         # To reliably identify preloaded presets by name for such devices
         # as well, embed them into a audio/instrument rack and give that rack
         # the name of the device.
@@ -293,10 +294,10 @@ class ElectraOneBase(Log):
                 name = cp.name + '-'
             else:
                 self.debug(7,'No enclosing rack found, using my own name (unreliable).')
-                name = device.name
+                name = device.name.replace(' ','')
         elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
             self.debug(7,'I am a rack, using my own name (unreliable).')
-            name = device.name
+            name = device.name.replace(' ','')
         else:
             name = device.class_name
         self.debug(6,f'Device name is { name }.')
