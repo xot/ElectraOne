@@ -176,7 +176,7 @@ class EffectController(ElectraOneBase):
             self.debug(3,f'Predefined preset {versioned_device_name} found')
         if device and (not preset_info or DUMP):
             # construct a preset if none found or DUMP requested
-            if DUMP:
+            if preset_info:
                 self.debug(3,'Constructing preset on the fly to dump...')
             else:
                 self.debug(3,'Constructing preset on the fly...')

@@ -145,6 +145,7 @@ class ElectraOneBase(Log):
     
     # --- LIBDIR handling
 
+    # location to dump presets in; set by init
     DUMP_PATH = None
     
     def _get_libdir(self):
@@ -635,7 +636,7 @@ class ElectraOneBase(Log):
            - parameter: Ableton Live parameter; Live.DeviceParameter.DeviceParameter
            - ccinfo: CC information (channel, cc, bits) about the parameter; CCInfo
         """
-        self.debug(4,f'Sending value for {p.original_name} over {ccinfo}.')
+        #self.debug(4,f'Sending value for {p.original_name} using CCInfo {ccinfo}.')
         channel = ccinfo.get_midi_channel()
         cc_no = ccinfo.get_cc_no()
         if ccinfo.is_cc14():
