@@ -1,0 +1,8 @@
+{'Device On': ((-1, 0),11,False,6)
+,'Ceiling': ((1, 0),11,True,0)
+,'Lookahead': ((4, 0),11,True,2)
+,'Loudness': ((5, 0),11,True,3)
+,'Release': ((6, 0),11,True,4)
+,'Saturation': ((-1, 0),11,True,5)
+,'Color': ((-1, 0),11,True,1)
+}
