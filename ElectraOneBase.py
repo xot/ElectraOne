@@ -296,7 +296,7 @@ class ElectraOneBase(Log):
                 self.debug(7,'No enclosing rack found, using my own name (unreliable).')
                 name = device.name.replace(' ','')
         elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
-            self.debug(7,'I am a rack, using my own name (unreliable).')
+            self.debug(7,'I am a rack, using my own name.')
             name = device.name.replace(' ','')
         else:
             name = device.class_name
@@ -653,7 +653,19 @@ class ElectraOneBase(Log):
             o = ord('?')
             self.debug(5,f'UNICODE character {c} replaced.')
         return o
-    
+
+    def unicode2ascii(self, s):
+        """Filter out any non-ascii characters from unicode string s, replacing
+           some important symbols with close enough similar ones.
+        """
+        translation = { ord('♯') : ord('#') , ord('°') : ord('*') }
+        s = s.translate(translation)
+        # TODO: do this the python way
+        result = ''
+        for i in range(len(s)):
+            result = result + chr(self._safe_ord(s[i]))
+        return result
+
     def _E1_sysex(self, message):
         return E1_SYSEX_PREFIX + message + SYSEX_TERMINATE
 

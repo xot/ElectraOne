@@ -355,6 +355,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 self.debug(4,f'MIDI CC value out of range { item_cc_value }. Skipping.')
             else:
                 flag = self._append_comma(flag)
+                # translate any (significant) UNICODE characters in the string
+                item = self.unicode2ascii(item)
                 self._append( f'{{"label":"{ item }"' # {{ = {
                             , f',"index":{ idx }'
                             , f',"value":{ item_cc_value }'
