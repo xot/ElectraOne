@@ -281,23 +281,24 @@ class ElectraOneBase(Log):
         # device.name instead
         # To distinguish names for plugins/max devices (for which we derive
         # the name from the enclosing rack) from the name of the enclosing
-        # rack itself, append a hypen to the name to the derived plugin/max name
+        # rack itself, append a hash to the name to the rack
         if not device:
             self.debug(7,'Getting name for empty device.')
             return 'Empty'
-        self.debug(7,f'Getting name for device with class_name { device.class_name } as device name. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
+        self.debug(7,f'Getting name for device with class_name { device.class_name }. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent
-            if isinstance(cp,Live.Chain.Chain):
+            if isinstance(cp,Live.Chain.Chain) and (len(cp.devices) == 1):
                 cp = cp.canonical_parent
-                self.debug(7,'Enclosing rack found, using its name.')
-                name = cp.name + '-'
+                self.debug(7,'Enclosing rack found, using its name with spaces removed.')
+                name = cp.name.replace(' ','')
             else:
-                self.debug(7,'No enclosing rack found, using my own name (unreliable).')
+                self.debug(7,'No enclosing rack found, using my own name with spaces removed (unreliable).')
                 name = device.name.replace(' ','')
         elif device.class_name in ('InstrumentGroupDevice','DrumGroupDevice','MidiEffectGroupDevice','AudioEffectGroupDevice'):
-            self.debug(7,'I am a rack, using my own name.')
+            self.debug(7,'I am a rack, using my own name with spaces removed.')
             name = device.name.replace(' ','')
+            name += "#"
         else:
             name = device.class_name
         self.debug(6,f'Device name is { name }.')
@@ -646,7 +647,6 @@ class ElectraOneBase(Log):
             self.send_parameter_as_cc7(p, channel, cc_no)                
 
     # --- MIDI SysEx handling ---
-
     
     def _safe_chr(self, c):
         """Replace important UNICODE char with similar ASCII.

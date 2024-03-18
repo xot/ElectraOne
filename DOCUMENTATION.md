@@ -761,17 +761,15 @@ DEVICES = {
 
 #### Getting the name of a plugin or Max device
 
-For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify curated presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded inside an audio or instrument rack, and if so it uses the name of the enclosing rack followed by a single hyphen ```-``` as the name to use for the plugin or Max device when dumping its preset or when looking up a preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3-``` is used as the plugin name. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name, which is unreliable.)
+For native devices and instruments, ```device.class_name``` is the name of the device/instrument, and ```device.name``` equals the selected preset (or the device/instrument name). For plugins and Max devices, ```device.class_name``` is useless (denoting its type like ```AuPluginDevice``` or```MxDeviceAudioEffect```). To reliably identify curated presets by name for such devices as well, the remote script checks whether a plugin or Max device is embedded *as the only device* inside an audio or instrument rack, and if so it uses the name of the enclosing rack instead as the name to use for the plugin or Max device when dumping its preset or when looking up a preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3``` is used as the plugin name. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name, which is unreliable.)
 
 *Note that selecting the rack itself will upload the set of macros as the preset.*
 
-So, if you want to make your own curated presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it. (Be sure to add the hyphen to the name when creating such presets!)
-
-
+So, if you want to make your own curated presets for plugins or Max devices, embed them inside an audio or instrument rack and rename that rack to the name of the plugin. Save the rack preset, and in future load that rack preset instead of loading the plugin or Max device directly. Selecting the plugin or Max device (*not* the enclosing rack!) will then show the preset you created for it. 
 
 #### Getting the name for a rack device
 
-For rack devices (audio, MIDI, drum or instruments), the remote script also uses the (unreliable) method of using ```device.name``` to determine the name to use to lookup a predefined preset.
+For rack devices (audio, MIDI, drum or instruments), the remote script also uses the (unreliable) method of using ```device.name``` to determine the name to use to lookup a predefined preset, but appends a hash (```#```) to distinguish it from the name used by an embedded plugin or Max device (see above).
 
 ### Generating presets on the fly
 
