@@ -466,10 +466,10 @@ class ElectraOneBase(Log):
     # all possible ACKs will be (silently!) received by the time the
     # command finished
     #
-    # Call this *before* sending out the SysEx that expects an ACK as response
-    # to avoid a race condition where the ACK is received before the counter
-    # is incremented, and hence the __wait_for_ack_or_timeout() fails
-
+    # Call _increment_acxks_pending() *before* sending out the SysEx that
+    # expects an ACK as response to avoid a race condition where the ACK is
+    # received before the counter is incremented, and hence the
+    # __wait_for_ack_or_timeout() fails
     def _increment_acks_pending(self):
         """Increment the number of pending ACKs by 1.
            (See ACK/NACK received functions in ElectraOne, and
@@ -521,8 +521,9 @@ class ElectraOneBase(Log):
            some timeout).
            (Can only be called inside a thread.)
         """
-        # wait four seconds since acks_pending was incremented last
         start_time = time.time()
+        # TODO: why wait for so long?
+        # wait four seconds since acks_pending was incremented last
         end_time = ElectraOneBase.acks_pending_incremented_time + 4.0
         self.debug(4,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending) on {start_time:.3f}, wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')
         waiting_time = self.__wait_for_pending_acks_until(end_time)
@@ -926,24 +927,6 @@ class ElectraOneBase(Log):
         # wait for it
         self.__wait_for_ack_or_timeout(5)
             
-    def _select_slot_only(self, slot):
-        """Select a slot on the E1 but do not activate the preset already there.
-           - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
-        """
-        self.debug(4,f'Selecting slot {slot}.')
-        (bankidx, presetidx) = slot
-        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
-        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
-        # (TODO: not documented yet!)
-        sysex_command = (0x14, 0x08)
-        sysex_select = (bankidx, presetidx)
-        # this SysEx command repsonds with an ACK/NACK
-        self._increment_acks_pending()
-        self._send_midi_sysex(sysex_command + sysex_select)
-        ElectraOneBase.current_visible_slot = slot
-        # Unlike activate (see below) the E1 will not send a preset changed
-        # message in response, but only an ACK
-
     def activate_preset_slot(self, slot):
         """Select a slot on the E1 and activate the preset present there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
@@ -977,7 +960,9 @@ class ElectraOneBase(Log):
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_select)
-        
+
+    # --- preset upload thread and helper functions
+    
     def _load_preloaded_preset(self, slot, preset_name):
         """Load a preloaded preset and associated luascript that are already
            preloaded on the E1 to the indicated slot. 
@@ -996,6 +981,24 @@ class ElectraOneBase(Log):
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_json)
         
+    def _select_slot_only(self, slot):
+        """Select a slot on the E1 but do not activate the preset already there.
+           - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
+        """
+        self.debug(4,f'Selecting slot {slot}.')
+        (bankidx, presetidx) = slot
+        assert bankidx in range(6), f'Bank index {bankidx} out of range.'
+        assert presetidx in range(12), f'Preset index {presetifx} out of range.'
+        # (TODO: not documented yet!)
+        sysex_command = (0x14, 0x08)
+        sysex_select = (bankidx, presetidx)
+        # this SysEx command repsonds with an ACK/NACK
+        self._increment_acks_pending()
+        self._send_midi_sysex(sysex_command + sysex_select)
+        ElectraOneBase.current_visible_slot = slot
+        # Unlike activate (see below) the E1 will not send a preset changed
+        # message in response, but only an ACK
+
     def _upload_lua_script_to_current_slot(self, luascript):
         """Upload the specified LUA script to the currently selected slot on
            the E1 (use _select_slot_only to select the desired slot)
@@ -1054,7 +1057,7 @@ class ElectraOneBase(Log):
                 ElectraOneBase.current_visible_slot = slot
                 ElectraOneBase.preset_upload_successful = True
             else:
-                self.debug(2,'Loading preloaded presdet failed; revert to upload.')
+                self.debug(2,'Loading preloaded preset failed; revert to upload.')
                 # preloading failed: upload instead
                 # first select slot and wait for ACK
                 self._select_slot_only(slot)
