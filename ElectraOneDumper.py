@@ -676,7 +676,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # as well as the (possibly modified) cc map
         preset = self.getvalue()
         # remove/remap any non-ASCII characters
-        preset = self._safe_str(preset)
+        preset = self.ascii_str(preset)
         return (preset,cc_map)
 
     def _construct_cc_map(self, device_name, parameters):

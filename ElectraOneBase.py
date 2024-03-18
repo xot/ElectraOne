@@ -653,30 +653,31 @@ class ElectraOneBase(Log):
            Map other non ASCII chars to '?'
            - return: ASCII char (byte < 128)
         """
-        translation = { ord('♭') : ord('b')
-                      , ord('♯') : ord('#')
-                      , ord('°') : ord('*')
-                      }
-        c = c.translate(translation)
         if ord(c) > 127:
             self.debug(5,f'UNICODE character {c} replaced.')
             return '?'
         else:
             return c
 
-    def _safe_str(self,s):
+    def ascii_str(self,s):
         """Replace all important UNICODE chars in str with similar ASCII.
            Map other non ASCII chars to '?'
            - return: ASCII string
         """
+        translation = { ord('♭') : ord('b')
+                      , ord('♯') : ord('#')
+                      , ord('°') : ord('*')
+                      , ord('∞') : 'inf'
+                      }
+        s = s.translate(translation)
         return ''.join( [self._safe_chr(c) for c in s] )
-    
-    def _safe_ord (self, c ):
-        """Replace important UNICODE char with similar ASCII.
+
+    def _safe_bytes(self,s):
+        """Replace all important UNICODE chars in s with similar ASCII.
            Map other non ASCII chars to '?'
-           - return: byte < 128
+           - return: sequence of bytes < 128
         """
-        return ord(self._safe_chr(c))
+        return tuple( [ ord(c) for c in self.ascii_str(s) ] )
 
     def _E1_sysex(self, message):
         return E1_SYSEX_PREFIX + message + SYSEX_TERMINATE
@@ -717,7 +718,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Sending LUA command {command}.')
         # see https://docs.electra.one/developers/luaext.html
         sysex_command = (0x08, 0x0D)
-        sysex_lua = tuple([ self._safe_ord(c) for c in command ])
+        sysex_lua = self._safe_bytes(command) 
         # LUA commands respond with ACK/NACK
         self._increment_acks_pending()
         # in CONTROL_BOTH mode BOTH E1s send an ACK! (if the first E1 is at version 3.2.0
@@ -874,7 +875,7 @@ class ElectraOneBase(Log):
         sysex_command = (0x14, 0x0E)
         sysex_controlid = (cid % 128 , cid // 128)
         sysex_valueid = (vid, ) 
-        sysex_text = tuple([ self._safe_ord(c) for c in valuestr ])
+        sysex_text = self._safe_bytes(valuestr)
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_controlid + sysex_valueid + sysex_text)
@@ -990,7 +991,7 @@ class ElectraOneBase(Log):
         # see https://docs.electra.one/developers/midiimplementation.html#load-preloaded-preset
         sysex_command = (0x04, 0x08)
         json = f'{{ "bankNumber": {bankidx}, "slot": {presetidx}, "preset": "{E1_PRESET_FOLDER}/{preset_name}" }}'
-        sysex_json = tuple([ self._safe_ord(c) for c in json ])
+        sysex_json = self._safe_bytes(json)
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_json)
@@ -1003,7 +1004,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Uploading LUA script {luascript}.')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_command = (0x01, 0x0C)
-        sysex_script = tuple([ self._safe_ord(c) for c in luascript ])
+        sysex_script = self._safe_bytes(luascript)
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command + sysex_script)
@@ -1016,7 +1017,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Uploading preset (size {len(preset)} bytes).')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
         sysex_command = (0x01, 0x01)
-        sysex_preset = tuple([ self._safe_ord(c) for c in preset ])
+        sysex_preset = self._safe_bytes(preset)
         if not DUMP: # no need to write this to the log if the same thing is dumped
             self.debug(6,f'Preset = { preset }')
         # this SysEx command repsonds with an ACK/NACK 
