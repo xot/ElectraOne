@@ -365,9 +365,13 @@ For certain devices, Live reports the same name for different parameters in the 
 - Emit: several parameters with the same name, eg Attack!
 - LFO Modulator: two parameters "Rate": one for Hz one for synced!
 
+The remote script tries to resolve this by appending an index (e.g. ```.1``` and ```.2``` etcetera) whenever a parameter name happens more than once.
+
 For certain devices, Live exposes parameters that are not visible in the Live UI, for example: 
 
 - Hybrid Reverb: exposes parameters not in the Live UI (Eg Pr Sixth)
+
+For certain devices, Live does not reliable echo back the MIDI CC value of an updated parameter when it is 14 bit (e.g. the Bandwidth parameter in Corpus). It sometimes only sends the LSB of the value. This can be fixed by using a 7 bit MIDI CC mapping in such cases, losing on resolution though.
 
 # The main E1 remote script
 

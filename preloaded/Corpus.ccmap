@@ -27,8 +27,8 @@
 ,'LFO Amount': (-1,11,True,7)
 ,'Filter On/Off': (-1,11,False,64)
 ,'Mid Freq': (23,11,True,13)
-,'Width': (46,11,True,26)
-,'Width.1': (-1,11,True,24)
+,'Width': (46,11,False,26) # changed to 7 bit because otherwise jittery movement
+,'Width.1': (-1,11,True,24) 
 ,'MIDI Frequency': (-1,11,False,57)
 ,'MIDI Mode': (-1,11,False,58)
 ,'PB Range': (-1,11,False,60)
