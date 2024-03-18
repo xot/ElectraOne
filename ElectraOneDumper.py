@@ -355,8 +355,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 self.debug(4,f'MIDI CC value out of range { item_cc_value }. Skipping.')
             else:
                 flag = self._append_comma(flag)
-                # translate any (significant) UNICODE characters in the string
-                item = self.unicode2ascii(item)
                 self._append( f'{{"label":"{ item }"' # {{ = {
                             , f',"index":{ idx }'
                             , f',"value":{ item_cc_value }'
@@ -676,7 +674,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self._append( '}' )
         # return the string constructed within the StringIO object as preset
         # as well as the (possibly modified) cc map
-        return (self.getvalue(),cc_map)
+        preset = self.getvalue()
+        # remove/remap any non-ASCII characters
+        preset = self._safe_str(preset)
+        return (preset,cc_map)
 
     def _construct_cc_map(self, device_name, parameters):
         """Construct a cc_map for the list of parameters. Map no more parameters

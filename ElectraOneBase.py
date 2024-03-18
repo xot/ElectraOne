@@ -647,24 +647,36 @@ class ElectraOneBase(Log):
 
     # --- MIDI SysEx handling ---
 
-    def _safe_ord (self, c ):
-        o = ord(c)
-        if o > 127:
-            o = ord('?')
-            self.debug(5,f'UNICODE character {c} replaced.')
-        return o
-
-    def unicode2ascii(self, s):
-        """Filter out any non-ascii characters from unicode string s, replacing
-           some important symbols with close enough similar ones.
+    
+    def _safe_chr(self, c):
+        """Replace important UNICODE char with similar ASCII.
+           Map other non ASCII chars to '?'
+           - return: ASCII char (byte < 128)
         """
-        translation = { ord('♯') : ord('#') , ord('°') : ord('*') }
-        s = s.translate(translation)
-        # TODO: do this the python way
-        result = ''
-        for i in range(len(s)):
-            result = result + chr(self._safe_ord(s[i]))
-        return result
+        translation = { ord('♭') : ord('b')
+                      , ord('♯') : ord('#')
+                      , ord('°') : ord('*')
+                      }
+        c = c.translate(translation)
+        if ord(c) > 127:
+            self.debug(5,f'UNICODE character {c} replaced.')
+            return '?'
+        else:
+            return c
+
+    def _safe_str(self,s):
+        """Replace all important UNICODE chars in str with similar ASCII.
+           Map other non ASCII chars to '?'
+           - return: ASCII string
+        """
+        return ''.join( [self._safe_chr(c) for c in s] )
+    
+    def _safe_ord (self, c ):
+        """Replace important UNICODE char with similar ASCII.
+           Map other non ASCII chars to '?'
+           - return: byte < 128
+        """
+        return ord(self._safe_chr(c))
 
     def _E1_sysex(self, message):
         return E1_SYSEX_PREFIX + message + SYSEX_TERMINATE

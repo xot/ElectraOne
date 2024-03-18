@@ -92,8 +92,6 @@ class GenericDeviceController(ElectraOneBase):
                (control_tuple not in self._values) or \
                (self._values[control_tuple] != pstr):
                 self._values[control_tuple] = pstr
-                # translate any (significant) UNICODE characters in the string
-                pstr = self.unicode2ascii(pstr)
                 self.debug(5,f'Value of {p.original_name} ({p.name}) (of parameter {id(p)}) updated to {pstr}.')
                 self.send_value_update(control_id,value_id,pstr)
         

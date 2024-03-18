@@ -57,6 +57,11 @@ Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+
 The construction of presets is controlled by several constants defined in ```config.py```. Dumps are written in the folder ```<LIBDIR>/dumps```.
 See the [documentation of configuration options](#configuring) below.)
 
+### Defining presets for specific versions of Live
+
+To include presets for specific versions of Live, append the version number to the devicename. E.g. ```MidiRandom.12.epr``` would be used for all version of Live equal or above version 12. And, say ```Echo.11.3.10``` would be used for all version of Live equal or above version 11.3.10.
+
+
 ### Names used for plugins and Max devices
 
 There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or predefining presets (see below).
