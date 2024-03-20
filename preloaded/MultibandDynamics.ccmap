@@ -5,7 +5,7 @@
 ,'Peak/RMS Mode': (-1,11,False,66)
 ,'Master Output': (-1,11,True,20)
 ,'Amount': (-1,11,True,6)
-,'Time Scaling': (-1,11,True,30)
+,'Time Scaling': (38,11,True,30)
 ,'Output Gain (Low)': (-1,11,True,23)
 ,'Output Gain (Mid)': (-1,11,True,24)
 ,'Output Gain (High)': (-1,11,True,22)
