@@ -17,7 +17,8 @@ from _Generic.Devices import *
 
 # Local imports
 from .config import *
-from .ElectraOneBase import ElectraOneBase, cc_value_for_item_idx
+from .E1Midi import cc7_value_for_item_idx
+from .ElectraOneBase import ElectraOneBase
 from .CCInfo import CCInfo, CCMap, UNMAPPED_CC, UNMAPPED_ID, IS_CC7, IS_CC14
 from .PresetInfo import PresetInfo
 from .UniqueParameters import make_device_parameters_unique
@@ -350,7 +351,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self._append(',"items":[')
         flag = False
         for (idx,item) in enumerate(value_items):
-            item_cc_value = cc_value_for_item_idx(idx, value_items)
+            item_cc_value = cc7_value_for_item_idx(idx, value_items)
             if item_cc_value not in range(128):
                 self.debug(4,f'MIDI CC value out of range { item_cc_value }. Skipping.')
             else:

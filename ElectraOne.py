@@ -17,36 +17,13 @@ import time
 import sys
 
 # Local imports
-from .ElectraOneBase import ElectraOneBase, E1_SYSEX_PREFIX, SYSEX_TERMINATE, get_cc_midichannel, is_cc_statusbyte, hexify, ACK_RECEIVED, NACK_RECEIVED
+from .E1Midi import parse_cc, is_cc, parse_E1_sysex, is_E1_sysex, hexify, E1_SYSEX_LOGMESSAGE, E1_SYSEX_PRESET_CHANGED, E1_SYSEX_ACK, E1_SYSEX_NACK, E1_SYSEX_REQUEST_RESPONSE, E1_SYSEX_PATCH_REQUEST_PRESSED 
+from .ElectraOneBase import ElectraOneBase, ACK_RECEIVED, NACK_RECEIVED
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .DeviceAppointer import DeviceAppointer
 from .config import *
 from .versioninfo import COMMITDATE
-
-# SysEx responses
-
-E1_SYSEX_LOGMESSAGE = (0x7F, 0x00) # followed by json data 
-E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
-E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) 
-E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved)
-E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data 
-
-# SysEx incomming command when the PATCH REQUEST button on the E1 has been pressed 
-# (User-defined in effect patch LUA script, see DEFAULT_LUASCRIPT in EffectController.py)
-
-E1_SYSEX_PATCH_REQUEST_PRESSED = (0x7E, 0x7E) # no data
-
-def _match_sysex(midi_bytes,pattern):
-    """Match (byte 4 and 5 of) an incoming sysex message with a
-       pattern (see constants defined above) to determine its type.
-       - midi_bytes: incoming MIDI message; sequence of bytes
-       - pattern: pattern to match; sequence of exactly two bytes
-       - result: true if matched; bool
-    """
-    return (midi_bytes[4:6] == pattern) 
-
-# --- ElectraOne class
 
 
 class ElectraOne(ElectraOneBase):
@@ -62,7 +39,6 @@ class ElectraOne(ElectraOneBase):
        - a MixerController that handles the currently selected tracks volumes
          and sends, as well as the global transports and master volume. 
     """
-
             
     def __init__(self, c_instance):
         # make sure that all configuration constants make sense
@@ -226,47 +202,43 @@ class ElectraOne(ElectraOneBase):
         else:
             self.debug(1,'Main toggle lock ignored because E1 not ready.') 
 
-    def _process_midi_cc(self, midi_bytes):
+    def _process_midi_cc(self, midimsg):
         """Process incoming MIDI CC message and forward to the
            MixerController only. (EffectController never registers CC_HANDLERS.)
            Ignore if interface not ready.
-           - midi_bytes: incoming MIDI CC message; sequence of bytes
+           - midimsg: incoming MIDI CC message; sequence of bytes
         """
         self.debug(2,'Processing incoming CC.')
         if self.is_ready() and self._mixer_controller:
-            (status,cc_no,value) = midi_bytes
-            midi_channel = get_cc_midichannel(status)
-            self._mixer_controller.process_midi(midi_channel,cc_no,value)
+            (channel,cc_no,value) = parse_cc(midimsg)
+            self._mixer_controller.process_midi(channel,cc_no,value)
         else:
             self.debug(3,'Process MIDI CC ignored because E1 not ready or mixer not active.') 
 
-    def _do_ack(self, midi_bytes):
+    def _do_ack(self):
         """Handle an ACK message.
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
             self.debug(3,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(3,f'warning: Unexpected ACK received, uploading?: {ElectraOneBase.preset_uploading}).')            
+            self.debug(1,f'Warning: Unexpected ACK received, uploading?: {ElectraOneBase.preset_uploading}).')            
         ElectraOneBase.ack_or_nack_received = ACK_RECEIVED
         
-    def _do_nack(self, midi_bytes):
+    def _do_nack(self):
         """Handle a NACK message. 
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
             self.debug(3,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(3,f'warning: Unexpected NACK received, uploading?: {ElectraOneBase.preset_uploading}).')
+            self.debug(1,f'Warning: Unexpected NACK received, uploading?: {ElectraOneBase.preset_uploading}).')
         ElectraOneBase.ack_or_nack_received = NACK_RECEIVED
 
-    def _do_request_response(self, midi_bytes):
+    def _do_request_response(self, json_bytes):
         """Handle a request response message: record it as received
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
+           - json_bytes: incoming MIDI SysEx data; sequence of bytes
         """
-        json_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
         json_str = ''.join(chr(c) for c in json_bytes) # convert bytes to a string
         self.debug(3,f'Request response received: {json_str}' )
         # get the version
@@ -274,19 +246,18 @@ class ElectraOne(ElectraOneBase):
         self.set_version(json_dict["versionSeq"],json_dict["hwRevision"])
         self._request_response_received = True
 
-    def _do_logmessage(self, midi_bytes):
+    def _do_logmessage(self, text_bytes):
         """Handle a log message: write it to the log file
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
+           - text_bytes: incoming MIDI SysEx data; sequence of bytes
         """
-        text_bytes = midi_bytes[6:-1] # all bytes after the command, except the terminator byte 
         text_str = ''.join(chr(c) for c in text_bytes) # convert bytes to a string
         self.debug(3,f'Log message received: {text_str}' )
 
-    def _do_preset_changed(self, midi_bytes):
+    def _do_preset_changed(self, selected_slot):
         """Handle a preset changed message
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
+           - selected_slot: incoming MIDI SysEx data; sequence of 2 bytes
         """
-        selected_slot = midi_bytes[6:8]
+        assert len(selected_slot) == 2, f'Wrong data {selected_slot} in preset changed message.'
         self.debug(3,f'Preset {selected_slot} selected on the E1')
         ElectraOneBase.current_visible_slot = selected_slot
         if selected_slot == RESET_SLOT:
@@ -307,7 +278,7 @@ class ElectraOne(ElectraOneBase):
 
     def _do_sysex_patch_request_pressed(self):
         """Handle a patch request pressed message: swap the visible preset
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
+           - midimsg: incoming MIDI SysEx message; sequence of bytes
         """
         # ignore patch request presses when mode is not CONTROL_EITHER
         if self.is_ready() and (CONTROL_MODE == CONTROL_EITHER):
@@ -324,41 +295,40 @@ class ElectraOne(ElectraOneBase):
         else:
             self.debug(3,'Patch request ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.')
         
-    def _process_midi_sysex(self, midi_bytes):
+    def _process_midi_sysex(self, midimsg):
         """Process incoming MIDI SysEx message.
-           - midi_bytes: incoming MIDI SysEx message; sequence of bytes
+           - midimsg: incoming MIDI SysEx message; sequence of bytes
         """
         self.debug(2,'Processing incoming SysEx.')
-        if _match_sysex(midi_bytes,E1_SYSEX_PRESET_CHANGED):
-            self._do_preset_changed(midi_bytes)
-        elif _match_sysex(midi_bytes,E1_SYSEX_NACK):
-            self._do_nack(midi_bytes)
-        elif _match_sysex(midi_bytes,E1_SYSEX_ACK):
-            self._do_ack(midi_bytes)
-        elif _match_sysex(midi_bytes,E1_SYSEX_REQUEST_RESPONSE):
-            self._do_request_response(midi_bytes)
-        elif _match_sysex(midi_bytes,E1_SYSEX_LOGMESSAGE):
-            self._do_logmessage(midi_bytes)
-        elif _match_sysex(midi_bytes,E1_SYSEX_PATCH_REQUEST_PRESSED):
+        (command,data) = parse_E1_sysex(midimsg)
+        if command == E1_SYSEX_PRESET_CHANGED:
+            self._do_preset_changed(data)
+        elif command == E1_SYSEX_NACK:
+            self._do_nack()
+        elif command ==E1_SYSEX_ACK:
+            self._do_ack()
+        elif command == E1_SYSEX_REQUEST_RESPONSE:
+            self._do_request_response(data)
+        elif command == E1_SYSEX_LOGMESSAGE:
+            self._do_logmessage(data)
+        elif command == E1_SYSEX_PATCH_REQUEST_PRESSED:
             self._do_sysex_patch_request_pressed()
         else:
-            self.debug(5,f'SysEx ignored: { hexify(midi_bytes) }.')
+            self.debug(5,f'SysEx ignored: { hexify(midimsg) }.')
             
-    def receive_midi(self, midi_bytes):
+    def receive_midi(self, midimsg):
         """MIDI messages are only received through this function, when
            explicitly forwarded in 'build_midi_map' using
            Live.MidiMap.forward_midi_cc(). Incoming SysExs are always passed
            to this function
-           - midi_bytes: the MIDI message; sequence of bytes
+           - midimsg: the MIDI message; sequence of bytes
         """
         self.debug(1,'Main receive MIDI called.')
-        self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midi_bytes[:10]) }')
-        if is_cc_statusbyte(midi_bytes[0]) and (len(midi_bytes) == 3):
-            # is a CC
-            self._process_midi_cc(midi_bytes)
-        elif midi_bytes[0:4] == E1_SYSEX_PREFIX:
-            # is a SysEx from the E1
-            self._process_midi_sysex(midi_bytes)
+        self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midimsg[:10]) }')
+        if is_cc(midimsg):
+            self._process_midi_cc(midimsg)
+        elif is_E1_sysex(midimsg):
+            self._process_midi_sysex(midimsg)
         else:
             self.debug(2,'Unexpected MIDI bytes not processed.')
 
@@ -375,7 +345,6 @@ class ElectraOne(ElectraOneBase):
             self.debug(1,'Main build midi map ignored because E1 not ready.')
             # TODO: make sure request is processed at some point
 
-        
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the
            remote controller needs to be updated. This doesn't appear

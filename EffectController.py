@@ -182,7 +182,7 @@ class EffectController(ElectraOneBase):
                 self.debug(3,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             dump_preset_info = dumper.get_preset_info()
-        if DUMP:
+        if device and DUMP:
             dump_preset_info.dump(device, device_name, ElectraOneBase.DUMP_PATH, self.debug)
         if not preset_info:
             versioned_device_name = device_name

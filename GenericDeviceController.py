@@ -115,7 +115,7 @@ class GenericDeviceController(ElectraOneBase):
         # device may already be deleted while this controller still exists
         if not self._device:
             return
-        assert self._cc_map
+        assert self._cc_map, 'No CC map present while refreshing device state.'
         if full_refresh:
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
