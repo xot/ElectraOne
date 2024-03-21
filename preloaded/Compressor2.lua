@@ -1,7 +1,7 @@
 ratio = controls.get(12)
 xratio = controls.get(6)
 
-xratio:setSlot(3,1)
+xratio:setSlot(1,1)
 
 function model(valueObject, value)
     ratio:setVisible(value < 2)
@@ -33,7 +33,7 @@ eqfreq = controls.get(14)
 eqgain = controls.get(15)
 eqq = controls.get(17)
 
-eqq:setSlot(20,1)
+eqq:setSlot(22,1)
 
 function seteqvisibility()
    eqtp:setVisible(sceqison)

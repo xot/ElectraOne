@@ -1,6 +1,7 @@
 {'Device On': (-1,11,False,10)
 ,'Mode': (-1,11,False,13)
 ,'Shaping': (-1,11,True,7)
+,'Shape': (-1,11,True,7) # Live 12 name
 ,'Rate': (11,11,True,6)
 ,'Amount': (-1,11,True,0)
 ,'Feedback': (-1,11,True,2)

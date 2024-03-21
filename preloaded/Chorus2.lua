@@ -11,6 +11,9 @@ feedback = controls.get(5)
 feedbackinv = controls.get(4)
 drywet = controls.get(3)
 
+offset:setSlot(3,1)
+shaping:setSlot(4,1)
+
 function mode(valueObject, value)
     width:setVisible(value < 2)
     offset:setVisible(value > 1)
