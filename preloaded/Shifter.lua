@@ -29,13 +29,13 @@ lfofreq = controls.get(21)
 lforate = controls.get(24)
 lfooffset = controls.get(17)
 
-lforate:setSlot(16,1)
+lforate:setSlot(21,1)
 
 lfophase = controls.get(14)
 lfosetspin = controls.get(18)
 lfospin = controls.get(19)
 
-lfospin:setSlot(4,1)
+lfospin:setSlot(15,1)
 
 lfowidth = controls.get(16)
 lfoduty = controls.get(15)
@@ -47,14 +47,14 @@ envamountst = controls.get(11)
 envattack = controls.get(8)
 envrelease = controls.get(9)
 
-envamountst:setSlot(23,1)
+envamountst:setSlot(28,1)
 
 dtime = controls.get(31)
 dsync = controls.get(32)
 dfeedback = controls.get(37)
 dsetsync = controls.get(36)
 
-dsync:setSlot(25,1)
+dsync:setSlot(32,1)
 
 function setvisibility()
     pcoarse:setVisible(mode == 0)
