@@ -4,7 +4,7 @@ transpose = controls.get(36)
 midimode  = controls.get(21)
 pbrange  = controls.get(28)
 
-transpose:setSlot(4,1)
+transpose:setSlot(16,1)
 
 function midifreq(valueObject, value)
     tune:setVisible(value == 0)
@@ -24,8 +24,8 @@ hit = controls.get(9)
 posl = controls.get(18)
 posr = controls.get(19)
 
-radius:setSlot(8,1)
-opening:setSlot(14,1)
+radius:setSlot(4,1)
+opening:setSlot(8,1)
 
 function settype(valueObject, value)
     material:setVisible(value < 5)
@@ -45,7 +45,6 @@ function setoffdecay(valueObject, value)
     decay:setVisible(value ~= 0)
 end
 
-
 lfoamount = controls.get(11)
 lfoshape = controls.get(14)
 lfooffset = controls.get(26)
@@ -60,10 +59,9 @@ lfomod = controls.get(15)
 phase = controls.get(29)
 spin = controls.get(34)
 
-
-spin:setSlot(33,1) 
-lfooffset:setSlot(34,1)
-lfofreq:setSlot(27,1)
+spin:setSlot(29,1) 
+lfooffset:setSlot(35,1)
+lfofreq:setSlot(28,1)
 
 lfoison = false
 lfoissync = false
