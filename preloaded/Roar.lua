@@ -68,8 +68,8 @@ fbsynced = controls.get(19)
 fbtime = controls.get(20)
 fbnote = controls.get(18)
 
-fbnote:setSlot(11,4)
-fbsynced:setSlot(11,4)
+fbnote:setSlot(14,1)
+fbsynced:setSlot(14,1)
 
 function fbmode(valueObject, value)
     fbtime:setVisible(value == 0)
