@@ -6,9 +6,9 @@ ldiv = controls.get(21)
 rdiv = controls.get(40)
 
 l16th:setSlot(1,1)
-r16th:setSlot(2,1)
+r16th:setSlot(7,1)
 ldiv:setSlot(1,1)
-rdiv:setSlot(2,1)
+rdiv:setSlot(7,1)
 
 rs = controls.get(42)
 lm =  controls.get(24)
