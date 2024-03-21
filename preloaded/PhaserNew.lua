@@ -1,7 +1,7 @@
 mfreq = controls.get(16)
 mrate = controls.get(19)
 
-mrate:setSlot(3,1)
+mrate:setSlot(13,1)
 
 function modsync(valueObject, value)
     mfreq:setVisible(value == 0)
@@ -21,7 +21,7 @@ end
 mfreq2 = controls.get(17)
 mrate2 = controls.get(20)
 
-mfreq2:setSlot(11,1)
+mfreq2:setSlot(17,1)
 
 function modsync2(valueObject, value)
     mfreq2:setVisible(value == 0)
@@ -35,8 +35,8 @@ blend = controls.get(15)
 flangetime = controls.get(13)
 doublertime = controls.get(4)
 
-flangetime:setSlot(1,1)
-doublertime:setSlot(2,1)
+flangetime:setSlot(2,1)
+doublertime:setSlot(3,1)
 
 function phasermode(valueObject, value)
     notches:setVisible(value == 0)
