@@ -987,7 +987,7 @@ class ElectraOneBase(Log):
             self.__clear_acks_queue()
             # try loading preloaded preset + lua first
             loaded = False
-            if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+            if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED and USE_PRELOAD_FEATURE:
                 self.__load_preloaded_preset(slot,preset_name)
                 # don't wait to briefly; complex presets do take some time to load
                 loaded = self.__wait_for_ack_or_timeout(50)

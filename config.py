@@ -49,6 +49,9 @@ LIBDIR = 'ElectraOne'
 # (only possible for E1 with firmware 3.4 and higher)
 E1_PRESET_FOLDER = 'xot/ableton'
 
+# Whether to use the preloaded presets feature (if supported). 
+USE_PRELOAD_FEATURE=True
+
 # 'reset slot': when selecting this slot on the E1, the remote script is reset
 RESET_SLOT = (5,11)
 
