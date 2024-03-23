@@ -103,7 +103,7 @@ Note the hyphen followed by the underscore! Also this is not guaranteed to work 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
+1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Documents/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
 
 2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
 
