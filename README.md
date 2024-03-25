@@ -107,19 +107,25 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
 
-3. *MacOS*: Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes. 
+3. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
+
+4. *MacOS*: Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes. 
 
 ![Ableton Preferences](./images/ableton.png "Ableton Preferences")
 
-3. *Windows*: Add E1 as a Control Surface in Options > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes.
+4. *Windows*: Add E1 as a Control Surface in Options > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes.
 
-4. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1.
+5. Upload the ```Mixer.eproj``` (included in the distribution) patch to the E1 to bank 6 preset 1. To do so, first select bank 6 slot 1 [either on the E1 itself](https://docs.electra.one/userinterface.html#preset-selection) or [using the webapp](https://docs.electra.one/account.html#preset-slots). Then - import ```Mizer.eproj``` into your preset library ([see here](https://docs.electra.one/account.html#my-presets))
+   - [open its preset detail page](https://docs.electra.one/account.html#preset-detail) by clicking the new preset ```Mixer```, and
+   - upload it to the E1 by clicking the orange ```Send To Electra``` button.
 
-5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
+6. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
 
-Start Ableton 
+7. Start Ableton.
 
-A patch for the appointed device (indicated by the 'Blue Hand') will automatically be created and/or (up)loaded and then mapped to the E1
+If all goes well, a patch for the appointed device (indicated by the 'Blue Hand') will automatically be created and/or (up)loaded and then mapped to the E1.
+
+Enjoy!
 
 ### Log files
 
