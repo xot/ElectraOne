@@ -67,15 +67,17 @@ Pressing the PRESET REQUEST button on the E1 (right column, top button) switches
 
 ### Creating presets on the fly
 
-If no preloaded or predefined preset exists, the remote script creates a preset on the fly. (The image shows the preset created on the fly for the Saturator effect, in 'devicedict' order, see below.)
+If no preloaded or predefined preset exists, the remote script creates a preset on the fly. (The image shows the preset created on the fly for the Saturator effect, in 'sorted' order, see below.)
 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
 When constructing presets:
 - On/off parameters are shown as toggles on the E1.
 - Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
-- Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. (These CCs actually occupy *two* slots in the CC map, see below.) 
-- Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. Other faders simply show a value within the minimum - maximum CC value range (although for faders with a large range this is currently not the case.).
+- Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. 
+- Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. 
+- Float valued parameters are shown as floar-valued faders on the E1. 
+- For certain types of parameters (e.g. percentage, phase shift), the remote script tries to guess the type and adjust the display accordingly.
 
 Note that large devices with many parameters may create a preset with several pages. The generation of presets on the fly can be customised, see the [configuration section](https://github.com/xot/ElectraOne#configuring).
 
@@ -193,6 +195,8 @@ The behaviour of the remote script can be changed by editing ```config.py```. Be
 - ```CONTROL_MODE``` whether the remote script controls both mixer and effect (```CONTROL_EITHER```), the mixer (```CONTROL_MIXER_ONLY```) or the effect only (```CONTROL_EFFECT_ONLY```), or if two E1s are connected each controlling one of them (```CONTROL_BOTH```).
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
 - ```SENDMIDI_CMD``` full path to the ```sendmidi```command. If ```None```(the default), fast uploading of presets is not supported.
+- ```USE_PRELOAD_FEATURE```. Whether to use the preloaded presets feature (if supported). If false, the predefined presets in ```Devices.py``` are always used, overriding any (older) preloaded presets on the E1. Default is ```True```.
+
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 
