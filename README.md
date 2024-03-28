@@ -17,11 +17,7 @@ The remote script also comes with specially crafted predefined presets for most 
 
 ## The mixer
 
-The mixer preset is included in the distribution (```Mixer.eproj```), and is also [available in the E1 preset library](https://app.electra.one/preset/CK3qbv7Vt43PN4LkBTy7). It should be uploaded to bank 6, slot 1 (see [the E1 documentation](https://docs.electra.one/account.html#preset-slots); search for ```Ableton Mixer``` in the the preset list on the right side of the page ). 
-
-*Please make sure to upload the latest version each time you upgrade the script.* 
-
-It controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, rewind, and forward.
+The mixer preset controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, rewind, and forward.
 
 ![Main](./images/main.png "Main")
 
@@ -43,27 +39,42 @@ All controls on all pages are synced with the values of the parameters in Live t
 When fewer than 5 tracks and fewer than 6 return tracks are present in the Live set, the controls on track strips on the E1 for tracks that are not present in Live are hidden.
 
 
+The mixer preset is included in the distribution (```Mixer.eproj```), and is also [available in the online E1 preset library](https://app.electra.one/preset/CK3qbv7Vt43PN4LkBTy7). It should be uploaded to bank 6, slot 1 (see [the E1 documentation](https://docs.electra.one/account.html#preset-slots); search for ```Ableton Mixer``` in the the preset list on the right side of the page ). 
+
+*Please make sure to upload the latest version each time you upgrade the script.* 
+
 ## Controlling the currently appointed device
 
-In Ableton Live, each track typically has a selected device, and usually the selected device on the currently selected track is controlled by a remote control surface. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
+The remote script also allows the E1 to control the currently selected device on the currently selected track in Live. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-The remote script comes with predefined presets for many of Ableton Live's effects and instruments. The layout and control information for these predefined devices is stored in ```Devices.py```.
+For this to work, the E1 needs to use a preset whose controls correspond to the parameters of the appointed device. The remote script then automatically maps these controls to the parameters.
 
+The remote script comes with predefined presets for many of Ableton Live's effects and instruments. (The layout and control information for these predefined devices is stored in ```Devices.py```.) The figure shows the preset for ```Delay```.
 
-Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), these predefined devices can be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
+Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), these predefined devices can also be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
 
-The remote script looks for a preset for the appointed device using the device name, first as a preloaded device on the E1 itself, and then as a predefined device in ```Devices.py```. (For older, mkI, E1 the first step is skipped.) It uses the first one it finds. You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
+And if no preloaded or predefined presets for a device are found, the remote script can [construct one on the fly](https://github.com/xot/ElectraOne#creating-presets-on-the-fly).
 
-![Delay preloaded preset](./images/delay.png "Delay preloaded preset")
+So when you select a new device in Live, the following happens.
+
+- First, the remote script tries to activate a preset for the device that is already preloaded on the E1. (For older, mkI, E1 this step is skipped.) 
+- If that fails, it looks for a predefined preset for the device in ```Devices.py``` and uploads and activates it.
+- And if no such preset is found, the remote script constructs one on the fly and uploads that preset to the E1 instead, and activates it.
+
+![Delay predefined preset](./images/delay.png "Delay predefined preset")
 
 The preset is (up)loaded to the E1 to the second preset slot in bank 6 by default (*overwriting any preset currently present in that slot*). All controls in the preset are mapped to the corresponding parameter in the device. 
+
+You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
+
 
 ### Switching between device and mixer view
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
 
-There is a faster way however, when ```CONTROL_MODE=CONTROL_EITHER```.
-Pressing the PRESET REQUEST button on the E1 (right column, top button) switches the currently visible preset (i.e. alternates between the mixer and the device preset).
+There is a faster way however (when ```CONTROL_MODE=CONTROL_EITHER```).
+Pressing the PRESET REQUEST button on the E1 (right column, top button) will
+alternate between the mixer and the appointed device preset.
 
 ### Creating presets on the fly
 
@@ -72,6 +83,7 @@ If no preloaded or predefined preset exists, the remote script creates a preset 
 ![Preset created on the fly](./images/saturator.png "Preset created on the fly")
 
 When constructing presets:
+
 - On/off parameters are shown as toggles on the E1.
 - Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
 - Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. 
