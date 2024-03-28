@@ -8,11 +8,11 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 *Warning: do NOT remove any controls; this may break the script/mixer preset. The reason is that controls associated with (return) tracks that are not present in Ableton are hidden using their control id; the LUA scripting embedded in the Mixer preset responsible for that assumes these controls exist.*
 
-As an example, an alternative mixer design is included in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config.mixer.alt.py``` to ```config.py```.
+As an example, an alternative mixer design [is included](https://app.electra.one/preset/m6YGx6rIQMQHTXB6VMFw) in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config.mixer.alt.py``` to ```config.py```.
 
 ## Changing predefined device presets
 
-You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the [E1 web editor](https://app.electra.ome): simple select 'Ableton' as brand in the Preset Library browser.
+You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the [E1 web editor](https://app.electra.ome): simply select 'Ableton' as brand in the Preset Library browser.
  
 The remote script uses three pieces of information to enable a preset to control a device in Live.
 
@@ -31,7 +31,7 @@ To modify such an existing preset, proceed as follows.
 2. Run ```makedevices``` to add the modified preset to the set of predefined presets in ```Devices.py```. See [further documentation here](./makedevices-README.md)
 3. Restart Ableton.
 
-If you now load the device again and select it, the preset you created should appear on the E1.
+If you now load the device again and select it, the preset you created should appear on the E1. (If the preset is preloaded - which is typically the case for predefined presets - set ```USE_PRELOAD_FEATURE=False``` to override their use; once you are happy with the design you can preload it too, see [below](#preloaded-presets).)
 
 *When editing the preset in the webeditor, make sure not to change any of the device and CC assignments of the controls; these need to stay the same in  order to correspond to the definitions in the CC map*
 
@@ -127,15 +127,4 @@ The following constants deal with the equaliser devices managed through the mixe
 - ```TRACK_EQ_DEVICE_NAME``` and ```MASTER_EQ_DEVICE_NAME```: (class)name of the equaliser device (on the normal tracks and the master track respectively) to be managed by the mixer preset.
 - ```TRACK_EQ_CC_MAP``` and ```MASTER_EQ_CC_MAP```: CC mapping information describing which equaliser controls are mapped, and through which CC.
 
-
-### Setting up logging
-
-To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). On the MAC, this should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
-
-To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
-
-Alternatively, leave the default ```E1_LOGGING_PORT=2``` as is which direct log messages from the E1 to its CTRL port, and catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
-for more information.
-
-If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
 

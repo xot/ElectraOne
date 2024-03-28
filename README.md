@@ -235,6 +235,17 @@ The following constants *only* influence the construction of presets 'on the fly
 - ```PARAMETERS_TO_IGNORE``` a dictionary, keyed by device name, containing for each device a list of names of parameters to ignore when constructing presets on the fly. The list with key "ALL" contains the names of parameters to ignore for all presets constructed on the fly. Can e.g. be used to exclude the "Device On" button normally included (setting ```{"ALL": ["Device On"]}```). Default ```{}```.
 - ```PERSONAL_DEVICE_DICT``` Personal DEVICE_DICT: for named devices, contains a tuple of tuples containing the names of the parameters to include if ```ORDER=DEVICE_DICT``` e.g. ```PERSONAL_DEVICE_DICT = { 'Emit': ( ('Attack', 'Decay' ), ) }```  Do not forget a trailing comma (,) if you only add one tuple! Takes precedence over any entry for the same device in the global ```DEVICE_DICT```. Default ```{}```.
 
+### Setting up logging
+
+To log all events (also those that happen on the E1 itself), set ```DEBUG=5``` and ```E1_LOGGING=True``` in ```config.py``` (setting ```E1_LOGGING=False``` will still give a lot of debugging information without any logging from the E1). On the MAC, this should create log messages in ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (where ```~``` is your home folder). 
+
+To actually catch the log messages from the E1 in the same log file set ```E1_LOGGING_PORT=0```. This directs the log messages from the E1 to Port 1 connected to Live. 
+
+Alternatively, leave the default ```E1_LOGGING_PORT=2``` as is which direct log messages from the E1 to its CTRL port, and catch the log messages from the E1 independently either using the (old) E1 Console app or using the debugger in the [web app](https://app.electra.one), see [the E1 documentation](https://docs.electra.one/editor.html#lua-debugger)
+for more information.
+
+If you want to help to debug the remote script, you can extract the tail of the messages in this log file that were logged right before the bug, and submit a bug report.
+
 
 ## Recovering from errors
 
