@@ -10,19 +10,6 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 As an example, an alternative mixer design is included in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config.mixer.alt.py``` to ```config.py```.
 
-## Using a second E1 to control the mixer
-
-If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
-
-(**Note: this currently does not work due to firmware changes; a fix is in the works.**)
-
-Use a USB cable to connect the second E1 to the USB Host port on the first E1. Make sure that in the USB Host configuration on the first E1, Port 1 is selected for the second connected E1. See [these instructions](https://docs.electra.one/userinterface.html#menu). Finally, in
-```config.py``` set ```CONTROL_MODE = CONTROL_BOTH```.
-
-Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is selected on the first E1, and the mixer preset is uploaded and selected (bank 6, slot 1) in the second E1. 
-
-(*Both controllers apparently need to run firmware 3.1.5. or larger for this to work.*)
-
 ## Adding predefined device presets
 
 You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
