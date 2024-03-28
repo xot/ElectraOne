@@ -10,83 +10,85 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 As an example, an alternative mixer design is included in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config.mixer.alt.py``` to ```config.py```.
 
-## Adding predefined device presets
+## Changing predefined device presets
 
-You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the E1 web editor: simple select 'Ableton' as brand in the Preset Library browser.
+You can modify existing predefined presets, or add new ones for other, non-standard, devices or plugins. Sources for the existing presets can be found in this repository of course, or in the [E1 web editor](https://app.electra.ome): simple select 'Ableton' as brand in the Preset Library browser.
  
-When changing existing predefined presets, you only need to save the new versions of both `<device>.epr` (created with `Download Preset` in the web editor) and the `<device>.lua` (cut and paste from the web editor) to the `./preloaded` directory. (Here `<device>` is the device name used by Ableton or the device, e.g. `Echo`; for Max devices and external plugins a slightly different naming scheme is used, see [here](#names-used-for-plugins-and-max-devices).)
+The remote script uses three pieces of information to enable a preset to control a device in Live.
 
-When creating a preset for a new, non-standard, device, don't forget to also include the `device.ccmap` (as described next).
+- The actual E1 preset, stored in `<devicename>.epr`, that can be edited using the E1 preset web editor.
+- A mapping of the controls in this E1 preset to the parameters of the Ableton device, stored in `<devicename>.ccmap`. This maps the name of each parameter in Live to the CC control numbers assigned to the controls in the preset.
+- (optional) LUA scripting code for the E1 preset, stored in `<devicename>.lua`, that can also be edited using the E1 preset web editor.
+ 
+### Modifying existing device presets
 
-Use ```makedevices``` (see [below](#predefined-presets)) to add the updated or new preset to the remote script.
+For existing predefined presets, these files can be found in the ```./preloaded``` subfolder in the ```ElectraOne``` remote script folder.
 
-### Device preset dumps
+To modify such an existing preset, proceed as follows.
 
-Presets created by the remote script on the fly can be dumped, along with associated CC mapping information. This can be used for fine tuning the preset as it will be shown on the E1 (e.g. parameter layout, assignment over pages, colours, groups). The updated information can be added to ```Devices.py``` to turn it into a [predefined preset](#predefined-presets).
+1. To edit the preset, import  ```<devicename>.epr``` in the [E1 web editor](app.electra.one). Once you are happy with the result, export the preset  ```<devicename>.epr``` and save it back into the ```preloaded``` folder (overwriting the existing file).
+3. If you modified the LUA script, cut and paste it into  ```<devicename>.lua``` in the ```preloaded``` folder (overwriting the existing file).
+2. Run ```makedevices``` to add the modified preset to the set of predefined presets in ```Devices.py```. See [further documentation here](./makedevices-README.md)
+3. Restart Ableton.
 
-Such a dump constructs a file ```<devicename>.epr``` with the JSON preset (which can be uploaded to the [Electra Editor](Https://app.electra.one)), and a file ```<devicename>.ccmap``` listing for each named parameter the following tuple:
+If you now load the device again and select it, the preset you created should appear on the E1.
 
-- the identifier of the control on the E1, in case Ableton Live [needs to send the string representation of the value](https://github.com/xot/ElectraOne/blob/main/DOCUMENTATION.md#value-updates) of the parameter to the E1 for display, because the E1 cannot reliably determine it. This is a tuple (*cid*,*vid*) where *cid* is the control identifier, and *vid* is the value index within a complex control like an ADSR envelope. If *cid* equals -1 (i.e. the tuple equals (-1,0)), then no string value updates need to be sent to the E1.
-- the MIDI channel,
-- whether it is a 14bit controler (1/True: yes, 0/False: no), and
-- the CC parameter number (between 0 and 127) that controls it in the preset. ```None``` means the parameter is not/could not be mapped. 
+*When editing the preset in the webeditor, make sure not to change any of the device and CC assignments of the controls; these need to stay the same in  order to correspond to the definitions in the CC map*
 
-For example, dumping the Echo device could create the following CC map entry:
+Apart from that, anything goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
 
-```
-'L Time': ((25,0),11,True,14)
-```
+### Adding new device presets
 
-Meaning that the Echo device parameter ```L Time``` has a control with identifier 25, and is mapped on Midi channel 11 as a 14-bit control on CC parameter number 14. (*Note: the actual CC map for Echo lists `'L Time': (25,11,True,14)` as its entry; this uses an older shorthand for the control identifier.*)
+For devices that do not yet have a predefined preset, the remote script can dump the preset it created on the fly for this device. Configuration ```DUMP``` (see ```config.py```)  needs to be set to ```True``` for this. The dumped files (the ```<devicename>.epr``` and ```<devicename>.ccmap```) can be found in the ```./dumps``` subfolder in the ```LIBDIR``` folder. 
 
-Note that the actual CC parameter used for a 14bit control is cc_no *and* cc_no+32 (because by convention a 14bit CC value is sent using the base CC and its 'shadow' parameter 32 higher. (This means the constructed map may appear to have holes in the 32-63 range.)
+Using such a device dump as a starting point for a new preset ensures that
 
-The construction of presets is controlled by several constants defined in ```config.py```. Dumps are written in the folder ```<LIBDIR>/dumps```.
-See the [documentation of configuration options](#configuring) below.)
+- all device parameters have a control in the preset, with some sensible default settings, and
+- a CC map with proper mapping definitions is constructed.
+
+To create a preset for a new device, therefore proceed as follows.
+
+1. Enable dumping of presets (set ```DUMP = True``` in ```config.py```).
+2. Start Ableton, and make sure the remote script is active.
+3. Load the device you want to create a preset for and select it; a blue hand should appear in it (and the preset that is constructed on the fly should appear on the E1).
+4. This should create ```<devicename>.epr``` and ```<devicename>.ccmap``` in the ```dumps``` directory in the library folder (```LIBDIR```).
+5. Copy ```<devicename>.ccmap``` and ```<devicename>.epr``` to the ```preloaded``` folder. No LUA file is created.
+6. Continue with the steps described above for editing existing presets.
+
+The construction of presets on the fly is controlled by several constants defined in ```config.py```. See the [documentation of advanced configuration options](#advanced-configuration) below.
+
+### Advanced features
+
+For basic use, the CC map for a preset does not have to be modified. But to fine-tune value display, this may sometimes be necessary. For details, see the [technical documentation](https://github.com/xot/ElectraOne/blob/main/DOCUMENTATION.md#curated-presets). This also describes how to use LUA to format specific types of values.
+
+For example, if you set the control identifier in the CC-map of a parameter to the actual identifier in the preset (instead of -1), the remote script sends the textual representation of the current value of the parameter as reported by Ableton Live to the E1. To make sure it is displayed, set the ```formatter``` function field in the E1 preset to ```defaultFormatter```.
+
+### Naming 
+
+In all of the above `<devicename>` is the device name used by Ableton for the device, e.g. `Echo`. 
+
+For Max devices and external plugins a slightly different naming scheme is used (as there is unfortunately no reliable way for the remote script to get the device name for a plugin or a Max device).
+
+The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device *as the only device* in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. In this specific case, the remote script uses the name of the enclosing rack as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
+
+*Note: a preset name should only contain ASCII characters. Accented (Unicode) characters no not reliably work, even thought the remote script appears to dump them just fine*.
+
+Note that in order to distinguish names for presets for racks themselves from the names used by an embedded preset, the remote script adds a hash (```#```) to the preset name of a rack. So in the example above, if you would select the rack with name ```MiniV3``` the remote script would look for a preset called ```MiniV3#```.
 
 ### Defining presets for specific versions of Live
 
 To include presets for specific versions of Live, append the version number to the devicename. E.g. ```MidiRandom.12.epr``` would be used for all version of Live equal or above version 12. And, say ```Echo.11.3.10``` would be used for all version of Live equal or above version 11.3.10.
 
 
-### Names used for plugins and Max devices
-
-There is unfortunately no reliable way for the remote script to get the *device* name for a plugin or a Max device: when asking Live it returns the name of the currently loaded 'Live preset' for the plugin or Max device. This is annoying when dumping E1 presets, or predefining presets (see below).
-
-The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device *as the on;y device* in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. The remote script uses the name of the enclosing rack as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
-
-*Note: a preset name should only contain ASCII characters. Accented (Unicode) characters no not reliably work, even thought the remote script appears to dump them just fine*.
-
-Note that in order to distinguish names for presets for racks themselves from the names used by an embedded preset, the remote script adds a hash (```#```) to the preset name. 
-
-### Predefined presets
-
-Predefined presets are stored in ```Devices.py```. The Python script ```makedevices``` creates this file based on all presets stored in ```./preloaded```, using the following files in that folder
-
-- ```<devicename>.epr```, the preset in JSON format, as [documented here](https://docs.electra.one/developers/presetformat.html#preset-json-format); it is minified by the script, 
-- ```<devicename>.lua```, containing additional LUA functions used within the preset (this file is optional), and
-- ```<devicename>.cmap``` containing a textual representation of the CC-map Python data structure. 
-
-It also uses the contents of ```./default.lua``` as the default lua script to use for predefined and generated presets.
-
-See [further documentation here](./makedevices-README.md)
-
-You can copy a dumped preset in ```./dumps``` to ```./preloaded```. Better still, upload the patch in ```./dumps``` to the Electra Editor, change the layout, and then download it again, saving it to ```./preloaded```. Do *not* change the assigned CC parameter numbers (these should be the same in both the patch (```.epr```) and the corresponding CC-map (```.ccmap```). Save any LUA script you added to the preset to the corresponding LUA file (```.lua```). 
-
-The remote script is actually completely oblivious about the actual preset it uploads to the E1: it only uses the information in the CC-map to map CC's to Ableton Live parameters, to decide which MIDI channel to use, and to decide whether to use 7 or 14 bit control assignments. It is up to the patch to actually have the CCs listed in the map present, have it mapped to a control with the specified index and mapped to a device with that correct MIDI channel, and to ensure that the number of bits assigned is consistent. Also, the MIDI port in the preset must correspond to what the remote script expects; so leave that value alone.
-
-If you set the control identifier in the CC-map of a parameter to the actual identifier in the preset (instead of -1), the remote script sends the textual representation of the current value of the parameter as reported by Ableton Live to the E1. To make sure it is displayed, set the ```formatter``` function field in the E1 preset to ```defaultFormatter```.
-
-Apart from that, anything goes. This means you can freely change controller names, specify value ranges and assign special formatter functions. Also, you can remove controls that you hardly ever use and that would otherwise clutter the interface.
-
 ## Preloaded presets
 
-You can also manually upload a preset to the E1 (mkII only!) to create a preloaded version of it. For this, upload the new versions of both device.epr and the device.lua to the E1 at ```ctrlv2/presets/xot/ableton```. Make sure to include the following line
+You can also manually upload a preset to the E1 (mkII only!) to create a preloaded version of it. For this, upload the new versions of both ```<devicename>.epr``` and the ```<devicename>.lua``` to the E1 at ```ctrlv2/presets/xot/ableton```. (The CC map does not have to be copied.)
+
+Make sure to include the following line
 ```
 require("xot/default")
 ```
-
-at the start of the device.lua file. This includes some common LUA functions used by the remote script and the preset.
+at the start of the ```<devicename>.lua``` file. This includes some common LUA functions used by the remote script and the preset.
 
 ## Advanced configuration
 
