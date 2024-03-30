@@ -56,11 +56,11 @@ end
 
 -- start/stop display drawing
 
-function aaa()
+function aa()
   window.stop()
 end
 
-function zzz()
+function zz()
   window.resume()
 end
 
@@ -73,53 +73,5 @@ function patch.onRequest (device)
     	 midi.sendSysex(PORT_1, {0x00, 0x21, 0x45, 0x7E, 0x7E}) ;
 	 print ("Sent patch request MIDI");	 
   end
-end
-
--- handling forwarding mixer updates to second E1 (if attached)
-
-function forward(f)
-  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
-  cmds = f .. "()"
-  for i=1, string.len(cmds) do
-    cmdt[i+5]= string.byte(cmds,i,i)
-  end
-  midi.sendSysex(PORT_1,cmdt)
-end
-
-function forward2(f,p1,p2)
-  cmdt = {0x00, 0x21, 0x45, 0x08, 0x0D}
-  cmds = f .. "(" .. p1 .. "," .. p2 .. ")"
-  for i=1, string.len(cmds) do
-    cmdt[i+5]= string.byte(cmds,i,i)
-  end
-  midi.sendSysex(PORT_1,cmdt)
-end
-
-function aa()
-  forward('aa')
-end
-
-function zz()
-  forward('zz')
-end
-
-function utl(idx,label)
-  forward2('utl', tostring(idx), '"'..label..'"')
-end
-
-function ursl(idx,label)
-  forward2('ursl', tostring(idx), '"'..label..'"')
-end
-
-function seqv(idx,flag)
-  if flag then
-    forward2('seqv',tostring(idx),'true')
-  else
-    forward2('seqv',tostring(idx),'false')
-  end
-end
-
-function smv(tc,rc)
-  forward2('smv', tostring(tc), tostring(rc))
 end
 
