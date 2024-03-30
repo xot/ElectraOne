@@ -114,27 +114,14 @@ To more easily control the parameters of AU and VST plugins in Ableton, you need
 
 Note the hyphen followed by the underscore! Also this is not guaranteed to work for all plugins; I've seen it work for AU plugins but not for VSTs on MacOS.
 
-## Using a second E1 to control the mixer
-
-If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
-
-(**Note: this currently does not work due to firmware changes; a fix is in the works.**)
-
-Use a USB cable to connect the second E1 to the USB Host port on the first E1. Make sure that in the USB Host configuration on the first E1, Port 1 is selected for the second connected E1. See [these instructions](https://docs.electra.one/userinterface.html#menu). Finally, in
-```config.py``` set ```CONTROL_MODE = CONTROL_BOTH```.
-
-Before starting Ableton, ensure that the effect preset slot (bank 6 slot 2) is selected on the first E1, and the mixer preset is uploaded and selected (bank 6, slot 1) in the second E1. 
-
-(*Both controllers apparently need to run firmware 3.1.5. or larger for this to work.*)
-
 ## Installation
 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. Create a new directory ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Documents/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that directory may not exist initially, in that case create it manually). Note that ```~``` stands for your home directory (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
+1. Create a new folder ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Documents/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that folder may not exist initially, in that case create it manually). Note that ```~``` stands for your home folder (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
 
-2. Copy all files and subdirectories and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` directory you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root directory).
+2. Copy all files and subfolders and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` folder you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root folder).
 
 3. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
 
@@ -178,7 +165,7 @@ Here are the instructions for installing sendmidi 1.2.0 under MacOS.
 
 Download the right binary [here](https://github.com/gbevin/SendMIDI/releases). Install the package by double clicking on it and following the steps in the installation program. Use the default settings (ie do not change the install location). This will create the sendmidi executable in ```/usr/local/bin/```. 
 
-Set the following constants in the ```config.py``` (this is one of the files you just copied into the new ```ElectraOne``` directory that you created in your local Ableton MIDI Live Scripts folder):
+Set the following constants in the ```config.py``` (this is one of the files you just copied into the new ```ElectraOne``` folder that you created in your local Ableton MIDI Live Scripts folder):
 
 - ```SENDMIDI_CMD = /usr/local/bin/sendmidi```
 - ```E1_CTRL_PORT = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default).
@@ -206,13 +193,25 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 
 **Use at your own risk!**
 
+## Using a second E1 to control the mixer
+
+If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
+
+Proceed as follows.
+
+1. Connect both E1s to your computer, and make sure that both devices have separate names, e.g. `Electra Controller A`  and `Electra Controller B` (on the Mac, use ```Audio MIDI Setup``` for this).
+2. Create a separate folder `ElectraOneMixer` in your local Ableton MIDI Live Scripts folder (see [installation instructions](#Installation) above), and copy all `.py` files in the `ElectraOne` folder to this new folder.
+3. In Ableton, set up the remote script twice. Once using `ElectraOne` with input port and the output port ```Electra Controller A```, and using `ElectraOneMixer` with input port and the output port ```Electra Controller  B``` (if you used the names suggested in step 1). For all ports, tick the *Remote* boxes in the MIDI Ports table below, and untick the *Track* boxes.
+3. For `ElectraOne` set `CONTROL_MODE = CONTROL_EFFECT_ONLY` in `config.py`. If you use SendMIDI (see above), make sure that your correctly set `E1_PORT_NAME` e.g. `E1_PORT_NAME = 'Electra Controller A Electra Port 1'`.
+4. For `ElectraOneMixer` set `CONTROL_MODE = CONTROL_MIXER_ONLY` and `SENDMIDI_CMD = None` in `config.py`.
+5. Restart Ableton.
 
 
 ## Configuring
 
 The behaviour of the remote script can be changed by editing ```config.py```. Below the most basic configuration options are documented. More advanced configuration options are discussed [here](xx)
 
-- ```LIBDIR``` determines where external files are read and written. This is first tried as a directory relative to the user's home directory; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home directory is used instead.
+- ```LIBDIR``` determines where external files are read and written. This is first tried as a folder relative to the user's home folder; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home folder is used instead.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```DETECT_E1``` controls whether to detect the E1 at startup, or not. Default is ```True```.
 - ```CONTROL_MODE``` whether the remote script controls both mixer and effect (```CONTROL_EITHER```), the mixer (```CONTROL_MIXER_ONLY```) or the effect only (```CONTROL_EFFECT_ONLY```), or if two E1s are connected each controlling one of them (```CONTROL_BOTH```).
