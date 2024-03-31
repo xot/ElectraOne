@@ -18,11 +18,13 @@
 import Live
 
 # Python imports
+from pathlib import Path
 import threading
 import time
 import sys
 import os
 import string
+import inspect
 
 # Local imports
 from .config import *
@@ -41,6 +43,9 @@ class ElectraOneBase(Log):
     # therefore several instances of it are created.
 
     # -- CLASS variables (exist exactly once, only inside this class)
+
+    # Path to where this remote script is installed
+    REMOTE_SCRIPT_PATH = None
     
     # Record whether fast uploading of sysex is supported or not.
     # (Initially None to indicate that support not tested yet)
@@ -88,7 +93,10 @@ class ElectraOneBase(Log):
            - result: library path that exists (without trailing /) ; str
         """
         # sanitise leading and trailing /
-        ldir = LIBDIR
+        if LIBDIR:
+            ldir = LIBDIR
+        else:
+            ldir = str(ElectraOneBase.REMOTE_SCRIPT_PATH)
         if ldir[0] == '/':
             ldir = ldir[1:]
         if ldir[-1] == '/':
@@ -133,6 +141,9 @@ class ElectraOneBase(Log):
         # c_instance we have access to Live: the log file, the midi map
         # the current song (and through that all devices and mixers)
         Log.__init__(self, c_instance)
+        # get the path to this remote script instance
+        if not ElectraOneBase.REMOTE_SCRIPT_PATH:
+            ElectraOneBase.REMOTE_SCRIPT_PATH = Path(inspect.getfile(ElectraOneBase)).parent
         if not ElectraOneBase.DUMP_PATH:
             ElectraOneBase.DUMP_PATH = self._ensure_in_libdir('dumps')
         

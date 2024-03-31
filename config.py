@@ -43,7 +43,9 @@ DETECT_E1 = True
 # doesn't exist, then the user home directory is used instead (and ./dumps
 # or ./user-presets are not appended to make sure the directory exists).
 # (Leading or trailing slash is ignored)
-LIBDIR = 'ElectraOne'
+#
+# If None, the remote script directory itself is tried.
+LIBDIR = None
 
 # Folder on the E1 where the preloaded presets are stored, relative to ctrlv2/presets
 # (only possible for E1 with firmware 3.4 and higher)

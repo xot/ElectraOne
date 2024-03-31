@@ -212,7 +212,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 
 The behaviour of the remote script can be changed by editing ```config.py```. Below the most basic configuration options are documented. More advanced configuration options are discussed [here](xx)
 
-- ```LIBDIR``` determines where external files are read and written. This is first tried as a folder relative to the user's home folder; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home folder is used instead.
+- ```LIBDIR``` determines where external files are read and written. This is first tried as a folder relative to the user's home folder; if that doesn't exist, it is interpreted as an absolute path. If that also doesn't exist, then the user home folder is used instead. If `None` (the default), the remote script directory is used.
 - ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
 - ```DETECT_E1``` controls whether to detect the E1 at startup, or not. Default is ```True```.
 - ```CONTROL_MODE``` whether the remote script controls both mixer and effect (```CONTROL_EITHER```), the mixer (```CONTROL_MIXER_ONLY```) or the effect only (```CONTROL_EFFECT_ONLY```), or if two E1s are connected each controlling one of them (```CONTROL_BOTH```).

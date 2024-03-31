@@ -11,12 +11,10 @@
 import Live
 
 # Python imports
-from pathlib import Path
 import json
 import threading
 import time
 import sys
-import inspect
 
 # Local imports
 from .E1Midi import parse_cc, is_cc, parse_E1_sysex, is_E1_sysex, hexify, E1_SYSEX_LOGMESSAGE, E1_SYSEX_PRESET_CHANGED, E1_SYSEX_ACK, E1_SYSEX_NACK, E1_SYSEX_REQUEST_RESPONSE, E1_SYSEX_PATCH_REQUEST_PRESSED 
@@ -56,9 +54,8 @@ class ElectraOne(ElectraOneBase):
         self.debug(1,f'Live version {ElectraOneBase.LIVE_VERSION}.')
         # 'close' the interface until E1 detected.
         ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
-        # dump DEVICES.py
-        remote_script_path = Path(inspect.getfile(ElectraOneBase)).parent
-        DevicesDumper(c_instance,remote_script_path)
+        # dump DEVICES.py if preloaded presets changed
+        DevicesDumper(c_instance,ElectraOneBase.REMOTE_SCRIPT_PATH)
         # start a thread to detect the E1, if found thread will complete the
         # initialisation, setting:
         # - self._mixer_controller = MixerController(c_instance) and
