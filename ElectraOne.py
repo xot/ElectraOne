@@ -22,10 +22,9 @@ from .ElectraOneBase import ElectraOneBase, ACK_RECEIVED, NACK_RECEIVED
 from .EffectController import EffectController
 from .MixerController import MixerController
 from .DeviceAppointer import DeviceAppointer
+from .Devices import Devices
 from .config import *
 from .versioninfo import COMMITDATE
-
-from .DumpDevices import DevicesDumper
 
 class ElectraOne(ElectraOneBase):
     """Remote control script for the Electra One.
@@ -52,10 +51,12 @@ class ElectraOne(ElectraOneBase):
         live_bugfix_version = Live.Application.get_application().get_bugfix_version()
         ElectraOneBase.LIVE_VERSION = (live_major_version,live_minor_version,live_bugfix_version)
         self.debug(1,f'Live version {ElectraOneBase.LIVE_VERSION}.')
+        # load information about predefined devices and the default LUA script
+        # (We do this here because at this point in time the remote script
+        # gets more resources to initialise, apparently.)
+        self.devices = Devices(c_instance)
         # 'close' the interface until E1 detected.
         ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
-        # dump DEVICES.py if preloaded presets changed
-        DevicesDumper(c_instance,ElectraOneBase.REMOTE_SCRIPT_PATH)
         # start a thread to detect the E1, if found thread will complete the
         # initialisation, setting:
         # - self._mixer_controller = MixerController(c_instance) and
@@ -113,7 +114,7 @@ class ElectraOne(ElectraOneBase):
             # The upload thread for the appointed device (if any) will request
             # the MIDI map to be rebuilt
             if CONTROL_MODE != CONTROL_MIXER_ONLY:
-                self._effect_controller = EffectController(c_instance)
+                self._effect_controller = EffectController(c_instance,self.devices)
                 self._device_appointer = DeviceAppointer(c_instance)
                 # if a track and a device is selected it is appointed; a little
                 # sleep allows the thread to be interrupted so the appointed

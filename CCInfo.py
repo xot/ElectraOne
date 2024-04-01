@@ -16,6 +16,10 @@ IS_CC14 = True
 # dummy CC parameter value to represent an unmapped CC
 UNMAPPED_CC = -1
 
+# Python imports
+import ast
+
+# local imports
 from .config import MIDI_EFFECT_CHANNEL, UNMAPPED_ID
 from .UniqueParameters import make_device_parameters_unique
 
@@ -123,6 +127,9 @@ class CCMap ( dict ) :
         """Initialise from a dictionary mapping parameter.original_name to CCInfo
            - cc_map: dictionary; dict
         """
+        # Parse first into a dictionary if cc_map is a string
+        if type(cc_map) is str:
+            cc_map = ast.literal_eval(cc_map)
         # we could simply do dict.__init__(self,cc_map), but this is safer, checking
         # all entries in the dict
         dict.__init__(self,{})
