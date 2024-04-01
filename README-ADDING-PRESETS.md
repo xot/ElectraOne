@@ -28,7 +28,6 @@ To modify such an existing preset, proceed as follows.
 
 1. To edit the preset, import  ```<devicename>.epr``` in the [E1 web editor](app.electra.one). Once you are happy with the result, export the preset  ```<devicename>.epr``` and save it back into the ```preloaded``` folder (overwriting the existing file).
 3. If you modified the LUA script, cut and paste it into  ```<devicename>.lua``` in the ```preloaded``` folder (overwriting the existing file).
-2. Run ```makedevices``` to add the modified preset to the set of predefined presets in ```Devices.py```. See [further documentation here](./makedevices-README.md)
 3. Restart Ableton.
 
 If you now load the device again and select it, the preset you created should appear on the E1. (If the preset is preloaded - which is typically the case for predefined presets - set ```USE_PRELOAD_FEATURE=False``` to override their use; once you are happy with the design you can preload it too, see [below](#preloaded-presets).)
