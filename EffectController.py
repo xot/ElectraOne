@@ -40,7 +40,7 @@ class EffectController(ElectraOneBase):
            - devices: info about predefined devices and default LUA script; Devices
         """
         ElectraOneBase.__init__(self, c_instance)
-        self.devices = devices
+        self._devices = devices
         # referrence to the currently assigned device
         # (corresponds typically to the currently appointed device by Ableton)
         self._assigned_device = None
@@ -65,7 +65,7 @@ class EffectController(ElectraOneBase):
             # in this case we assume (!) the defualt.lua is preloaded on E1
             self._default_lua_script = 'require("xot/default")\n'
         else:
-            self._default_lua_script = self.devices.get_default_lua_script 
+            self._default_lua_script = self._devices.get_default_lua_script 
         self.debug(0,'EffectController loaded.')
 
     # --- functions to check state ---
@@ -172,7 +172,7 @@ class EffectController(ElectraOneBase):
         """
         device_name = self.get_device_name(device)
         self.debug(3,f'Getting preset for { device_name }.')
-        (versioned_device_name,preset_info) = self.devices.get_predefined_preset_info(device_name)
+        (versioned_device_name,preset_info) = self._devices.get_predefined_preset_info(device_name)
         if preset_info:
             self.debug(3,f'Predefined preset {versioned_device_name} found')
         if device and (not preset_info or DUMP):

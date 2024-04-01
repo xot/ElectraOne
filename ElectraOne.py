@@ -56,11 +56,13 @@ class ElectraOne(ElectraOneBase):
         # gets more resources to initialise, apparently.)
         self.devices = Devices(c_instance)
         # 'close' the interface until E1 detected.
-        ElectraOneBase.E1_connected = False # do this outside thread because thread may not even execute first statement before finishing
+        ElectraOneBase.E1_connected = False # do this outside thread because
+        # thread may not even execute first statement before finishing
+        #
         # start a thread to detect the E1, if found thread will complete the
         # initialisation, setting:
         # - self._mixer_controller = MixerController(c_instance) and
-        # - self._effect_controller = EffectController(c_instance)
+        # - self._effect_controller = EffectController(c_instance,self.devices)
         # and opening the interface so the remote script becomes active
         self._mixer_controller = None
         self._effect_controller = None
