@@ -70,8 +70,7 @@ class MixerController(ElectraOneBase):
     def _slot_is_visible(self):
         """Returh whether the mixer preset slot is currently visible on the E1
         """
-        visible = (CONTROL_MODE == CONTROL_BOTH) or \
-            (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT)
+        visible = (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT)
         self.debug(6,f'Mixer controller is visible: {visible}')
         return visible
     

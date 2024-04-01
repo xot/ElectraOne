@@ -73,8 +73,7 @@ class EffectController(ElectraOneBase):
     def _slot_is_visible(self):
         """Returh whether the effect preset slot is currently visible on the E1
         """
-        visible = (CONTROL_MODE == CONTROL_BOTH) or \
-             (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
+        visible = (ElectraOneBase.current_visible_slot == EFFECT_PRESET_SLOT)
         self.debug(6,f'Effect controller is visible: {visible}')
         return visible
         
@@ -221,9 +220,8 @@ class EffectController(ElectraOneBase):
         # device_name == 'Empty' guaranteed to exist
         (versioned_device_name,preset_info) = self._get_preset_info(device)
         # If device == None then no device appointed. In this case
-        # assigns the empty device (needed to install some LUA script
-        # when commands need to be forwarded to a mixer when
-        # in CONTROL_BOTH_MODE), but no DeviceController necessary
+        # assigns the empty device. no DeviceController necessary
+        # TODO: also no LUA script necessary anymore (CONTROL_BOTH deprecated)
         if device:
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)

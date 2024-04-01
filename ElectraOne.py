@@ -269,8 +269,7 @@ class ElectraOne(ElectraOneBase):
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
-        # ignore preset switches in CONTROL_BOTH mode
-        elif self.is_ready() and (CONTROL_MODE != CONTROL_BOTH):
+        elif self.is_ready():
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
                 self.debug(3,'Mixer preset selected: starting refresh.')
                 self._mixer_controller.refresh_state()

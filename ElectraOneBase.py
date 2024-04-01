@@ -673,10 +673,6 @@ class ElectraOneBase(Log):
         sysex_lua = self._ascii_bytes(command) 
         # LUA commands respond with ACK/NACK
         self._increment_acks_pending()
-        # in CONTROL_BOTH mode BOTH E1s send an ACK! (if the first E1 is at version 3.2.0
-        # and this only affects all calls to _send_lua_command
-        if (CONTROL_MODE == CONTROL_BOTH) and ElectraOneBase.E1_FORWARDS_ACK:
-            self._increment_acks_pending()
         self._send_midi_sysex(sysex_command, sysex_lua)
 
     def midi_burst_on(self):

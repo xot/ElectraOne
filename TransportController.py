@@ -107,8 +107,7 @@ class TransportController(ElectraOneBase):
            (pos.sub_division != self._lastpos.sub_division):
             self._lastpos = pos
             self.debug(5,f'Position changed to {pos}.')
-            if (CONTROL_MODE == CONTROL_BOTH) or \
-               (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
                 self.set_position(str(pos)[:-4])
         
     def _on_tempo_changed(self):
@@ -116,8 +115,7 @@ class TransportController(ElectraOneBase):
         """
         tempo = f'{self.song().tempo:.2f}'
         self.debug(4,f'Tempo changed to {tempo}.')
-        if (CONTROL_MODE == CONTROL_BOTH) or \
-             (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+        if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
             self.set_tempo(tempo)
         
     # --- Handlers ---
