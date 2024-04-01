@@ -10,6 +10,7 @@
 
 # Python imports
 import os
+import unicodedata
 
 # Local imports
 from .ElectraOneBase import ElectraOneBase
@@ -80,6 +81,12 @@ class Devices(ElectraOneBase):
         lua_script_path = preset_path.with_suffix('.lua')
         ccmap_path = preset_path.with_suffix('.ccmap')
         device_versioned_name = preset_path.stem
+        # Ugh: Mac uses different encoding for UTF; normalise so that
+        # device name returned by Ableton corresponds to device name
+        # read from file system; deals with special letters like ä in
+        # device names
+        # (https://stackoverflow.com/questions/9757843/unicode-encoding-for-filesystem-in-mac-os-x-not-correct-in-python)
+        device_versioned_name = unicodedata.normalize('NFC',str(device_versioned_name))
         (device_name,version) = self._extract_version_from_name(device_versioned_name)
         if device_name not in self._DEVICES:
             self._DEVICES[device_name]={}
@@ -115,14 +122,13 @@ class Devices(ElectraOneBase):
            - device_name: (class)name for a device to lookup
            - result: tuple versioned name, preset info ; (str,PresetInfo)
         """
-        # try loading version specific definitions
-        # e.g. Echo.12.0 or Echo.12
         if device_name in self._DEVICES:
             presets = self._DEVICES[device_name]
             versions = list(presets.keys())
-            # TODO ssrting each time is overkill
+            # TODO sorting each time is overkill
             versions.sort()
             i = 0
+            # find most recent versioned preset for current live version
             # versions[0]=(0,0,0) always
             while (i < len(versions)) and (versions[i] <= ElectraOneBase.LIVE_VERSION):
                 i += 1

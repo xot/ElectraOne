@@ -135,12 +135,14 @@ class CCMap ( dict ) :
         dict.__init__(self,{})
         for par_name in cc_map:
             value = cc_map[par_name]
-            if type(value) is tuple:
-                ccinfo = CCInfo(value)
-            else:
-                assert type(value) == CCInfo, f'{value} should be of type CCInfo'
-                ccinfo = value 
-            self[par_name] = ccinfo
+            # skip None entries
+            if value != None:                
+                if type(value) is tuple:
+                    ccinfo = CCInfo(value)
+                else:
+                    assert type(value) == CCInfo, f'{value} should be of type CCInfo'
+                    ccinfo = value 
+                self[par_name] = ccinfo
 
     def map(self,parameter,ccinfo):
         """Map the parameter using ccinfo
