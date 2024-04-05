@@ -308,10 +308,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # WARNING: this code assumes all parameters are included in the preset
         # (Also wrong once we start auto-detecting ADSRs)
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
-        self.debug(5,f'Appending {pagecount} pages.')
+        self.debug(4,f'Appending {pagecount} pages.')
         if  pagecount >  MAX_PAGE_ID:
             # TODO: later on also check for out of bounds page id
-            self.debug(4,f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }). Truncating.')
+            self.debug(3,f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }). Truncating.')
             pagecount =  MAX_PAGE_ID
         self._append(',"pages":[')
         flag = False
@@ -325,12 +325,12 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_map: the CC map constructed for the preset; CCMap
         """
         channels = { c.get_midi_channel() for c in cc_map.values() }
-        self.debug(5,f'Appending {len(channels)} devices.')
+        self.debug(4,f'Appending {len(channels)} devices.')
         self._append(',"devices":[')
         flag = False
         for channel in channels:
             if channel not in range(1,17):
-                self.debug(4,f'MIDI channel { channel } not in range. Skipped.')
+                self.debug(3,f'MIDI channel { channel } not in range. Skipped.')
             else:
                 flag = self._append_comma(flag)
                 device_id = device_idx_for_midi_channel(channel)
@@ -353,7 +353,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         for (idx,item) in enumerate(value_items):
             item_cc_value = cc7_value_for_item_idx(idx, value_items)
             if item_cc_value not in range(128):
-                self.debug(4,f'MIDI CC value out of range { item_cc_value }. Skipping.')
+                self.debug(3,f'MIDI CC value out of range { item_cc_value }. Skipping.')
             else:
                 flag = self._append_comma(flag)
                 self._append( f'{{"label":"{ item }"' # {{ = {
@@ -371,7 +371,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameters: list of all parameters in the device; list of Live.DeviceParameter.DeviceParameter
            - cc_map: CC map for all parameters in the device; CCMap
         """
-        self.debug(5,f'Appending overlays.')
+        self.debug(4,f'Appending overlays.')
         self._append(',"overlays":[')
         overlay_idx = 1
         flag = False
@@ -379,15 +379,15 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             cc_info = cc_map.get_cc_info(p)
             if cc_info.is_mapped() and _needs_overlay(p):
                 if overlay_idx > MAX_OVERLAY_ID:
-                    self.debug(4,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
+                    self.debug(3,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
                     # stop adding overlays
                     return
                 if len(p.value_items) > 128:
                     # do not the overlay in this case
-                    self.debug(4,f'Too many overlay items { len(p.value_items) }. Skipping all.')
+                    self.debug(3,f'Too many overlay items { len(p.value_items) }. Skipping all.')
                 else:
                     flag = self._append_comma(flag)
-                    self.debug(6,f'Appending overlay for {p.original_name} with values {p.value_items}.')
+                    self.debug(5,f'Appending overlay for {p.original_name} with values {[s for s in p.value_items]}.')
                     self._overlay_map[p.original_name] = overlay_idx
                     # {{ to escape { in f string
                     self._append(f'{{"id":{ overlay_idx }')
@@ -460,7 +460,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if vmin != None:
             vmin = int(vmin)
             vmax = int(vmax)
-        self.debug(6,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
+        self.debug(5,f'Generic fader {cc_info.is_cc14()}, {vmin}, {vmax}, {formatter}')
         device_id = device_idx_for_midi_channel(cc_info.get_midi_channel())
         self._append(    ',"type":"fader"')
         if thin: 
@@ -526,7 +526,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_info: CC information for the parameter/control. 
            - return: updated cc_info; CCInfo.
         """
-        self.debug(6,f'Appending fader for {parameter.original_name}')
+        self.debug(5,f'Appending fader for {parameter.original_name}')
         (vmin,vmax) = _get_par_min_max(parameter)
         if (vmin == None) or (vmax == None):
             self._append_json_generic_fader(cc_info, False, None, None, None)
@@ -568,23 +568,23 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_info: CC information for the parameter/control; CCInfo
            - return: updated cc_info; CCInfo.
         """
-        self.debug(5,f'Appending JSON control for {parameter.original_name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
+        self.debug(4,f'Appending JSON control for {parameter.original_name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
         # set and check main control attributes
         if id not in range(MAX_ID):
-            self.debug(4,f'{ id } exceeds max number of IDs ({ MAX_ID }).')
+            self.debug(3,f'{ id } exceeds max number of IDs ({ MAX_ID }).')
             return
         page = 1 + (id // PARAMETERS_PER_PAGE)
         if page > MAX_PAGE_ID:
-            self.debug(4,f'{ page } exceeds max number of pages ({ MAX_PAGE_ID }).')
+            self.debug(3,f'{ page } exceeds max number of pages ({ MAX_PAGE_ID }).')
             return
         controlset = 1 + ((id % PARAMETERS_PER_PAGE) // (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         # This is more strict than the Electra One documentation requires
         if controlset > MAX_CONTROLSET_ID:
-            self.debug(4,f'{ controlset } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).')
+            self.debug(3,f'{ controlset } exceeds max number of controlsets ({ MAX_CONTROLSET_ID }).')
             return
         pot = 1 + (id % (PARAMETERS_PER_PAGE // CONTROLSETS_PER_PAGE))
         if pot > MAX_POT_ID:
-            self.debug(4,f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).')
+            self.debug(3,f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).')
             return
         self._append( f'{{"id":{ id+1 }' # {{ is esapced {
                     , f',"name":"{ self._truncate_parameter_name(parameter.name) }"' # use name as label for control
@@ -625,7 +625,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - cc_map: CC information for the parameters/control; CCMap
            - returns: updated CCmap; CCmap
         """
-        self.debug(5,f'Appending (at most) {len(parameters)} controls.')
+        self.debug(4,f'Appending (at most) {len(parameters)} controls.')
         self._append(',"controls":[')
         id = 0  # control identifier
         flag = False
@@ -651,7 +651,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
              _construct_cc_map. 
            - result: the preset (a JSON object in E1 .epr format); str
         """
-        self.debug(4,'Construct JSON preset')
+        self.debug(3,'Construct JSON preset')
         # create a project id from the device_name 'randomly'
         # so they are arbitrary but a device_name is always mapped to the same
         # project id. This is necessary as the snapshot storage on the
@@ -688,7 +688,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameters:  parameter list; list of Live.DeviceParameter.DeviceParameter
            - result: cc map; CCMap
         """
-        self.debug(4,'Construct CC map')
+        self.debug(3,'Construct CC map')
         # 14bit CC controls are mapped first; they consume two CC parameters
         # (i AND i+32). 7 bit CC controls are mapped next filling any empty
         # slots.
@@ -702,7 +702,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         # get the list of parameters to be assigned to 14bit controllers
         cc14pars = [p for p in parameters if _wants_cc14(p)]
-        self.debug(5,f'{len(cc14pars)} CC14 parameters found')
+        self.debug(4,f'{len(cc14pars)} CC14 parameters found')
         if (MAX_CC14_PARAMETERS != -1) and (MAX_CC14_PARAMETERS < len(cc14pars)):
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
             skipped_cc14pars = cc14pars[MAX_CC14_PARAMETERS:]
@@ -714,7 +714,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         cc7pars = [p for p in parameters if not _wants_cc14(p)]
         # append parameters that could not be assigned a 14bit controller
         cc7pars += skipped_cc14pars
-        self.debug(5,f'{len(cc7pars)} CC7 parameters found')
+        self.debug(4,f'{len(cc7pars)} CC7 parameters found')
         if (MAX_CC7_PARAMETERS != -1) and (MAX_CC7_PARAMETERS < len(cc7pars)):
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
             self.warning(f'Truncated CC7 parameters to {MAX_CC7_PARAMETERS}!')
@@ -751,7 +751,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
             self.warning('Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(4,f'CC map constructed: { cc_map }')
+            self.debug(3,f'CC map constructed: { cc_map }')
         return cc_map
     
     def _parameter_sort_key(self,parameter):
@@ -776,14 +776,14 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - result: a copy of the parameter list, sorted;
              list of Live.DeviceParameter.DeviceParameter
         """
-        self.debug(4,'Filter and order parameters')
+        self.debug(3,'Filter and order parameters')
         # first filter using PARAMETERS_TO_IGNORE
         ignore = []
         if "ALL" in PARAMETERS_TO_IGNORE:
             ignore = PARAMETERS_TO_IGNORE["ALL"]
         if device_name in PARAMETERS_TO_IGNORE:
             ignore = ignore + PARAMETERS_TO_IGNORE[device_name] # duplicates do not matter
-        self.debug(5,f'Ignoring parameters: {ignore}')
+        self.debug(4,f'Ignoring parameters: {ignore}')
         parameters = [p for p in parameters if p.original_name not in ignore]
         # now sort (and filter if ORDER_DEVICE_DICT)
         if (ORDER == ORDER_DEVICEDICT) and \
@@ -814,7 +814,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             result = parameters_copy
         else: 
             result = parameters
-        self.debug(4,f'Filtered and order parameters: {[p.original_name for p in result]}')
+        self.debug(3,f'Filtered and order parameters: {[p.original_name for p in result]}')
         return result
 
     def __init__(self, c_instance, device): 
@@ -832,13 +832,13 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # ElectraOneBase instance used to have access to the log file for debugging.
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
-        self.debug(4,f'Dumper for device { device_name } loaded.')
-        self.debug(6,'Dumper found the following parameters and their range:')
+        self.debug(3,f'Dumper for device { device_name } loaded.')
+        self.debug(5,'Dumper found the following parameters and their range:')
         device_parameters = make_device_parameters_unique(device)
         for p in device_parameters:
             min_value_as_str = p.str_for_value(p.min)
             max_value_as_str = p.str_for_value(p.max)
-            self.debug(6,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}. Quantized: {p.is_quantized}.')
+            self.debug(5,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}. Quantized: {p.is_quantized}.')
         parameters = self._filter_and_order_parameters(device_name, device_parameters)
         self._cc_map = self._construct_cc_map(device_name, parameters)
         # constructing the preset may modify the cc_map to set the control

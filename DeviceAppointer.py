@@ -80,10 +80,10 @@ class DeviceAppointer(ElectraOneBase):
             device_name = self.get_device_name(device)
             self.debug(1,f'Device { device_name } selected. Now appoint it.')
             if self.song().appointed_device != device:
-                self.debug(1,f'\ Set as appointed device (unappointed if Empty).')
+                self.debug(1,f'\\ Set as appointed device (unappointed if None).')
                 # this will trigger the _handle_appointed_device_change
                 # listener registered by EffectController
                 self.song().appointed_device = device
             else:
-                self.debug(1,f'\ Appointed device not changed.')                
+                self.debug(1,f'\\ Appointed device not changed.')                
         

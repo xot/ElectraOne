@@ -106,7 +106,7 @@ class TransportController(ElectraOneBase):
            (pos.beats != self._lastpos.beats) or \
            (pos.sub_division != self._lastpos.sub_division):
             self._lastpos = pos
-            self.debug(5,f'Position changed to {pos}.')
+            self.debug(6,f'Position changed to {pos}.')
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
                 self.set_position(str(pos)[:-4])
         

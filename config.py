@@ -58,8 +58,7 @@ USE_PRELOAD_FEATURE=True
 RESET_SLOT = (5,11)
 
 # Configure whether the remote script controls both mixer and effect, the mixer
-# or the effect only, or if two E!s are connected each controlling one of them
-
+# or the effect only
 CONTROL_EITHER = 0
 CONTROL_EFFECT_ONLY = 1
 CONTROL_MIXER_ONLY = 2

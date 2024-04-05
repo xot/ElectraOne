@@ -140,7 +140,7 @@ class CCMap ( dict ) :
                 if type(value) is tuple:
                     ccinfo = CCInfo(value)
                 else:
-                    assert type(value) == CCInfo, f'{value} should be of type CCInfo'
+                    assert type(value) is CCInfo, f'{value} should be of type CCInfo'
                     ccinfo = value 
                 self[par_name] = ccinfo
 

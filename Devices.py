@@ -46,7 +46,7 @@ class Devices(ElectraOneBase):
         # get paths
         preloaded_path = ElectraOneBase.REMOTE_SCRIPT_PATH / 'preloaded'
         luascript_path = ElectraOneBase.REMOTE_SCRIPT_PATH / DEFAULT_LUA_SCRIPT_FILE
-        # load LUA script
+        # load default LUA script
         if os.path.exists(luascript_path):
             self.debug(2,f'Loading default LUA script {luascript_path}.')
             with open(luascript_path,'r') as inf:
@@ -88,8 +88,9 @@ class Devices(ElectraOneBase):
         # (https://stackoverflow.com/questions/9757843/unicode-encoding-for-filesystem-in-mac-os-x-not-correct-in-python)
         device_versioned_name = unicodedata.normalize('NFC',str(device_versioned_name))
         (device_name,version) = self._extract_version_from_name(device_versioned_name)
+        # create new dictionary entry if necessary
         if device_name not in self._DEVICES:
-            self._DEVICES[device_name]={}
+            self._DEVICES[device_name] = {}
         self.debug(5,f'Predefining {device_name} ({device_versioned_name}) for Live version {version} or higher.')
         # load and process the .epr preset
         with open(json_preset_path,'r') as inf:
@@ -99,7 +100,6 @@ class Devices(ElectraOneBase):
         # append the .lua if it exists
         if os.path.exists(lua_script_path):
             with open(lua_script_path,'r') as inf:
-                #print('- LUA script found. Loading.')
                 lua_script += inf.read()
         # load the .ccmap
         with open(ccmap_path,'r') as inf:
@@ -111,8 +111,13 @@ class Devices(ElectraOneBase):
 
     def get_default_lua_script(self):
         """Return the default LUA script, loaded from DEFAULT_LUA_SCRIPT_FILE
+           or referring ot the one already preloaded on the E1
         """
-        return self._default_lua_script
+        if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+            # in this case we assume (!) the defualt.lua is preloaded on E1
+            return 'require("xot/default")\n'
+        else:
+            return self._default_lua_script
 
     def get_predefined_preset_info(self,device_name):
         """Return the predefined preset information for a device,
@@ -125,15 +130,12 @@ class Devices(ElectraOneBase):
         if device_name in self._DEVICES:
             presets = self._DEVICES[device_name]
             versions = list(presets.keys())
-            # TODO sorting each time is overkill
-            versions.sort()
-            i = 0
             # find most recent versioned preset for current live version
-            # versions[0]=(0,0,0) always
-            while (i < len(versions)) and (versions[i] <= ElectraOneBase.LIVE_VERSION):
-                i += 1
-            assert i > 0, 'Empty preset dict encountered.'
-            return presets[versions[i-1]]
+            closest = (0,0,0)
+            for version in versions:
+                if (closest < version) and (version <= ElectraOneBase.LIVE_VERSION):
+                    closest = version
+            return presets[closest]
         else:
             return (None,None)
 

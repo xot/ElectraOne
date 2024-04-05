@@ -209,7 +209,7 @@ class ElectraOneBase(Log):
     def get_device_name(self, device):
         """Return the (fixed) name of the device (i.e. not the name of the preset)
            - device: the device; Live.Device.Device
-           - result: device name ('Empty' when None); str
+           - result: device name ('None' when None); str
         """
         # For native devices and instruments, device.class_name is the name of
         # the device/instrument, and device.name equals the selected preset
@@ -230,7 +230,7 @@ class ElectraOneBase(Log):
         # rack itself, append a hash (#) to the name to the rack
         if not device:
             self.debug(7,'Getting name for empty device.')
-            return 'Empty'
+            return 'None'
         self.debug(7,f'Getting name for device with class_name { device.class_name }. Aka name: { device.name } and class_display_name: { device.class_display_name }, (has type { type(device) }).')
         if device.class_name in ('AuPluginDevice', 'PluginDevice', 'MxDeviceMidiEffect', 'MxDeviceInstrument', 'MxDeviceAudioEffect'):
             cp = device.canonical_parent
@@ -927,7 +927,7 @@ class ElectraOneBase(Log):
            the E1 (use __select_slot_only to select the desired slot)
            - luascript: LUA script to upload; str
         """
-        self.debug(4,f'Uploading LUA script {luascript}.')
+        self.debug(4,f'Uploading LUA script:\n{luascript}.')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_command = (0x01, 0x0C)
         sysex_script = self._ascii_bytes(luascript)

@@ -117,6 +117,7 @@ class GenericDeviceController(ElectraOneBase):
             return
         assert self._cc_map, 'No CC map present while refreshing device state.'
         if full_refresh:
+            self.midi_burst_on()
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
             self.debug(6,f'Partial state refresh for device { self._device_name }')            
@@ -125,6 +126,8 @@ class GenericDeviceController(ElectraOneBase):
             ccinfo = self._cc_map.get_cc_info(p)
             if ccinfo.is_mapped():
                 self._refresh_parameter(p,ccinfo,full_refresh)
+        if full_refresh:
+            self.midi_burst_off()
 
     def refresh_state(self):
         """Update both the MIDI CC values and the displayed values for the

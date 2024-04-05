@@ -26,8 +26,7 @@ from .GenericDeviceController import GenericDeviceController
 # deletion triggers device selection, so
 # self._assigned_device_controller is updated (and no longer points to
 # the now deleted device). If no device is assigned, then self._assigned_device
-# equal None and an empty preset (taken from a devic with name "Empty")
-# is uploaded
+# equal None 
 
 class EffectController(ElectraOneBase):
     """Control the currently selected device.
@@ -45,7 +44,7 @@ class EffectController(ElectraOneBase):
         # (corresponds typically to the currently appointed device by Ableton)
         self._assigned_device = None
         # generic controller associated with assigned device
-        # (only created for non-Empty preset when actually uploaded)
+        # (only created for preset when actually uploaded)
         self._assigned_device_controller = None
         # set when device uploading is delayed (and upload most be done at
         # a later suitable time); initially true because the effect slot
@@ -60,12 +59,6 @@ class EffectController(ElectraOneBase):
         # created by DeviceAppointer or by other remote scripts handling device
         # appointments)
         self.song().add_appointed_device_listener(self._handle_appointed_device_change)
-        # set the default lua script
-        if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
-            # in this case we assume (!) the defualt.lua is preloaded on E1
-            self._default_lua_script = 'require("xot/default")\n'
-        else:
-            self._default_lua_script = self._devices.get_default_lua_script 
         self.debug(0,'EffectController loaded.')
 
     # --- functions to check state ---
@@ -103,16 +96,15 @@ class EffectController(ElectraOneBase):
         """
         if self._assigned_device_is_visible():
             self.debug(2,'EffCont refreshing state.')
-            self.midi_burst_on()
             self._assigned_device_controller.refresh_state()
-            self.midi_burst_off()
             self.debug(2,'EffCont state refreshed.')
         else:
             self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
             
     def update_display(self):
         """Called every 100 ms; used to update values of controls whose
-           string representation needs to be sent by Ableton
+           string representation needs to be sent by Ableton.
+           Also used to upload a pending preset.
         """
         self.debug(6,'EffCont update display; checkig upload status.')
         # Upload the assigned device preset if possible and needed
@@ -164,7 +156,7 @@ class EffectController(ElectraOneBase):
         """Get the preset info for the specified device, either externally,
            predefined or else construct it on the fly. Dump constructed
            preset if DUMP=True.
-           - device: device to get preset for; Live.Device.Device
+           - device: device to get preset for; Live.Device.Device (!= None)
            - return (versioned_device_name,preset_info)
            where versioned_device_name is the version specific name of the
            device (e.g Echo.12.0) when a Live specific version preset is found
@@ -174,23 +166,18 @@ class EffectController(ElectraOneBase):
         (versioned_device_name,preset_info) = self._devices.get_predefined_preset_info(device_name)
         if preset_info:
             self.debug(3,f'Predefined preset {versioned_device_name} found')
-        if device and (not preset_info or DUMP):
+        if (not preset_info or DUMP):
             # construct a preset if none found or DUMP requested
-            if preset_info:
-                self.debug(3,'Constructing preset on the fly to dump...')
-            else:
-                self.debug(3,'Constructing preset on the fly...')
+            self.debug(3,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             dump_preset_info = dumper.get_preset_info()
-        if device and DUMP:
+        if DUMP:
             dump_preset_info.dump(device, device_name, ElectraOneBase.DUMP_PATH, self.debug)
         if not preset_info:
             versioned_device_name = device_name
             preset_info = dump_preset_info
-        # check preset integrity if device != 'Empty'
-        # any warnings will be reported in the log
-        if device:
-            preset_info.validate(device, device_name, self.warning)
+        # check preset integrity; any warnings will be reported in the log
+        preset_info.validate(device, device_name, self.warning)
         return (versioned_device_name,preset_info)
 
     # --- handle device selection ---
@@ -210,32 +197,22 @@ class EffectController(ElectraOneBase):
            the E1 and create a device controller for it.
         """
         device = self._assigned_device
-        device_name = self.get_device_name(device) # 'Empty' if device==None
-        self.debug(2,f'Uploading device { device_name }')
-        # TODO: we get the (complex) preset from DEVICES.py even if
-        # it is already preloaded on the E1; luckily we do not construct
-        # the preset on the fly unneccessarily (as it is then also not
-        # preloaded); we do validate though...
-        #
-        # device_name == 'Empty' guaranteed to exist
-        (versioned_device_name,preset_info) = self._get_preset_info(device)
-        # If device == None then no device appointed. In this case
-        # assigns the empty device. no DeviceController necessary
-        # TODO: also no LUA script necessary anymore (CONTROL_BOTH deprecated)
         if device:
+            (versioned_device_name,preset_info) = self._get_preset_info(device)
+            self.debug(2,f'Uploading device { versioned_device_name }.')
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
-        preset = preset_info.get_preset()
-        # get the default lua script and append the preset specific lua script
-        script = self._default_lua_script
-        script += preset_info.get_lua_script() 
-        # upload preset: will also request midi map (which will also refresh state)
-        # use versioned_device_name to look up correct preloaded preset
-        self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
-        self._assigned_device_upload_delayed = False
-        # if this upload fails, ElectraOneBase.preset_upload_successful will be
-        # false; then update_display will try to upload again every 100ms (when
-        # the E1 is ready, of course).
+            preset = preset_info.get_preset()
+            # get the default lua script and append the preset specific lua script
+            script = self._devices.get_default_lua_script()
+            script += preset_info.get_lua_script() 
+            # upload preset: will also request midi map (which will also refresh state)
+            # use versioned_device_name to (try to) look up correct preloaded preset on the E1
+            self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
+            self._assigned_device_upload_delayed = False
+            # if this upload fails, ElectraOneBase.preset_upload_successful will be
+            # false; then update_display will try to upload again every 100ms (when
+            # the E1 is ready, of course).
         
     def _assign_device(self, device):
         """Assign the device to the E1 effect preset. Upload it immediately if
