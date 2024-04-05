@@ -197,6 +197,7 @@ class EffectController(ElectraOneBase):
            the E1 and create a device controller for it.
         """
         device = self._assigned_device
+        # upload an empty preaet if None (eg when track deleted and no device appointed)
         if device:
             (versioned_device_name,preset_info) = self._get_preset_info(device)
             self.debug(2,f'Uploading device { versioned_device_name }.')
@@ -205,14 +206,18 @@ class EffectController(ElectraOneBase):
             preset = preset_info.get_preset()
             # get the default lua script and append the preset specific lua script
             script = self._devices.get_default_lua_script()
-            script += preset_info.get_lua_script() 
-            # upload preset: will also request midi map (which will also refresh state)
-            # use versioned_device_name to (try to) look up correct preloaded preset on the E1
-            self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
-            self._assigned_device_upload_delayed = False
-            # if this upload fails, ElectraOneBase.preset_upload_successful will be
-            # false; then update_display will try to upload again every 100ms (when
-            # the E1 is ready, of course).
+            script += preset_info.get_lua_script()
+        else:
+            versioned_device_name = 'None'
+            preset = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","pages":[],"groups":[],"devices":[],"overlays":[],"controls":[]}'
+            script = self._devices.get_default_lua_script()
+        # upload preset: will also request midi map (which will also refresh state)
+        # use versioned_device_name to (try to) look up correct preloaded preset on the E1
+        self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
+        self._assigned_device_upload_delayed = False
+        # if this upload fails, ElectraOneBase.preset_upload_successful will be
+        # false; then update_display will try to upload again every 100ms (when
+        # the E1 is ready, of course).
         
     def _assign_device(self, device):
         """Assign the device to the E1 effect preset. Upload it immediately if

@@ -79,7 +79,13 @@ class DeviceAppointer(ElectraOneBase):
             device = track.view.selected_device
             device_name = self.get_device_name(device)
             self.debug(1,f'Device { device_name } selected. Now appoint it.')
-            if self.song().appointed_device != device:
+            # TODO: when deleting track, device = None;
+            # but apparently self.song().appointed_device is also None
+            # because the device it pointed to is gone
+            #
+            # Q: how to trigger  _handle_appointed_device_change?
+            # (assigning None to self.song().appointed_device doesn't work
+            if (not device) or (self.song().appointed_device != device):
                 self.debug(1,f'\\ Set as appointed device (unappointed if None).')
                 # this will trigger the _handle_appointed_device_change
                 # listener registered by EffectController
