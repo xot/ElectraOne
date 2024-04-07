@@ -337,7 +337,7 @@ Others:
 - Wavetable Sync rate: ```8```..```1/64```.
 - Analog Noise Balance: ```F2```..```50/50```..```F1```.
 
-*Note: for plugins and VSTs, if you automatically populate device parameters, the range shown in Live are 0.000 .. 1.000. However, the string representations of those two values are 0 and 1, i.e like integers. The remote script recognises this special case by also looking at `p.is_quantized` to consider these parameters as untyped floats.*
+*Note: for plugins and VSTs, if you automatically populate device parameters, the string representations of the range of these parameters are sometimes reported as integers (e.g. 0 and 1), while float values are used internally by the plugin. The remote script recognises this special case by being less smart when dealing with plugins.*
 
 ## Tracks
 

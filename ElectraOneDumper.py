@@ -200,10 +200,6 @@ def _is_int_parameter(p):
     """Return whether parameter has (only) integer values, and if so whether
        its range is large ( > 64 ) or small.
 
-       PROBLEM: For VSTs, automatically popul;ated devcie parameters are shown in
-       Live as value in the range 0.000 to 1.000, but their string values
-       are reported as 0 and 1 -> this control is considered an int parameter
-       with only two values: 0 and 1. Not good!
        - parameter; Live.DeviceParameter.DeviceParameter
        - result: NON_INT, SMALL_INT or BIG_INT
     """
@@ -212,9 +208,6 @@ def _is_int_parameter(p):
     if (not _is_int_str(min_number_part)) or \
        (not _is_int_str(max_number_part)) or \
        (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
-        return NON_INT
-    # hack to dealt with VSTs
-    if int(min_number_part) == 0 and int(max_number_part)== 1 and not p.is_quantized:
         return NON_INT
     # TODO: why 64 and not 128?
     if int(max_number_part) - int(min_number_part) > 64:
@@ -553,7 +546,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         elif _is_symmetric_dB(parameter):
             # scale by factor 10 to allow fractional dBs
             self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatdB")
-        elif _is_int_parameter(parameter) != NON_INT:
+        elif not self._isplugin and _is_int_parameter(parameter) != NON_INT:
             self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         elif _is_untyped_float(parameter):
             cc_info = self._append_json_float_fader(id,parameter,cc_info)            
@@ -840,7 +833,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # ElectraOneBase instance used to have access to the log file for debugging.
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
-        self.debug(3,f'Dumper for device { device_name } loaded.')
+        self._isplugin = device.class_name in ('AuPluginDevice', 'PluginDevice')
+        self.debug(3,f'Dumper for device { device_name } (isplugin: {self._isplugin}) loaded.')
         self.debug(5,'Dumper found the following parameters and their range:')
         device_parameters = make_device_parameters_unique(device)
         for p in device_parameters:
