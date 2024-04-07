@@ -198,7 +198,12 @@ BIG_INT = 1
 
 def _is_int_parameter(p):
     """Return whether parameter has (only) integer values, and if so whether
-       its range is large ( > 64 ) or small  
+       its range is large ( > 64 ) or small.
+
+       PROBLEM: For VSTs, automatically popul;ated devcie parameters are shown in
+       Live as value in the range 0.000 to 1.000, but their string values
+       are reported as 0 and 1 -> this control is considered an int parameter
+       with only two values: 0 and 1. Not good!
        - parameter; Live.DeviceParameter.DeviceParameter
        - result: NON_INT, SMALL_INT or BIG_INT
     """
@@ -207,6 +212,9 @@ def _is_int_parameter(p):
     if (not _is_int_str(min_number_part)) or \
        (not _is_int_str(max_number_part)) or \
        (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
+        return NON_INT
+    # hack to dealt with VSTs
+    if int(min_number_part) == 0 and int(max_number_part)== 1 and not p.is_quantized:
         return NON_INT
     # TODO: why 64 and not 128?
     if int(max_number_part) - int(min_number_part) > 64:

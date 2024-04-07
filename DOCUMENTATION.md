@@ -337,6 +337,8 @@ Others:
 - Wavetable Sync rate: ```8```..```1/64```.
 - Analog Noise Balance: ```F2```..```50/50```..```F1```.
 
+*Note: for plugins and VSTs, if you automatically populate device parameters, the range shown in Live are 0.000 .. 1.000. However, the string representations of those two values are 0 and 1, i.e like integers. The remote script recognises this special case by also looking at `p.is_quantized` to consider these parameters as untyped floats.*
+
 ## Tracks
 
 ```self.song().visible_tracks``` returns the list (actually a ```Base.Vector``` ) of currently visible audio and midi tracks. This does include any tracks that are part of a expanded group track, but *does not include* any visible 'subtracks' created for chains in an instrument or drum rack. Therefore there is no straightforward way to list or get access to such subtracks. For this ```track_is_showing_chains``` needs to be checked and the shown chains for the first rack device on the track need to be found. 
