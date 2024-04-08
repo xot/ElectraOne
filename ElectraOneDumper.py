@@ -546,6 +546,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         elif _is_symmetric_dB(parameter):
             # scale by factor 10 to allow fractional dBs
             self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatdB")
+            # never use int faders for plugins ebcause they sometimes report their parameters wronf
         elif not self._isplugin and _is_int_parameter(parameter) != NON_INT:
             self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         elif _is_untyped_float(parameter):
@@ -833,6 +834,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # ElectraOneBase instance used to have access to the log file for debugging.
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
+        # record whetehr this is a plugin (used to decide on proper control types)
         self._isplugin = device.class_name in ('AuPluginDevice', 'PluginDevice')
         self.debug(3,f'Dumper for device { device_name } (isplugin: {self._isplugin}) loaded.')
         self.debug(5,'Dumper found the following parameters and their range:')
