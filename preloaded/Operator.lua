@@ -103,43 +103,27 @@ end
 -- phase/feedback visibility
 
 aphase = controls.get(131)
-afeedback = controls.get(126)
-
-afeedback:setSlot(12,1)
 
 function aretrig(valueObject, value)
     aphase:setVisible(value ~= 0)
-    afeedback:setVisible(value == 0)
 end
 
 bphase = controls.get(141)
-bfeedback = controls.get(136)
-
-bfeedback:setSlot(30,1)
 
 function bretrig(valueObject, value)
     bphase:setVisible(value ~= 0)
-    bfeedback:setVisible(value == 0)
 end
 
 cphase = controls.get(151)
-cfeedback = controls.get(146)
-
-cfeedback:setSlot(12,2)
 
 function cretrig(valueObject, value)
     cphase:setVisible(value ~= 0)
-    cfeedback:setVisible(value == 0)
 end
 
 dphase = controls.get(161)
-dfeedback = controls.get(156)
-
-dfeedback:setSlot(30,2)
 
 function dretrig(valueObject, value)
     dphase:setVisible(value ~= 0)
-    dfeedback:setVisible(value == 0)
 end
 
 -- lfo
