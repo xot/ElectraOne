@@ -44,11 +44,9 @@ class TransportController(ElectraOneBase):
         self._on_tempo_changed()
 
     def update_display(self):
-        """ Called every 100 ms. Used to monitor rewind/forward buttons 
-            (move backward or forward in a song while rewind or forward
-             button pressed)
+        """ Called every 100 ms. 
         """
-        pass 
+        pass
         
     def disconnect(self):
         """Called right before we get disconnected from Live.
@@ -104,7 +102,7 @@ class TransportController(ElectraOneBase):
         if (self._lastpos == None) or \
            (pos.bars != self._lastpos.bars) or \
            (pos.beats != self._lastpos.beats) or \
-           (pos.sub_division != self._lastpos.sub_division):
+           ((pos.sub_division != self._lastpos.sub_division) and POSITION_FINE):
             self._lastpos = pos
             self.debug(6,f'Position changed to {pos}.')
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):

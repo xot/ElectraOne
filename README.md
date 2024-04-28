@@ -219,7 +219,7 @@ The behaviour of the remote script can be changed by editing ```config.py```. Be
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
 - ```SENDMIDI_CMD``` full path to the ```sendmidi```command. If ```None```(the default), fast uploading of presets is not supported.
 - ```USE_PRELOAD_FEATURE```. Whether to use the preloaded presets feature (if supported). If false, the predefined presets in ```Devices.py``` are always used, overriding any (older) preloaded presets on the E1. Default is ```True```.
-
+- ```POSITION_FINE```. Whether to update the position with every sub_division  change, or only every beat. Default is `True`.
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 

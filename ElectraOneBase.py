@@ -97,6 +97,7 @@ class ElectraOneBase(Log):
             ldir = LIBDIR
         else:
             ldir = str(ElectraOneBase.REMOTE_SCRIPT_PATH)
+        # TODO: if LIBDIR starts with / why not assume immediately it is a global path?
         if ldir[0] == '/':
             ldir = ldir[1:]
         if ldir[-1] == '/':

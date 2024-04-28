@@ -164,6 +164,9 @@ FORW_REW_JUMP_BY_AMOUNT = 1
 # Amount to increase/decrease tempo with
 TEMPO_JUMP_BY_AMOUNT = 0.5
 
+# Whether to update the position with every sub_division  change, or only every beat
+POSITION_FINE = True
+
 # === CHECKING CONFIGURATION
 
 # sanity check on configuration values 
