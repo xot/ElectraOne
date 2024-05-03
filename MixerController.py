@@ -21,6 +21,10 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
+# TODO -> config_mixer
+SESSION_SLOT_CC = 64
+    
+
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
        Also initialises and manages the E1 mixer preset.
@@ -253,7 +257,7 @@ class MixerController(ElectraOneBase):
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
         
     # --- Handlers ---
-        
+
     def _init_cc_handlers(self):
         """Define handlers for incoming MIDI CC messages.
            (previous and next track selection for the  mixer.)
@@ -261,6 +265,7 @@ class MixerController(ElectraOneBase):
         self._CC_HANDLERS = {
                (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
             ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
+            ,  (MIDI_SENDS_CHANNEL, SESSION_SLOT_CC) : self._handle_session_slot
             }
         
     def _handle_prev_tracks(self,value):
@@ -281,6 +286,20 @@ class MixerController(ElectraOneBase):
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
             self._handle_selected_tracks_change()
 
+    def _handle_session_slot(self,value):
+        """Trigger a session slot clip
+           - value: index of the clip (starts at 0, from left to right, top to bottom)
+        """
+        self.debug(3,f'Session slot {value} fired.')
+        # get the track index
+        track_idx = value % NO_OF_TRACKS
+        if track_idx < len(self._track_controllers):
+            track = self._track_controllers[track_idx]._track
+            clip_idx = value // NO_OF_TRACKS
+            if clip_idx < len(track.clip_slots):
+                clip = track.clip_slots[clip_idx]
+                clip.fire()
+        
     # --- MIDI mapping ---
         
     def process_midi(self, midi_channel, cc_no, value):
