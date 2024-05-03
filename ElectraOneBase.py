@@ -828,9 +828,10 @@ class ElectraOneBase(Log):
         command = f'sp("{valuestr}")'
         self._send_lua_command(command)
 
-    def _update_device_selector_for(self,idx,devicenames):
+    def update_device_selector_for(self,idx,devicenames):
         """Set the device selector for the specified track.
-           - idx: index of the track (starting at 0; NO_OF_TRACKS is first return track)
+           - idx: index of the track (starting at 0;
+               NO_OF_TRACKS is first return track; NO_TRACKS+MAX_NO_OF_SENDS is master)
            - devicename: list of devicenames on this track; [str]
         """
         # convert list of devicenames to a LUA style list
@@ -841,22 +842,6 @@ class ElectraOneBase(Log):
         command = f'oc({idx},{namelist})'
         self._send_lua_command(command)
         
-    def update_device_selector_for_track(self,idx,devicenames):
-        """Set the device selector for the specified track.
-           - idx: index of the track (starting at 0)
-           - devicename: list of devicenames on this track; [str]
-        """
-        assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.'
-        self._update_device_selector_for(idx,devicenames)
-    
-    def update_device_selector_for_return(self,idx,devicenames):
-        """Set the device selector for the specified return track or master.
-           - idx: index of the return track (starting at 0; MAX_NO_OF_SENDS is master)
-           - devicename: list of devicenames on this track; [str]
-        """
-        assert idx in range(MAX_NO_OF_SENDS+1), f'Return track index {idx} out of range.'
-        self._update_device_selector_for(idx+NO_OF_TRACKS,devicenames)
-
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

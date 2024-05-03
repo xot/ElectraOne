@@ -184,8 +184,15 @@ class GenericTrackController(ElectraOneBase):
 
     def _update_devices_info(self):
         # Update device selectors for track on the remote controller.
-        # To be overriden by subclass
-        pass
+        if self._base_device_selection_cc != None:
+            # get and store the list of devices
+            devices = self.get_track_devices_flat(self._track)
+            # prioritse devices with names that start with #
+            self._devices = [d for d in devices if d.name[0] == '#'] + \
+                [d for d in devices if d.name[0] != '#'] 
+            # update the selector on the E1
+            devicenames = [d.name for d in self._devices]
+            self.update_device_selector_for(self._devsel_idx,devicenames)
     
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be

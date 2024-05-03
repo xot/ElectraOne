@@ -27,10 +27,13 @@ class ReturnController(GenericTrackController):
            - idx: index in the list of return tracks, 0=first; int
         """
         GenericTrackController.__init__(self, c_instance)
-        self._idx = idx
         # keep reference of track because if returns added/deleted, idx
         # points to a different track, which breaks _remove_listeners()
         self._track = self.song().return_tracks[idx]
+        # index of this return track
+        self._idx = idx
+        # device selector index of this track
+        self._devsel_idx = NO_OF_TRACKS + idx
         # EQ device info
         self._eq_device_name = None # not present on a return track
         self._eq_cc_map = None
@@ -51,17 +54,6 @@ class ReturnController(GenericTrackController):
         self.add_listeners()
         self.init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
-
-    def _update_devices_info(self):
-        # Update device selectors for track on the remote controller.
-        # TODO: update fails initially: it is sent; but display  not updated
-        if self._base_device_selection_cc != None:
-            # get and store the list of devices
-            self._devices = self.get_track_devices_flat(self._track)
-            # update the selector on the E1
-            devicenames = [d.name for d in self._devices]
-            # TODO
-            self.update_device_selector_for_return(self._idx,devicenames)
             
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller for

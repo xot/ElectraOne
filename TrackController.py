@@ -32,6 +32,8 @@ class TrackController(GenericTrackController):
         self._track = track
         # offset of this track relative to the first mapped track
         self._offset = offset
+        # device selector index of this track
+        self._devsel_idx = offset
         # EQ device
         self.add_eq_device(TRACK_EQ_DEVICE_NAME,TRACK_EQ_CC_MAP) 
         # midi info
@@ -55,16 +57,6 @@ class TrackController(GenericTrackController):
         self.init_cc_handlers()
         self.debug(0,'TrackController loaded.')
 
-    def _update_devices_info(self):
-        # Update device selectors for track on the remote controller.
-        # TODO: update fails initially: it is sent; but display  not updated
-        if self._base_device_selection_cc != None:
-            # get and store the list of devices
-            self._devices = self.get_track_devices_flat(self._track)
-            # update the selector on the E1
-            devicenames = [d.name for d in self._devices]
-            self.update_device_selector_for_track(self._offset,devicenames)
-            
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller for
            this return track.

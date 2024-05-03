@@ -25,6 +25,8 @@ class MasterController(GenericTrackController):
         """
         GenericTrackController.__init__(self, c_instance)
         self._track = self.song().master_track
+        # device selector index of this track
+        self._devsel_idx = NO_OF_TRACKS + MAX_NO_OF_SENDS
         # EQ device 
         self.add_eq_device(MASTER_EQ_DEVICE_NAME,MASTER_EQ_CC_MAP)
         # midi info
@@ -44,17 +46,6 @@ class MasterController(GenericTrackController):
         self.add_listeners()
         self.init_cc_handlers()
         self.debug(0,'MasterController loaded.')
-
-    def _update_devices_info(self):
-        # Update device selectors for track on the remote controller.
-        # TODO: update fails initially: it is sent; but display  not updated
-        if self._base_device_selection_cc != None:
-            # get and store the list of devices
-            self._devices = self.get_track_devices_flat(self._track)
-            # update the selector on the E1
-            devicenames = [d.name for d in self._devices]
-            # MAX_NO_OF_SENDS is the master track index
-            self.update_device_selector_for_return(MAX_NO_OF_SENDS,devicenames)
             
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,
