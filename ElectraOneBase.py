@@ -189,6 +189,7 @@ class ElectraOneBase(Log):
         """
         chains = []
         rack = self._find_first_rack(torc)
+        # TODO: racks with only one chain have can_shwo_chains == False
         if rack and rack.can_show_chains and rack.is_showing_chains:
             for chain in rack.chains:
                 chains.append(chain)
@@ -205,7 +206,41 @@ class ElectraOneBase(Log):
             torcs.extend( self._visible_chains_for_torc(t) )
         for torc in torcs:
             self.debug(6,f'Visible torc {torc.name}')
-        return torcs    
+        return torcs
+
+    def get_track_devices_nested(self,track):
+        """Return all devices on a track, in a nested list structure following
+           the structure of the chains on any rack on the track.
+           - track: track to list devices for
+           - return: a nested list of devices; [Live.Device.Device]
+        """
+        devices = []
+        for d in track.devices:
+            devices.append(d)
+            if (type(d) == Live.RackDevice.RackDevice):
+                # TODO we assume a rack always has chains; this appears to be the case
+                for chain in d.chains:
+                    devices.append( self.get_track_devices(chain) )
+        return devices
+
+    def get_track_devices_flat(self,track):
+        """Return all devices on a track, in a nested list structure following
+           the structure of the chains on any rack on the track.
+           - track: track to list devices for
+           - return: a nested list of devices; [Live.Device.Device]
+        """
+        devices = []
+        for d in track.devices:
+            devices.append(d)
+            if (type(d) == Live.RackDevice.RackDevice):
+                # TODO we assume a rack always has chains; this appears to be the case
+                for chain in d.chains:
+                    for device in self.get_track_devices(chain):
+                        devices.append( device )
+        self.debug(6,f'Devices found for track {track.name}:')
+        for d in devices:
+            self.debug(6,f'{d.name}')
+        return devices
     
     def get_device_name(self, device):
         """Return the (fixed) name of the device (i.e. not the name of the preset)
@@ -717,6 +752,7 @@ class ElectraOneBase(Log):
         """
         assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
         self.debug(4,f'Update label for track {idx} to {label}.')
+        # execute command (defined in mixer preset)
         command = f'utl({idx},"{label}")'
         self._send_lua_command(command)
         
@@ -728,6 +764,7 @@ class ElectraOneBase(Log):
         """
         assert returnidx in range(MAX_NO_OF_SENDS), f'Return index {returnidx} out of range.' 
         self.debug(4,f'Update label for return track {returnidx} to {label}.')
+        # execute command (defined in mixer preset)
         command = f'ursl({returnidx},"{label}")'
         self._send_lua_command(command)
         
@@ -741,6 +778,7 @@ class ElectraOneBase(Log):
         assert tc in range(NO_OF_TRACKS+1), f'Track count {tc} out of range.' 
         assert rc in range(MAX_NO_OF_SENDS+1), f'Return count {rc} out of range.' 
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns.')
+        # execute command (defined in mixer preset)
         command = f'smv({tc},{rc})'
         self._send_lua_command(command)
 
@@ -751,6 +789,7 @@ class ElectraOneBase(Log):
         """
         assert idx in range(NO_OF_TRACKS+1), f'Track index {idx} out of range.' 
         self.debug(4,f'Setting channel equaliser visibility for track {idx} to {flag}.')
+        # execute command (defined in mixer preset)
         if flag:
           command = f'seqv({idx},true)'
         else:
@@ -759,11 +798,12 @@ class ElectraOneBase(Log):
 
     def set_arm_visibility_on_track(self,idx,flag):
         """Set the visibility of the arm button for the specified track.
-           - idx: index of the track (starting at 0
+           - idx: index of the track (starting at 0)
            - flag: whether the arm button should be visible; bool
         """
         assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.' 
         self.debug(4,f'Setting arm button visibility for track {idx} to {flag}.')
+        # execute command (defined in mixer preset)
         if flag:
           command = f'sav({idx},true)'
         else:
@@ -775,6 +815,7 @@ class ElectraOneBase(Log):
            - valuestr: string representing value to display; str
         """
         self.debug(4,f'Setting the tempo string to {valuestr}.')
+        # execute command (defined in mixer preset)
         command = f'st("{valuestr}")'
         self._send_lua_command(command)
         
@@ -783,9 +824,39 @@ class ElectraOneBase(Log):
            - valuestr: string representing value to display; str
         """
         self.debug(4,f'Setting the position string to {valuestr}.')
+        # execute command (defined in mixer preset)
         command = f'sp("{valuestr}")'
         self._send_lua_command(command)
+
+    def _update_device_selector_for(self,idx,devicenames):
+        """Set the device selector for the specified track.
+           - idx: index of the track (starting at 0; NO_OF_TRACKS is first return track)
+           - devicename: list of devicenames on this track; [str]
+        """
+        # convert list of devicenames to a LUA style list
+        devicenames = [ f'"{n}"' for n in devicenames ]
+        namelist='{' + ','.join(devicenames) + '}'
+        self.debug(4,f'Setting the device selector for track/return/master {idx} to {namelist}.')
+        # execute command (defined in mixer preset)
+        command = f'oc({idx},{namelist})'
+        self._send_lua_command(command)
         
+    def update_device_selector_for_track(self,idx,devicenames):
+        """Set the device selector for the specified track.
+           - idx: index of the track (starting at 0)
+           - devicename: list of devicenames on this track; [str]
+        """
+        assert idx in range(NO_OF_TRACKS), f'Track index {idx} out of range.'
+        self._update_device_selector_for(idx,devicenames)
+    
+    def update_device_selector_for_return(self,idx,devicenames):
+        """Set the device selector for the specified return track or master.
+           - idx: index of the return track (starting at 0; MAX_NO_OF_SENDS is master)
+           - devicename: list of devicenames on this track; [str]
+        """
+        assert idx in range(MAX_NO_OF_SENDS+1), f'Return track index {idx} out of range.'
+        self._update_device_selector_for(idx+NO_OF_TRACKS,devicenames)
+
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

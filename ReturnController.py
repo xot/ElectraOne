@@ -46,10 +46,23 @@ class ReturnController(GenericTrackController):
         self._base_arm_cc = None # not present on a return track
         self._base_solo_cue_cc = RETURNS_SOLO_CUE_CC
         #
+        self._base_device_selection_cc = RM_DEVICE_SELECTION_CC
+        #
         self.add_listeners()
         self.init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
 
+    def _update_devices_info(self):
+        # Update device selectors for track on the remote controller.
+        # TODO: update fails initially: it is sent; but display  not updated
+        if self._base_device_selection_cc != None:
+            # get and store the list of devices
+            self._devices = self.get_track_devices_flat(self._track)
+            # update the selector on the E1
+            devicenames = [d.name for d in self._devices]
+            # TODO
+            self.update_device_selector_for_return(self._idx,devicenames)
+            
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller for
            this return track. Also updates the sends

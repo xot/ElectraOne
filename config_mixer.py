@@ -19,6 +19,8 @@ MUTE_CC = 116
 SOLO_CUE_CC = 84
 ARM_CC = 89
 
+DEVICE_SELECTION_CC = None
+
 # Change this to manage a different EQ like device on every track
 # Specify the device.class_name here
 TRACK_EQ_DEVICE_NAME = 'ChannelEq'
@@ -62,6 +64,8 @@ RETURNS_VOLUME_CC = 16
 RETURNS_MUTE_CC = 70
 RETURNS_SOLO_CUE_CC = 76
 
+RM_DEVICE_SELECTION_CC = None
+
 # Master (see DOCUMENTATION.md)
 # - On MIDI_MASTER_CHANNEL
 
@@ -69,6 +73,8 @@ MASTER_PAN_CC = 0
 MASTER_VOLUME_CC = 1
 MASTER_CUE_VOLUME_CC = 2
 MASTER_SOLO_CC = 9
+
+MASTER_DEVICE_SELECTION_CC = None
 
 # Change this to manage a different EQ like device on the master track
 # Specify the device.class_name here

@@ -82,6 +82,7 @@ class GenericTrackController(ElectraOneBase):
         # actual initialisations to be provided by derived classes;
         # None indicates a fearture is not present.
         self._track = None
+        self._devices = None
         # EQ device info
         self._eq_device = None
         self._eq_device_controller = None # if None not present (ie all returns)
@@ -96,7 +97,8 @@ class GenericTrackController(ElectraOneBase):
         self._base_mute_cc = None # if None, not present (i.e. master track)
         self._base_arm_cc = None # if None, not present (i.e. groups and returns)
         self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
-        #
+        # device selection CC numbers
+        self._base_device_selection_cc = None # if None, not present.
         self.debug(0,'GenericTrackController loaded.')
 
         
@@ -149,7 +151,7 @@ class GenericTrackController(ElectraOneBase):
            - eq_cc_map: information about the CC mapping (like in Devices.py); dict of CCInfo
         """
         # initialise the name and ccmap to use for this type of track; see
-        # _check_eq_device_change
+        # _handle_device_change
         self._eq_device_name = eq_device_name
         self._eq_cc_map = eq_cc_map
         # find the equaliser device on the track
@@ -160,12 +162,14 @@ class GenericTrackController(ElectraOneBase):
         else:
             self._eq_device_controller = None
         
-    def _check_eq_device_change(self):
+    def _handle_device_change(self):
         """Check whether the eq device for this track was changed/added/removed
            and if so, update the eq device controller and force a MIDI remap
-           and state refresh
+           and state refresh; also update the list of devices for device selection
         """
-        self.debug(3,'Testing EQ device change.')
+        self.debug(3,f'Handle device change on track {self._track.name}.')
+        # reconstruct the list of devices for device selection
+        self._update_devices_info()
         # find the equaliser device on the track
         device = self._my_channel_eq(self._eq_device_name)
         # and if it changed, force an update
@@ -177,7 +181,12 @@ class GenericTrackController(ElectraOneBase):
             # we can use _eq_device_name and _eq_cc_map because add_eq_device already called earlier
             self.add_eq_device(self._eq_device_name,self._eq_cc_map) # also removes any previous eq device controller
             self.request_rebuild_midi_map() # also refreshes state
-            
+
+    def _update_devices_info(self):
+        # Update device selectors for track on the remote controller.
+        # To be overriden by subclass
+        pass
+    
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be
            overriden by subclass to correctly set track name.
@@ -191,6 +200,7 @@ class GenericTrackController(ElectraOneBase):
         self.debug(3,f'Refreshing state of track { self._track.name }.')
         track = self._track
         self._refresh_track_name()
+        self._update_devices_info()
         if self._base_mute_cc != None:
             self._on_mute_changed()
         if self._base_arm_cc != None:
@@ -241,7 +251,7 @@ class GenericTrackController(ElectraOneBase):
         if self._base_solo_cue_cc != None:
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
-        track.add_devices_listener(self._check_eq_device_change)
+        track.add_devices_listener(self._handle_device_change)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -258,9 +268,8 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
-            if track.devices_has_listener(self._check_eq_device_change):
-                track.remove_devices_listener(self._check_eq_device_change)
-
+            if track.devices_has_listener(self._handle_device_change):
+                track.remove_devices_listener(self._handle_device_change)
 
     def _on_mute_changed(self):
         """Send the new status of the Mute button to the controller using the
@@ -305,6 +314,8 @@ class GenericTrackController(ElectraOneBase):
            and arm button (if necessary; depending on track type)
         """
         self._CC_HANDLERS = {}
+        # prepare info in devices on track, to handle device selection
+        self._update_devices_info()
         # only define them when necessary
         if self._base_mute_cc:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_mute_cc) )] \
@@ -315,6 +326,9 @@ class GenericTrackController(ElectraOneBase):
         if self._base_arm_cc:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_arm_cc) )] \
                 = self._handle_arm_button
+        if self._base_device_selection_cc:
+            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_device_selection_cc) )] \
+                = self._handle_device_selection
                 
     def _handle_mute_button(self,value):
         """Default handler for Mute button
@@ -340,6 +354,17 @@ class GenericTrackController(ElectraOneBase):
         assert self._base_solo_cue_cc != None, 'Bad solo/cue button handler.'
         self._track.solo = (value > 63)
 
+    def _handle_device_selection(self,value):
+        """Default handler for handling device selection
+           - value: incoming MIDI CC value; int
+        """
+        self.debug(4,f'Track { self._track.name } device selection action (value: {value}).')
+        assert self._base_device_selection_cc != None, 'Bad device selection handler.'
+        if (self._devices != None) and (value in range(len(self._devices))):
+            # display the selected device; this also appoints the device
+            self.song().view.select_device(self._devices[value])
+            # TODO: when selection changes in Live, also update control
+        
     # --- MIDI ---
     
     def process_midi(self, midi_channel, cc_no, value):
