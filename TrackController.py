@@ -34,6 +34,9 @@ class TrackController(GenericTrackController):
         self._offset = offset
         # device selector index of this track
         self._devsel_idx = offset
+        # session control first clip row
+        self._first_row_index = 0
+        self._clipinfo = None # TODO hack for redisplay; see update_display and _refresh_clips()
         # EQ device
         self.add_eq_device(TRACK_EQ_DEVICE_NAME,TRACK_EQ_CC_MAP) 
         # midi info
@@ -57,6 +60,26 @@ class TrackController(GenericTrackController):
         self.init_cc_handlers()
         self.debug(0,'TrackController loaded.')
 
+    def _refresh_clips(self):
+        """Update the clip information in the session control page for this track.
+        """
+        clipinfo = []
+        # five clip slots 
+        for i in range(5):
+            clipslot = self._track.clip_slots[self._first_row_index + i]
+            if clipslot.has_clip:
+                clip = clipslot.clip
+                clipinfo.append(f'"{clip.name}"') # for LUA conversion
+                clipinfo.append(str(clip.color))
+            else: # empty clipslot
+                clipinfo.append('""') # for LUA conversion
+                clipinfo.append('0')
+        # TODO: hack becuase track.add_clip_slots_listener does not work
+        if self._clipinfo != clipinfo:
+            self.debug(3,f'Refreshing clip information for track {self._offset}')
+            self.update_session_control(self._offset,clipinfo)
+            self._clipinfo = clipinfo
+        
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller for
            this return track.

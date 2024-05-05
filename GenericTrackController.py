@@ -82,7 +82,14 @@ class GenericTrackController(ElectraOneBase):
         # actual initialisations to be provided by derived classes;
         # None indicates a fearture is not present.
         self._track = None
+        # device selector index of this track
+        # 0..NO_OF_TRACKS-1 for tracks, NO_OF_TRACKS..NO_OF_TRACKS+MAX_NO_OF_SENDS-1 for sends
+        # NO_OF_TRACKS+MAX_NO_OF_SENDS for master
+        self._devsel_idx = None
+        # current device selector devices
         self._devices = None
+        # session control first clip row  (only for tracks)
+        self._first_row_index = None
         # EQ device info
         self._eq_device = None
         self._eq_device_controller = None # if None not present (ie all returns)
@@ -200,6 +207,12 @@ class GenericTrackController(ElectraOneBase):
         """
         pass
 
+    def _refresh_clips(self):
+        """Update the clip information in the session control page for this track.
+           To be overriden by subclass.
+        """
+        pass
+    
     def refresh_state(self):
         """ Send the values of the controlled elements to the E1
            (to bring them in sync). Initiated by MixerController
@@ -230,11 +243,15 @@ class GenericTrackController(ElectraOneBase):
         # send channel eq
         if self._eq_device_controller:
             self._eq_device_controller.refresh_state()
+        # session control clips
+        self._refresh_clips()
         
     def update_display(self):
         """Update the display. (Does nothing.)        
+           TODO: hack to update clips in session control, because
+           track.add_clip_slots_listener does not work
         """
-        pass
+        self._refresh_clips()
     
     def disconnect(self):
         """Disconnect the track; remove all listeners.
@@ -259,6 +276,9 @@ class GenericTrackController(ElectraOneBase):
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
         track.add_devices_listener(self._handle_device_change)
+        # TODO: this does not notice that clips are added to a session
+        if self._first_row_index != None:
+            track.add_clip_slots_listener(self._refresh_clips)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -277,7 +297,9 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_name_listener(self._refresh_track_name)
             if track.devices_has_listener(self._handle_device_change):
                 track.remove_devices_listener(self._handle_device_change)
-
+            if (self._first_row_index) != None and track.clip_slots_has_listener(self._refresh_clips):
+                track.remove_clip_slots_listener(self._refresh_clips)
+                
     def _on_mute_changed(self):
         """Send the new status of the Mute button to the controller using the
            right MIDI CC number (derived from self._base_mute_cc)

@@ -842,6 +842,19 @@ class ElectraOneBase(Log):
         command = f'oc({idx},{namelist})'
         self._send_lua_command(command)
         
+    def update_session_control(self,idx,clipinfo):
+        """Update the session control matrix for the specified track.
+           - idx: index of the track (starting at 0;
+           - clipinfo: list of names and colors for each slot, all as strings
+               (names must be strins including ")
+        """
+        # convert list of devicenames to a LUA style list
+        clipinfo='{' + ','.join(clipinfo) + '}'
+        self.debug(4,f'Setting the session control matrix to {clipinfo}.')
+        # execute command (defined in mixer preset)
+        command = f'scu({idx},{clipinfo})'
+        self._send_lua_command(command)
+        
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
            on the E1.

@@ -23,7 +23,8 @@ from .TrackController import TrackController
 
 # TODO -> config_mixer
 SESSION_SLOT_CC = 64
-    
+PAGE_UP_CC = 97
+PAGE_DOWN_CC = 98
 
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
@@ -50,6 +51,8 @@ class MixerController(ElectraOneBase):
         # initialise track controllers
         self._track_controllers = []
         self._remap_tracks()
+        # initialise session control first clip row
+        self._first_row_index = 0
         # init MIDI handlers
         self._init_cc_handlers()
         self._add_listeners()
@@ -233,10 +236,6 @@ class MixerController(ElectraOneBase):
             # set visibility of the channel-eq devices
             for t in self._track_controllers:
                 self.set_channel_eq_visibility_on_track(t._offset, t._eq_device_controller != None)
-            #if self._master_controller._eq_device_controller:
-            #    self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,True)
-            #else:
-            #    self.set_channel_eq_visibility_on_track(NO_OF_TRACKS,False)
             self.set_channel_eq_visibility_on_track(NO_OF_TRACKS, self._master_controller._eq_device_controller != None)
             # set visibility of the arm button (hidden for group tracks and chains)
             for t in self._track_controllers:
@@ -255,7 +254,15 @@ class MixerController(ElectraOneBase):
         self._remap_tracks()
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
-        
+
+    def _refresh_clips(self):
+        """Update the clip information in the session control page.
+        """
+        self.debug(3,'Refreshing session control clip information .')
+        for tc in self._track_controllers:
+            tc._first_row_index = self._first_row_index
+            tc._refresh_clips()
+                
     # --- Handlers ---
 
     def _init_cc_handlers(self):
@@ -265,6 +272,8 @@ class MixerController(ElectraOneBase):
         self._CC_HANDLERS = {
                (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
             ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
+            ,  (MIDI_MASTER_CHANNEL, PAGE_UP_CC) : self._handle_page_up
+            ,  (MIDI_MASTER_CHANNEL, PAGE_DOWN_CC) : self._handle_page_down
             ,  (MIDI_SENDS_CHANNEL, SESSION_SLOT_CC) : self._handle_session_slot
             }
         
@@ -286,6 +295,25 @@ class MixerController(ElectraOneBase):
             self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
             self._handle_selected_tracks_change()
 
+    def _handle_page_up(self,value):
+        """Move session slots one page up.
+        """
+        if value > 63:
+            self.debug(3,'Page up pressed.')
+            if self._first_row_index >= 5:
+                self._first_row_index -= 5
+                self.debug(4,f'First session row is {self._first_row_index} .')
+                self._refresh_clips()
+            
+    def _handle_page_down(self,value):
+        """Move session slots one page down.
+        """
+        if value > 63:
+            self.debug(3,'Page down pressed.')
+            self._first_row_index += 5
+            self.debug(4,f'First session row is {self._first_row_index} .')
+            self._refresh_clips()
+            
     def _handle_session_slot(self,value):
         """Trigger a session slot clip
            - value: index of the clip (starts at 0, from left to right, top to bottom)
@@ -295,7 +323,7 @@ class MixerController(ElectraOneBase):
         track_idx = value % NO_OF_TRACKS
         if track_idx < len(self._track_controllers):
             track = self._track_controllers[track_idx]._track
-            clip_idx = value // NO_OF_TRACKS
+            clip_idx = self._first_row_index + (value // NO_OF_TRACKS)
             if clip_idx < len(track.clip_slots):
                 clip = track.clip_slots[clip_idx]
                 clip.fire()
