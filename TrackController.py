@@ -36,7 +36,8 @@ class TrackController(GenericTrackController):
         self._devsel_idx = offset
         # session control first clip row
         self._first_row_index = 0
-        self._clipinfo = None # TODO hack for redisplay; see update_display and _refresh_clips()
+        # cache clip slot information already sent to E1 
+        self._clipinfo = None 
         # EQ device
         self.add_eq_device(TRACK_EQ_DEVICE_NAME,TRACK_EQ_CC_MAP) 
         # midi info
@@ -74,7 +75,8 @@ class TrackController(GenericTrackController):
             else: # empty clipslot
                 clipinfo.append('""') # for LUA conversion
                 clipinfo.append('0')
-        # TODO: hack becuase track.add_clip_slots_listener does not work
+        # Only send updates if necessary (this function is very frequently called
+        # through update_display()
         if self._clipinfo != clipinfo:
             self.debug(3,f'Refreshing clip information for track {self._offset}')
             self.update_session_control(self._offset,clipinfo)

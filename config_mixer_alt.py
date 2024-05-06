@@ -35,6 +35,7 @@ TRACK_EQ_CC_MAP = {
             }
 
 SENDS_CC = 0  
+SESSION_SLOT_CC = None
 
 # Transport controller CCs (see DOCUMENTATION.md)
 # - On MIDI_MASTER_CHANNEL
@@ -49,6 +50,8 @@ TEMPO_CC = 67
 
 PREV_TRACKS_CC = 68
 NEXT_TRACKS_CC = 69
+PAGE_UP_CC = None
+PAGE_DOWN_CC = None
 
 # Returns (see DOCUMENTATION.md)
 # - On MIDI_MASTER_CHANNEL

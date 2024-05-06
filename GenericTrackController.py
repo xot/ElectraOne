@@ -247,9 +247,10 @@ class GenericTrackController(ElectraOneBase):
         self._refresh_clips()
         
     def update_display(self):
-        """Update the display. (Does nothing.)        
-           TODO: hack to update clips in session control, because
-           track.add_clip_slots_listener does not work
+        """Update the display.
+           Used to update the clip slot information in the session control page,
+           partially because track.add_clip_slots_listener does not work (as I expected)
+           and also to ensure that all changes are always sent to the E1.
         """
         self._refresh_clips()
     

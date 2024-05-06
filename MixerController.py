@@ -21,11 +21,6 @@ from .MasterController import MasterController
 from .ReturnController import ReturnController
 from .TrackController import TrackController
 
-# TODO -> config_mixer
-SESSION_SLOT_CC = 64
-PAGE_UP_CC = 97
-PAGE_DOWN_CC = 98
-
 class MixerController(ElectraOneBase):
     """Electra One track, transport, returns and mixer control.
        Also initialises and manages the E1 mixer preset.
@@ -52,6 +47,7 @@ class MixerController(ElectraOneBase):
         self._track_controllers = []
         self._remap_tracks()
         # initialise session control first clip row
+        # (passed to track controllers later)
         self._first_row_index = 0
         # init MIDI handlers
         self._init_cc_handlers()
@@ -84,9 +80,8 @@ class MixerController(ElectraOneBase):
     # --- interface ---
 
     def refresh_state(self):
-        """Send the values of the controlled elements to the E1
-           (to bring them in sync); hide controls for non existing
-           (return)tracks.
+        """Send the values of the controlled elements to the E1 (to bring them in sync);
+           hide controls for non existing (return)tracks.
            Forwarded to the transport, master, return and track controllers
            when mixer is visible.
            (Called whenever the mixer preset is selected or tracks
@@ -98,7 +93,7 @@ class MixerController(ElectraOneBase):
             self.midi_burst_on()
             self._transport_controller.refresh_state()
             self._master_controller.refresh_state()
-            # refresh tracks
+            # refresh tracks (this includes the clips in the session control page)
             for track in self._track_controllers:
                 track.refresh_state()
             # refresh return tracks
