@@ -277,9 +277,6 @@ class GenericTrackController(ElectraOneBase):
             track.add_solo_listener(self._on_solo_cue_changed)
         track.add_name_listener(self._refresh_track_name)
         track.add_devices_listener(self._handle_device_change)
-        # TODO: this does not notice that clips are added to a session
-        if self._first_row_index != None:
-            track.add_clip_slots_listener(self._refresh_clips)
             
     def _remove_listeners(self):
         """Remove all listeners added.
@@ -298,8 +295,6 @@ class GenericTrackController(ElectraOneBase):
                 track.remove_name_listener(self._refresh_track_name)
             if track.devices_has_listener(self._handle_device_change):
                 track.remove_devices_listener(self._handle_device_change)
-            if (self._first_row_index) != None and track.clip_slots_has_listener(self._refresh_clips):
-                track.remove_clip_slots_listener(self._refresh_clips)
                 
     def _on_mute_changed(self):
         """Send the new status of the Mute button to the controller using the
