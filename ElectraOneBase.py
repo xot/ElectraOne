@@ -187,10 +187,12 @@ class ElectraOneBase(Log):
     def _visible_chains_for_torc(self,torc):
         """Return the visible chains for this track or chain
         """
+        self.debug(6,f'Getting visible torcs for {torc.name}')
         chains = []
         rack = self._find_first_rack(torc)
-        # TODO: racks with only one chain have can_shwo_chains == False
-        if rack and rack.can_show_chains and rack.is_showing_chains:
+        # Racks with only one chain have can_show_chains == False, so this fails
+        #if rack and rack.can_show_chains and rack.is_showing_chains:
+        if rack and rack.is_showing_chains:
             for chain in rack.chains:
                 chains.append(chain)
                 chains.extend( self._visible_chains_for_torc(chain) )
@@ -201,7 +203,6 @@ class ElectraOneBase(Log):
         """
         torcs = []
         for t in self.song().visible_tracks:
-            self.debug(6,f'Getting visible torcs for {t.name}')
             torcs.append(t)
             torcs.extend( self._visible_chains_for_torc(t) )
         for torc in torcs:
@@ -235,7 +236,7 @@ class ElectraOneBase(Log):
             if (type(d) == Live.RackDevice.RackDevice):
                 # TODO we assume a rack always has chains; this appears to be the case
                 for chain in d.chains:
-                    for device in self.get_track_devices(chain):
+                    for device in self.get_track_devices_flat(chain):
                         devices.append( device )
         self.debug(6,f'Devices found for track {track.name}:')
         for d in devices:
