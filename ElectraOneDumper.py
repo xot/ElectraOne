@@ -209,8 +209,7 @@ def _is_int_parameter(p):
        (not _is_int_str(max_number_part)) or \
        (min_type in NON_INT_TYPES) or (max_type in NON_INT_TYPES):
         return NON_INT
-    # TODO: why 64 and not 128?
-    if int(max_number_part) - int(min_number_part) > 64:
+    if int(max_number_part) - int(min_number_part) > 127:
         return BIG_INT
     else:
         return SMALL_INT
@@ -546,7 +545,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         elif _is_symmetric_dB(parameter):
             # scale by factor 10 to allow fractional dBs
             self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatdB")
-            # never use int faders for plugins ebcause they sometimes report their parameters wronf
+            # never use int faders for plugins because they sometimes report their parameters wrong
         elif not self._isplugin and _is_int_parameter(parameter) != NON_INT:
             self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         elif _is_untyped_float(parameter):

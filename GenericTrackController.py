@@ -388,7 +388,7 @@ class GenericTrackController(ElectraOneBase):
         if (self._devices != None) and (value in range(len(self._devices))):
             # display the selected device; this also appoints the device
             self.song().view.select_device(self._devices[value])
-            # TODO: when selection changes in Live, also update control
+
         
     # --- MIDI ---
     
