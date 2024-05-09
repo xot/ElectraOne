@@ -1,5 +1,5 @@
 ---
-title: Technical Documentation of the Aleton Live Remote Script for the Electra One 
+title: Technical Documentation of the Ableton Live Remote Script for the Electra One 
 author: Jaap-Henk Hoepman (info@xot.nl)
 ---
 

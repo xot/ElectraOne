@@ -43,12 +43,12 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
-        # initialise track controllers
-        self._track_controllers = []
-        self._remap_tracks()
         # initialise session control first clip row
         # (passed to track controllers later)
         self._first_row_index = 0
+        # initialise track controllers
+        self._track_controllers = []
+        self._remap_tracks()
         # init MIDI handlers
         self._init_cc_handlers()
         self._add_listeners()
@@ -211,7 +211,8 @@ class MixerController(ElectraOneBase):
                                     for i in track_range ]
         self._add_chain_visibility_listeners()
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
-        
+        self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), 5, True)
+
     def _handle_selected_tracks_change(self):
         """Call this whenever the current set of selected tracks changes.
             Updates MIDI mapping, listeners and the displayed values.
@@ -254,6 +255,7 @@ class MixerController(ElectraOneBase):
         """Update the clip information in the session control page.
         """
         self.debug(3,'Refreshing session control clip information .')
+        self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(self._track_controllers), 5, True)
         for tc in self._track_controllers:
             tc._first_row_index = self._first_row_index
             tc._refresh_clips()

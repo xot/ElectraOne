@@ -65,16 +65,18 @@ class TrackController(GenericTrackController):
         """Update the clip information in the session control page for this track.
         """
         clipinfo = []
-        # five clip slots 
-        for i in range(5):
-            clipslot = self._track.clip_slots[self._first_row_index + i]
-            if clipslot.has_clip:
-                clip = clipslot.clip
-                clipinfo.append(f'"{clip.name}"') # for LUA conversion
-                clipinfo.append(str(clip.color))
-            else: # empty clipslot
-                clipinfo.append('""') # for LUA conversion
-                clipinfo.append('0')
+        # _track can also be a chain (that doesn't have clipslots)           
+        if (type(self._track) == Live.Track.Track):
+            # five clip slots 
+            for i in range(5):
+                clipslot = self._track.clip_slots[self._first_row_index + i]
+                if clipslot.has_clip:
+                    clip = clipslot.clip
+                    clipinfo.append(f'"{clip.name}"') # for LUA conversion
+                    clipinfo.append(str(clip.color))
+                else: # empty clipslot
+                    clipinfo.append('""') # for LUA conversion
+                    clipinfo.append('0')
         # Only send updates if necessary (this function is very frequently called
         # through update_display()
         if self._clipinfo != clipinfo:
