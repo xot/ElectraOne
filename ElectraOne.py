@@ -358,10 +358,12 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(1,'Main refresh state called.')
+            self.midi_burst_on()
             if self._effect_controller:
                 self._effect_controller.refresh_state()
             if self._mixer_controller:
                 self._mixer_controller.refresh_state()
+            self.midi_burst_off()
         else:
             self.debug(1,'Main refresh state ignored because E1 not ready.')
 
@@ -370,10 +372,12 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(6,'Main update display called.') 
+            self.midi_burst_on()
             if self._effect_controller:
                 self._effect_controller.update_display()
             if self._mixer_controller:
                 self._mixer_controller.update_display()
+            self.midi_burst_off()
         else:
             self.debug(6,'Main update display ignored because E1 not ready.')
             
