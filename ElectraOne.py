@@ -370,14 +370,14 @@ class ElectraOne(ElectraOneBase):
     def update_display(self):
         """ Called every 100 ms. Ignore if interface not ready.
         """
+        # Note: refresh is called to often to enable/disable midi burst
+        # globally. 
         if self.is_ready():
             self.debug(6,'Main update display called.') 
-            self.midi_burst_on()
             if self._effect_controller:
                 self._effect_controller.update_display()
             if self._mixer_controller:
                 self._mixer_controller.update_display()
-            self.midi_burst_off()
         else:
             self.debug(6,'Main update display ignored because E1 not ready.')
             

@@ -298,7 +298,9 @@ class MixerController(ElectraOneBase):
             if self._first_row_index >= 5:
                 self._first_row_index -= 5
                 self.debug(4,f'First session row is {self._first_row_index} .')
+                self.midi_burst_on()
                 self._refresh_clips()
+                self.midi_burst_off()
             
     def _handle_page_down(self,value):
         """Move session slots one page down.
@@ -307,7 +309,9 @@ class MixerController(ElectraOneBase):
             self.debug(3,'Page down pressed.')
             self._first_row_index += 5
             self.debug(4,f'First session row is {self._first_row_index} .')
+            self.midi_burst_on()
             self._refresh_clips()
+            self.midi_burst_off()
             
     def _handle_session_slot(self,value):
         """Trigger a session slot clip
