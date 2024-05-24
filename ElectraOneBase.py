@@ -209,21 +209,6 @@ class ElectraOneBase(Log):
             self.debug(6,f'Visible torc {torc.name}')
         return torcs
 
-    def get_track_devices_nested(self,track):
-        """Return all devices on a track, in a nested list structure following
-           the structure of the chains on any rack on the track.
-           - track: track to list devices for
-           - return: a nested list of devices; [Live.Device.Device]
-        """
-        devices = []
-        for d in track.devices:
-            devices.append(d)
-            if (type(d) == Live.RackDevice.RackDevice):
-                # TODO we assume a rack always has chains; this appears to be the case
-                for chain in d.chains:
-                    devices.append( self.get_track_devices(chain) )
-        return devices
-
     def get_track_devices_flat(self,track):
         """Return all devices on a track, in a nested list structure following
            the structure of the chains on any rack on the track.
@@ -301,7 +286,7 @@ class ElectraOneBase(Log):
     # Record whether attached version of E1 is supported by the remote script
     E1_version_supported = False
 
-    # Record whether E1 will forward ACKs from anotehr E1 attached to it
+    # Record whether E1 will forward ACKs from another E1 attached to it
     E1_FORWARDS_ACK = False
 
     # Record whether E1 supports preloaded presets on the E1 itself
@@ -325,7 +310,7 @@ class ElectraOneBase(Log):
     # Factor to divide patch/lua-script length to compute lenght dependent timeout
     TIMEOUT_LENGTH_FACTOR = 1
     
-    def configure_for_version(self, sw_version, hw_version):
+    def _configure_for_version(self, sw_version, hw_version):
         """Configure the remote script depending on the version of E1 attached
         """
         ElectraOneBase._E1_sw_version = sw_version
@@ -397,7 +382,7 @@ class ElectraOneBase(Log):
         except ValueError:
             self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
             hw_version = (0,0)
-        self.configure_for_version(sw_version,hw_version)
+        self._configure_for_version(sw_version,hw_version)
         self.debug(2,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.') 
        
     # --- Fast MIDI sysex upload handling
