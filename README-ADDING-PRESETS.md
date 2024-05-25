@@ -40,7 +40,7 @@ Apart from that, anything goes. This means you can freely change controller name
 
 ### Adding new device presets
 
-For devices that do not yet have a predefined preset, the remote script can dump the preset it created on the fly for this device. Configuration ```DUMP``` (see ```config.py```)  needs to be set to ```True``` for this. The dumped files (the ```<devicename>.epr``` and ```<devicename>.ccmap```) can be found in the ```./dumps``` subfolder in the ```LIBDIR``` folder. 
+For devices that do not yet have a predefined preset, the remote script can dump the preset it created on the fly for this device. Configuration ```DUMP``` (see ```config.py```)  needs to be set to ```True``` for this. The dumped files (the ```<devicename>.epr``` and ```<devicename>.ccmap```) can be found in the ```./dumps``` subfolder.
 
 Using such a device dump as a starting point for a new preset ensures that
 
@@ -52,7 +52,7 @@ To create a preset for a new device, therefore proceed as follows.
 1. Enable dumping of presets (set ```DUMP = True``` in ```config.py```).
 2. Start Ableton, and make sure the remote script is active.
 3. Load the device you want to create a preset for and select it; a blue hand should appear in it (and the preset that is constructed on the fly should appear on the E1).
-4. This should create ```<devicename>.epr``` and ```<devicename>.ccmap``` in the ```dumps``` directory in the library folder (```LIBDIR```).
+4. This should create ```<devicename>.epr``` and ```<devicename>.ccmap``` in the ```dumps``` directory in the remote script folder.
 5. Copy ```<devicename>.ccmap``` and ```<devicename>.epr``` to the ```preloaded``` folder. No LUA file is created.
 6. Continue with the steps described above for editing existing presets.
 
@@ -96,7 +96,7 @@ The behaviour of the remote script can be changed by editing ```config.py```:
 - ```E1_PRESET_FOLDER``` subfolder on the E1 where the preloaded presets are stored, relative to ```ctrlv2/presets``` (only possible for E1 mkII with firmware 3.4 and higher). The default is ```xot/ableton```.
 - ```E1_LOGGING``` controls whether the E1 should send log messages, and if so how detailed. Default ```-1``` (which means no logging). Other possible levels: ```0``` (critical messages and errors only), ```1``` (warning messages), ```2``` (informative messages), or ```3``` (tracing messages).
 - ```E1_LOGGING_PORT``` controls which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL). Default is 2, the CTRL port.
-- ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```LIBDIR/dumps```). The default is ```False```.
+- ```DUMP``` controls whether the preset and CC map information of the  currently appointed device is dumped  (to ```./dumps```). The default is ```False```.
 - ```RESET_SLOT``` (default ```(5,11)``` i.e the last, lower right slot in the sixth bank); when selected the remote script resets.
 - ```EFFECT_REFRESH_PERIOD``` amount of time (in 100ms increments) between successive refreshes of controls on the E1 whose string values need to be provided by Abelton (default is 2).
 - ```E1_PORT``` port number used by the remote script for input/output (0: Port 1, 1: Port 2, 2: CTRL), i.e. the one set in Ableton Live preferences. (Default is 0).

@@ -34,19 +34,6 @@ DUMP = False
 # Whether to detect the E1 at start up (or assume it's there regardless)
 DETECT_E1 = True
 
-# Local directory where dumps are stored (./dumps), user defined
-# presets are loaded from (./user-presets), and where to look for the sendmidi
-# program.
-#
-# This is first tried as a directory relative to the user's home directory;
-# if that doesn't exist, it is interpreted as an absolute path. If that also
-# doesn't exist, then the user home directory is used instead (and ./dumps
-# or ./user-presets are not appended to make sure the directory exists).
-# (Leading or trailing slash is ignored)
-#
-# If None, the remote script directory itself is tried.
-LIBDIR = None
-
 # Folder on the E1 where the preloaded presets are stored, relative to ctrlv2/presets
 # (only possible for E1 with firmware 3.4 and higher)
 E1_PRESET_FOLDER = 'xot/ableton'

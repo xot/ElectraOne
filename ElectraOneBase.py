@@ -81,56 +81,6 @@ class ElectraOneBase(Log):
     _send_midi_sleep = 0  
     _send_value_update_sleep = 0 
     
-    # --- LIBDIR handling
-
-    # location to dump presets in; set by init
-    DUMP_PATH = None
-    
-    def _get_libdir(self):
-        """Determine library path based on LIBDIR.
-           Either ~/LIBDIR, /LIBDIR, or the user home directory,
-           the first of these that exist. (Home is assumed to always exist.)
-           - result: library path that exists (without trailing /) ; str
-        """
-        # sanitise leading and trailing /
-        if LIBDIR:
-            ldir = LIBDIR
-        else:
-            ldir = str(ElectraOneBase.REMOTE_SCRIPT_PATH)
-        # TODO: if LIBDIR starts with / why not assume immediately it is a global path?
-        if ldir[0] == '/':
-            ldir = ldir[1:]
-        if ldir[-1] == '/':
-            ldir = ldir[:-1]
-        home = os.path.expanduser('~')
-        test =  f'{ home }/{ ldir }'
-        self.debug(4,f'Testing library path {test}...')
-        if not os.path.isdir(test):
-            # try LIBDIR as absolute path
-            test =  f'/{ ldir }'
-            self.debug(4,f'Testing library path {test}...')
-            if not os.path.isdir(test):
-                # default is HOME
-                test = home
-        self.debug(4,f'Using library path {test}.')
-        return test
-    
-    def _ensure_in_libdir(self, path):
-        """Ensure the specified relative directory exists in the library path
-           (ie create it if it doesnt exist).
-           - path: relative path to directory; str
-           - result: full path in library that exists ; str
-        """
-        self.debug(4,f'Ensure {path} exists in library.')
-        root = self._get_libdir()
-        test = f'{ root }/{ path }'
-        # create if path does not exist
-        if not os.path.exists(test):
-            os.mkdir(test)
-        elif not os.path.isdir(test):
-                return ''
-        return test
-        
     # --- INIT
     
     def __init__(self, c_instance):
@@ -145,8 +95,6 @@ class ElectraOneBase(Log):
         # get the path to this remote script instance
         if not ElectraOneBase.REMOTE_SCRIPT_PATH:
             ElectraOneBase.REMOTE_SCRIPT_PATH = Path(inspect.getfile(ElectraOneBase)).parent
-        if not ElectraOneBase.DUMP_PATH:
-            ElectraOneBase.DUMP_PATH = self._ensure_in_libdir('dumps')
         
     def is_ready(self):
         """Return whether the remote script is ready to process requests
@@ -155,6 +103,26 @@ class ElectraOneBase(Log):
            - result: bool
         """
         return (ElectraOneBase.E1_connected and not ElectraOneBase.preset_uploading)
+
+    # --- standard folders and files
+
+    def dumppath(self):
+        """Folder to dump presets in
+           - result:  ; Path
+        """
+        return ElectraOneBase.REMOTE_SCRIPT_PATH / 'dumps'
+
+    def preloadedpath(self):
+        """Folder to load predefined presets from
+           - result:  ; Path
+        """
+        return ElectraOneBase.REMOTE_SCRIPT_PATH / 'preloaded'
+    
+    def luascriptfname(self):
+        """Filename to load default LUA script from
+           - result:  ; Path
+        """
+        return ElectraOneBase.REMOTE_SCRIPT_PATH / 'default.lua'
     
     # --- helper functions
 

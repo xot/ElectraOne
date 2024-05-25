@@ -17,10 +17,6 @@ from .ElectraOneBase import ElectraOneBase
 from .PresetInfo import PresetInfo
 from .CCInfo import CCMap
 
-# Path to file containing the default LUA script that always needs to be
-# included
-DEFAULT_LUA_SCRIPT_FILE  = 'default.lua'
-
 class Devices(ElectraOneBase):
     # Dictionary with preset info (preset JSON, MIDI cc mapping, and LUA script)
     # for known devices (indexed by device.original_name and then by a
@@ -43,21 +39,16 @@ class Devices(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         self.debug(1,'Constructing DEVICES.')
-        # get paths
-        preloaded_path = ElectraOneBase.REMOTE_SCRIPT_PATH / 'preloaded'
-        luascript_path = ElectraOneBase.REMOTE_SCRIPT_PATH / DEFAULT_LUA_SCRIPT_FILE
         # load default LUA script
-        if os.path.exists(luascript_path):
-            self.debug(2,f'Loading default LUA script {luascript_path}.')
-            with open(luascript_path,'r') as inf:
-                self._default_lua_script = inf.read()
-        else:
-            self.debug(2,f'Warning: Default LUA script {luascript_path} not found.')
-            self._default_lua_script = ''
+        assert os.path.exists(self.luascriptfname()), f'Error: Default LUA script {self.luascriptfname()} does not exist.'
+        self.debug(2,f'Loading default LUA script {self.luascriptfname()}.')
+        with open(self.luascriptfname(),'r') as inf:
+            self._default_lua_script = inf.read()
         # Dictionary of device presets in preloaded to dump (see above for structure)
         self._DEVICES = {}
-        self.debug(2,f'Scanning {preloaded_path} for devices.')
-        preset_paths = preloaded_path.glob('*.epr')
+        assert os.path.exists(self.preloadedpath()), f'Error: Folder {self.preloadedpath()} does not exist.'
+        self.debug(2,f'Scanning {self.preloadedpath()} for devices.')
+        preset_paths = self.preloadedpath().glob('*.epr')
         # process each preset path and store in DEVICES
         for preset_path in preset_paths:
             self._process_preset(preset_path)
