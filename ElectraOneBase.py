@@ -254,11 +254,11 @@ class ElectraOneBase(Log):
     # Record whether attached version of E1 is supported by the remote script
     E1_version_supported = False
 
-    # Record whether E1 will forward ACKs from another E1 attached to it
-    E1_FORWARDS_ACK = False
-
     # Record whether E1 supports preloaded presets on the E1 itself
     E1_PRELOADED_PRESETS_SUPPORTED = False
+
+    # Record whether an E1 DAW is attached
+    E1_DAW = False
 
     # Minimum and maximum timeouts to wait for an ACK
     MIN_TIMEOUT = 0
@@ -289,11 +289,14 @@ class ElectraOneBase(Log):
             self.show_message(f'Version {sw_version} older than 3.1.5. Disabling ElectraOne control surface.')
         else:
             ElectraOneBase.E1_version_supported = True
-            ElectraOneBase.E1_FORWARDS_ACK = (sw_version >= (3,2,0))
+            # TODO: fixme
+            ElectraOneBase.E1_DAW = \
+               (str(ElectraOneBase.REMOTE_SCRIPT_PATH) == '/Users/jhh/Music/Ableton/User Library/Remote Scripts/ElectraOneMixer')
+            self.debug(0,f'E1_DAW = {ElectraOneBase.E1_DAW} ({ElectraOneBase.REMOTE_SCRIPT_PATH})')
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
-                ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0)) 
+                ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
                 ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
                 ElectraOneBase.MAX_TIMEOUT = 300
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 

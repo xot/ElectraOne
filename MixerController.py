@@ -264,14 +264,21 @@ class MixerController(ElectraOneBase):
         """Define handlers for incoming MIDI CC messages.
            (previous and next track selection for the  mixer.)
         """
-        self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
-            ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
-            ,  (MIDI_MASTER_CHANNEL, PAGE_UP_CC) : self._handle_page_up
-            ,  (MIDI_MASTER_CHANNEL, PAGE_DOWN_CC) : self._handle_page_down
-            ,  (MIDI_SENDS_CHANNEL, SESSION_SLOT_CC) : self._handle_session_slot
-            }
-        
+        # clip slot triggers only for E1 DAW
+        if ElectraOneBase.E1_DAW:
+            self._CC_HANDLERS = {
+                   (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
+                ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
+                ,  (MIDI_MASTER_CHANNEL, PAGE_UP_CC) : self._handle_page_up
+                ,  (MIDI_MASTER_CHANNEL, PAGE_DOWN_CC) : self._handle_page_down
+                ,  (MIDI_SENDS_CHANNEL, SESSION_SLOT_CC) : self._handle_session_slot
+                }
+        else:
+            self._CC_HANDLERS = {
+                   (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
+                ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
+                }
+            
     def _handle_prev_tracks(self,value):
         """Shift left NO_OF_TRACKS; don't move before first track.
         """

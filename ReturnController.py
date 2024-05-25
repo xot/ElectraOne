@@ -12,6 +12,7 @@
 
 # Local imports
 from .config import *
+from .ElectraOneBase import ElectraOneBase 
 from .GenericTrackController import GenericTrackController
 
 class ReturnController(GenericTrackController):
@@ -48,8 +49,9 @@ class ReturnController(GenericTrackController):
         self._base_mute_cc = RETURNS_MUTE_CC
         self._base_arm_cc = None # not present on a return track
         self._base_solo_cue_cc = RETURNS_SOLO_CUE_CC
-        #
-        self._base_device_selection_cc = RM_DEVICE_SELECTION_CC
+        # Device selection only for E1 DAW
+        if ElectraOneBase.E1_DAW:
+            self._base_device_selection_cc = RM_DEVICE_SELECTION_CC
         #
         self.add_listeners()
         self.init_cc_handlers()

@@ -14,6 +14,7 @@ import Live
 
 # Local imports
 from .config import *
+from .ElectraOneBase import ElectraOneBase 
 from .GenericTrackController import GenericTrackController
 
 class TrackController(GenericTrackController):
@@ -54,8 +55,10 @@ class TrackController(GenericTrackController):
             self._base_arm_cc = ARM_CC
         else:
             self._base_arm_cc = None # group tracks and chains cannot be armed
-        self._base_solo_cue_cc = SOLO_CUE_CC 
-        self._base_device_selection_cc = DEVICE_SELECTION_CC
+        self._base_solo_cue_cc = SOLO_CUE_CC
+        # Device selection only for E1 DAW
+        if ElectraOneBase.E1_DAW:
+            self._base_device_selection_cc = DEVICE_SELECTION_CC
         # 
         self.add_listeners()
         self.init_cc_handlers()
