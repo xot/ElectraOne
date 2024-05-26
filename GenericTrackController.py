@@ -86,7 +86,7 @@ class GenericTrackController(ElectraOneBase):
         # 0..NO_OF_TRACKS-1 for tracks, NO_OF_TRACKS..NO_OF_TRACKS+MAX_NO_OF_SENDS-1 for sends
         # NO_OF_TRACKS+MAX_NO_OF_SENDS for master
         self._devsel_idx = None
-        # current device selector devices
+        # current list of selectable devices, favourites first
         self._devices = None
         # session control first clip row  (only for tracks)
         self._first_row_index = None
@@ -247,7 +247,7 @@ class GenericTrackController(ElectraOneBase):
         self._refresh_clips()
         
     def update_display(self):
-        """Update the display.
+        """Update the display (called every 100ms).
            Used to update the clip slot information in the session control page,
            partially because track.add_clip_slots_listener does not work (as I expected)
            and also to ensure that all changes are always sent to the E1.
@@ -342,16 +342,16 @@ class GenericTrackController(ElectraOneBase):
         # prepare info in devices on track, to handle device selection
         self._update_devices_info()
         # only define them when necessary
-        if self._base_mute_cc:
+        if self._base_mute_cc != None:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_mute_cc) )] \
                 = self._handle_mute_button
-        if self._base_solo_cue_cc:
+        if self._base_solo_cue_cc != None:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_solo_cue_cc) )] \
                 = self._handle_solo_cue_button
-        if self._base_arm_cc:
+        if self._base_arm_cc != None:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_arm_cc) )] \
                 = self._handle_arm_button
-        if self._base_device_selection_cc:
+        if self._base_device_selection_cc != None:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_device_selection_cc) )] \
                 = self._handle_device_selection
                 

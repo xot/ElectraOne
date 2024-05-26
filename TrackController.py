@@ -70,8 +70,7 @@ class TrackController(GenericTrackController):
         clipinfo = []
         # _track can also be a chain (that doesn't have clipslots)           
         if (type(self._track) == Live.Track.Track):
-            # five clip slots 
-            for i in range(5):
+            for i in range(NO_OF_SESSION_ROWS):
                 clipslot = self._track.clip_slots[self._first_row_index + i]
                 if clipslot.has_clip:
                     clip = clipslot.clip

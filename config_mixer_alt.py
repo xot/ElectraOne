@@ -35,7 +35,9 @@ TRACK_EQ_CC_MAP = {
             }
 
 SENDS_CC = 0  
-SESSION_SLOT_CC = None
+SESSION_CLIP_SLOT_CC = None
+SESSION_SCENE_SLOT_CC = None
+NO_OF_SESSION_ROWS = 0
 
 # Transport controller CCs (see DOCUMENTATION.md)
 # - On MIDI_MASTER_CHANNEL

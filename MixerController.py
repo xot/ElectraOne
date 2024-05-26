@@ -209,7 +209,8 @@ class MixerController(ElectraOneBase):
                                     for i in track_range ]
         self._add_chain_visibility_listeners()
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
-        self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), 5, True)
+        if ElectraOneBase.E1_DAW and (NO_OF_SESSION_ROWS > 0) :
+            self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), NO_OF_SESSION_ROWS, True)
 
     def _handle_selected_tracks_change(self):
         """Call this whenever the current set of selected tracks changes.
@@ -264,20 +265,19 @@ class MixerController(ElectraOneBase):
         """Define handlers for incoming MIDI CC messages.
            (previous and next track selection for the  mixer.)
         """
-        # clip slot triggers only for E1 DAW
-        if ElectraOneBase.E1_DAW:
-            self._CC_HANDLERS = {
-                   (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
-                ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
-                ,  (MIDI_MASTER_CHANNEL, PAGE_UP_CC) : self._handle_page_up
-                ,  (MIDI_MASTER_CHANNEL, PAGE_DOWN_CC) : self._handle_page_down
-                ,  (MIDI_SENDS_CHANNEL, SESSION_SLOT_CC) : self._handle_session_slot
-                }
-        else:
-            self._CC_HANDLERS = {
-                   (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
-                ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
-                }
+        self._CC_HANDLERS = {
+               (MIDI_MASTER_CHANNEL, PREV_TRACKS_CC) : self._handle_prev_tracks
+            ,  (MIDI_MASTER_CHANNEL, NEXT_TRACKS_CC) : self._handle_next_tracks
+            }
+        # session control only for E1_DAW, if implemented by the mixer
+        if ElectraOneBase.E1_DAW and PAGE_UP_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, PAGE_UP_CC)] = self._handle_page_up
+        if ElectraOneBase.E1_DAW and PAGE_DOWN_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, PAGE_DOWN_CC)] = self._handle_page_down
+        if ElectraOneBase.E1_DAW and SESSION_CLIP_SLOT_CC != None:
+            self._CC_HANDLERS[(MIDI_SENDS_CHANNEL, SESSION_CLIP_SLOT_CC)] = self._handle_session_clip_slot
+        if ElectraOneBase.E1_DAW and SESSION_SCENE_SLOT_CC != None:
+            self._CC_HANDLERS[(MIDI_SENDS_CHANNEL, SESSION_SCENE_SLOT_CC)] = self._handle_session_scene_slot
             
     def _handle_prev_tracks(self,value):
         """Shift left NO_OF_TRACKS; don't move before first track.
@@ -320,11 +320,11 @@ class MixerController(ElectraOneBase):
             self._refresh_clips()
             self.midi_burst_off()
             
-    def _handle_session_slot(self,value):
+    def _handle_session_clip_slot(self,value):
         """Trigger a session slot clip
            - value: index of the clip (starts at 0, from left to right, top to bottom)
         """
-        self.debug(3,f'Session slot {value} fired.')
+        self.debug(3,f'Session clip slot {value} fired.')
         # get the track index
         track_idx = value % NO_OF_TRACKS
         if track_idx < len(self._track_controllers):
@@ -333,7 +333,17 @@ class MixerController(ElectraOneBase):
             if clip_idx < len(track.clip_slots):
                 clip = track.clip_slots[clip_idx]
                 clip.fire()
-        
+
+    def _handle_session_scene_slot(self,value):
+        """Trigger a session scene slot
+           - value: index of the clip (starts at 0, from left to right, top to bottom)
+        """
+        self.debug(3,f'Session scene slot {value} fired.')
+        scenes = self.song().scenes
+        if value < len(scenes):
+            scene = scenes[value]
+            scene.fire()
+            
     # --- MIDI mapping ---
         
     def process_midi(self, midi_channel, cc_no, value):
