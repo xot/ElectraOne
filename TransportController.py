@@ -60,6 +60,7 @@ class TransportController(ElectraOneBase):
     def _add_listeners(self):
         """Add listeners for play/stop and record button in Live.
         """
+        self.song().add_metronome_listener(self._on_metronome_changed)
         self.song().add_record_mode_listener(self._on_record_mode_changed)
         self.song().add_is_playing_listener(self._on_is_playing_changed)
         self.song().add_current_song_time_listener(self._on_position_changed)        
@@ -69,11 +70,22 @@ class TransportController(ElectraOneBase):
     def _remove_listeners(self):
         """Remove all listeners added
         """
+        self.song().remove_metronome_listener(self._on_metronome_changed)
         self.song().remove_record_mode_listener(self._on_record_mode_changed)
         self.song().remove_is_playing_listener(self._on_is_playing_changed)
         self.song().remove_current_song_time_listener(self._on_position_changed)        
         self.song().remove_tempo_listener(self._on_tempo_changed)
 
+    def _on_metronome_changed(self):
+        """Update the value shown for the metronome control on the E1.
+        """
+        self.debug(3,'Metronome changed.')
+        if self.song().metronome:
+            value = 127
+        else:
+            value = 0
+        self.send_midi_cc7(MIDI_MASTER_CHANNEL, METRONOME_CC, value)
+        
     def _on_record_mode_changed(self):
         """Update the value shown for the record control on the E1.
         """
@@ -127,6 +139,14 @@ class TransportController(ElectraOneBase):
             ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
             ,  (MIDI_MASTER_CHANNEL, RECORD_CC)    : self._handle_record
             }
+        if ElectraOneBase.E1_DAW and TAP_TEMPO_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, TAP_TEMPO_CC)] = self._handle_tap_tempo
+        if ElectraOneBase.E1_DAW and NUDGE_DOWN_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, NUDGE_DOWN_CC)] = self._handle_nudge_down
+        if ElectraOneBase.E1_DAW and NUDGE_UP_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, NUDGE_UP_CC)] = self._handle_nudge_up
+        if ElectraOneBase.E1_DAW and METRONOME_CC != None:
+            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, METRONOME_CC)] = self._handle_metronome
 
     def _handle_position(self,value):
         """Handle position relative dial
@@ -152,6 +172,43 @@ class TransportController(ElectraOneBase):
             delta = value * TEMPO_JUMP_BY_AMOUNT
         self.song().tempo += delta
         
+    def _handle_tap_tempo(self,value):
+        """Tap tempo
+        """
+        if value > 63:
+            self.debug(3,'Tap tempo pressed.')
+            self.song().tap_tempo()
+            
+    def _handle_nudge_down(self,value):
+        """Nudge down
+        """
+        if value > 63:
+            self.debug(3,'Nudge down pressed.')
+            self.song().nudge_down = True
+        else:
+            self.debug(3,'Nudge down released.')
+            self.song().nudge_down = False        
+            
+    def _handle_nudge_up(self,value):
+        """Nudge up
+        """
+        if value > 63:
+            self.debug(3,'Nudge up pressed.')
+            self.song().nudge_up = True
+        else:
+            self.debug(3,'Nudge up released.')
+            self.song().nudge_up = False
+
+    def _handle_metronome(self,value):
+        """Metronome
+        """
+        if value > 63:
+            self.debug(3,'Metronome pressed.')
+            self.song().metronome = True
+        else:
+            self.debug(3,'Metronome released.')
+            self.song().metronome = False
+            
     def _handle_play_stop(self,value):        
         """Handle play/stop button press.
            - value: incoming MIDI CC value; int
