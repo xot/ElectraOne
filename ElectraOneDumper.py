@@ -378,22 +378,30 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         for p in parameters:
             cc_info = cc_map.get_cc_info(p)
             if cc_info.is_mapped() and _needs_overlay(p):
-                if overlay_idx > MAX_OVERLAY_ID:
-                    self.debug(3,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
-                    # stop adding overlays
-                    return
-                if len(p.value_items) > 128:
-                    # do not the overlay in this case
-                    self.debug(3,f'Too many overlay items { len(p.value_items) }. Skipping all.')
+                # test whether overlay for same list of itemse has been created
+                # before; and use index of that overlay if found
+                found = -1
+                for (idx,items) in self._overlay_map.values():
+                    if items == p.value_items:
+                        self.debug(5,f'Overlay for {p.original_name} with values {[s for s in p.value_items]} already defined earlier; using that')
+                        found = idx
+                if found > -1:
+                    self._overlay_map[p.original_name] = (idx,None)
                 else:
-                    flag = self._append_comma(flag)
-                    self.debug(5,f'Appending overlay for {p.original_name} with values {[s for s in p.value_items]}.')
-                    self._overlay_map[p.original_name] = overlay_idx
-                    # {{ to escape { in f string
-                    self._append(f'{{"id":{ overlay_idx }')
-                    self._append_json_overlay_items(p.value_items)
-                    self._append('}')
-                    overlay_idx += 1
+                    if overlay_idx > MAX_OVERLAY_ID:
+                        self.debug(3,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
+                    elif len(p.value_items) > 128:
+                        # do not the overlay in this case
+                        self.debug(3,f'Too many overlay items { len(p.value_items) }. Skipping all.')
+                    else:
+                        flag = self._append_comma(flag)
+                        self.debug(5,f'Appending overlay for {p.original_name} with values {[s for s in p.value_items]}.')
+                        self._overlay_map[p.original_name] = (overlay_idx,p.value_items)
+                        # {{ to escape { in f string
+                        self._append(f'{{"id":{ overlay_idx }')
+                        self._append_json_overlay_items(p.value_items)
+                        self._append('}')
+                        overlay_idx += 1
         self._append(']')
 
     def _append_json_bounds(self, idx):
@@ -601,7 +609,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if _needs_overlay(parameter):
             # check if overlay succesfully created
             if parameter.original_name in self._overlay_map:
-                overlay_id = self._overlay_map[parameter.original_name]
+                (overlay_id,overlay_items) = self._overlay_map[parameter.original_name]
                 self._append_json_list(overlay_id,cc_info)
             else: # overlay not constructed so dummy added to this control; unmap it for safety
                 self._append_json_list(0,cc_info) 
