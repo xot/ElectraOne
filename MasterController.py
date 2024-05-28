@@ -44,7 +44,6 @@ class MasterController(GenericTrackController):
         self._base_device_selection_cc = MASTER_DEVICE_SELECTION_CC
         #
         self.add_listeners()
-        self.init_cc_handlers()
         self.debug(0,'MasterController loaded.')
             
     def _my_cc(self,base_cc):

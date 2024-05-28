@@ -273,6 +273,9 @@ class GenericTrackController(ElectraOneBase):
         self._property_controllers.add_on_off_property(track,'mute',self._midichannel,self._my_cc(self._base_mute_cc),True)
         self._property_controllers.add_on_off_property(track,'solo',self._midichannel,self._my_cc(self._base_solo_cue_cc))
         self._property_controllers.add_on_off_property(track,'arm',self._midichannel,self._my_cc(self._base_arm_cc))
+        if ElectraOneBase.E1_DAW:
+            self._update_devices_info()
+            self._property_controllers.add_property(track,'device_selector',self._midichannel,self._my_cc(self._base_device_selection_cc),self._handle_device_selection,None)        
         track.add_name_listener(self._refresh_track_name)
         track.add_devices_listener(self._handle_device_change)
             
@@ -288,20 +291,8 @@ class GenericTrackController(ElectraOneBase):
             if track.devices_has_listener(self._handle_device_change):
                 track.remove_devices_listener(self._handle_device_change)
                 
-    # --- Handlers ---
+    # --- Special handlers ---
     
-    def init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages for the mute, solo/cue
-           and arm button (if necessary; depending on track type)
-        """
-        self._CC_HANDLERS = {}
-        # prepare info in devices on track, to handle device selection
-        self._update_devices_info()
-        # only define them when necessary
-        if self._base_device_selection_cc != None:
-            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_device_selection_cc) )] \
-                = self._handle_device_selection
-                
     def _handle_device_selection(self,value):
         """Default handler for handling device selection
            - value: incoming MIDI CC value; int
@@ -317,23 +308,14 @@ class GenericTrackController(ElectraOneBase):
     
     def process_midi(self, midi_channel, cc_no, value):
         """Process incoming MIDI CC events for this track, and pass them to
-           the correct handler (defined by self._CC_HANDLERS as set up
-           by the call to self._init_cc_handlers() )
+           the correct handler (defined through _property_controllers() )
            - midi_channel: MIDI channel of incomming message; int (1..16)
            - cc_no: MIDI CC number; int (0..127)
            - value: incoming CC value; int (0..127)
            - returns: whether midi event processed by handler here; bool
         """
         self.debug(5,f'GenericTrackControler: trying to process MIDI by track { self._track.name}.')
-        if self._property_controllers.process_midi(midi_channel,cc_no,value):
-            return True
-        elif (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
-            handler = self._CC_HANDLERS[(midi_channel,cc_no)]
-            handler(value)
-            return True
-        else:
-            return False
+        return self._property_controllers.process_midi(midi_channel,cc_no,value)
 
     def build_midi_map(self, script_handle, midi_map_handle):
         """Map all track controls on their associated MIDI CC numbers; either
@@ -347,11 +329,7 @@ class GenericTrackController(ElectraOneBase):
                which MIDI mappings must be added.
         """
         self.debug(3,f'Building MIDI map of track { self._track.name }.')
-        # Map CCs to be forwarded as defined in _CC_HANDLERS
-        for (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
-            Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
-        # Map button CCs to be forwarded
+        # Map property CCs to be forwarded
         self._property_controllers.build_midi_map(script_handle,midi_map_handle)
         # map main sliders
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call

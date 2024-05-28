@@ -61,7 +61,6 @@ class TrackController(GenericTrackController):
             self._base_device_selection_cc = DEVICE_SELECTION_CC
         # 
         self.add_listeners()
-        self.init_cc_handlers()
         self.debug(0,'TrackController loaded.')
 
     def _refresh_clips(self):

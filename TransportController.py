@@ -32,9 +32,13 @@ class TransportController(ElectraOneBase):
         self._lastpos = None
         # set up property controllers
         self._property_controllers = PropertyControllers(self)
-        # add property controllers 
-        self._property_controllers.add_on_off_property(self.song(),'record_mode',MIDI_MASTER_CHANNEL,RECORD_CC)
+        # add property controllers
+        self._property_controllers.add_on_off_property(self.song(),'record_mode',MIDI_MASTER_CHANNEL,RECORD_CC)        
+        self._property_controllers.add_property(self.song(),'is_playing',MIDI_MASTER_CHANNEL,PLAY_STOP_CC,self._handle_play_stop,self._on_is_playing_changed)
+        self._property_controllers.add_property(self.song(),'tempo',MIDI_MASTER_CHANNEL,TEMPO_CC,self._handle_tempo,self._on_tempo_changed)        
+        self._property_controllers.add_property(self.song(),'current_song_time',MIDI_MASTER_CHANNEL,POSITION_CC,self._handle_position,self._on_position_changed)        
         if ElectraOneBase.E1_DAW:
+            self._property_controllers.add_property(self.song(),'tap_tempo',MIDI_MASTER_CHANNEL,TAP_TEMPO_CC,self._handle_tap_tempo,None)        
             self._property_controllers.add_on_off_property(self.song(),'nudge_down',MIDI_MASTER_CHANNEL,NUDGE_DOWN_CC)            
             self._property_controllers.add_on_off_property(self.song(),'nudge_up',MIDI_MASTER_CHANNEL,NUDGE_UP_CC)            
             self._property_controllers.add_on_off_property(self.song(),'metronome',MIDI_MASTER_CHANNEL,METRONOME_CC)
@@ -47,9 +51,6 @@ class TransportController(ElectraOneBase):
             self._property_controllers.add_on_off_property(self.song(),'session_automation_record',MIDI_MASTER_CHANNEL,SESSION_AUTOMATION_RECORD_CC)
             self._property_controllers.add_on_off_property(self.song(),'re_enable_automation_enabled',MIDI_MASTER_CHANNEL,RE_ENABLE_AUTOMATION_ENABLED_CC)
             self._property_controllers.add_on_off_property(self.song(),'session_record',MIDI_MASTER_CHANNEL,SESSION_RECORD_CC)
-            # add remaining listeners and CC handlers that cannot be handled by property controllers
-        self._add_listeners()
-        self._init_cc_handlers()
         self.debug(0,'TransportController loaded.')
 
     # --- initialise values ---
@@ -59,9 +60,6 @@ class TransportController(ElectraOneBase):
            (to bring them in sync)
         """
         self.debug(2,'Refreshing transport state.')
-        self._on_is_playing_changed()
-        self._on_position_changed()
-        self._on_tempo_changed()
         self._property_controllers.refresh()
 
     def update_display(self):
@@ -74,26 +72,10 @@ class TransportController(ElectraOneBase):
            Cleans up.
         """
         # cleanup
-        self._remove_listeners()
         self._property_controllers.remove_listeners()
         
-    # --- Listeners
+    # --- Special listeners
             
-    def _add_listeners(self):
-        """Add listeners for play/stop and record button in Live.
-        """
-        self.song().add_is_playing_listener(self._on_is_playing_changed)
-        self.song().add_current_song_time_listener(self._on_position_changed)        
-        self.song().add_tempo_listener(self._on_tempo_changed)
-        
-    def _remove_listeners(self):
-        """Remove all listeners added
-        """
-        self.song().remove_is_playing_listener(self._on_is_playing_changed)
-        self.song().remove_current_song_time_listener(self._on_position_changed)        
-        self.song().remove_tempo_listener(self._on_tempo_changed)
-        
-                
     def _on_is_playing_changed(self):
         """Update the value shown for the play/stop control on the E1.
         """
@@ -123,19 +105,8 @@ class TransportController(ElectraOneBase):
         if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
             self.set_tempo(tempo)
                 
-    # --- Handlers ---
+    # --- Special handlers ---
     
-    def _init_cc_handlers(self):
-        """Define handlers for incoming MIDI CC messages.
-        """
-        self._CC_HANDLERS = {
-               (MIDI_MASTER_CHANNEL, POSITION_CC)  : self._handle_position
-            ,  (MIDI_MASTER_CHANNEL, TEMPO_CC)     : self._handle_tempo
-            ,  (MIDI_MASTER_CHANNEL, PLAY_STOP_CC) : self._handle_play_stop
-            }
-        if ElectraOneBase.E1_DAW and TAP_TEMPO_CC != None:
-            self._CC_HANDLERS[(MIDI_MASTER_CHANNEL, TAP_TEMPO_CC)] = self._handle_tap_tempo
-
     def _handle_position(self,value):
         """Handle position relative dial
            - value: incoming MIDI CC value: 7F,7E,.. is rewind, 01,02 is forward
@@ -181,23 +152,14 @@ class TransportController(ElectraOneBase):
     
     def process_midi(self, midi_channel, cc_no, value):
         """Process incoming MIDI CC events for this track, and pass them to
-           the correct handler (defined by self._CC_HANDLERS as set up
-           by the call to self._init_cc_handlers() )
+           the correct handler (defined through _property_controllers() )
            - midi_channel: MIDI channel of incomming message; int (1..16)
            - cc_no: MIDI CC number; int (0..127)
            - value: incoming CC value; int (0..127)
            - returns: whether midi event processed by handler here; bool
         """
         self.debug(5,f'Trying TransportControler.')
-        if self._property_controllers.process_midi(midi_channel,cc_no,value):
-            return True
-        elif (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(5,f'TransportController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
-            handler = self._CC_HANDLERS[(midi_channel,cc_no)]
-            handler(value)
-            return True
-        else:
-            return False
+        return self._property_controllers.process_midi(midi_channel,cc_no,value)
     
     def build_midi_map(self, script_handle, midi_map_handle):
         """Map all transport controls on their associated MIDI CC numbers; make sure
@@ -211,8 +173,5 @@ class TransportController(ElectraOneBase):
         """
         self.debug(3,'Building transport MIDI map.')
         # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
-        for (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(4,f'TransportController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
-            Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         self._property_controllers.build_midi_map(script_handle,midi_map_handle)
    

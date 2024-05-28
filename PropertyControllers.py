@@ -17,17 +17,45 @@ class PropertyControllers:
     """
 
     def __init__(self,controller):
+        """Initialise.
+           - controller: the controller handling the properties 
+        """
         self._LISTENERS = {}
         self._CC_HANDLERS = {}
         self._controller = controller
 
     def remove_listeners(self):
+        """Remove listeners registered for all properties.
+        """
         self._controller.debug(3,'Deregistering property controllers.')
         for property in self._LISTENERS:
             (context,listener) = self._LISTENERS[property]
             if context != None:
                 getattr(context,'remove_' + property + '_listener')(listener)
 
+    # -- Genereric properties
+    
+    def add_property(self,context,property,midi_channel,cc_no,handler,listener):
+        """Add an on/off controller for a generic property.
+        - controller: controller managing the property; subclass of ElecraOneBase
+        - context: context of property; eg song or track
+        - property: name of on/off property; string
+        - channel: MIDI channel; int
+        - cc: CC no; int (nothing added if None)
+        - handler: handles incoming CC events; function (lambda value: x)
+        - listener: listens to property changs and sends CC updates; function (lambda : x)
+        """
+        if cc_no != None:
+            # add a cc handler for this property
+            if handler != None:
+                self._CC_HANDLERS[(midi_channel,cc_no)] = handler
+            # add a listener for this property, and store itt to remove it
+            # later; also used by refresh_state
+            if listener != None:
+                self._LISTENERS[property] = (context,listener)
+                # add the listener now
+                getattr(context,'add_' + property + '_listener')(listener)
+                
     # -- on/off properties
     
     def handle_on_off_property(self,context,property,reverse,value):
@@ -47,19 +75,13 @@ class PropertyControllers:
         - context: context of property; eg song or track
         - property: name of on/off property; string
         - channel: MIDI channel; int
-        - cc: CC no; int
+        - cc: CC no; int (nothing added if None)
         - reverse: whether to reverse the value/stte; boolean
         """
-        if cc_no != None:
-            # add a cc handler for this property
-            self._CC_HANDLERS[(midi_channel,cc_no)] = (lambda value: self.handle_on_off_property(context,property,reverse,value))
-            # create a listener for this property
-            listener = (lambda : self.on_off_property_listener(context,property,reverse,midi_channel,cc_no))
-            # store it to remove it later and for refresh_state
-            self._LISTENERS[property] = (context,listener)
-            # add the listener now
-            getattr(context,'add_' + property + '_listener')(listener)
-
+        handler = (lambda value: self.handle_on_off_property(context,property,reverse,value))
+        listener = (lambda : self.on_off_property_listener(context,property,reverse,midi_channel,cc_no))
+        self.add_property(context,property,midi_channel,cc_no,handler,listener)
+            
     # -- list properties
     
     def handle_list_property(self,context,property,translation,value):
@@ -83,19 +105,15 @@ class PropertyControllers:
         - context: context of property; eg song or track
         - property: name of list property; string
         - channel: MIDI channel; int
-        - cc: CC no; int
+        - cc: CC no; int (nothing added if None)
         - translation: optional translation; list
         """
-        if cc_no != None:
-            # add a cc handler for this property
-            self._CC_HANDLERS[(midi_channel,cc_no)] = (lambda value: self.handle_list_property(context,property,translation,value))
-            # create a listener for this property
-            listener = (lambda : self.list_property_listener(context,property,translation,midi_channel,cc_no))
-            # store it to remove it later and for refresh
-            self._LISTENERS[property] = (context,listener)
-            # add the listener now
-            getattr(context,'add_' + property + '_listener')(listener)
-            
+        handler = (lambda value: self.handle_list_property(context,property,translation,value))
+        listener = (lambda : self.list_property_listener(context,property,translation,midi_channel,cc_no))
+        self.add_property(context,property,midi_channel,cc_no,handler,listener)
+
+    # --
+    
     def refresh(self):
         """Refresh the state of all registered properties on the E1
         """

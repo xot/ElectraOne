@@ -54,7 +54,6 @@ class ReturnController(GenericTrackController):
             self._base_device_selection_cc = RM_DEVICE_SELECTION_CC
         #
         self.add_listeners()
-        self.init_cc_handlers()
         self.debug(0,'ReturnController loaded.')
             
     def _refresh_track_name(self):
