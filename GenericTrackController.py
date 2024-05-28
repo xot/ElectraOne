@@ -60,7 +60,7 @@ class GenericTrackController(ElectraOneBase):
         self._base_device_selection_cc = None # if None, not present.
         # set up property controllers for the buttons
         # (actual controllers set up in add_listeners)
-        self._property_controllers = PropertyControllers(self)
+        self._property_controllers = PropertyControllers(c_instance)
         self.debug(0,'GenericTrackController loaded.')
 
         
@@ -175,7 +175,7 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         self._refresh_track_name()
         self._update_devices_info()
-        self._property_controllers.refresh()
+        self._property_controllers.refresh_state()
         # panning and volume always present
         self.send_parameter_as_cc14(track.mixer_device.panning, self._midichannel, self._my_cc(self._base_pan_cc))
         self.send_parameter_as_cc14(track.mixer_device.volume, self._midichannel, self._my_cc(self._base_volume_cc))
@@ -207,7 +207,7 @@ class GenericTrackController(ElectraOneBase):
         """Disconnect the track; remove all listeners.
         """
         self._remove_listeners()
-        self._property_controllers.remove_listeners()
+        self._property_controllers.disconnect()
 
     # --- Listeners
     

@@ -19,7 +19,7 @@ from .PropertyControllers import PropertyControllers
 
 SCALES = ['Major', 'Minor', 'Dorian', 'Mixolydian' ,'Lydian' ,'Phrygian' ,'Locrian', 'Whole Tone', 'Half-whole Dim.', 'Whole-half Dim.', 'Minor Blues', 'Minor Pentatonic', 'Major Pentatonic', 'Harmonic Minor', 'Harmonic Major', 'Dorian #4', 'Phrygian Dominant', 'Melodic Minor', 'Lydian Augmented', 'Lydian Dominant', 'Super Locrian', 'Bhairav', 'Hungarian Minor', '8-Tone Spanish', 'Hirajoshi', 'In-Sen', 'Iwato', 'Kumoi', 'Pelog Selisir', 'Pelog Tembung', 'Messaien 3', 'Messaien 4', 'Messaien 5', 'Messaien 6', 'Messaien 7']    
 
-class TransportController(ElectraOneBase):
+class TransportController(PropertyControllers):
     """Manage the transport (play/stop, record, rewind, forward).
     """
     
@@ -27,52 +27,38 @@ class TransportController(ElectraOneBase):
         """Initialise.
            - c_instance: Live interface object (see __init.py__)
         """
-        ElectraOneBase.__init__(self, c_instance)
+        PropertyControllers.__init__(self, c_instance)
         # keep last displayed position to throttle updates
         self._lastpos = None
-        # set up property controllers
-        self._property_controllers = PropertyControllers(self)
         # add property controllers
-        self._property_controllers.add_on_off_property(self.song(),'record_mode',MIDI_MASTER_CHANNEL,RECORD_CC)        
-        self._property_controllers.add_property(self.song(),'is_playing',MIDI_MASTER_CHANNEL,PLAY_STOP_CC,self._handle_play_stop,self._on_is_playing_changed)
-        self._property_controllers.add_property(self.song(),'tempo',MIDI_MASTER_CHANNEL,TEMPO_CC,self._handle_tempo,self._on_tempo_changed)        
-        self._property_controllers.add_property(self.song(),'current_song_time',MIDI_MASTER_CHANNEL,POSITION_CC,self._handle_position,self._on_position_changed)        
+        self.add_on_off_property(self.song(),'record_mode',MIDI_MASTER_CHANNEL,RECORD_CC)        
+        self.add_property(self.song(),'is_playing',MIDI_MASTER_CHANNEL,PLAY_STOP_CC,self._handle_play_stop,self._on_is_playing_changed)
+        self.add_property(self.song(),'tempo',MIDI_MASTER_CHANNEL,TEMPO_CC,self._handle_tempo,self._on_tempo_changed)        
+        self.add_property(self.song(),'current_song_time',MIDI_MASTER_CHANNEL,POSITION_CC,self._handle_position,self._on_position_changed)        
         if ElectraOneBase.E1_DAW:
-            self._property_controllers.add_property(self.song(),'tap_tempo',MIDI_MASTER_CHANNEL,TAP_TEMPO_CC,self._handle_tap_tempo,None)        
-            self._property_controllers.add_on_off_property(self.song(),'nudge_down',MIDI_MASTER_CHANNEL,NUDGE_DOWN_CC)            
-            self._property_controllers.add_on_off_property(self.song(),'nudge_up',MIDI_MASTER_CHANNEL,NUDGE_UP_CC)            
-            self._property_controllers.add_on_off_property(self.song(),'metronome',MIDI_MASTER_CHANNEL,METRONOME_CC)
-            self._property_controllers.add_list_property(self.song(),'clip_trigger_quantization',MIDI_MASTER_CHANNEL,QUANTIZATION_CC)
-            self._property_controllers.add_list_property(self.song(),'root_note',MIDI_MASTER_CHANNEL,ROOT_NOTE_CC)
+            self.add_property(self.song(),'tap_tempo',MIDI_MASTER_CHANNEL,TAP_TEMPO_CC,self._handle_tap_tempo,None)        
+            self.add_on_off_property(self.song(),'nudge_down',MIDI_MASTER_CHANNEL,NUDGE_DOWN_CC)            
+            self.add_on_off_property(self.song(),'nudge_up',MIDI_MASTER_CHANNEL,NUDGE_UP_CC)            
+            self.add_on_off_property(self.song(),'metronome',MIDI_MASTER_CHANNEL,METRONOME_CC)
+            self.add_list_property(self.song(),'clip_trigger_quantization',MIDI_MASTER_CHANNEL,QUANTIZATION_CC)
+            self.add_list_property(self.song(),'root_note',MIDI_MASTER_CHANNEL,ROOT_NOTE_CC)
             if ElectraOneBase.LIVE_VERSION >= (12,0,5):
-                self._property_controllers.add_on_off_property(self.song(),'scale_mode`',MIDI_MASTER_CHANNEL,SCALE_MODE_CC)            
-            self._property_controllers.add_list_property(self.song(),'scale_name',MIDI_MASTER_CHANNEL,SCALE_NAME_CC,SCALES)
-            self._property_controllers.add_on_off_property(self.song(),'arrangement_overdub',MIDI_MASTER_CHANNEL,ARRANGEMENT_OVERDUB_CC)
-            self._property_controllers.add_on_off_property(self.song(),'session_automation_record',MIDI_MASTER_CHANNEL,SESSION_AUTOMATION_RECORD_CC)
-            self._property_controllers.add_on_off_property(self.song(),'re_enable_automation_enabled',MIDI_MASTER_CHANNEL,RE_ENABLE_AUTOMATION_ENABLED_CC)
-            self._property_controllers.add_on_off_property(self.song(),'session_record',MIDI_MASTER_CHANNEL,SESSION_RECORD_CC)
+                self.add_on_off_property(self.song(),'scale_mode`',MIDI_MASTER_CHANNEL,SCALE_MODE_CC)            
+            self.add_list_property(self.song(),'scale_name',MIDI_MASTER_CHANNEL,SCALE_NAME_CC,SCALES)
+            self.add_on_off_property(self.song(),'arrangement_overdub',MIDI_MASTER_CHANNEL,ARRANGEMENT_OVERDUB_CC)
+            self.add_on_off_property(self.song(),'session_automation_record',MIDI_MASTER_CHANNEL,SESSION_AUTOMATION_RECORD_CC)
+            self.add_on_off_property(self.song(),'re_enable_automation_enabled',MIDI_MASTER_CHANNEL,RE_ENABLE_AUTOMATION_ENABLED_CC)
+            self.add_on_off_property(self.song(),'session_record',MIDI_MASTER_CHANNEL,SESSION_RECORD_CC)
         self.debug(0,'TransportController loaded.')
 
     # --- initialise values ---
-    
-    def refresh_state(self):
-        """Send the states of all properties to the E1
-           (to bring them in sync)
-        """
-        self.debug(2,'Refreshing transport state.')
-        self._property_controllers.refresh()
+
+    # refresh_state() and disconnect() inherited from PropertyControllers
 
     def update_display(self):
         """ Called every 100 ms. 
         """
         pass
-        
-    def disconnect(self):
-        """Called right before we get disconnected from Live.
-           Cleans up.
-        """
-        # cleanup
-        self._property_controllers.remove_listeners()
         
     # --- Special listeners
             
@@ -150,28 +136,4 @@ class TransportController(ElectraOneBase):
 
     # --- MIDI ---
     
-    def process_midi(self, midi_channel, cc_no, value):
-        """Process incoming MIDI CC events for this track, and pass them to
-           the correct handler (defined through _property_controllers() )
-           - midi_channel: MIDI channel of incomming message; int (1..16)
-           - cc_no: MIDI CC number; int (0..127)
-           - value: incoming CC value; int (0..127)
-           - returns: whether midi event processed by handler here; bool
-        """
-        self.debug(5,f'Trying TransportControler.')
-        return self._property_controllers.process_midi(midi_channel,cc_no,value)
-    
-    def build_midi_map(self, script_handle, midi_map_handle):
-        """Map all transport controls on their associated MIDI CC numbers; make sure
-           the right MIDI CC messages are forwarded to the remote script to be
-           handled by the MIDI CC handlers defined here.
-           - script_handle: reference to the main remote script class
-               (whose receive_midi method will be called for any MIDI CC messages
-               marked to be forwarded here)
-           - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
-               which MIDI mappings must be added.
-        """
-        self.debug(3,'Building transport MIDI map.')
-        # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
-        self._property_controllers.build_midi_map(script_handle,midi_map_handle)
-   
+    # all inherited from PropertyControllers   

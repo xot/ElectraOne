@@ -12,22 +12,27 @@
 # Ableton Live imports
 import Live
 
-class PropertyControllers:
+# local imports
+from .ElectraOneBase import ElectraOneBase
+
+class PropertyControllers(ElectraOneBase):
     """Manage handlers and listeners for properties
     """
 
-    def __init__(self,controller):
+    def __init__(self,c_instance):
         """Initialise.
-           - controller: the controller handling the properties 
+           - c_instance: Live interface object (see __init.py__)
         """
+        ElectraOneBase.__init__(self, c_instance)
+        # create empty dictionary of listeners (indexed by property names)
+        # and handlers (indexed by (channel,cc) tuples) 
         self._LISTENERS = {}
         self._CC_HANDLERS = {}
-        self._controller = controller
 
-    def remove_listeners(self):
-        """Remove listeners registered for all properties.
+    def disconnect(self):
+        """Disconnect; remove listeners registered for all properties.
         """
-        self._controller.debug(3,'Deregistering property controllers.')
+        self.debug(3,'Deregistering property controllers.')
         for property in self._LISTENERS:
             (context,listener) = self._LISTENERS[property]
             if context != None:
@@ -37,11 +42,10 @@ class PropertyControllers:
     
     def add_property(self,context,property,midi_channel,cc_no,handler,listener):
         """Add an on/off controller for a generic property.
-        - controller: controller managing the property; subclass of ElecraOneBase
         - context: context of property; eg song or track
         - property: name of on/off property; string
-        - channel: MIDI channel; int
-        - cc: CC no; int (nothing added if None)
+        - midi_channel: MIDI channel; int
+        - cc_NO: CC parameter number; int (nothing added if None)
         - handler: handles incoming CC events; function (lambda value: x)
         - listener: listens to property changs and sends CC updates; function (lambda : x)
         """
@@ -49,7 +53,7 @@ class PropertyControllers:
             # add a cc handler for this property
             if handler != None:
                 self._CC_HANDLERS[(midi_channel,cc_no)] = handler
-            # add a listener for this property, and store itt to remove it
+            # add a listener for this property, and store it to remove it
             # later; also used by refresh_state
             if listener != None:
                 self._LISTENERS[property] = (context,listener)
@@ -59,23 +63,22 @@ class PropertyControllers:
     # -- on/off properties
     
     def _handle_on_off_property(self,context,property,reverse,value):
-        self._controller.debug(3,f'Handling incoming {property} event with value {value}.')
+        self.debug(3,f'Handling incoming {property} event with value {value}.')
         setattr(context,property,reverse ^ (value > 63))
 
 
     def _on_off_property_listener(self,context,property,reverse,midi_channel,cc_no):
         value = 127 * (reverse ^ getattr(context,property)) # True = 127; False = 0
-        self._controller.debug(3,f'{property} changed. Sending value {value}.')
-        self._controller.send_midi_cc7(midi_channel, cc_no, value)
+        self.debug(3,f'{property} changed. Sending value {value}.')
+        self.send_midi_cc7(midi_channel, cc_no, value)
 
     def add_on_off_property(self,context,property,midi_channel,cc_no,reverse=False):
         """Add an on/off controller for a binary property controlled by a button
            on the E1, with specified channel and cc. CC value 127=on, 0=off.
-        - controller: controller managing the property; subclass of ElecraOneBase
         - context: context of property; eg song or track
         - property: name of on/off property; string
-        - channel: MIDI channel; int
-        - cc: CC no; int (nothing added if None)
+        - MIDI_channel: MIDI channel; int
+        - cc_no: CC parameter number; int (nothing added if None)
         - reverse: whether to reverse the value/stte; boolean
         """
         handler = (lambda value: self._handle_on_off_property(context,property,reverse,value))
@@ -87,7 +90,7 @@ class PropertyControllers:
     def _handle_list_property(self,context,property,translation,value):
         if translation != None:
             value = translation[value]
-        self._controller.debug(3,f'Handling incoming {property} event with value {value}.')
+        self.debug(3,f'Handling incoming {property} event with value {value}.')
         setattr(context,property,value)
 
 
@@ -95,17 +98,16 @@ class PropertyControllers:
         value = getattr(context,property) # True = 127; False = 0
         if translation != None:
             value = translation.index(value)
-        self._controller.debug(3,f'{property} changed. Sending value {value}.')
-        self._controller.send_midi_cc7(midi_channel, cc_no, value)
+        self.debug(3,f'{property} changed. Sending value {value}.')
+        self.send_midi_cc7(midi_channel, cc_no, value)
 
     def add_list_property(self,context,property,midi_channel,cc_no,translation = None):
         """Add a list controller for a list property on the E1, with specified
            channel and cc. 
-        - controller: controller managing the property; subclass of ElecraOneBase
         - context: context of property; eg song or track
         - property: name of list property; string
-        - channel: MIDI channel; int
-        - cc: CC no; int (nothing added if None)
+        - midi_channel: MIDI channel; int
+        - cc_no: CC parameter number; int (nothing added if None)
         - translation: optional translation; list
         """
         handler = (lambda value: self._handle_list_property(context,property,translation,value))
@@ -114,7 +116,7 @@ class PropertyControllers:
 
     # --
     
-    def refresh(self):
+    def refresh_state(self):
         """Refresh the state of all registered properties on the E1
         """
         for property in self._LISTENERS:
@@ -130,7 +132,7 @@ class PropertyControllers:
            - returns: whether midi event processed by handler here; bool
         """
         if (midi_channel,cc_no) in self._CC_HANDLERS:
-            self._controller.debug(5,f'Property controller: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
+            self.debug(5,f'Property controller: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             handler(value)
             return True
@@ -147,9 +149,9 @@ class PropertyControllers:
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self._controller.debug(3,'Building property controllers MIDI map.')
+        self.debug(3,'Building property controllers MIDI map.')
         # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
-            self._controller.debug(4,f'PropertyControllers: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
+            self.debug(4,f'PropertyControllers: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         
