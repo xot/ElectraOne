@@ -10,57 +10,6 @@
 #
 # Distributed under the MIT License, see LICENSE
 #
-#
-# TODO: Move this to documentation
-#
-# DOCUMENTATION
-#
-# General idea of this module:
-#
-# Proper device parameters (sliders only really) are mapped directly to
-# their associated MIDI cc_no on a specific channel (see build_midi_map)
-# using Live.MidiMap.map_midi_cc.
-# From then on value updates from AND to the E1 are handled automatically.
-# The only thing to do is call refresh_state() once (to send
-# the values currently held by the device parameters are sent to the E1 to
-# bring them in sync.
-#
-# For all other controlled elements we need handlers (to handle incoming data
-# from the E1 controller) and listeners (to send updates to the E1 controleer)
-#
-# - Handlers (see: _init_cc_handlers, receive_midi, build_midi_map)
-# Link a (MIDI_channel,cc_no) pair to a handler function that must be
-# called whenever the specfied midi CC message (7bit only) is sent by the E1.
-# Uses Live.MidiMap.forward_midi_cc (see build_midi_map)
-# which causes the specified MIDI message to be received through Receive_midi.
-# The handler is then called with the received value. 
-#
-# - Listeners (see: _add/remove_listeners):
-# Register a function to call whenever a Live element that is controlled
-# changes state. Used for Live elements that cannot be mapped to Midi directly
-# using Live.MidiMap.map_midi_cc (because Ableton doesn't model them as true
-# device parameters.
-#
-# This class is the base class for TrackController, MasterController and
-# ReturnController. The idea being that all three share a similar structure
-# (they are all 'tracks') except that each of them has slightly different
-# features. Which features are present is indicated through the definition of
-# the corresponding CC parameter value in the __init__ constructor of the
-# subclass (where the value ```None``` indicates a feature is missing).
-#
-# The GenericTrackController expects the subclass to define a method
-# _my_cc that derives the actual CC parameter number to use for a particular
-# instance of an audio/midi track (TrackController) or a return track
-# (ReturnController).
-#
-# It also expects the subclasses to define _init_cc_handlers to set
-# self._CC_HANDLERS to the required handlers. (This roundabout way is necessary
-# because these handlers may depend on the particular instance of the track
-# they manage and therefore need to call _my_cc() to obtain the correct CC
-# parameter number.
-#
-# Send controllers on audio/midi tracks, i.e those for which _base_sends_cc != None
-# are assumed to listen to MIDI_SENDS_CHANNEL
 
 # Ableton Live imports
 import Live

@@ -56,7 +56,7 @@ class TransportController(ElectraOneBase):
     # --- initialise values ---
     
     def refresh_state(self):
-        """Send the states of the play/stop and record buttons to the E1
+        """Send the states of all properties to the E1
            (to bring them in sync)
         """
         self.debug(2,'Refreshing transport state.')

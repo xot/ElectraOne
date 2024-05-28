@@ -58,12 +58,12 @@ class PropertyControllers:
                 
     # -- on/off properties
     
-    def handle_on_off_property(self,context,property,reverse,value):
+    def _handle_on_off_property(self,context,property,reverse,value):
         self._controller.debug(3,f'Handling incoming {property} event with value {value}.')
         setattr(context,property,reverse ^ (value > 63))
 
 
-    def on_off_property_listener(self,context,property,reverse,midi_channel,cc_no):
+    def _on_off_property_listener(self,context,property,reverse,midi_channel,cc_no):
         value = 127 * (reverse ^ getattr(context,property)) # True = 127; False = 0
         self._controller.debug(3,f'{property} changed. Sending value {value}.')
         self._controller.send_midi_cc7(midi_channel, cc_no, value)
@@ -78,20 +78,20 @@ class PropertyControllers:
         - cc: CC no; int (nothing added if None)
         - reverse: whether to reverse the value/stte; boolean
         """
-        handler = (lambda value: self.handle_on_off_property(context,property,reverse,value))
-        listener = (lambda : self.on_off_property_listener(context,property,reverse,midi_channel,cc_no))
+        handler = (lambda value: self._handle_on_off_property(context,property,reverse,value))
+        listener = (lambda : self._on_off_property_listener(context,property,reverse,midi_channel,cc_no))
         self.add_property(context,property,midi_channel,cc_no,handler,listener)
             
     # -- list properties
     
-    def handle_list_property(self,context,property,translation,value):
+    def _handle_list_property(self,context,property,translation,value):
         if translation != None:
             value = translation[value]
         self._controller.debug(3,f'Handling incoming {property} event with value {value}.')
         setattr(context,property,value)
 
 
-    def list_property_listener(self,context,property,translation,midi_channel,cc_no):
+    def _list_property_listener(self,context,property,translation,midi_channel,cc_no):
         value = getattr(context,property) # True = 127; False = 0
         if translation != None:
             value = translation.index(value)
@@ -108,8 +108,8 @@ class PropertyControllers:
         - cc: CC no; int (nothing added if None)
         - translation: optional translation; list
         """
-        handler = (lambda value: self.handle_list_property(context,property,translation,value))
-        listener = (lambda : self.list_property_listener(context,property,translation,midi_channel,cc_no))
+        handler = (lambda value: self._handle_list_property(context,property,translation,value))
+        listener = (lambda : self._list_property_listener(context,property,translation,midi_channel,cc_no))
         self.add_property(context,property,midi_channel,cc_no,handler,listener)
 
     # --
