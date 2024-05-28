@@ -98,7 +98,7 @@ class TrackController(GenericTrackController):
            - base_cc: base MIDI CC number; int
            - result: actual MIDI CC number; int
         """
-        return base_cc + self._offset
+        return (base_cc + self._offset if base_cc != None else None)
     
 
         

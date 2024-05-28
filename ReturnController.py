@@ -69,6 +69,6 @@ class ReturnController(GenericTrackController):
            - base_cc: base MIDI CC number; int
            - result: actual MIDI CC number; int
         """
-        return base_cc + self._idx
+        return (base_cc + self._idx if base_cc != None else None)
 
 

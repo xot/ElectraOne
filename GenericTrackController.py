@@ -10,6 +10,9 @@
 #
 # Distributed under the MIT License, see LICENSE
 #
+#
+# TODO: Move this to documentation
+#
 # DOCUMENTATION
 #
 # General idea of this module:
@@ -67,7 +70,7 @@ from .config import *
 from .CCInfo import CCMap, CCInfo
 from .ElectraOneBase import ElectraOneBase
 from .GenericDeviceController import GenericDeviceController
-
+from .PropertyControllers import PropertyControllers
 
 class GenericTrackController(ElectraOneBase):
     """Generic class to manage a track. To be subclassed to handle normal
@@ -106,12 +109,14 @@ class GenericTrackController(ElectraOneBase):
         self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
         # device selection CC numbers
         self._base_device_selection_cc = None # if None, not present.
+        # set up property controllers for the buttons
+        # (actual controllers set up in add_listeners)
+        self._property_controllers = PropertyControllers(self)
         self.debug(0,'GenericTrackController loaded.')
 
         
     # --- helper functions ---
 
-    
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,
            given the base MIDI CC number for the control. To be defined by
@@ -169,6 +174,18 @@ class GenericTrackController(ElectraOneBase):
         else:
             self._eq_device_controller = None
         
+    def _update_devices_info(self):
+        # Update device selectors for track on the remote controller.
+        if self._base_device_selection_cc != None:
+            # get and store the list of devices
+            devices = self.get_track_devices_flat(self._track)
+            # prioritse devices with names that start with #
+            self._devices = [d for d in devices if d.name[0] == '#'] + \
+                [d for d in devices if d.name[0] != '#'] 
+            # update the selector on the E1
+            devicenames = [d.name for d in self._devices]
+            self.update_device_selector_for(self._devsel_idx,devicenames)
+    
     def _handle_device_change(self):
         """Check whether the eq device for this track was changed/added/removed
            and if so, update the eq device controller and force a MIDI remap
@@ -189,18 +206,6 @@ class GenericTrackController(ElectraOneBase):
             self.add_eq_device(self._eq_device_name,self._eq_cc_map) # also removes any previous eq device controller
             self.request_rebuild_midi_map() # also refreshes state
 
-    def _update_devices_info(self):
-        # Update device selectors for track on the remote controller.
-        if self._base_device_selection_cc != None:
-            # get and store the list of devices
-            devices = self.get_track_devices_flat(self._track)
-            # prioritse devices with names that start with #
-            self._devices = [d for d in devices if d.name[0] == '#'] + \
-                [d for d in devices if d.name[0] != '#'] 
-            # update the selector on the E1
-            devicenames = [d.name for d in self._devices]
-            self.update_device_selector_for(self._devsel_idx,devicenames)
-    
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller. To be
            overriden by subclass to correctly set track name.
@@ -221,12 +226,7 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         self._refresh_track_name()
         self._update_devices_info()
-        if self._base_mute_cc != None:
-            self._on_mute_changed()
-        if self._base_arm_cc != None:
-            self._on_arm_changed()
-        if self._base_solo_cue_cc != None:
-            self._on_solo_cue_changed()
+        self._property_controllers.refresh()
         # panning and volume always present
         self.send_parameter_as_cc14(track.mixer_device.panning, self._midichannel, self._my_cc(self._base_pan_cc))
         self.send_parameter_as_cc14(track.mixer_device.volume, self._midichannel, self._my_cc(self._base_volume_cc))
@@ -258,6 +258,7 @@ class GenericTrackController(ElectraOneBase):
         """Disconnect the track; remove all listeners.
         """
         self._remove_listeners()
+        self._property_controllers.remove_listeners()
 
     # --- Listeners
     
@@ -269,12 +270,9 @@ class GenericTrackController(ElectraOneBase):
         # only the subclass defines _track!)
         self.debug(3,f'Adding listeners for track { self._track.name }')
         track = self._track
-        if self._base_mute_cc != None:
-            track.add_mute_listener(self._on_mute_changed)
-        if self._base_arm_cc != None: 
-            track.add_arm_listener(self._on_arm_changed)
-        if self._base_solo_cue_cc != None:
-            track.add_solo_listener(self._on_solo_cue_changed)
+        self._property_controllers.add_on_off_property(track,'mute',self._midichannel,self._my_cc(self._base_mute_cc),True)
+        self._property_controllers.add_on_off_property(track,'solo',self._midichannel,self._my_cc(self._base_solo_cue_cc))
+        self._property_controllers.add_on_off_property(track,'arm',self._midichannel,self._my_cc(self._base_arm_cc))
         track.add_name_listener(self._refresh_track_name)
         track.add_devices_listener(self._handle_device_change)
             
@@ -285,53 +283,11 @@ class GenericTrackController(ElectraOneBase):
         # track may already have been deleted
         if track:
             self.debug(3,f'Removing listeners for track { self._track.name }')
-            if self._base_mute_cc != None:
-                track.remove_mute_listener(self._on_mute_changed)
-            if self._base_arm_cc != None:
-                track.remove_arm_listener(self._on_arm_changed)
-            if self._base_solo_cue_cc != None:
-                track.remove_solo_listener(self._on_solo_cue_changed)
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
             if track.devices_has_listener(self._handle_device_change):
                 track.remove_devices_listener(self._handle_device_change)
                 
-    def _on_mute_changed(self):
-        """Send the new status of the Mute button to the controller using the
-           right MIDI CC number (derived from self._base_mute_cc)
-        """
-        self.debug(3,'Mute changed.')
-        assert self._base_mute_cc != None
-        if self._track.mute:
-            value = 0
-        else:
-            value = 127
-        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_mute_cc), value) 
-
-    def _on_arm_changed(self):
-        """Send the new status of the Arm button to the controller using the
-           right MIDI CC number (derived from self._base_arm_cc)
-        """
-        self.debug(3,'Arm changed.')
-        assert self._base_arm_cc != None
-        if self._track.arm:
-            value = 127
-        else:
-            value = 0
-        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_arm_cc), value)
-    
-    def _on_solo_cue_changed(self):
-        """Send the new status of the Solo/Cue button to the controller using the
-           right MIDI CC number (derived from self._base_solo_cue_cc)
-        """
-        self.debug(3,'Solo/Cue changed.')
-        assert self._base_solo_cue_cc != None
-        if self._track.solo:
-            value = 127
-        else:
-            value = 0
-        self.send_midi_cc7(self._midichannel, self._my_cc(self._base_solo_cue_cc), value)
-    
     # --- Handlers ---
     
     def init_cc_handlers(self):
@@ -342,43 +298,10 @@ class GenericTrackController(ElectraOneBase):
         # prepare info in devices on track, to handle device selection
         self._update_devices_info()
         # only define them when necessary
-        if self._base_mute_cc != None:
-            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_mute_cc) )] \
-                = self._handle_mute_button
-        if self._base_solo_cue_cc != None:
-            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_solo_cue_cc) )] \
-                = self._handle_solo_cue_button
-        if self._base_arm_cc != None:
-            self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_arm_cc) )] \
-                = self._handle_arm_button
         if self._base_device_selection_cc != None:
             self._CC_HANDLERS[(self._midichannel, self._my_cc(self._base_device_selection_cc) )] \
                 = self._handle_device_selection
                 
-    def _handle_mute_button(self,value):
-        """Default handler for Mute button
-           - value: incoming MIDI CC value; int
-        """
-        self.debug(4,f'Track { self._track.name } activation button action.')
-        assert self._base_mute_cc != None, 'Bad mute button handler.'
-        self._track.mute = (value < 64)
-
-    def _handle_arm_button(self,value):
-        """Default handler for Arm button
-           - value: incoming MIDI CC value; int
-        """
-        self.debug(4,f'Track { self._track.name } arm button action.')
-        assert self._base_arm_cc != None, 'Bad arm button handler.'
-        self._track.arm = (value > 63)
-
-    def _handle_solo_cue_button(self,value):
-        """Default handler for Solo/Cue button
-           - value: incoming MIDI CC value; int
-        """
-        self.debug(4,f'Track { self._track.name } solo/cue button action.')
-        assert self._base_solo_cue_cc != None, 'Bad solo/cue button handler.'
-        self._track.solo = (value > 63)
-
     def _handle_device_selection(self,value):
         """Default handler for handling device selection
            - value: incoming MIDI CC value; int
@@ -402,7 +325,9 @@ class GenericTrackController(ElectraOneBase):
            - returns: whether midi event processed by handler here; bool
         """
         self.debug(5,f'GenericTrackControler: trying to process MIDI by track { self._track.name}.')
-        if (midi_channel,cc_no) in self._CC_HANDLERS:
+        if self._property_controllers.process_midi(midi_channel,cc_no,value):
+            return True
+        elif (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(5,f'GenericTrackController: handler found for CC {cc_no} on MIDI channel {midi_channel}.')
             handler = self._CC_HANDLERS[(midi_channel,cc_no)]
             handler(value)
@@ -422,10 +347,12 @@ class GenericTrackController(ElectraOneBase):
                which MIDI mappings must be added.
         """
         self.debug(3,f'Building MIDI map of track { self._track.name }.')
-        # Map button CCs to be forwarded as defined in _CC_HANDLERS
+        # Map CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(4,f'GenericTrackController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
+        # Map button CCs to be forwarded
+        self._property_controllers.build_midi_map(script_handle,midi_map_handle)
         # map main sliders
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMaap.map_midi_cc call
         needs_takeover = True
