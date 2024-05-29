@@ -51,6 +51,9 @@ class ElectraOne(ElectraOneBase):
         live_bugfix_version = Live.Application.get_application().get_bugfix_version()
         ElectraOneBase.LIVE_VERSION = (live_major_version,live_minor_version,live_bugfix_version)
         self.debug(1,f'Live version {ElectraOneBase.LIVE_VERSION}.')
+        # flags to test if build_midi_map or refresh were called while E1 not ready
+        self._build_midi_map_pending = False
+        self._refresh_state_pending = False        
         # load information about predefined devices and the default LUA script
         # (We do this here because at this point in time the remote script
         # gets more resources to initialise, apparently.)
@@ -96,7 +99,7 @@ class ElectraOne(ElectraOneBase):
                 while (not self._request_response_received) and (attempts < 30):
                     self.send_e1_request()
                     time.sleep(sleep)
-                    sleep = sleep*1.5 # sleep progressively longer
+                    sleep = sleep * 1.5 # sleep progressively longer
                     attempts +=1 
                 if not self._request_response_received:
                     self.debug(2,'Connection thread aborts detection.')
@@ -129,7 +132,7 @@ class ElectraOne(ElectraOneBase):
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
             ElectraOneBase.E1_connected = True                
-            # initialise the visible prest
+            # initialise the visible preset
             # (the E1 will send a preset changed message in response; this will
             # refresh the state but not rebuild the midi map)
             if (CONTROL_MODE == CONTROL_MIXER_ONLY) or \
@@ -342,13 +345,15 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(1,'Main build midi map called.')
+            self._build_midi_map_pending = False
             if self._effect_controller:
                 self._effect_controller.build_midi_map(midi_map_handle)
             if self._mixer_controller:
                 self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
         else:
             self.debug(1,'Main build midi map ignored because E1 not ready.')
-            # TODO: make sure request is processed at some point
+            # Make sure request is processed at some point
+            self._build_midi_map_pending = True
 
     def refresh_state(self):
         """Appears to be called by Live when it thinks the state of the
@@ -358,6 +363,7 @@ class ElectraOne(ElectraOneBase):
         """
         if self.is_ready():
             self.debug(1,'Main refresh state called.')
+            self._refresh_state_pending = False
             self.midi_burst_on()
             if self._effect_controller:
                 self._effect_controller.refresh_state()
@@ -366,14 +372,24 @@ class ElectraOne(ElectraOneBase):
             self.midi_burst_off()
         else:
             self.debug(1,'Main refresh state ignored because E1 not ready.')
+            self._refresh_state_pending = True
 
     def update_display(self):
         """ Called every 100 ms. Ignore if interface not ready.
         """
-        # Note: refresh is called to often to enable/disable midi burst
+        # Note: refresh is called too often to enable/disable midi burst
         # globally. 
         if self.is_ready():
-            self.debug(6,'Main update display called.') 
+            self.debug(6,'Main update display called.')
+            # if build_midi_map was ignored, request it again
+            if self._build_midi_map_pending:
+                self._build_midi_map_pending = False
+                self.debug(1,'Pending build midi map detected.')
+                self.request_rebuild_midi_map()
+            if self._refresh_state_pending:
+                self._refresh_state_pending = False
+                self.debug(1,'Pending refresh state detected.')
+                self.refresh_state()
             if self._effect_controller:
                 self._effect_controller.update_display()
             if self._mixer_controller:
@@ -398,8 +414,9 @@ class ElectraOne(ElectraOneBase):
             if self._mixer_controller:
                 self._mixer_controller.disconnect()
         else:
-            # TODO: kill possibly still running E1 detection thread here
-            # (but this is apparently not easy, so we leave it for now.)
+            # any running E1 detection thread will stop at some point
+            # as it has a finite number of steps; killing it explicitly is hard
+            # so we leave it as is.
             pass
 
 

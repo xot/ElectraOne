@@ -38,16 +38,16 @@ class Log:
 
     def debug(self, level, m):
         """Write a debug message to the log, if level < DEBUG.
+           Distinguish between main and thread messages; and between mixer
+           and other.
         """
         if Log._mainthread == threading.get_ident():
-            debugprefix = '-'
+            debugprefix = '-' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else '='
         else:
-            debugprefix = '*'
+            # we are in a thread
+            debugprefix = '*' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else '%'
         if level <= DEBUG:
-            if level == 0:
-                indent = '#'
-            else:
-                indent = debugprefix * level
+            indent = debugprefix * (level+1)
             # write readable log entries also for multi-line messages
             for l in m.splitlines(keepends=True):
                 self._c_instance.log_message(f'E1 (debug): {indent} {l}')  

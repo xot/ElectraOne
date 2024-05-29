@@ -50,6 +50,7 @@ class PropertyControllers(ElectraOneBase):
         - listener: listens to property changs and sends CC updates; function (lambda : x)
         """
         if cc_no != None:
+            self.debug(3,f'Adding property {property}.')
             # add a cc handler for this property
             if handler != None:
                 self._CC_HANDLERS[(midi_channel,cc_no)] = handler
