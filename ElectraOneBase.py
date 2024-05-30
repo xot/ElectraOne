@@ -890,9 +890,9 @@ class ElectraOneBase(Log):
         # this SysEx command repsonds with an ACK/NACK 
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command, sysex_slot)
-        ElectraOneBase.current_visible_slot = slot
         # Note: The E1 will in response send a preset changed message (7E 02)
-        # (followed by an ack (7E 01))
+        # (followed by an ack (7E 01)) whcih will set the visible slot and
+        # start a refresh
 
     def remove_preset_from_slot(self, slot):
         """Remove the current preset (and its lua script) from a slot on the E1.
