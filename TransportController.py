@@ -54,6 +54,8 @@ class TransportController(PropertyControllers):
             self.add_on_off_property(self.song(),'loop',MIDI_MASTER_CHANNEL,LOOP_CC)
             self.add_on_off_property(self.song(),'punch_out',MIDI_MASTER_CHANNEL,PUNCH_OUT_CC)
             self.add_property(self.song(),'loop_length',MIDI_MASTER_CHANNEL,LOOP_LENGTH_CC,self._handle_loop_length,self._on_loop_length_changed)        
+            self.add_property(self.song(),'undo',MIDI_MASTER_CHANNEL,UNDO_CC,self._handle_undo,None)        
+            self.add_property(self.song(),'redo',MIDI_MASTER_CHANNEL,REDO_CC,self._handle_redo,None)        
         self.debug(0,'TransportController loaded.')
 
     # --- initialise values ---
@@ -166,6 +168,20 @@ class TransportController(PropertyControllers):
         if value > 63:
             self.debug(3,'Tap tempo pressed.')
             self.song().tap_tempo()
+
+    def _handle_undo(self,value):
+        """Undo
+        """
+        if value > 63:
+            self.debug(3,'Undo pressed.')
+            self.song().undo()
+
+    def _handle_redo(self,value):
+        """Redo
+        """
+        if value > 63:
+            self.debug(3,'Redo pressed.')
+            self.song().redo()
             
     def _handle_play_stop(self,value):        
         """Handle play/stop button press.
