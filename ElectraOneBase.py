@@ -644,7 +644,7 @@ class ElectraOneBase(Log):
                 self.debug(4,'Sending SysEx failed')
         else:
             self.send_midi(sysex_message)
-
+        
     # --- commands that can be sent to the E1
             
     def send_e1_request(self):
@@ -691,7 +691,6 @@ class ElectraOneBase(Log):
         """
         self.debug(4,'MIDI burst off.')
         # wait a bit to ensure all MIDI CC messages have been processed
-        # and all ACKs/NACks for LUA commands sent have been received
         time.sleep(ElectraOneBase.BURST_ON_OFF_SLEEP) 
         ElectraOneBase._send_midi_sleep = ElectraOneBase.MIDI_SLEEP
         ElectraOneBase._send_value_update_sleep = ElectraOneBase.VALUE_UPDATE_SLEEP

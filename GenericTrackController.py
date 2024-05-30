@@ -131,9 +131,6 @@ class GenericTrackController(ElectraOneBase):
             # prioritse devices with names that start with #
             self._devices = [d for d in devices if d.name[0] == '#'] + \
                 [d for d in devices if d.name[0] != '#'] 
-            # update the selector on the E1
-            devicenames = [d.name for d in self._devices]
-            self.update_device_selector_for(self._devsel_idx,devicenames)
     
     def _handle_device_change(self):
         """Check whether the eq device for this track was changed/added/removed
@@ -175,6 +172,9 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         self._refresh_track_name()
         self._update_devices_info()
+        # update the selector on the E1
+        devicenames = [d.name for d in self._devices]
+        self.update_device_selector_for(self._devsel_idx,devicenames)
         self._property_controllers.refresh_state()
         # panning and volume always present
         self.send_parameter_as_cc14(track.mixer_device.panning, self._midichannel, self._my_cc(self._base_pan_cc))

@@ -131,6 +131,7 @@ class ElectraOne(ElectraOneBase):
                 time.sleep(0.1)
             self.log_message('ElectraOne remote script loaded.')
             # re-open the interface
+            # (before selecting controller, or else we may miss the incoming preset selection SYsEx coming from the E1
             ElectraOneBase.E1_connected = True                
             # initialise the visible preset
             # (the E1 will send a preset changed message in response; this will
