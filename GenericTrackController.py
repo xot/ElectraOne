@@ -173,8 +173,9 @@ class GenericTrackController(ElectraOneBase):
         self._refresh_track_name()
         self._update_devices_info()
         # update the selector on the E1
-        devicenames = [d.name for d in self._devices]
-        self.update_device_selector_for(self._devsel_idx,devicenames)
+        if self._base_device_selection_cc != None:
+            devicenames = [d.name for d in self._devices]
+            self.update_device_selector_for(self._devsel_idx,devicenames)
         self._property_controllers.refresh_state()
         # panning and volume always present
         self.send_parameter_as_cc14(track.mixer_device.panning, self._midichannel, self._my_cc(self._base_pan_cc))
