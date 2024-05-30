@@ -49,6 +49,11 @@ class TransportController(PropertyControllers):
             self.add_on_off_property(self.song(),'session_automation_record',MIDI_MASTER_CHANNEL,SESSION_AUTOMATION_RECORD_CC)
             self.add_on_off_property(self.song(),'re_enable_automation_enabled',MIDI_MASTER_CHANNEL,RE_ENABLE_AUTOMATION_ENABLED_CC)
             self.add_on_off_property(self.song(),'session_record',MIDI_MASTER_CHANNEL,SESSION_RECORD_CC)
+            self.add_property(self.song(),'loop_start',MIDI_MASTER_CHANNEL,LOOP_START_CC,self._handle_loop_start,self._on_loop_start_changed)        
+            self.add_on_off_property(self.song(),'punch_in',MIDI_MASTER_CHANNEL,PUNCH_IN_CC)
+            self.add_on_off_property(self.song(),'loop',MIDI_MASTER_CHANNEL,LOOP_CC)
+            self.add_on_off_property(self.song(),'punch_out',MIDI_MASTER_CHANNEL,PUNCH_OUT_CC)
+            self.add_property(self.song(),'loop_length',MIDI_MASTER_CHANNEL,LOOP_LENGTH_CC,self._handle_loop_length,self._on_loop_length_changed)        
         self.debug(0,'TransportController loaded.')
 
     # --- initialise values ---
@@ -82,6 +87,22 @@ class TransportController(PropertyControllers):
             self.debug(6,f'Position changed to {pos}.')
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
                 self.set_position(str(pos)[:-4])
+
+    def _on_loop_start_changed(self):
+        """Update the value shown for the loop start control on the E1.
+        """
+        pos = self.song().get_beats_loop_start()
+        self.debug(4,f'Loop start changed to {pos}.')
+        if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            self.set_loop_start(str(pos)[:-4])
+        
+    def _on_loop_length_changed(self):
+        """Update the value shown for the loop length control on the E1.
+        """
+        pos = self.song().get_beats_loop_length()
+        self.debug(4,f'Loop start changed to {pos}.')
+        if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT):
+            self.set_loop_length(str(pos)[:-4])
         
     def _on_tempo_changed(self):
         """Update the value shown for the tempo control on the E1.
@@ -105,6 +126,28 @@ class TransportController(PropertyControllers):
         self.song().jump_by(delta) # strange; this does NOT update the position straight away
         # when position is actually chagned, _on_position_changed is called
         # and the new position is sent to the E1
+
+    def _handle_loop_start(self,value):
+        """Handle loop start relative dial
+           - value: incoming MIDI CC value: 7F,7E,.. is rewind, 01,02 is forward
+        """
+        self.debug(3,f'Loop start dial action: {value}.')
+        if value > 63:
+            delta = (value-128) * FORW_REW_JUMP_BY_AMOUNT
+        else:
+            delta = value * FORW_REW_JUMP_BY_AMOUNT
+        self.song().loop_start += delta
+        
+    def _handle_loop_length(self,value):
+        """Handle loop length relative dial
+           - value: incoming MIDI CC value: 7F,7E,.. is rewind, 01,02 is forward
+        """
+        self.debug(3,f'Loop length dial action: {value}.')
+        if value > 63:
+            delta = (value-128) * FORW_REW_JUMP_BY_AMOUNT
+        else:
+            delta = value * FORW_REW_JUMP_BY_AMOUNT
+        self.song().loop_length += delta
         
     def _handle_tempo(self,value):
         """Handle tempo relative dial

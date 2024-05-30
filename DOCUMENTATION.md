@@ -607,6 +607,8 @@ The control script is designed such that it does not need to be aware of the act
 - `sav(idx,flag)`: Set the visibility of the arm button on the specified track.
 - `st(str)`: set the value for the tempo dial to the string `str`.
 - `sp(str)`: set the value for the position dial to the string `str`.
+- `ls(str)`: set the value for the loop start dial to the string `str`.
+- `ll(str)`: set the value for the loop length dial to the string `str`.
 - `smv(tc,rc)`: make `tc` tracks and `rc` return tracks visible. This may also impact other pages (eg the Channel EQ and Sends pages).
 - `oc(idx,devicenames)`: sets the list of device names that can be selected for track `idx`. (idx < 6 : track, idx >= 6: return + master). 
 - `scu(idx,clipinfo)`: updates the clip information on the session control page for the specified track (`idx`). Clipinfo is LUA table contain the names and colors for each visible clip.

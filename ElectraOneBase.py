@@ -784,6 +784,24 @@ class ElectraOneBase(Log):
         command = f'sp("{valuestr}")'
         self._send_lua_command(command)
 
+    def set_loop_start(self,valuestr):
+        """Set the loop start dial value to the specified value string
+           - valuestr: string representing value to display; str
+        """
+        self.debug(4,f'Setting the loop start string to {valuestr}.')
+        # execute command (defined in mixer preset)
+        command = f'ls("{valuestr}")'
+        self._send_lua_command(command)
+        
+    def set_loop_length(self,valuestr):
+        """Set the loop length dial value to the specified value string
+           - valuestr: string representing value to display; str
+        """
+        self.debug(4,f'Setting the loop length string to {valuestr}.')
+        # execute command (defined in mixer preset)
+        command = f'll("{valuestr}")'
+        self._send_lua_command(command)
+        
     def update_device_selector_for(self,idx,devicenames):
         """Set the device selector for the specified track.
            - idx: index of the track (starting at 0;
