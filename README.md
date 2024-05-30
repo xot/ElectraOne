@@ -195,7 +195,6 @@ This project depends on:
 
 ### Current limitations
 
-- Externally stored, user-defined, presets are not implemented yet. (You *can* add them to ```Devices.py```.)
 - Uploading large patches is *slow*, unless you enable fast loading. (Best to stick to preloaded patches or setting ```ORDER = ORDER_DEVICEDICT```, which is the default.)
 
 ### Warning
@@ -247,6 +246,11 @@ If you want to help to debug the remote script, you can extract the tail of the 
 
 
 ## Recovering from errors
+
+### Slow preset selection/upload
+
+Sometimes preloaded preset selection or preset upload is slow. Powering off the E1 and reconnecting it may help.
+
 
 ### Resetting the E1 
 

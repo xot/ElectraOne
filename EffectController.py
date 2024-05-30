@@ -96,7 +96,9 @@ class EffectController(ElectraOneBase):
         """
         if self._assigned_device_is_visible():
             self.debug(2,'EffCont refreshing state.')
+            self.midi_burst_on()
             self._assigned_device_controller.refresh_state()
+            self.midi_burst_off()
             self.debug(2,'EffCont state refreshed.')
         else:
             self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
@@ -148,7 +150,6 @@ class EffectController(ElectraOneBase):
         if self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
         self.debug(2,'EffCont effect MIDI map built.')
-        self.refresh_state()
         
     # === Others ===
 

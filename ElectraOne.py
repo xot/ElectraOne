@@ -350,6 +350,7 @@ class ElectraOne(ElectraOneBase):
                 self._effect_controller.build_midi_map(midi_map_handle)
             if self._mixer_controller:
                 self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
+            self.refresh_state()
         else:
             self.debug(1,'Main build midi map ignored because E1 not ready.')
             # Make sure request is processed at some point
@@ -364,12 +365,10 @@ class ElectraOne(ElectraOneBase):
         if self.is_ready():
             self.debug(1,'Main refresh state called.')
             self._refresh_state_pending = False
-            self.midi_burst_on()
             if self._effect_controller:
                 self._effect_controller.refresh_state()
             if self._mixer_controller:
                 self._mixer_controller.refresh_state()
-            self.midi_burst_off()
         else:
             self.debug(1,'Main refresh state ignored because E1 not ready.')
             self._refresh_state_pending = True
@@ -386,7 +385,8 @@ class ElectraOne(ElectraOneBase):
                 self._build_midi_map_pending = False
                 self.debug(1,'Pending build midi map detected.')
                 self.request_rebuild_midi_map()
-            if self._refresh_state_pending:
+            elif self._refresh_state_pending:
+                # rebuild midi map first
                 self._refresh_state_pending = False
                 self.debug(1,'Pending refresh state detected.')
                 self.refresh_state()

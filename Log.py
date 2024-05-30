@@ -45,7 +45,7 @@ class Log:
             debugprefix = '-' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else '='
         else:
             # we are in a thread
-            debugprefix = '*' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else '%'
+            debugprefix = '/' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else 'X'
         if level <= DEBUG:
             indent = debugprefix * (level+1)
             # write readable log entries also for multi-line messages
