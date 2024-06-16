@@ -306,11 +306,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameters: the list of parameters in the preset.
         """
         # WARNING: this code assumes all parameters are included in the preset
-        # (Also wrong once we start auto-detecting ADSRs)
+        # one-to-one (This is wrong once we start auto-detecting ADSRs)
         pagecount = 1 + (len(parameters) // PARAMETERS_PER_PAGE)
         self.debug(4,f'Appending {pagecount} pages.')
         if  pagecount >  MAX_PAGE_ID:
-            # TODO: later on also check for out of bounds page id
             self.debug(3,f'{ pagecount } exceeds max number of pages ({ MAX_PAGE_ID }). Truncating.')
             pagecount =  MAX_PAGE_ID
         self._append(',"pages":[')

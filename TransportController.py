@@ -43,7 +43,7 @@ class TransportController(PropertyControllers):
             self.add_list_property(self.song(),'clip_trigger_quantization',MIDI_MASTER_CHANNEL,QUANTIZATION_CC)
             self.add_list_property(self.song(),'root_note',MIDI_MASTER_CHANNEL,ROOT_NOTE_CC)
             if ElectraOneBase.LIVE_VERSION >= (12,0,5):
-                self.add_on_off_property(self.song(),'scale_mode`',MIDI_MASTER_CHANNEL,SCALE_MODE_CC)            
+                self.add_on_off_property(self.song(),'scale_mode',MIDI_MASTER_CHANNEL,SCALE_MODE_CC)            
             self.add_list_property(self.song(),'scale_name',MIDI_MASTER_CHANNEL,SCALE_NAME_CC,SCALES)
             self.add_on_off_property(self.song(),'arrangement_overdub',MIDI_MASTER_CHANNEL,ARRANGEMENT_OVERDUB_CC)
             self.add_on_off_property(self.song(),'session_automation_record',MIDI_MASTER_CHANNEL,SESSION_AUTOMATION_RECORD_CC)
