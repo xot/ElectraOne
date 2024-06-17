@@ -298,7 +298,7 @@ class ElectraOneBase(Log):
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
                 ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
-                ElectraOneBase.MAX_TIMEOUT = 300
+                ElectraOneBase.MAX_TIMEOUT = 500
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
@@ -425,9 +425,6 @@ class ElectraOneBase(Log):
              and no logging takes place on the E1; int
            result: timeout in (fractional) seconds
         """
-        # TODO: move this to the end (so max really is MAX_TIMEOUT)
-        # cap timeout to maximum
-        timeout = min(timeout,ElectraOneBase.MAX_TIMEOUT) 
         # stretch timeout when no fast sysex uploading
         if not ElectraOneBase._fast_sysex:
             timeout = 8 * timeout
@@ -436,8 +433,10 @@ class ElectraOneBase(Log):
             timeout = (1 + E1_LOGGING) * timeout
         if E1_LOGGING_PORT == E1_PORT:
             timeout = 2 * timeout
-        # minimum timeout is 1000ms
+        # floor timeout to minimum
         timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
+        # cap timeout to maximum
+        timeout = min(timeout,ElectraOneBase.MAX_TIMEOUT) 
         # convert to (fractional) seconds
         return timeout/100
         
