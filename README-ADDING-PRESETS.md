@@ -72,7 +72,7 @@ For Max devices and external plugins a slightly different naming scheme is used 
 
 The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device *as the only device* in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. In this specific case, the remote script uses the name of the enclosing rack as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
 
-Note that in order to distinguish names for presets for racks themselves from the names used by an embedded preset, the remote script adds a hash (```#```) to the preset name of a rack. So in the example above, if you would select the rack with name ```MiniV3``` the remote script would look for a preset called ```MiniV3#```.
+Note that in order to distinguish names for presets for racks themselves from the names used by an embedded preset, the remote script adds a hash (```#```) to the preset name of a rack. So in the example above, if you would select the rack with name ```MiniV3``` the remote script would look for a preset called ```MiniV3#```. (This compromise was chosen as it is less likely people will want to make custom presets for racks; after all, the order of parameters in a Rack can already be controlled in Live itself.) 
 
 ### Defining presets for specific versions of Live
 
