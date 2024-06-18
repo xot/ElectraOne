@@ -209,7 +209,7 @@ class EffectController(ElectraOneBase):
             script = self._devices.get_default_lua_script()
             script += preset_info.get_lua_script()
         else:
-            versioned_device_name = 'None'
+            versioned_device_name = 'Empty'
             preset = '{"version":2,"name":"Empty","projectId":"l49eJksr7QcPZuqbF2rv","pages":[],"groups":[],"devices":[],"overlays":[],"controls":[]}'
             script = self._devices.get_default_lua_script()
         # upload preset: will also request midi map (which will also refresh state)
