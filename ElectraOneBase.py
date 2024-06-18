@@ -298,7 +298,7 @@ class ElectraOneBase(Log):
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
                 ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
-                ElectraOneBase.MAX_TIMEOUT = 500
+                ElectraOneBase.MAX_TIMEOUT = 800
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
@@ -650,7 +650,7 @@ class ElectraOneBase(Log):
         """Send a sysex request to the E1.
         """
         self.debug(4,f'Sending E1 sysex request.')
-        # see https://docs.electra.one/developers/???
+        # see https://docs.electra.one/developers/midiimplementation.html#get-an-electra-info
         sysex_command = (0x02, 0x7F)
         self._send_midi_sysex(sysex_command, ())
         # this command does not send an ack, but only a request_response
