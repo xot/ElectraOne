@@ -260,9 +260,8 @@ class ElectraOneBase(Log):
     # Record whether an E1 DAW is attached
     E1_DAW = False
 
-    # Minimum and maximum timeouts to wait for an ACK
-    MIN_TIMEOUT = 0
-    MAX_TIMEOUT = 0
+    # Minimum timeout to wait for an ACK (in seconds)
+    MIN_TIMEOUT = 0.1
 
     # Time to sleep between MIDI CC and LUA value update messages in normal mode
     MIDI_SLEEP = 0
@@ -275,8 +274,13 @@ class ElectraOneBase(Log):
     # Time to sleep after turning on/off burst mode
     BURST_ON_OFF_SLEEP = 0
 
-    # Factor to divide patch/lua-script length to compute lenght dependent timeout
-    TIMEOUT_LENGTH_FACTOR = 1
+    # factor to compute timemout for preset of certain length, in seconds/byte
+    # (when fast uploading is enabled)
+    PRESET_LENGTH_TIMEOUT_FACTOR = 0.1
+
+    # factor to compute timemout for lua script of certain length, in seconds/byte
+    # (when fast uploading is enabled)
+    LUA_LENGTH_TIMEOUT_FACTOR = 0.1
     
     def _configure_for_version(self, sw_version, hw_version):
         """Configure the remote script depending on the version of E1 attached
@@ -297,25 +301,25 @@ class ElectraOneBase(Log):
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
-                ElectraOneBase.MIN_TIMEOUT = 300 # TODO this is large
-                ElectraOneBase.MAX_TIMEOUT = 500 # make smaller wehn fast uploading supported
+                ElectraOneBase.MIN_TIMEOUT = 0.200 
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
-                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 100
+                ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR = 0.00002
+                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.00006
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = False
-                ElectraOneBase.MIN_TIMEOUT = 60
-                ElectraOneBase.MAX_TIMEOUT = 250                 
+                ElectraOneBase.MIN_TIMEOUT = 0.300
                 ElectraOneBase.MIDI_SLEEP = 0
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.01                 
-                ElectraOneBase.TIMEOUT_LENGTH_FACTOR = 50
+                ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR = 0.00003
+                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.00008
                 self.show_message(f'E1 mk I, with firmware {sw_version} detected.')
                 
     def set_version(self, sw_versionstr, hw_versionstr):
@@ -420,25 +424,16 @@ class ElectraOneBase(Log):
     def __adjust_timeout(self,timeout):
         """Adjust the timeout depending on whether fast sysex sending is
            suported or not, and whether logging of E1 messages is enabled.
-           - timeout: time to wait (in 'units', ranging from 5-1000), equals
-             the time in 10ms units to wait when fast sysex loading is enabled
-             and no logging takes place on the E1; int
+           - timeout: time to wait (in seconds); float
            result: timeout in (fractional) seconds
         """
-        # cap timeout to maximum
-        timeout = min(timeout,ElectraOneBase.MAX_TIMEOUT) 
         # stretch timeout when no fast sysex uploading
+        # TODO: how to deal with faster windows sysex processing?
         if not ElectraOneBase._fast_sysex:
-            timeout = 8 * timeout
-        # also stretch (further) if logging takes place
-        if E1_LOGGING >=0 :
-            timeout = (1 + E1_LOGGING) * timeout
-        if E1_LOGGING_PORT == E1_PORT:
-            timeout = 2 * timeout
+            timeout = 30 * timeout
         # floor timeout to minimum
         timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
-        # convert to (fractional) seconds
-        return timeout/100
+        return timeout
         
     def __wait_for_pending_acks_until(self,end_time):
         """Wait if there are any pending acks, until the specified end_time.
@@ -478,7 +473,7 @@ class ElectraOneBase(Log):
            of E1 messages is enabled.
            Return whether last message received was an ACK.
            (Can only be called inside a thread.)
-           - timeout: time to wait (in 'units', ranging from 5-1000); int
+           - timeout: time to wait (in seconds); float
         """
         timeout = self.__adjust_timeout(timeout)
         start_time = time.time()
@@ -880,7 +875,7 @@ class ElectraOneBase(Log):
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command, sysex_status)
         # wait for it
-        self.__wait_for_ack_or_timeout(5)
+        self.__wait_for_ack_or_timeout(0.05)
         # set the MIDI port for Controller events (to catch slot switching events)
         # https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-controller-events
         self.debug(1,f'Set E1 controller events port to {E1_PORT}.')
@@ -891,7 +886,7 @@ class ElectraOneBase(Log):
         self._increment_acks_pending()
         self._send_midi_sysex(sysex_command, sysex_port)
         # wait for it
-        self.__wait_for_ack_or_timeout(5)
+        self.__wait_for_ack_or_timeout(0.05)
             
     def activate_preset_slot(self, slot):
         """Select a slot on the E1 and activate the preset present there.
@@ -1016,7 +1011,7 @@ class ElectraOneBase(Log):
             if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED and USE_PRELOAD_FEATURE:
                 self.__load_preloaded_preset(slot,preset_name)
                 # don't wait to briefly; complex presets do take some time to load
-                loaded = self.__wait_for_ack_or_timeout(50)
+                loaded = self.__wait_for_ack_or_timeout(0.50)
             # if loading preloaded preset failed upload preset
             # instead and wait for ACK                    
             if loaded:
@@ -1027,15 +1022,15 @@ class ElectraOneBase(Log):
                 # preloading failed: upload instead
                 # first select slot and wait for ACK
                 self.__select_slot_only(slot)
-                if self.__wait_for_ack_or_timeout(10):
+                if self.__wait_for_ack_or_timeout(0.010):
                     # upload preset
                     self.__upload_preset_to_current_slot(preset)
                     # timeout depends on patch complexity
                     # patch sizes range from 500 - 100.000 bytes
-                    if self.__wait_for_ack_or_timeout( int(len(preset)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
+                    if self.__wait_for_ack_or_timeout( len(preset) * ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR ):
                         # preset uploaded, now upload lua script and wait for ACK
                         self.__upload_lua_script_to_current_slot(luascript)
-                        if self.__wait_for_ack_or_timeout( 10*int(len(luascript)/ElectraOneBase.TIMEOUT_LENGTH_FACTOR) ):
+                        if self.__wait_for_ack_or_timeout( len(luascript) * ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR ):
                             ElectraOneBase.preset_upload_successful = True
                         else: # lua script upload timeout
                             self.debug(3,'Upload thread: lua script upload failed. Aborted')
