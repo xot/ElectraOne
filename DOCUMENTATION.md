@@ -891,7 +891,7 @@ The threads use this mechanism as follows. First they consume all pending ACKs/N
 
 ### Uploading a preset
 
-The 'standard' way of uploading a preset is to send it as a SysEx message through the `send_midi` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that `SENDMIDI_CMD` points to the SendMIDI program, and set `E1_CTRL_PORT` to the right port (`Electra Controller Electra CTRL`).
+The 'standard' way of uploading a preset is to send it as a SysEx message through the `send_midi` method offered by Ableton Live. However, this is *extremely* slow on MacOS (apparently because Ableton interrupts sending long MIDI messages for its other real-time tasks). Therefore, the remote script offers a fast upload option that bypasses Live and uploads the preset directly using an external command. It uses [SendMIDI](https://github.com/gbevin/SendMIDI), which must be installed. To enable it, ensure that `SENDMIDI_CMD` points to the SendMIDI program, and set `E1_PORT_NAME` to the right port (`Electra Controller Electra Port 1`).
 
 
 ## Switching views
