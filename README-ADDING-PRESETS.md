@@ -89,6 +89,9 @@ require("xot/default")
 ```
 at the start of the ```<devicename>.lua``` file. This includes some common LUA functions used by the remote script and the preset.
 
+Note that you need to keep a copy of the ccmap, preset and LUA file in the `./preloaded` folder of the remote script.
+
+
 ## Advanced configuration
 
 The behaviour of the remote script can be changed by editing ```config.py```:
