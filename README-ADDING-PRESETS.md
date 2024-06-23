@@ -89,7 +89,7 @@ require("xot/default")
 ```
 at the start of the ```<devicename>.lua``` file. This includes some common LUA functions used by the remote script and the preset.
 
-Note that you need to keep a copy of the ccmap, preset and LUA file in the `./preloaded` folder of the remote script.
+Note that you need to keep the original ccmap, preset and LUA files also in the `./preloaded` folder of the remote script. (Otherwise the remote script cannot properly control the preset.)
 
 
 ## Advanced configuration

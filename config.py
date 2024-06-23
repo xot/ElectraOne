@@ -56,6 +56,11 @@ CONTROL_MODE = CONTROL_EITHER
 # whose value cannot be easily computed by the E1 itself.
 USE_ABLETON_VALUES = True
 
+
+# Factor to stretch the timout when uploading presets or LUA scritps to
+# compensate for slow working conditions
+TIMEOUT_STRETCH = 1
+
 # === FAST SYSEX UPLOAD 
 
 # full path to the sendmidi command. If None, fast sysex upload is not supported

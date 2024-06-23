@@ -433,6 +433,7 @@ class ElectraOneBase(Log):
             timeout = 30 * timeout
         # floor timeout to minimum
         timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
+        timout = timeout * TIMEOUT_STRETCH
         return timeout
         
     def __wait_for_pending_acks_until(self,end_time):

@@ -218,6 +218,8 @@ The behaviour of the remote script can be changed by editing ```config.py```. Be
 - ```SENDMIDI_CMD``` full path to the ```sendmidi```command. If ```None```(the default), fast uploading of presets is not supported.
 - ```USE_PRELOAD_FEATURE```. Whether to use the preloaded presets feature (if supported). If false, the predefined presets in ```Devices.py``` are always used, overriding any (older) preloaded presets on the E1. Default is ```True```.
 - ```POSITION_FINE```. Whether to update the position with every sub_division  change, or only every beat. Default is `True`.
+- ```TIMEOUT_STRETCH``` Factor to stretch the timout when uploading presets or LUA scritps to compensate for slow working conditions. Default is 1.
+
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.
 
