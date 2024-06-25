@@ -35,6 +35,9 @@ from .E1Midi import hexify, cc7_value_for_par, cc14_value_for_par, cc7_value_for
 ACK_RECEIVED = 0
 NACK_RECEIVED = 1
 
+# Remote script input/output port number (0: Port 1, 1: Port 2, 2: CTRL)
+E1_PORT = 0
+
 class ElectraOneBase(Log):
     """E1 base class with common functions
        (interfacing with Live through c_instance).
@@ -380,6 +383,8 @@ class ElectraOneBase(Log):
         """Set up fast sysex upload.
         """
         # Do this only once.
+        # NOTE: modules are loaded once when Live starts, but stay alive when a new
+        # song is loaded; so this initialisation only occurs when Live (re)starts. 
         if ElectraOneBase._fast_sysex == None:
             if SENDMIDI_CMD:
                 # find sendmidi

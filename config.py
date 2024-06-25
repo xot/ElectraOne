@@ -20,11 +20,12 @@ UNMAPPED_ID = -1
 # imply more information. 0 means no logging at all.
 DEBUG = 2
 
-# Whether the E1 should send log messages, and if so at which levek of detail
+# Whether the E1 should send log messages, and if so at which level of detail
 # (-1 is no logging)
 E1_LOGGING = -1
 
-# Which port to use to send log messages to (0: Port 1, 1: Port 2, 2: CTRL)
+# Which port the E1 should use to send log messages to
+# (0: Port 1, 1: Port 2, 2: CTRL)
 E1_LOGGING_PORT = 2
 
 # Whether created patch info should be dumped (this is useful if you want
@@ -67,9 +68,8 @@ TIMEOUT_STRETCH = 1
 SENDMIDI_CMD = None
 #SENDMIDI_CMD = '/usr/local/bin/sendmidi'
 
-# Remote script input/output port number (0: Port 1, 1: Port 2, 2: CTRL)
-E1_PORT = 0
-# Name of this port as used by SENDMIDI_CMD
+# Name of this port as used by SENDMIDI_CMD; make sure this refers to Port 1 of
+# the E1 as this is the port the remote script and E1 use to communicate.
 E1_PORT_NAME = 'Electra Controller Electra Port 1'
 
 # === DEVICE APPOINTMENT OPTIONS

@@ -183,7 +183,8 @@ Download the right binary [here](https://github.com/gbevin/SendMIDI/releases). I
 Set the following constants in the ```config.py``` (this is one of the files you just copied into the new ```ElectraOne``` folder that you created in your local Ableton MIDI Live Scripts folder):
 
 - ```SENDMIDI_CMD = /usr/local/bin/sendmidi```
-- ```E1_PORT_NAME = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default).
+- ```E1_PORT_NAME = 'Electra Controller Electra Port 1'``` (or whatever the exact name of MIDI Port 1 of the ElectraOne happens to be on your system; the value shown here is the default. Running the command `sendmidi list` returns the list of ports SendMidi knows about.).
+
 
 ### Dependencies
 
