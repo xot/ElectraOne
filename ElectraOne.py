@@ -84,7 +84,7 @@ class ElectraOne(ElectraOneBase):
         # should anything happen inside this thread, make sure we write to debug
         try:
             if DETECT_E1:
-                sleep = 0.5
+                sleep = 0.2
                 attempts = 0
                 self.debug(2,'Connection thread: detecting E1...')
                 self._request_response_received = False
