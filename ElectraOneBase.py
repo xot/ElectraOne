@@ -304,7 +304,7 @@ class ElectraOneBase(Log):
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
-                ElectraOneBase.MIN_TIMEOUT = 0.200 
+                ElectraOneBase.MIN_TIMEOUT = 0.500 
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
@@ -315,7 +315,7 @@ class ElectraOneBase(Log):
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = False
-                ElectraOneBase.MIN_TIMEOUT = 0.300
+                ElectraOneBase.MIN_TIMEOUT = 0.500
                 ElectraOneBase.MIDI_SLEEP = 0
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0
@@ -1017,7 +1017,7 @@ class ElectraOneBase(Log):
             if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED and USE_PRELOAD_FEATURE:
                 self.__load_preloaded_preset(slot,preset_name)
                 # don't wait to briefly; complex presets do take some time to load
-                loaded = self.__wait_for_ack_or_timeout(0.50)
+                loaded = self.__wait_for_ack_or_timeout(1.00)
             # if loading preloaded preset failed upload preset
             # instead and wait for ACK                    
             if loaded:
