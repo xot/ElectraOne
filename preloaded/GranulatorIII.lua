@@ -7,6 +7,6 @@ lfobeat:setSlot(13,3)
 
 function lfosync(valueObject, value)
     lfofreq:setVisible(value == 0)
-    lforatio:setVisible(value == 2)
-    lfobeat:setVisible(value == 1)
+    lforatio:setVisible(value == 137)
+    lfobeat:setVisible(value == 64)
 end
