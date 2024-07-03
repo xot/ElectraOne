@@ -161,8 +161,9 @@ class ElectraOneBase(Log):
         self.debug(6,f'Getting visible torcs for {torc.name}')
         chains = []
         rack = self._find_first_rack(torc)
-        # Racks with only one chain have can_show_chains == False, so this fails
-        #if rack and rack.can_show_chains and rack.is_showing_chains:
+        # TODO: Racks with only one chain have can_show_chains == False
+        # and is_shwoing_chains == False, so this fails for
+        # racks with one instrument that actually is unfolded
         if rack and rack.is_showing_chains:
             for chain in rack.chains:
                 chains.append(chain)
@@ -174,6 +175,14 @@ class ElectraOneBase(Log):
         """
         torcs = []
         for t in self.song().visible_tracks:
+            #self.debug(6,f'Visible track {t.name}')
+            #self.debug(7,f'Is visible = {t.is_visible}')
+            #self.debug(7,f'Is grouped = {t.is_grouped}')                
+            #self.debug(7,f'Can show chains = {t.can_show_chains}')
+            #self.debug(7,f'Is showing chains = {t.is_showing_chains}')
+            #self.debug(7,f'Is foldable = {t.is_foldable}')        
+            #if t.is_foldable:
+            #    self.debug(7,f'Fold state = {t.fold_state}')        
             torcs.append(t)
             torcs.extend( self._visible_chains_for_torc(t) )
         for torc in torcs:
@@ -459,7 +468,6 @@ class ElectraOneBase(Log):
            some timeout).
            (Can only be called inside a thread.)
         """
-        # TODO: why wait for so long?
         # wait four seconds since acks_pending was incremented last
         end_time = ElectraOneBase.acks_pending_incremented_time + 4.0
         self.debug(4,f'Thread clearing acks queue ({ElectraOneBase.acks_pending} pending) on {time.time():.3f}, wait until {end_time:.3f} (preset uploading: {ElectraOneBase.preset_uploading}).')

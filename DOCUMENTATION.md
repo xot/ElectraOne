@@ -333,10 +333,12 @@ Others:
 
 ## Tracks
 
-`self.song().visible_tracks` returns the list (actually a `Base.Vector` ) of currently visible audio and midi tracks. This does include any tracks that are part of a expanded group track, but *does not include* any visible 'subtracks' created for chains in an instrument or drum rack. Therefore there is no straightforward way to list or get access to such subtracks. For this `track_is_showing_chains` needs to be checked and the shown chains for the first rack device on the track need to be found. Unfortunately, for an instrument rack, `can_show_chains` or `is_showing_chains` are false when the number of chains <=1; when unfolded and if the instrument rack has at least two chains, both the main track and all chains are listed in `song().visible_tracks`. For a drum rack, its chains are never listed in `song().visible_tracks`, but `is_showing_chains` works
+`self.song().visible_tracks` returns the list (actually a `Base.Vector` ) of currently visible audio and midi tracks. This does include any tracks that are part of a expanded group track, but *does not include* any visible 'subtracks' created for chains in an instrument or drum rack. Therefore there is no straightforward way to list or get access to such subtracks. For this `track_is_showing_chains` needs to be checked and the shown chains for the first rack device on the track need to be found. Unfortunately, for an instrument or drum rack, `can_show_chains` or `is_showing_chains` are false when the number of chains <=1; when unfolded and if the instrument rack has at least two chains, both the main track and all chains are listed in `song().visible_tracks`. For a drum rack, its chains are never listed in `song().visible_tracks`, but `is_showing_chains` works
 
 
 Similarly `self.song().view.selected_track` *always* returns the main track (or *group* subtrack), not the actually selected chain.
+
+Note also that  adding a device to a *rack* does not trigger the listener registered through `add_devices_listener()` of the track containing the rack. 
 
 
 ## Bugs/anomalies in Live

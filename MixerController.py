@@ -43,6 +43,10 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # index of the first mapped track in the list of visible tracks
         self._first_track_index = 0
+        # list of currently visible torcs (tracks or chains), by name
+        self._visible_torcs_by_name = []
+        # counter to (see _check_visible_torcs_change)
+        self._visible_torcs_check_counter = 0
         # initialise session control first clip row
         # (passed to track controllers later)
         self._first_row_index = 0
@@ -76,7 +80,23 @@ class MixerController(ElectraOneBase):
         visible = (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT)
         self.debug(6,f'Mixer controller is visible: {visible}')
         return visible
-    
+
+    def _check_visible_torcs_change(self):
+        """Check whether the set of visible torcs (tracks or chains) has changed
+           since the last check; called by update_display.
+           If so, update/remap the mixer.
+        """
+        if self._visible_torcs_check_counter < 0:
+            self.debug(5,'Checking visible tracks/chains change.')
+            # test if visible torcs have changed
+            current_visible_torcs_by_name = [torc.name for torc in self.get_visible_torcs()]
+            if self._visible_torcs_by_name != current_visible_torcs_by_name:
+                self.debug(5,'Visible tracks/chains change detected.')
+                self._handle_selected_tracks_change()
+            self._visible_torcs_check_counter = 20 # do this every 2 seconds            
+        else:
+            self._visible_torcs_check_counter -= 1
+            
     # --- interface ---
 
     def refresh_state(self):
@@ -109,6 +129,7 @@ class MixerController(ElectraOneBase):
            Forwarded to the transport, master, return and track controllers.
         """
         self.debug(6,'MixCont update display.')
+        self._check_visible_torcs_change()
         # forward update request to children
         self._transport_controller.update_display()
         self._master_controller.update_display()
@@ -142,43 +163,13 @@ class MixerController(ElectraOneBase):
            controller.
         """
         self.song().add_visible_tracks_listener(self._on_tracks_added_or_deleted)
-        # TODO: should also listen to visible_chains changes, but
-        # this is not easy, because by defualt tracks do not have that listener
-        # self.song().add_loop_listener(self._on_loop_changed)
 
     def _remove_listeners(self):
         """Remove all listeners added.
         """
         self.song().remove_visible_tracks_listener(self._on_tracks_added_or_deleted)
 
-    # The rather convulated method used below to add a showing_chains_listener
-    # is  necessary because this listener can only be added to a track that
-    # can have chains. Initialy it may not, so every time a device is added
-    # we have to see if now have to add a showing_chains_listener
-    
-    def _on_devices_changed(self):
-        for track in self.song().visible_tracks:
-            if (type(track) == Live.Track.Track) and track.can_show_chains:
-                self.debug(5,f'Adding showing chains listener for track {track.name}')
-                if not track.is_showing_chains_has_listener(self._on_tracks_added_or_deleted):
-                    track.add_is_showing_chains_listener(self._on_tracks_added_or_deleted)
-        
-    def _add_chain_visibility_listeners(self):
-        """Add listeners for changes in chain visibility, to copy changes to the
-           controller.
-        """
-        for track in self.song().visible_tracks:
-            if type(track) == Live.Track.Track:
-                if not track.devices_has_listener(self._on_devices_changed):
-                    track.add_devices_listener(self._on_devices_changed)
-                
-    def _remove_chain_visibility_listeners(self):
-        """Remove all chain visibility listeners added.
-        """
-        for track in self.song().visible_tracks:
-            if type(track) == Live.Track.Track:
-                if track.devices_has_listener(self._on_devices_changed):
-                    track.remove_devices_listener(self._on_devices_changed)
+    # --- dealing with changes
         
     def _remap_return_tracks(self):
         """Create new return track controllers for the current set of
@@ -201,15 +192,14 @@ class MixerController(ElectraOneBase):
         # currently shown in the mixer, the mixer is still updated and may show
         # a different view because self._first_track_index points to
         # another track
-        self._remove_chain_visibility_listeners()
         for tc in self._track_controllers:
             tc.disconnect()
         visible_torcs = self.get_visible_torcs()            
+        self._visible_torcs_by_name = [torc.name for torc in visible_torcs]
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(visible_torcs))
         track_range = range(self._first_track_index, last_track_index)
         self._track_controllers = [ TrackController(self.get_c_instance(), visible_torcs[i], i-self._first_track_index)
                                     for i in track_range ]
-        self._add_chain_visibility_listeners()
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         if ElectraOneBase.E1_DAW and (NO_OF_SESSION_ROWS > 0) :
             self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), NO_OF_SESSION_ROWS, True)
