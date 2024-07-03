@@ -52,7 +52,7 @@ class MixerController(ElectraOneBase):
         self._first_row_index = 0
         # initialise track controllers
         self._track_controllers = []
-        self._remap_tracks()
+        self._remap_tracks(None)
         # init MIDI handlers
         self._init_cc_handlers()
         self._add_listeners()
@@ -69,7 +69,7 @@ class MixerController(ElectraOneBase):
         # index of first track should always be a multiple of NO_OF_TRACKS: moving
         # forward/backward then always shows the same block of tracks
         # in the mixer
-        no_of_tracks = len(self.get_visible_torcs())
+        no_of_tracks = len(self._visible_torcs_by_name)
         idx = min(idx, NO_OF_TRACKS * (no_of_tracks // NO_OF_TRACKS))
         idx = max(idx, 0)            
         return idx
@@ -89,10 +89,11 @@ class MixerController(ElectraOneBase):
         if self._visible_torcs_check_counter < 0:
             self.debug(5,'Checking visible tracks/chains change.')
             # test if visible torcs have changed
-            current_visible_torcs_by_name = [torc.name for torc in self.get_visible_torcs()]
+            visible_torcs = self.get_visible_torcs()
+            current_visible_torcs_by_name = [torc.name for torc in visible_torcs]
             if self._visible_torcs_by_name != current_visible_torcs_by_name:
                 self.debug(5,'Visible tracks/chains change detected.')
-                self._handle_selected_tracks_change()
+                self._handle_selected_tracks_change(visible_torcs)
             self._visible_torcs_check_counter = 20 # do this every 2 seconds            
         else:
             self._visible_torcs_check_counter -= 1
@@ -182,10 +183,11 @@ class MixerController(ElectraOneBase):
         self._return_controllers = [ ReturnController(self.get_c_instance(), i)
                                      for i in range(return_count) ]
         
-    def _remap_tracks(self):
+    def _remap_tracks(self,visible_torcs):
         """Create new track controllers for the current set of visible tracks
            (unmap and destroy existing track controllers). Show a message
            to the user to tell which tracks are currently mapped.
+           - visible_torcs: list of visible tracks or chains; None if not yet computed
         """
         # TODO: unfortunately, even if tracks are added/removed or
         # folded/expanded that would not alter the visibility of the tracks
@@ -194,7 +196,10 @@ class MixerController(ElectraOneBase):
         # another track
         for tc in self._track_controllers:
             tc.disconnect()
-        visible_torcs = self.get_visible_torcs()            
+        if visible_torcs == None:
+            visible_torcs = self.get_visible_torcs()
+        # record currently visible track / chain names to check for changes in
+        # self._check_visible_torcs_change()
         self._visible_torcs_by_name = [torc.name for torc in visible_torcs]
         last_track_index = min(self._first_track_index + NO_OF_TRACKS, len(visible_torcs))
         track_range = range(self._first_track_index, last_track_index)
@@ -204,11 +209,14 @@ class MixerController(ElectraOneBase):
         if ElectraOneBase.E1_DAW and (NO_OF_SESSION_ROWS > 0) :
             self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), NO_OF_SESSION_ROWS, True)
 
-    def _handle_selected_tracks_change(self):
+    def _handle_selected_tracks_change(self,visible_torcs):
         """Call this whenever the current set of selected tracks changes.
-            Updates MIDI mapping, listeners and the displayed values.
+           Updates MIDI mapping, listeners and the displayed values.
+           - visible_torcs: list of visible tracks or chains; None if not yet computed
         """
-        self._remap_tracks()
+        # make sure the first track index is still pointing to existing tracks
+        self._first_track_index = self._validate_track_index(self._first_track_index)
+        self._remap_tracks(visible_torcs)
         # no need to remap return tracks as the selection of those never changes
         # make the right controls and group labels visible if mixer currently visible
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
@@ -238,7 +246,7 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
-        self._remap_tracks()
+        self._remap_tracks(None)
         self.debug(2,'MixCont requesting MIDI map to be rebuilt.')
         self.request_rebuild_midi_map() # also refreshes state ; is ignored when the effect controller also requests it during initialisation (which is exactly what we want)
 
@@ -277,8 +285,8 @@ class MixerController(ElectraOneBase):
         if value > 63:
             self.debug(3,'Prev tracks pressed.')
             # shift left, but not before first track
-            self._first_track_index = self._validate_track_index(self._first_track_index - NO_OF_TRACKS)
-            self._handle_selected_tracks_change()
+            self._first_track_index -= NO_OF_TRACKS
+            self._handle_selected_tracks_change(None)
             
     def _handle_next_tracks(self,value):
         """Shift right NO_OF_TRACKS; don't move beyond last track.
@@ -286,8 +294,8 @@ class MixerController(ElectraOneBase):
         if value > 63:
             self.debug(3,'Next tracks pressed.')
             # shift right, but not beyond last track
-            self._first_track_index = self._validate_track_index(self._first_track_index + NO_OF_TRACKS)
-            self._handle_selected_tracks_change()
+            self._first_track_index += NO_OF_TRACKS
+            self._handle_selected_tracks_change(None)
 
     def _handle_page_up(self,value):
         """Move session slots one page up.
