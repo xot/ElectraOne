@@ -53,7 +53,9 @@ class ElectraOne(ElectraOneBase):
         self.debug(1,f'Live version {ElectraOneBase.LIVE_VERSION}.')
         # flags to test if build_midi_map or refresh were called while E1 not ready
         self._build_midi_map_pending = False
-        self._refresh_state_pending = False        
+        self._refresh_state_pending = False
+        # keep track of how many times update_display was called (mod 1000)
+        self._update_tick = 0
         # load information about predefined devices and the default LUA script
         # (We do this here because at this point in time the remote script
         # gets more resources to initialise, apparently.)
@@ -72,7 +74,7 @@ class ElectraOne(ElectraOneBase):
         self.debug(0,'Setting up connection.')
         self._connection_thread = threading.Thread(target=self._connect_E1)
         self._connection_thread.start()
-        self.debug(0,'Waiting for connection...')
+        self.debug(1,'Waiting for connection...')
         # connection thread still running of course, so any calls to refresh the
         # state or to rebuild the MIDI map are ignored.
         
@@ -187,30 +189,30 @@ class ElectraOne(ElectraOneBase):
            result: bool
         """
         if self.is_ready() and self._effect_controller:
-            self.debug(1,'Main lock to device called.')
+            self.debug(0,'Main lock to device called.')
             self._effect_controller.lock_to_device(device)
         else:
-            self.debug(1,'Main lock ignored because E1 not ready.') 
+            self.debug(0,'Main lock ignored because E1 not ready.') 
 
     def unlock_from_device(self, device):
         """Live can tell the script to unlock from a given device
            result: bool
         """
         if self.is_ready() and self._effect_controller:
-            self.debug(1,'Main unlock called.') 
+            self.debug(0,'Main unlock called.') 
             self._effect_controller.unlock_from_device(device)
         else:
-            self.debug(1,'Main unlock ignored because E1 not ready.') 
+            self.debug(0,'Main unlock ignored because E1 not ready.') 
 
     def toggle_lock(self):
         """Live can tell the script to toggle the script's lock on devices
         """
         # Weird; why is Ableton relegating this to the script?
         if self.is_ready():
-            self.debug(1,'Main toggle lock called.') 
+            self.debug(0,'Main toggle lock called.') 
             self.get_c_instance().toggle_lock()
         else:
-            self.debug(1,'Main toggle lock ignored because E1 not ready.') 
+            self.debug(0,'Main toggle lock ignored because E1 not ready.') 
 
     def _process_midi_cc(self, midimsg):
         """Process incoming MIDI CC message and forward to the
@@ -218,21 +220,21 @@ class ElectraOne(ElectraOneBase):
            Ignore if interface not ready.
            - midimsg: incoming MIDI CC message; sequence of bytes
         """
-        self.debug(2,'Processing incoming CC.')
+        self.debug(2,'Processing incoming MIDI CC.')
         if self.is_ready() and self._mixer_controller:
             (channel,cc_no,value) = parse_cc(midimsg)
             self._mixer_controller.process_midi(channel,cc_no,value)
         else:
-            self.debug(3,'Process MIDI CC ignored because E1 not ready or mixer not active.') 
+            self.debug(2,'Process MIDI CC ignored because E1 not ready or mixer not active.') 
 
     def _do_ack(self):
         """Handle an ACK message.
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
-            self.debug(3,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'ACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(1,f'Warning: Unexpected ACK received, uploading?: {ElectraOneBase.preset_uploading}).')            
+            self.warning(f'Unexpected ACK received, uploading?: {ElectraOneBase.preset_uploading}).')            
         ElectraOneBase.ack_or_nack_received = ACK_RECEIVED
         
     def _do_nack(self):
@@ -240,15 +242,18 @@ class ElectraOne(ElectraOneBase):
         """
         if ElectraOneBase.acks_pending > 0:
             ElectraOneBase.acks_pending -= 1
-            self.debug(3,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
+            self.debug(4,f'NACK received (acks still pending: {ElectraOneBase.acks_pending}, uploading?: {ElectraOneBase.preset_uploading}).')
         else:
-            self.debug(1,f'Warning: Unexpected NACK received, uploading?: {ElectraOneBase.preset_uploading}).')
+            self.warning(f'Unexpected NACK received, uploading?: {ElectraOneBase.preset_uploading}).')
         ElectraOneBase.ack_or_nack_received = NACK_RECEIVED
 
     def _do_request_response(self, json_bytes):
         """Handle a request response message: record it as received
            - json_bytes: incoming MIDI SysEx data; sequence of bytes
         """
+        # Note: a request response may be received twice. Code below is
+        # has no problem with that.
+        self.debug(2,f'SysEx request response received' )
         json_str = ''.join(chr(c) for c in json_bytes) # convert bytes to a string
         self.debug(3,f'Request response received: {json_str}' )
         # get the version
@@ -261,29 +266,29 @@ class ElectraOne(ElectraOneBase):
            - text_bytes: incoming MIDI SysEx data; sequence of bytes
         """
         text_str = ''.join(chr(c) for c in text_bytes) # convert bytes to a string
-        self.debug(3,f'Log message received: {text_str}' )
+        self.debug(5,f'Log message received: {text_str}' )
 
     def _do_preset_changed(self, selected_slot):
         """Handle a preset changed message
            - selected_slot: incoming MIDI SysEx data; sequence of 2 bytes
         """
         assert len(selected_slot) == 2, f'Wrong data {selected_slot} in preset changed message.'
-        self.debug(3,f'Preset {selected_slot} selected on the E1')
+        self.debug(0,f'Preset {selected_slot} selected on the E1')
         ElectraOneBase.current_visible_slot = selected_slot
         if selected_slot == RESET_SLOT:
             self.debug(1,'Remote script reset requested.')
             self._reset()
         elif self.is_ready():
             if (selected_slot == MIXER_PRESET_SLOT) and self._mixer_controller:
-                self.debug(3,'Mixer preset selected: starting refresh.')
+                self.debug(1,'Mixer preset selected: starting refresh.')
                 self._mixer_controller.refresh_state()
             elif (selected_slot == EFFECT_PRESET_SLOT) and self._effect_controller:  
-                self.debug(3,'Effect preset selected: starting refresh.')
+                self.debug(1,'Effect preset selected: starting refresh.')
                 self._effect_controller.refresh_state()
             else:
-                self.debug(3,'Other preset selected (ignoring)')
+                self.debug(1,'Other preset selected (ignoring)')
         else:
-            self.debug(3,'Preset changed ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.') 
+            self.debug(1,'Preset changed ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.') 
 
     def _do_sysex_patch_request_pressed(self):
         """Handle a patch request pressed message: swap the visible preset
@@ -293,7 +298,7 @@ class ElectraOne(ElectraOneBase):
         if self.is_ready() and (CONTROL_MODE == CONTROL_EITHER):
             # if CONTROL_MODE == CONTROL_EITHER both _mixer_controller()
             # and _effect_controller() are guaranteed to exist
-            self.debug(3,f'Patch request received')
+            self.debug(1,f'Patch request received')
             if (ElectraOneBase.current_visible_slot == MIXER_PRESET_SLOT): 
                 # E1 will send a preset change message in response which will
                 # trigger do_preset_changed() and hence cause a state refresh.
@@ -302,13 +307,13 @@ class ElectraOne(ElectraOneBase):
             else:
                 self._mixer_controller.select()
         else:
-            self.debug(3,'Patch request ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.')
+            self.debug(1,'Patch request ignored because E1 not ready or CONTROL_MODE != CONTROL_EITHER.')
         
     def _process_midi_sysex(self, midimsg):
         """Process incoming MIDI SysEx message.
            - midimsg: incoming MIDI SysEx message; sequence of bytes
         """
-        self.debug(2,'Processing incoming SysEx.')
+        #self.debug(1,'Processing incoming MIDI SysEx.')
         (command,data) = parse_E1_sysex(midimsg)
         if command == E1_SYSEX_PRESET_CHANGED:
             self._do_preset_changed(data)
@@ -322,7 +327,10 @@ class ElectraOne(ElectraOneBase):
             self._do_logmessage(data)
         elif command == E1_SYSEX_PATCH_REQUEST_PRESSED:
             self._do_sysex_patch_request_pressed()
+        elif command == E1_SYSEX_PRESET_LIST_CHANGE:
+            pass # silently ignore this
         else:
+            self.warning('Unexpected MIDI Sysex received; not processed.')
             self.debug(5,f'SysEx ignored: { hexify(midimsg) }.')
             
     def receive_midi(self, midimsg):
@@ -332,20 +340,20 @@ class ElectraOne(ElectraOneBase):
            to this function
            - midimsg: the MIDI message; sequence of bytes
         """
-        self.debug(1,'Main receive MIDI called.')
+        #self.debug(1,'Main receive MIDI called.')
         self.debug(5,f'Main receive MIDI called. Incoming bytes (first 10): { hexify(midimsg[:10]) }')
         if is_cc(midimsg):
             self._process_midi_cc(midimsg)
         elif is_E1_sysex(midimsg):
             self._process_midi_sysex(midimsg)
         else:
-            self.debug(2,'Unexpected MIDI bytes not processed.')
+            self.warning('Unexpected MIDI bytes received; not processed.')
 
     def build_midi_map(self, midi_map_handle):
         """Build all MIDI maps. Ignore if interface not ready.
         """
         if self.is_ready():
-            self.debug(1,'Main build midi map called.')
+            self.debug(0,'Main build midi map called.')
             self._build_midi_map_pending = False
             if self._effect_controller:
                 self._effect_controller.build_midi_map(midi_map_handle)
@@ -353,7 +361,7 @@ class ElectraOne(ElectraOneBase):
                 self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
             self.refresh_state()
         else:
-            self.debug(1,'Main build midi map ignored because E1 not ready.')
+            self.debug(0,'Main build midi map ignored because E1 not ready.')
             # Make sure request is processed at some point
             self._build_midi_map_pending = True
 
@@ -364,14 +372,14 @@ class ElectraOne(ElectraOneBase):
            added/deleted). Ignore if interface not ready.
         """
         if self.is_ready():
-            self.debug(1,'Main refresh state called.')
+            self.debug(0,'Main refresh state called.')
             self._refresh_state_pending = False
             if self._effect_controller:
                 self._effect_controller.refresh_state()
             if self._mixer_controller:
                 self._mixer_controller.refresh_state()
         else:
-            self.debug(1,'Main refresh state ignored because E1 not ready.')
+            self.debug(0,'Main refresh state ignored because E1 not ready.')
             self._refresh_state_pending = True
 
     def update_display(self):
@@ -389,12 +397,13 @@ class ElectraOne(ElectraOneBase):
             elif self._refresh_state_pending:
                 # rebuild midi map first
                 self._refresh_state_pending = False
-                self.debug(1,'Pending refresh state detected.')
+                self.debug(0,'Pending refresh state detected.')
                 self.refresh_state()
             if self._effect_controller:
-                self._effect_controller.update_display()
+                self._effect_controller.update_display(self._update_tick)
             if self._mixer_controller:
-                self._mixer_controller.update_display()
+                self._mixer_controller.update_display(self._update_tick)
+            self._update_tick = (self._update_tick + 1) % 1000
         else:
             self.debug(6,'Main update display ignored because E1 not ready.')
             
@@ -402,13 +411,13 @@ class ElectraOne(ElectraOneBase):
         """ Called by Live as soon as all scripts are initialized.
             You can connect yourself to other running scripts here.
         """
-        self.debug(1,'Main connect script instances called.') 
+        self.debug(0,'Main connect script instances called.') 
         pass
 
     def disconnect(self):
         """Called right before we get disconnected from Live.
         """
-        self.debug(1,'Main disconnect called.') 
+        self.debug(0,'Main disconnect called.') 
         if ElectraOneBase.E1_connected:
             if self._effect_controller:
                 self._effect_controller.disconnect()

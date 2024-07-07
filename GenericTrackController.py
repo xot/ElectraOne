@@ -61,7 +61,7 @@ class GenericTrackController(ElectraOneBase):
         # set up property controllers for the buttons
         # (actual controllers set up in add_listeners)
         self._property_controllers = PropertyControllers(c_instance)
-        self.debug(0,'GenericTrackController loaded.')
+        self.debug(1,'GenericTrackController loaded.')
 
         
     # --- helper functions ---
@@ -196,13 +196,15 @@ class GenericTrackController(ElectraOneBase):
         # session control clips
         self._refresh_clips()
         
-    def update_display(self):
+    def update_display(self,tick):
         """Update the display (called every 100ms).
            Used to update the clip slot information in the session control page,
            partially because track.add_clip_slots_listener does not work (as I expected)
            and also to ensure that all changes are always sent to the E1.
+           - tick: number of 100ms ticks since start (mod 1000)
         """
-        self._refresh_clips()
+        if (tick % MIXER_CLIPS_REFRESH_PERIOD) == 0:
+            self._refresh_clips()
     
     def disconnect(self):
         """Disconnect the track; remove all listeners.
@@ -218,7 +220,7 @@ class GenericTrackController(ElectraOneBase):
         """
         # (note: this needs to be called by the subclass, because
         # only the subclass defines _track!)
-        self.debug(3,f'Adding listeners for track { self._track.name }')
+        self.debug(2,f'Adding listeners for track { self._track.name }')
         track = self._track
         self._property_controllers.add_on_off_property(track,'mute',self._midichannel,self._my_cc(self._base_mute_cc),True)
         self._property_controllers.add_on_off_property(track,'solo',self._midichannel,self._my_cc(self._base_solo_cue_cc))
@@ -235,7 +237,7 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         # track may already have been deleted
         if track:
-            self.debug(3,f'Removing listeners for track { self._track.name }')
+            self.debug(2,f'Removing listeners for track { self._track.name }')
             if track.name_has_listener(self._refresh_track_name):
                 track.remove_name_listener(self._refresh_track_name)
             if track.devices_has_listener(self._handle_device_change):
@@ -278,7 +280,7 @@ class GenericTrackController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(3,f'Building MIDI map of track { self._track.name }.')
+        self.debug(2,f'Building MIDI map of track { self._track.name }.')
         # Map property CCs to be forwarded
         self._property_controllers.build_midi_map(script_handle,midi_map_handle)
         # map main sliders
@@ -286,12 +288,12 @@ class GenericTrackController(ElectraOneBase):
         needs_takeover = True
         map_mode = Live.MidiMap.MapMode.absolute_14_bit
         track = self._track
-        self.debug(4,f'Mapping track { self._track.name } pan to CC { self._my_cc(self._base_pan_cc) } on MIDI channel { self._midichannel }')
+        self.debug(3,f'Mapping track { self._track.name } pan to CC { self._my_cc(self._base_pan_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.panning, self._midichannel-1, self._my_cc(self._base_pan_cc), map_mode, not needs_takeover)
-        self.debug(4,f'Mapping track { self._track.name } volume to CC { self._my_cc(self._base_volume_cc) } on MIDI channel { self._midichannel }')
+        self.debug(3,f'Mapping track { self._track.name } volume to CC { self._my_cc(self._base_volume_cc) } on MIDI channel { self._midichannel }')
         Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.volume, self._midichannel-1, self._my_cc(self._base_volume_cc), map_mode, not needs_takeover)
         if self._base_cue_volume_cc != None:  # master track only
-            self.debug(4,f'Mapping track { self._track.name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
+            self.debug(3,f'Mapping track { self._track.name } cue volume to CC { self._my_cc(self._base_cue_volume_cc) } on MIDI channel { self._midichannel }')
             Live.MidiMap.map_midi_cc(midi_map_handle, track.mixer_device.cue_volume, self._midichannel-1, self._my_cc(self._base_cue_volume_cc), map_mode, not needs_takeover)
         # map sends (if present): send i for this track is mapped to
         # cc = base_send_cc (for this track) + i * NO_OF_TRACKS
@@ -299,7 +301,7 @@ class GenericTrackController(ElectraOneBase):
             sends = track.mixer_device.sends[:MAX_NO_OF_SENDS] # never map more than MAX_NO_OF_SENDS
             cc_no = self._my_cc(self._base_sends_cc)
             for send in sends:
-                self.debug(4,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
+                self.debug(3,f'Mapping send to CC { cc_no } on MIDI channel { MIDI_SENDS_CHANNEL }')
                 Live.MidiMap.map_midi_cc(midi_map_handle, send, MIDI_SENDS_CHANNEL-1, cc_no, map_mode, not needs_takeover)
                 cc_no += NO_OF_TRACKS
         # map ChannelEq (if present)

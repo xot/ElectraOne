@@ -91,6 +91,14 @@ SWITCH_TO_EFFECT_IMMEDIATELY = True
 # controls on the E1 whose string values need to be provided by Abelton
 EFFECT_REFRESH_PERIOD = 2
 
+# Length of time (in 100ms increments) between successive refreshes of
+# session clips on the E1 mixer (E1_DAW only)
+MIXER_CLIPS_REFRESH_PERIOD = 20
+
+# Length of time (in 100ms increments) between successive refreshes of
+# the visible tracks on the E1 mixer
+MIXER_TRACKS_REFRESH_PERIOD = 20
+
 # E1 preset slot where the preset controlling the currently selected device
 # is stored. Specified by bank index (0..5) followed by preset index (0.11)
 EFFECT_PRESET_SLOT = (5,1)

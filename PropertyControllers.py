@@ -32,7 +32,7 @@ class PropertyControllers(ElectraOneBase):
     def disconnect(self):
         """Disconnect; remove listeners registered for all properties.
         """
-        self.debug(3,'Deregistering property controllers.')
+        self.debug(2,'Deregistering property controllers.')
         for property in self._LISTENERS:
             (context,listener) = self._LISTENERS[property]
             if context != None:
@@ -50,7 +50,7 @@ class PropertyControllers(ElectraOneBase):
         - listener: listens to property changs and sends CC updates; function (lambda : x)
         """
         if cc_no != None:
-            self.debug(3,f'Adding property {property}.')
+            self.debug(2,f'Adding property {property}.')
             # add a cc handler for this property
             if handler != None:
                 self._CC_HANDLERS[(midi_channel,cc_no)] = handler
@@ -70,7 +70,7 @@ class PropertyControllers(ElectraOneBase):
 
     def _on_off_property_listener(self,context,property,reverse,midi_channel,cc_no):
         value = 127 * (reverse ^ getattr(context,property)) # True = 127; False = 0
-        self.debug(3,f'{property} changed. Sending value {value}.')
+        self.debug(4,f'{property} changed. Sending value {value}.')
         self.send_midi_cc7(midi_channel, cc_no, value)
 
     def add_on_off_property(self,context,property,midi_channel,cc_no,reverse=False):
@@ -150,9 +150,9 @@ class PropertyControllers(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(3,'Building property controllers MIDI map.')
+        self.debug(2,'Building property controllers MIDI map.')
         # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(4,f'PropertyControllers: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
+            self.debug(3,f'PropertyControllers: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         

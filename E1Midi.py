@@ -24,6 +24,7 @@ E1_SYSEX_PRESET_CHANGED = (0x7E, 0x02)  # followed by bank-number slot-number
 E1_SYSEX_ACK = (0x7E, 0x01) # followed by two zero's (reserved) 
 E1_SYSEX_NACK = (0x7E, 0x00) # followed by two zero's (reserved)
 E1_SYSEX_REQUEST_RESPONSE = (0x01, 0x7F) # followed by json data 
+E1_SYSEX_PRESET_LIST_CHANGE = (0x7E, 0x05)
 
 # SysEx incomming command when the PATCH REQUEST button on the E1 has been pressed 
 # (User-defined in effect patch LUA script, see DEFAULT_LUASCRIPT in EffectController.py)

@@ -431,12 +431,12 @@ Finally, the file `default.lua` contains the default LUA scripting all effect pr
 
 The remote script outputs various debug messages, with different 'importance' levels:
 
-0. initialisations
-1. main E1 events (except ones that happen frequently)
-2. main subclass events
-3. external events
+0. initialisations and main E1 events (except ones that happen frequently)
+1. main appointment, upload, mixer and effect controller events
+2. main subclass events; adding/removing listeners
+3. external events; detailed midi mapping / refresh events
 4. sending values; handling acks queue
-5. actual midi messages
+5. E1 log messages; actual midi messages
 6. display updates; detailed MIDI messages
 7. device naming
 

@@ -17,6 +17,7 @@ from .config import *
 from .ElectraOneBase import ElectraOneBase
 from .PropertyControllers import PropertyControllers
 
+# List of scale_name names
 SCALES = ['Major', 'Minor', 'Dorian', 'Mixolydian' ,'Lydian' ,'Phrygian' ,'Locrian', 'Whole Tone', 'Half-whole Dim.', 'Whole-half Dim.', 'Minor Blues', 'Minor Pentatonic', 'Major Pentatonic', 'Harmonic Minor', 'Harmonic Major', 'Dorian #4', 'Phrygian Dominant', 'Melodic Minor', 'Lydian Augmented', 'Lydian Dominant', 'Super Locrian', 'Bhairav', 'Hungarian Minor', '8-Tone Spanish', 'Hirajoshi', 'In-Sen', 'Iwato', 'Kumoi', 'Pelog Selisir', 'Pelog Tembung', 'Messaien 3', 'Messaien 4', 'Messaien 5', 'Messaien 6', 'Messaien 7']    
 
 class TransportController(PropertyControllers):
@@ -56,14 +57,15 @@ class TransportController(PropertyControllers):
             self.add_property(self.song(),'loop_length',MIDI_MASTER_CHANNEL,LOOP_LENGTH_CC,self._handle_loop_length,self._on_loop_length_changed)        
             self.add_property(self.song(),'undo',MIDI_MASTER_CHANNEL,UNDO_CC,self._handle_undo,None)        
             self.add_property(self.song(),'redo',MIDI_MASTER_CHANNEL,REDO_CC,self._handle_redo,None)        
-        self.debug(0,'TransportController loaded.')
+        self.debug(0,'TransportController initialised.')
 
     # --- initialise values ---
 
     # refresh_state() and disconnect() inherited from PropertyControllers
 
-    def update_display(self):
+    def update_display(self,tick):
         """ Called every 100 ms. 
+           - tick: number of 100ms ticks since start (mod 1000)
         """
         pass
         

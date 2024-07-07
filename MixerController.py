@@ -45,8 +45,6 @@ class MixerController(ElectraOneBase):
         self._first_track_index = 0
         # list of currently visible torcs (tracks or chains), by name
         self._visible_torcs_by_name = []
-        # counter to (see _check_visible_torcs_change)
-        self._visible_torcs_check_counter = 0
         # initialise session control first clip row
         # (passed to track controllers later)
         self._first_row_index = 0
@@ -56,7 +54,7 @@ class MixerController(ElectraOneBase):
         # init MIDI handlers
         self._init_cc_handlers()
         self._add_listeners()
-        self.debug(0,'MixerController loaded.')
+        self.debug(0,'MixerController initialised.')
 
     # --- helper functions ---
 
@@ -86,17 +84,12 @@ class MixerController(ElectraOneBase):
            since the last check; called by update_display.
            If so, update/remap the mixer.
         """
-        if self._visible_torcs_check_counter < 0:
-            self.debug(5,'Checking visible tracks/chains change.')
-            # test if visible torcs have changed
-            visible_torcs = self.get_visible_torcs()
-            current_visible_torcs_by_name = [torc.name for torc in visible_torcs]
-            if self._visible_torcs_by_name != current_visible_torcs_by_name:
-                self.debug(5,'Visible tracks/chains change detected.')
-                self._handle_selected_tracks_change(visible_torcs)
-            self._visible_torcs_check_counter = 20 # do this every 2 seconds            
-        else:
-            self._visible_torcs_check_counter -= 1
+        self.debug(5,'Checking visible tracks/chains change.')
+        # test if visible torcs have changed
+        visible_torcs = self.get_visible_torcs()
+        current_visible_torcs_by_name = [torc.name for torc in visible_torcs]
+        if self._visible_torcs_by_name != current_visible_torcs_by_name:
+            self._handle_selected_tracks_change(visible_torcs)
             
     # --- interface ---
 
@@ -109,7 +102,7 @@ class MixerController(ElectraOneBase):
            added or deleted.)
         """
         if self._slot_is_visible():
-            self.debug(2,'MixCont refreshing state.')
+            self.debug(1,'MixCont refreshing state.')
             self.midi_burst_on()
             self._set_controls_visibility()
             self._transport_controller.refresh_state()
@@ -121,28 +114,31 @@ class MixerController(ElectraOneBase):
             for retrn in self._return_controllers:
                 retrn.refresh_state()
             self.midi_burst_off()
-            self.debug(2,'MixCont state refreshed.')
+            self.debug(1,'MixCont state refreshed.')
         else:
-            self.debug(2,'MixCont not refreshing state (mixer not visible).')
+            self.debug(1,'MixCont not refreshing state (mixer not visible).')
             
-    def update_display(self):
+    def update_display(self,tick):
         """Update the dispay (called every 100ms).
            Forwarded to the transport, master, return and track controllers.
+           - tick: number of 100ms ticks since start (mod 1000)
         """
         self.debug(6,'MixCont update display.')
-        self._check_visible_torcs_change()
+        if (tick % MIXER_TRACKS_REFRESH_PERIOD) == 0:
+            self._check_visible_torcs_change()
         # forward update request to children
-        self._transport_controller.update_display()
-        self._master_controller.update_display()
+        self._transport_controller.update_display(tick)
+        self._master_controller.update_display(tick)
         for retrn in self._return_controllers:
-            retrn.update_display()    
+            retrn.update_display(tick)    
         for track in self._track_controllers:
-            track.update_display()    
+            track.update_display(tick)    
         
     def disconnect(self):
         """Called right before we get disconnected from Live; cleanup
            Forwarded to the transport, master, return and track controllers.
         """
+        self.debug(1,'MixCont disconnecting.')
         self._remove_listeners()
         self._transport_controller.disconnect()        
         self._master_controller.disconnect()
@@ -154,7 +150,7 @@ class MixerController(ElectraOneBase):
     def select(self):
         """Select the mixer preset on the E1. (Warning: assumes E1 is ready)
         """
-        self.debug(2,'Select Mixer')
+        self.debug(1,'Select Mixer')
         self.activate_preset_slot(MIXER_PRESET_SLOT)
         
     # --- Listeners
@@ -214,6 +210,7 @@ class MixerController(ElectraOneBase):
            Updates MIDI mapping, listeners and the displayed values.
            - visible_torcs: list of visible tracks or chains; None if not yet computed
         """
+        self.debug(0,'Selected tracks change detected.')
         # make sure the first track index is still pointing to existing tracks
         self._first_track_index = self._validate_track_index(self._first_track_index)
         self._remap_tracks(visible_torcs)
@@ -241,7 +238,7 @@ class MixerController(ElectraOneBase):
             the Return tracks). Updates MIDI mapping, listeners and the
             displayed values.
         """
-        self.debug(2,'Tracks added or deleted.')
+        self.debug(0,'Tracks added or deleted.')
         # reconnect the return tracks (a return track may hev been added or deleted)
         self._remap_return_tracks()
         # make sure the first track index is still pointing to existing tracks
@@ -253,7 +250,7 @@ class MixerController(ElectraOneBase):
     def _refresh_clips(self):
         """Update the clip information in the session control page.
         """
-        self.debug(3,'Refreshing session control clip information .')
+        self.debug(2,'Refreshing session control clip information .')
         self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(self._track_controllers), 5, True)
         for tc in self._track_controllers:
             tc._first_row_index = self._first_row_index
@@ -378,9 +375,10 @@ class MixerController(ElectraOneBase):
            - midi_map_hanlde: MIDI map handle as passed to Ableton Live, to
                which MIDI mappings must be added.
         """
-        self.debug(2,'MixCont building mixer MIDI map.')
+        self.debug(1,'MixCont building mixer MIDI map.')
         # Map CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
+            self.debug(4,f'MixerController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         self._transport_controller.build_midi_map(script_handle,midi_map_handle)
         self._master_controller.build_midi_map(script_handle,midi_map_handle)
@@ -388,6 +386,6 @@ class MixerController(ElectraOneBase):
             retrn.build_midi_map(script_handle,midi_map_handle)
         for track in self._track_controllers:
             track.build_midi_map(script_handle,midi_map_handle)
-        self.debug(2,'MixCont mixer MIDI map built.')
+        self.debug(1,'MixCont mixer MIDI map built.')
 
 

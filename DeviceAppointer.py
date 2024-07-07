@@ -36,7 +36,7 @@ class DeviceAppointer(ElectraOneBase):
         self._selected_track = None
         # this triggers initial device appointment
         self._handle_selected_track_change()
-        self.debug(0,'DeviceAppointer loaded.')
+        self.debug(0,'DeviceAppointer initialised.')
         
     def _handle_selected_track_change(self):
         """Handle a track selection change: make the currently selected device
@@ -78,7 +78,7 @@ class DeviceAppointer(ElectraOneBase):
         if track:
             device = track.view.selected_device
             device_name = self.get_device_name(device)
-            self.debug(1,f'Device { device_name } selected. Now appoint it.')
+            self.debug(0,f'Device { device_name } selected. Now appoint it.')
             # TODO: when deleting track, device = None;
             # but apparently self.song().appointed_device is also None
             # because the device it pointed to is gone

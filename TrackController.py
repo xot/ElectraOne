@@ -61,7 +61,7 @@ class TrackController(GenericTrackController):
             self._base_device_selection_cc = DEVICE_SELECTION_CC
         # 
         self.add_listeners()
-        self.debug(0,'TrackController loaded.')
+        self.debug(0,f'TrackController for track {track.name} initialised.')
 
     def _refresh_clips(self):
         """Update the clip information in the session control page for this track.

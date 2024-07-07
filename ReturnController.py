@@ -54,7 +54,7 @@ class ReturnController(GenericTrackController):
             self._base_device_selection_cc = RM_DEVICE_SELECTION_CC
         #
         self.add_listeners()
-        self.debug(0,'ReturnController loaded.')
+        self.debug(0,f'ReturnController for return track {self._track.name} initialised.')
             
     def _refresh_track_name(self):
         """Change the track name displayed on the remote controller for

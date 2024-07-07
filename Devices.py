@@ -38,7 +38,7 @@ class Devices(ElectraOneBase):
            internally.
         """
         ElectraOneBase.__init__(self, c_instance)
-        self.debug(1,'Constructing DEVICES.')
+        self.debug(1,'Loading predefined presets.')
         # load default LUA script
         assert os.path.exists(self.luascriptfname()), f'Error: Default LUA script {self.luascriptfname()} does not exist.'
         self.debug(2,f'Loading default LUA script {self.luascriptfname()}.')
@@ -47,11 +47,14 @@ class Devices(ElectraOneBase):
         # Dictionary of device presets in preloaded to dump (see above for structure)
         self._DEVICES = {}
         assert os.path.exists(self.preloadedpath()), f'Error: Folder {self.preloadedpath()} does not exist.'
-        self.debug(2,f'Scanning {self.preloadedpath()} for devices.')
+        self.debug(2,f'Scanning {self.preloadedpath()} for presets.')
         preset_paths = self.preloadedpath().glob('*.epr')
         # process each preset path and store in DEVICES
+        count = 0
         for preset_path in preset_paths:
             self._process_preset(preset_path)
+            count += 1
+        self.debug(1,f'{count} presets predefined.')
 
     def _extract_version_from_name(self,device_versioned_name):
         """Extract the canonical device name and the version information from

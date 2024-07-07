@@ -212,7 +212,7 @@ However, official documentation from Ableton to program MIDI remote scripts is u
 
 The behaviour of the remote script can be changed by editing ```config.py```. Below the most basic configuration options are documented. More advanced configuration options are discussed [here](xx)
 
-- ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```0``` to create no log entries and to speed up the script.
+- ```DEBUG``` the amount of debugging information that is written to the log file. Larger values mean more logging. Set to ```-1``` to create no log entries and to speed up the script.
 - ```DETECT_E1``` controls whether to detect the E1 at startup, or not. Default is ```True```.
 - ```CONTROL_MODE``` whether the remote script controls both mixer and effect (```CONTROL_EITHER```), the mixer (```CONTROL_MIXER_ONLY```) or the effect only (```CONTROL_EFFECT_ONLY```).
 - ```USE_ABLETON_VALUES```. Whether to use the exact value strings Ableton generates for faders whose value cannot be easily computed by the E1 itself (like non-linear frequency and volume sliders). Default is ```True```.
@@ -220,6 +220,9 @@ The behaviour of the remote script can be changed by editing ```config.py```. Be
 - ```USE_PRELOAD_FEATURE```. Whether to use the preloaded presets feature (if supported). If false, the predefined presets in ```Devices.py``` are always used, overriding any (older) preloaded presets on the E1. Default is ```True```.
 - ```POSITION_FINE```. Whether to update the position with every sub_division  change, or only every beat. Default is `True`.
 - ```TIMEOUT_STRETCH``` Factor to stretch the timout when uploading presets or LUA scritps to compensate for slow working conditions. Default is 1.
+- `EFFECT_REFRESH_PERIOD` Length of time (in 100ms increments) between successive refreshes of controls on the E1 whose string values need to be provided by Abelton. Default: 2.
+- `MIXER_CLIPS_REFRESH_PERIOD` Length of time (in 100ms increments) between successive refreshes of session clips on the E1 mixer (E1_DAW only). Defualt: 20.
+- `MIXER_TRACKS_REFRESH_PERIOD` Length of time (in 100ms increments) between successive refreshes of the visible tracks on the E1 mixer. Default: 20.
 
 
 If the sendmidi command cannot be found or fails, the remote script falls back to normal (slow) sending of presets through Live itself.

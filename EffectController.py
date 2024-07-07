@@ -53,8 +53,6 @@ class EffectController(ElectraOneBase):
         self._assigned_device_upload_delayed = True
         # record if device is locked
         self._assigned_device_locked = False
-        # count calls to update_display since last actual update
-        self._update_ticks = 0
         # listen to device appointment changes (the actual changes are
         # created by DeviceAppointer or by other remote scripts handling device
         # appointments)
@@ -96,34 +94,36 @@ class EffectController(ElectraOneBase):
            (to bring them in sync)
         """
         if self._assigned_device_is_visible():
-            self.debug(2,'EffCont refreshing state.')
+            self.debug(1,'EffCont refreshing state.')
             self.midi_burst_on()
             self._assigned_device_controller.refresh_state()
             self.midi_burst_off()
-            self.debug(2,'EffCont state refreshed.')
+            self.debug(1,'EffCont state refreshed.')
         else:
-            self.debug(2,'EffCont not refreshing state (no effect selected or visible).')
+            self.debug(1,'EffCont not refreshing state (no effect selected or visible).')
             
-    def update_display(self):
+    def update_display(self,tick):
         """Called every 100 ms; used to update values of controls whose
            string representation needs to be sent by Ableton.
            Also used to upload a pending preset.
+           - tick: number of 100ms ticks since start (mod 1000)
         """
         self.debug(6,'EffCont update display; checkig upload status.')
         # Upload the assigned device preset if possible and needed
         if not self._assigned_device_is_uploaded():
             if self.is_ready() and self._slot_is_visible():
+                self.debug(1,'Delayed device upload detected.')
                 self._upload_assigned_device()
         # Update the display after the refresh period
-        if self._assigned_device_is_visible() and (self._update_ticks == 0):
+        if self._assigned_device_is_visible() and ((tick % EFFECT_REFRESH_PERIOD) == 0):
             self.debug(6,'EffCont updating display.')
             self._assigned_device_controller.update_display()
             self.debug(6,'EffCont display updated.')
-        self._update_ticks = (self._update_ticks + 1) % EFFECT_REFRESH_PERIOD 
 
     def disconnect(self):
         """Called right before we get disconnected from Live
         """
+        self.debug(1,'EffCont disconnecting.')
         self.remove_preset_from_slot(EFFECT_PRESET_SLOT)
         self.song().remove_appointed_device_listener(self._handle_appointed_device_change)
 
@@ -131,7 +131,7 @@ class EffectController(ElectraOneBase):
         """Select the effect preset and upload the currently assigned device
            if necessary. (Warning: assumes E1 is ready)
         """
-        self.debug(2,'Select Effect')
+        self.debug(1,'Select Effect')
         if not self._assigned_device_is_uploaded():
             # also rebuilds midi map and causes state refresh
             self._upload_assigned_device()
@@ -145,12 +145,12 @@ class EffectController(ElectraOneBase):
     def build_midi_map(self, midi_map_handle):
         """Build a MIDI map for the currently selected device    
         """
-        self.debug(2,'EffCont building effect MIDI map.')
+        self.debug(1,'EffCont building effect MIDI map.')
         # Check that a device is assigned and that assigned_device still exists.
         # (When it gets deleted, the reference to it becomes None.)
         if self._assigned_device_controller:
             self._assigned_device_controller.build_midi_map(midi_map_handle)
-        self.debug(2,'EffCont effect MIDI map built.')
+        self.debug(1,'EffCont effect MIDI map built.')
         
     # === Others ===
 
@@ -202,7 +202,7 @@ class EffectController(ElectraOneBase):
         # upload an empty preset if None (eg when track deleted and no device appointed)
         if device:
             (versioned_device_name,preset_info) = self._get_preset_info(device)
-            self.debug(2,f'Uploading device { versioned_device_name }.')
+            self.debug(1,f'Uploading device { versioned_device_name }.')
             cc_map = preset_info.get_cc_map()
             self._assigned_device_controller = GenericDeviceController(self._c_instance, device, cc_map)
             preset = preset_info.get_preset()
@@ -237,7 +237,7 @@ class EffectController(ElectraOneBase):
         else:
             # If this happens, update_display will regularly check whether
             # device currently assigned device still needs uploading.
-            self.debug(2,'Device upload delayed.')
+            self.debug(1,'Device upload delayed.')
             self._assigned_device_upload_delayed = True
 
     def _handle_appointed_device_change(self):
@@ -252,10 +252,10 @@ class EffectController(ElectraOneBase):
             # apparently triggers a device appointment of the same device,
             # this (luckily) triggers the required state refresh
             if device != self._assigned_device:
-                self.debug(1,f'Assignment of device {device_name} detected.')
+                self.debug(0,f'Assignment of device {device_name} detected.')
                 self._assign_device(device)
             else:
-                self.debug(1,f'Appointed device {device_name} already assigned.')
+                self.debug(0,f'Appointed device {device_name} already assigned.')
         else:
-            self.debug(1,f'Device appointment of {device_name} ignored because device locked.')
+            self.debug(0,f'Device appointment of {device_name} ignored because device locked.')
             

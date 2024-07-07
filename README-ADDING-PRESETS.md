@@ -10,7 +10,7 @@ There is nothing specific about the design of the mixer apart from the MIDI chan
 
 As an example, an alternative mixer design [is included](https://app.electra.one/preset/m6YGx6rIQMQHTXB6VMFw) in the distribution that shows the transport controls on all pages, at the cost of removing one return track and removing the rumble/high-pass toggle from the channel eq page. See ```Mixer.alt.eproj```. To use it, copy ```config_mixer_alt.py``` to ```config.py```.
 
-
+(Note: this alternative mixer design uses features only supported on the E1 mkII for the tempo and position controls.)
 
 ## Changing predefined device presets
 

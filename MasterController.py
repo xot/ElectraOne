@@ -44,7 +44,7 @@ class MasterController(GenericTrackController):
         self._base_device_selection_cc = MASTER_DEVICE_SELECTION_CC
         #
         self.add_listeners()
-        self.debug(0,'MasterController loaded.')
+        self.debug(0,'MasterController initialised.')
             
     def _my_cc(self,base_cc):
         """Return the actual MIDI CC number for this instance of a control,

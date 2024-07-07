@@ -308,7 +308,7 @@ class ElectraOneBase(Log):
             # TODO: fixme
             ElectraOneBase.E1_DAW = \
                (str(ElectraOneBase.REMOTE_SCRIPT_PATH) == '/Users/jhh/Music/Ableton/User Library/Remote Scripts/ElectraOneMixer')
-            self.debug(0,f'E1_DAW = {ElectraOneBase.E1_DAW} ({ElectraOneBase.REMOTE_SCRIPT_PATH})')
+            self.debug(1,f'E1_DAW = {ElectraOneBase.E1_DAW} ({ElectraOneBase.REMOTE_SCRIPT_PATH})')
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
@@ -370,7 +370,7 @@ class ElectraOneBase(Log):
             self.debug(2,f'Failed to parse hardware version string { hw_versionstr }.')
             hw_version = (0,0)
         self._configure_for_version(sw_version,hw_version)
-        self.debug(2,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.') 
+        self.debug(1,f'E1 firmware version: {sw_version}, hardware version: { hw_version }.') 
        
     # --- Fast MIDI sysex upload handling
 
@@ -868,7 +868,7 @@ class ElectraOneBase(Log):
         """
         # Set the logging port
         if E1_LOGGING >= 0 :
-            self.debug(1,'Enable logging.')
+            self.debug(1,'Enable logging on the E1.')
             # see https://docs.electra.one/developers/midiimplementation.html#set-the-midi-port-for-logger
             sysex_command = (0x14, 0x7D)
             sysex_port = (E1_LOGGING_PORT, 0x00)
@@ -876,7 +876,7 @@ class ElectraOneBase(Log):
             self._increment_acks_pending()
             self._send_midi_sysex(sysex_command, sysex_port)
         else:
-            self.debug(1,'Disable logging.')
+            self.debug(1,'Disable logging on the E1.')
         # Enable/disable logging
         # see https://docs.electra.one/developers/midiimplementation.html#logger-enable-disable
         sysex_command = (0x7F, 0x7D)
@@ -944,7 +944,7 @@ class ElectraOneBase(Log):
            - slot: slot to upload to; (bank: 0..5, preset: 0..1)
            - preset_name: name of the preset to load; str
         """
-        self.debug(4,f'Loading preloaded preset for {preset_name} into slot {slot}.')
+        self.debug(3,f'Loading preloaded preset for {preset_name} into slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -960,7 +960,7 @@ class ElectraOneBase(Log):
         """Select a slot on the E1 but do not activate the preset already there.
            - slot: slot to select; tuple of ints (bank: 0..5, preset: 0..1)
         """
-        self.debug(4,f'Selecting slot {slot}.')
+        self.debug(3,f'Selecting slot {slot}.')
         (bankidx, presetidx) = slot
         assert bankidx in range(6), f'Bank index {bankidx} out of range.'
         assert presetidx in range(12), f'Preset index {presetifx} out of range.'
@@ -979,7 +979,7 @@ class ElectraOneBase(Log):
            the E1 (use __select_slot_only to select the desired slot)
            - luascript: LUA script to upload; str
         """
-        self.debug(4,f'Uploading LUA script:\n{luascript}.')
+        self.debug(3,f'Uploading LUA script:\n{luascript}.')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-lua-script        
         sysex_command = (0x01, 0x0C)
         sysex_script = self._ascii_bytes(luascript)
@@ -992,7 +992,7 @@ class ElectraOneBase(Log):
            the E1 (use __select_slot_only to select the desired slot)
            - preset: preset to upload; str (JASON, .epr format)
         """
-        self.debug(4,f'Uploading preset (size {len(preset)} bytes).')
+        self.debug(3,f'Uploading preset (size {len(preset)} bytes).')
         # see https://docs.electra.one/developers/midiimplementation.html#upload-a-preset
         sysex_command = (0x01, 0x01)
         sysex_preset = self._ascii_bytes(preset)
@@ -1016,7 +1016,7 @@ class ElectraOneBase(Log):
         """
         # should anything happen inside this thread, make sure we write to debug
         try:
-            self.debug(2,'Upload thread starting...')
+            self.debug(2,'Upload thread started...')
             # consume any stray pending ACKs or NACKs from previous commands
             # to clear the pending acks queue
             self.__clear_acks_queue()
@@ -1032,7 +1032,7 @@ class ElectraOneBase(Log):
                 ElectraOneBase.current_visible_slot = slot
                 ElectraOneBase.preset_upload_successful = True
             else:
-                self.debug(2,'Loading preloaded preset failed; revert to upload.')
+                self.debug(3,'Loading preloaded preset failed; revert to upload.')
                 # preloading failed: upload instead
                 # first select slot and wait for ACK
                 self.__select_slot_only(slot)

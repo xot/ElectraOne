@@ -62,11 +62,11 @@ class GenericDeviceController(ElectraOneBase):
                     map_mode = Live.MidiMap.MapMode.absolute
                 cc_no = ccinfo.get_cc_no()
                 midi_channel = ccinfo.get_midi_channel()
-                self.debug(4,f'Mapping { p.original_name } ({p.name}) to CC { cc_no } on MIDI channel { midi_channel }')
+                self.debug(3,f'Mapping { p.original_name } ({p.name}) to CC { cc_no } on MIDI channel { midi_channel }')
                 # Ableton internally numbers MIDI channels 0..15
                 Live.MidiMap.map_midi_cc(midi_map_handle, p, midi_channel-1, cc_no, map_mode, not needs_takeover)
             else:
-                self.debug(5,f'{ p.original_name } ({p.name}) not mapped.')
+                self.debug(3,f'{ p.original_name } ({p.name}) not mapped.')
 
     def _refresh_parameter(self, p, ccinfo, force):
         """Update the displayed values for a single control on the E1. If force,
@@ -92,7 +92,7 @@ class GenericDeviceController(ElectraOneBase):
                (control_tuple not in self._values) or \
                (self._values[control_tuple] != pstr):
                 self._values[control_tuple] = pstr
-                self.debug(5,f'Value of {p.original_name} ({p.name}) (of parameter {id(p)}) updated to {pstr}.')
+                self.debug(4,f'Value of {p.original_name} ({p.name}) (of parameter {id(p)}) updated to {pstr}.')
                 self.send_value_update(control_id,value_id,pstr)
         
     def _refresh(self,full_refresh):
