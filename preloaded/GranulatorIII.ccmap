@@ -95,7 +95,7 @@
 ,'Slide > Spread': ((-1, 0),11,False,100)
 ,'Slide > Var': ((-1, 0),11,False,101)
 ,'Slide > Vol': ((-1, 0),13,True,0)
-,'Spread': ((-1, 0),13,True,1)
+,'Spread': ((104, 0),13,True,1)
 ,'Transpose': ((-1, 0),11,False,102)
 ,'Variation': ((-1, 0),13,True,2)
 ,'Vel > Flt Freq': ((-1, 0),11,False,103)
