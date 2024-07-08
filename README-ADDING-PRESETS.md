@@ -78,6 +78,76 @@ Note that in order to distinguish names for presets for racks themselves from th
 
 To include presets for specific versions of Live, append the version number to the devicename. E.g. ```MidiRandom.12.epr``` would be used for all version of Live equal or above version 12. And, say ```Echo.11.3.10``` would be used for all version of Live equal or above version 11.3.10.
 
+### Tips and tricks
+
+For consistency, all predefined presets use the same colour and control for the same type of parameter. These are documented in [this preset in the web editor](https://app.electra.one/preset/uygbxDtRbf2G6Kd54xXX).
+
+In Ableton, the visibility (or type) of certain parameters may depend on the value of other parameters in the device. This can be emulated in a preset for such a device with some LUA programming. The following examples come from the [Echo preset](https://app.electra.one/preset/CJMvgH9pfNCBqKIe3Amg).
+
+The LFO modulation settings are good example for a simple scenario, where the setting of one parameter determines which of a set of other controls for other paramters (in this case two controls) needs to be shown in the same slot. Echo defines a `Mod Sync` parameter telling Echo whether to speed of the LFO should run in sync with the current tempo (controlled by the `Mod Rate` parameter) or should run at a particular frequency (controlled by the `Mod Freq` parameter). If `Mod Sync` is true, the `Mod Rate` parameter control should be shown. Otherwise the `Mod Freq` parameter control should be shown.
+
+The preset editor allows one to provide a callback [function](https://docs.electra.one/developers/presetformat.html#function) for a control, that will be called whenever the value of that control changes (either by turning the pot on the E1, or because of an incoming MIDI message). The name of this callback function can be set in the left settings pane for the control on the webeditor. The name should refer to a function defined in the LUA section of the preset. This function should accept two parameters: `valueObject` (the control id of the object triggering the function) and `value`
+(containing its new value).
+
+In the case of Echo, the value of this function for the `Mod Sync` control is set to `modsync` (see the figure).
+
+![Callback function](./images/echo-function.png "Callback function")
+
+And the corresponding function is defined as
+```
+function modsync(valueObject, value)
+    modfreq:setVisible(value == 0)
+    modrate:setVisible(value ~= 0)
+end
+```
+
+The LUA function `control:setVisible(v)` changes the visibility of `control` depending on the (boolean, true or false) value of `v`. In the example above `v` is an expression: `value == 0` (returning true if `value` equals 0) and `value ~= 0` (returning true if `value` does not equal 0).
+
+`control` should refer to a internal LUA representation of the control shown by the E1. This representation can be obtained using the `controls.get(index)` function, provided one knows the control index of the control. This index is visible in the web editor when selecting the control. (See the figure for the control index of the `Mod Freq` control.)
+
+![Control index](./images/echo-mod-freq.png "Control index")
+
+In case of the Echo preset, the following LUA code obtains the necessary references:
+```
+modrate = controls.get(32)
+modfreq = controls.get(30)
+```
+The only thing that remains to be done is to ensure that both controls are shown in the same slot. The web editor does not allow us to create presets that have more than one control in a slot, but the E1 firmware does allow for this. In the case of Echo the `Mod Freq` control is shown in the correct slot (slot 7 on page 2), but the `Mod Sync` control is shown on page 7 in the preset (this page is marked as invisible). To move this control to the correct slot, the following LUA code is executed:
+```
+modrate:setSlot(7,2)
+```
+
+For more complex scenarios where the visibility of a control depends on more than one parameter, a different approach should be used. For each such parameter controlling visibility, define a variable in LUA that follows the value of that parameter. For example, the Echo preset defines the state variable
+```
+islinked = false
+```
+to follow the state of the `Link` parameter in Echo (that controls whether the right channel settings should follow the left channel settings). 
+
+Next define a callback function for that parameter that updates the value of this state variable, and assign its name to the parameter control in the web editor. Echo defines
+```
+function lrlink(valueObject, value)
+    islinked = (value ~= 0)
+    setvisibility()
+end
+```
+and assigns its name to the `Link` callback function.
+
+After updating `islinked` this function calls `setvisibility`. This is defined elsewhere as follows.
+```
+function setvisibility()
+    ltime:setVisible(not islsync)
+    l16th:setVisible(islsync and isl16th)
+    ldiv:setVisible(islsync and not isl16th)
+    rtime:setVisible(not islinked and not isrsync)
+    r16th:setVisible(not islinked and (isrsync and isr16th))
+    rdiv:setVisible(not islinked and (isrsync and not isr16th))
+    rs:setVisible(not islinked)
+    rm:setVisible((not islinked) and isrsync)
+    lm:setVisible(islsync)    
+end
+```
+It sets the visibility of a several controls (like the different left and/or right tempo controls) depending on the values of several state variables, including `islinked`.
+
 
 ## Preloaded presets
 
