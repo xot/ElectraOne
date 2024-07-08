@@ -32,15 +32,15 @@ class GenericTrackController(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         # actual initialisations to be provided by derived classes;
-        # None indicates a fearture is not present.
+        # None indicates a feature is not present.
         self._track = None
-        # device selector index of this track
+        # index of the device selector on the E1 for this track
         # 0..NO_OF_TRACKS-1 for tracks, NO_OF_TRACKS..NO_OF_TRACKS+MAX_NO_OF_SENDS-1 for sends
         # NO_OF_TRACKS+MAX_NO_OF_SENDS for master
         self._devsel_idx = None
         # current list of selectable devices, favourites first
         self._devices = None
-        # session control first clip row  (only for tracks)
+        # index of the row for the first clip in the session control page (only for tracks)
         self._first_row_index = None
         # EQ device info
         self._eq_device = None
@@ -58,7 +58,7 @@ class GenericTrackController(ElectraOneBase):
         self._base_solo_cue_cc = None # if None, not present (i.e. all non audio/midi tracks)
         # device selection CC numbers
         self._base_device_selection_cc = None # if None, not present.
-        # set up property controllers for the buttons
+        # set up empty property controllers for the buttons
         # (actual controllers set up in add_listeners)
         self._property_controllers = PropertyControllers(c_instance)
         self.debug(1,'GenericTrackController loaded.')
@@ -76,7 +76,7 @@ class GenericTrackController(ElectraOneBase):
         pass
 
     def _my_channel_eq(self, eq_device_name):
-        """ Get a reference to the Channel EQ device (or similar; determined
+        """ Get a reference to the last Channel EQ device (or similar; determined
             by the value of eq_device_name) on this track, if present.
             None if not found.
             - eq_device_name: ; str
@@ -172,7 +172,7 @@ class GenericTrackController(ElectraOneBase):
         track = self._track
         self._refresh_track_name()
         self._update_devices_info()
-        # update the selector on the E1
+        # update the device selector on the E1
         if self._base_device_selection_cc != None:
             devicenames = [d.name for d in self._devices]
             self.update_device_selector_for(self._devsel_idx,devicenames)
