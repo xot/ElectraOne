@@ -392,8 +392,10 @@ The remote script package defines the following classes, shown hierarchically ba
 - `ElectraOne`: Main remote control script class for the Electra One.
   - `MixerController`: Electra One track, transport, returns and mixer control. Also initialises and manages the E1 mixer preset.
 	- `TransportController`: Manage the transport (play/stop, record, rewind, forward).
+	  - `PropertyControllers`: Generic class to manage properties like the  play/stop button on the transport.
 	- `MasterController`: Manage the master track.
 	  - `GenericTrackController`: Generic class to manage a track. To be subclassed to handle normal tracks, return tracks and the master track.
+	    - `PropertyControllers`: Generic class to manage properties like the arm button on a track.
 	- `ReturnController`: Manage a return track. One instance for each return track present. (At most six).
       - `GenericTrackController` (see above).
 	- `TrackController`: Manage an audio or midi track. At most five instances, one for each track present.
@@ -406,7 +408,7 @@ The remote script package defines the following classes, shown hierarchically ba
 Only one instance of the `TransportController`, `MixerController` and
 `EffectController` are created. For each track (audio/midi, return, or master) an instance of the `GenericTrackController` is created. For each assigned device a new instance of the `GenericDeviceController` is created. These instances are responsible for refreshing the state, listening to relevant parameter changes, mapping the MIDI, processing relevant incoming MIDI messages, for the controller on the E1 it is created for.
 
-It also defines the following other, generic, classes:
+The remote script also defines the following other, generic, classes:
 
 - `Log`: Defines logging and debug functions.
 - `ElectraOneBase`: Common base class for most of the other classes with common functions: debugging, sending MIDI. (Interfaces with Live through `c_instance`). 
@@ -645,7 +647,7 @@ The `GenericTrackController` expects the subclass to define a method `_my_cc` th
 Proper device parameters (sliders and sends) are mapped directly to their associated MIDI `cc_no` on a specific channel (see `build_midi_map`) using `Live.MidiMap.map_midi_cc`. From then on value updates from AND to the E1 are handled automatically. The only thing to do is call `refresh_state()` once (to send the values currently held by the device parameters are sent to the E1 to
 bring them in sync. 
 
-The `GenericTrackController` uses `PropertyControllers` to create and manage the handlers (processing incoming CC messages) and listeners (sending the right outgoing CC messages) for the arm, solo, mute buttons.
+The `GenericTrackController` and the `TransportController` use `PropertyControllers` to create and manage the handlers (processing incoming CC messages) and listeners (sending the right outgoing CC messages when property values change) for any buttons (like the arm, solo, mute buttons) or lists (like the available devices) on the track or in the transport.
 
 ### The EQ device
 

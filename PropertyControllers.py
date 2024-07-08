@@ -25,8 +25,12 @@ class PropertyControllers(ElectraOneBase):
         """
         ElectraOneBase.__init__(self, c_instance)
         # create empty dictionary of listeners (indexed by property names)
-        # and handlers (indexed by (channel,cc) tuples) 
+        # used to send value updated as MIDI CC messages when a property
+        # cahgnes value, or when refresh_state() is called
         self._LISTENERS = {}
+        # create empty dictionary of handlers (indexed by (channel,cc) tuples)
+        # used to handle incoming MIDI CC messages that control a property
+        # (see process_midi() and build_midi_map()
         self._CC_HANDLERS = {}
 
     def disconnect(self):
@@ -80,7 +84,7 @@ class PropertyControllers(ElectraOneBase):
         - property: name of on/off property; string
         - MIDI_channel: MIDI channel; int
         - cc_no: CC parameter number; int (nothing added if None)
-        - reverse: whether to reverse the value/stte; boolean
+        - reverse: whether to reverse the value/state; boolean
         """
         handler = (lambda value: self._handle_on_off_property(context,property,reverse,value))
         listener = (lambda : self._on_off_property_listener(context,property,reverse,midi_channel,cc_no))
@@ -96,7 +100,7 @@ class PropertyControllers(ElectraOneBase):
 
 
     def _list_property_listener(self,context,property,translation,midi_channel,cc_no):
-        value = getattr(context,property) # True = 127; False = 0
+        value = getattr(context,property) 
         if translation != None:
             value = translation.index(value)
         self.debug(3,f'{property} changed. Sending value {value}.')
@@ -109,7 +113,7 @@ class PropertyControllers(ElectraOneBase):
         - property: name of list property; string
         - midi_channel: MIDI channel; int
         - cc_no: CC parameter number; int (nothing added if None)
-        - translation: optional translation; list
+        - translation: optional translation from MIDI CC values to property values; list
         """
         handler = (lambda value: self._handle_list_property(context,property,translation,value))
         listener = (lambda : self._list_property_listener(context,property,translation,midi_channel,cc_no))
@@ -151,7 +155,7 @@ class PropertyControllers(ElectraOneBase):
                which MIDI mappings must be added.
         """
         self.debug(2,'Building property controllers MIDI map.')
-        # Map CCs to be forwarded as defined in MIXER_CC_HANDLERS
+        # Map CCs to be forwarded as defined in self._CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
             self.debug(3,f'PropertyControllers: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
