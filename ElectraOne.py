@@ -17,7 +17,7 @@ import time
 import sys
 
 # Local imports
-from .E1Midi import parse_cc, is_cc, parse_E1_sysex, is_E1_sysex, hexify, E1_SYSEX_LOGMESSAGE, E1_SYSEX_PRESET_CHANGED, E1_SYSEX_ACK, E1_SYSEX_NACK, E1_SYSEX_REQUEST_RESPONSE, E1_SYSEX_PATCH_REQUEST_PRESSED 
+from .E1Midi import parse_cc, is_cc, parse_E1_sysex, is_E1_sysex, hexify, E1_SYSEX_LOGMESSAGE, E1_SYSEX_PRESET_CHANGED, E1_SYSEX_ACK, E1_SYSEX_NACK, E1_SYSEX_REQUEST_RESPONSE, E1_SYSEX_PATCH_REQUEST_PRESSED, E1_SYSEX_PRESET_LIST_CHANGE 
 from .ElectraOneBase import ElectraOneBase, ACK_RECEIVED, NACK_RECEIVED
 from .EffectController import EffectController
 from .MixerController import MixerController
