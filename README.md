@@ -141,19 +141,8 @@ If all goes well, a patch for the appointed device (indicated by the 'Blue Hand'
 
 Enjoy!
 
-### Using a second E1 to control the mixer
 
-If you happen to own *two* E1s, then you can use the second one to control the mixer exclusively, while the first controls the currently selected device. 
-
-Proceed as follows.
-
-1. Connect both E1s to your computer, and make sure that both devices have separate names, e.g. `Electra Controller A`  and `Electra Controller B` (on the Mac, use ```Audio MIDI Setup``` for this).
-2. Create a separate folder `ElectraOneMixer` in your local Ableton MIDI Live Scripts folder (see [installation instructions](#Installation) above), and copy all `.py` files in the `ElectraOne` folder to this new folder.
-3. In Ableton, set up the remote script twice. Once using `ElectraOne` with input port and the output port ```Electra Controller A```, and using `ElectraOneMixer` with input port and the output port ```Electra Controller  B``` (if you used the names suggested in step 1). For all ports, tick the *Remote* boxes in the MIDI Ports table below, and untick the *Track* boxes.
-3. For `ElectraOne` set `CONTROL_MODE = CONTROL_EFFECT_ONLY` in `config.py`. If you use SendMIDI (see above), make sure that your correctly set `E1_PORT_NAME` e.g. `E1_PORT_NAME = 'Electra Controller A Electra Port 1'`.
-4. For `ElectraOneMixer` set `CONTROL_MODE = CONTROL_MIXER_ONLY` and `SENDMIDI_CMD = None` in `config.py`.
-5. Restart Ableton.
-
+You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/TIPS_AND_TRICKS.md).
 
 
 ### Log files
