@@ -118,9 +118,10 @@ Note the hyphen followed by the underscore! Also this is not guaranteed to work 
 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
-1. For *MacOS*: download the [ElectraOne.MacOS.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.MacOS.zip) zip file from the repository. Save it in your home directory. Double click it to extracts all files. This should create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` with all the necessary files.
 
-   For *Windows*: download the [ElectraOne.Windows.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.Windows.zip) zip file from the repository. Right click and select "Extract All..." from the drop down menu. Select your home directory as the destination (using "Browse...") and click "Extract". This should create ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` with all the necessary files.
+1. For *MacOS*: download the [ElectraOne.MacOS.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.MacOS.zip?raw=true) zip file from the repository. (When using Safari, [make sure that the zip file is not automatically unpacked](https://www.howtogeek.com/789559/how-to-stop-safari-from-automatically-unzipping-downloaded-files-on-mac/).) Save it in your home directory. Double click it to extracts all files. This should create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` with all the necessary files.
+
+   For *Windows*: download the [ElectraOne.Windows.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.Windows.zip?raw=true) zip file from the repository. (Right click and select "Extract All..." from the drop down menu. Select your home directory as the destination (using "Browse...") and click "Extract". This should create ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` with all the necessary files.
 
 2. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
 
