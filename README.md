@@ -118,22 +118,21 @@ Note the hyphen followed by the underscore! Also this is not guaranteed to work 
 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
+1. For *MacOS*: download the [ElectraOne.MacOS.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.MacOS.zip) zip file from the repository. Save it in your home directory. Double click it to extracts all files. This should create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` with all the necessary files.
 
-1. Create a new folder ```ElectraOne``` into your local Ableton MIDI Live Scripts folder: that is, create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` on MacOS and ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` on Windows (that folder may not exist initially, in that case create it manually). Note that ```~``` stands for your home folder (```/Users/<username>/``` on the Mac and ```C:\Users\<username>``` on recent Windows versions).
+   For *Windows*: download the [ElectraOne.Windows.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.Windows.zip) zip file from the repository. Right click and select "Extract All..." from the drop down menu. Select your home directory as the destination (using "Browse...") and click "Extract". This should create ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` with all the necessary files.
 
-2. Copy all files and subfolders and their contents that you find in the [ElectraOne remote script repository](https://github.com/xot/ElectraOne) to the ```ElectraOne``` folder you just created. The easiest is to download [the whole repository as a compressed zip file](https://github.com/xot/ElectraOne/archive/refs/heads/main.zip) and unpack on your computer (make sure to remove the ```ElectraOne-main``` root folder).
+2. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
 
-3. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
-
-4. *MacOS*: Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes. 
+3. For *MacOS*: Add E1 as a Control Surface in Live > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller (Electra Port 1)```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes. 
 
 ![Ableton Preferences](./images/ableton.png "Ableton Preferences")
 
-4. *Windows*: Add E1 as a Control Surface in Options > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes.
+   For *Windows*: Add E1 as a Control Surface in Options > Preferences > MIDI. Set the both the input port and the output port to ```Electra Controller```. For both, tick the *Remote* boxes in the MIDI Ports table below, untick the *Track* boxes.
 
-5. Upload the ```Mixer.eproj``` preset (included in the distribution) to the E1 to bank 6, slot 1.  See [above](https://github.com/xot/ElectraOne/blob/main/README.md#the-mixer).
+4. Upload the ```Mixer.eproj``` preset (included in the distribution) to the E1 to bank 6, slot 1.  See [above](https://github.com/xot/ElectraOne/blob/main/README.md#the-mixer).
 
-6. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
 
 7. Start Ableton.
 
