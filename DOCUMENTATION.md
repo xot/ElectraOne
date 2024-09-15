@@ -857,7 +857,9 @@ When sending a bunch of MIDI message to update the values of a complete mixer or
 - `zz()`: resume updating the display of the preset, and force a redraw now. 
 
 For complex Ableton parameters whose display function is hard to derive from the underlying MIDI value (e.g. exponential or logarithmic volume or frequency domains), the remote script uses the `str_for_value()` function that Ableton defines for each device parameter. (In fact, for a parameter `p` the standard `str(p)` call is equivalent to `p.str_for_value(p.value)`.)
-The resulting string is sent to the E1 by calling the LUA function `svu` defined in every effect preset. (See `ElectraOneBase.py` and `DEFAULT_LUASCRIPT` defined in `EffectController.py`. The preset must use `defaultFormatter` as the formatter function for such controls (to ensure that the E1 itself does not change the value). 
+The resulting string is sent to the E1 by calling the LUA function `svu` defined in every effect preset. (See `ElectraOneBase.py` and `DEFAULT_LUASCRIPT` defined in `EffectController.py`. The preset must use `defaultFormatter` as the formatter function for such controls (to ensure that the E1 itself does not change the value).[^df]
+
+[^df]: Yes, the name is a bit unfortunate, but changing it now is a bit too much  work (also to sync it with the electra.one online preset library).
 
 For device presets, the CC map tells the remote script which parameters need to be treated this way, see [here](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#device-preset-dumps).
 
@@ -865,6 +867,7 @@ For smoother operation, values for such complex Ableton parameters are not immed
 
 
 ### Device appointment
+
 
 
 (TBD)

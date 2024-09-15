@@ -128,9 +128,10 @@ class GenericTrackController(ElectraOneBase):
         if self._base_device_selection_cc != None:
             # get and store the list of devices
             devices = self.get_track_devices_flat(self._track)
-            # prioritse devices with names that start with #
-            self._devices = [d for d in devices if d.name[0] == '#'] + \
-                [d for d in devices if d.name[0] != '#'] 
+            # prioritse devices with names that start with ! or *
+            self._devices = [d for d in devices if d.name[0] == '!'] + \
+                [d for d in devices if d.name[0] == '*'] + \
+                [d for d in devices if d.name[0] != '*'] 
     
     def _handle_device_change(self):
         """Check whether the eq device for this track was changed/added/removed

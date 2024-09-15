@@ -13,6 +13,7 @@ import os
 import unicodedata
 
 # Local imports
+from .config import *
 from .ElectraOneBase import ElectraOneBase
 from .PresetInfo import PresetInfo
 from .CCInfo import CCMap
@@ -107,7 +108,7 @@ class Devices(ElectraOneBase):
         """Return the default LUA script, loaded from DEFAULT_LUA_SCRIPT_FILE
            or referring ot the one already preloaded on the E1
         """
-        if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED:
+        if ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED and USE_PRELOAD_FEATURE:
             # in this case we assume (!) the defualt.lua is preloaded on E1
             return 'require("xot/default")\n'
         else:

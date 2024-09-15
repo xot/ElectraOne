@@ -62,34 +62,48 @@ class DeviceAppointer(ElectraOneBase):
                 track.view.add_selected_device_listener(self._handle_selected_device_change)
                 # appoint device if needed
                 if APPOINT_ON_TRACK_CHANGE:
-                    self._handle_selected_device_change()
+                    # get and store the list of devices
+                    devices = self.get_track_devices_flat(track)
+                    preferred = [d for d in devices if d.name[0] == '!']
+                    if len(preferred) > 0:
+                        device = preferred[0]
+                    else:
+                        device = track.view.selected_device
+                    self._appoint_device(device)
                 else:
                     self.debug(2,'No device appointment when selected track changes.')
             else:
                 self.debug(2,f'Track { track.name } already selected. Ignoring.')
-            
+
+    def _appoint_device(self,device):
+        """Appoint the specified device
+           - device: device to appoint; Live.Device.Device (!= None)
+        """
+        device_name = self.get_device_name(device)
+        self.debug(0,f'Device { device_name } selected. Now appoint it.')
+        # TODO: when deleting track, device = None;
+        # but apparently self.song().appointed_device is also None
+        # because the device it pointed to is gone
+        #
+        # Q: how to trigger  _handle_appointed_device_change?
+        # (assigning None to self.song().appointed_device doesn't work
+        if (not device) or (self.song().appointed_device != device):
+            self.debug(1,f'\\ Set as appointed device (unappointed if None).')
+            # this will trigger the _handle_appointed_device_change
+            # listener registered by EffectController
+            self.song().appointed_device = device
+        else:
+            self.debug(1,f'\\ Appointed device not changed.')                
+                
     def _handle_selected_device_change(self):
         """Handle a device selection change: make the currently selected device
            appointed.
         """
-        # get selected device from currently selected track
+        # get currently selected track
         track = self.song().view.selected_track
         # song may not contain any tracks
         if track:
+            # get currently selected device from currently selected track
             device = track.view.selected_device
-            device_name = self.get_device_name(device)
-            self.debug(0,f'Device { device_name } selected. Now appoint it.')
-            # TODO: when deleting track, device = None;
-            # but apparently self.song().appointed_device is also None
-            # because the device it pointed to is gone
-            #
-            # Q: how to trigger  _handle_appointed_device_change?
-            # (assigning None to self.song().appointed_device doesn't work
-            if (not device) or (self.song().appointed_device != device):
-                self.debug(1,f'\\ Set as appointed device (unappointed if None).')
-                # this will trigger the _handle_appointed_device_change
-                # listener registered by EffectController
-                self.song().appointed_device = device
-            else:
-                self.debug(1,f'\\ Appointed device not changed.')                
+            self._appoint_device(device)
         

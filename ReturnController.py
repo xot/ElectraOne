@@ -44,7 +44,7 @@ class ReturnController(GenericTrackController):
         self._base_pan_cc = RETURNS_PAN_CC
         self._base_volume_cc = RETURNS_VOLUME_CC
         self._base_cue_volume_cc = None  # not present on a return track
-        self._base_sends_cc = None # not present on a return track
+        self._base_sends_cc = None # can be present but not supported on a return track
         # buttons
         self._base_mute_cc = RETURNS_MUTE_CC
         self._base_arm_cc = None # not present on a return track

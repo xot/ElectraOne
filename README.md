@@ -67,14 +67,13 @@ The preset is (up)loaded to the E1 to the second preset slot in bank 6 by defaul
 
 You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
 
+### Controlling device appointment when selecting tracks
 
-### Switching between device and mixer view
+By default, if you select a different track in Live, the appointed device changes to the currently selected device on the new track (and its preset is displayed to control it). If no device is selected, the empty device is appointed instead.
 
-You can use the normal way of switching between presets on the E1 via the MENU button. 
+If the selected track contains a device whose name starts with `!`, then this device (i.e. the first one on the track with such a special name) becomes appointed instead of the selected device.
 
-There is a faster way however (when ```CONTROL_MODE=CONTROL_EITHER```).
-Pressing the PRESET REQUEST button on the E1 (right column, top button) will
-alternate between the mixer and the appointed device preset.
+If you set `APPOINT_ON_TRACK_CHANGE` to `False`, changing tracks does not change the appointed device.
 
 ### Creating presets on the fly
 
@@ -114,6 +113,14 @@ To more easily control the parameters of AU and VST plugins in Ableton, you need
 
 Note the hyphen followed by the underscore! Also this is not guaranteed to work for all plugins; I've seen it work for AU plugins but not for VSTs on MacOS.
 
+## Switching between device and mixer view
+
+You can use the normal way of switching between presets on the E1 via the MENU button. 
+
+There is a faster way however (when ```CONTROL_MODE=CONTROL_EITHER```).
+Pressing the PRESET REQUEST button on the E1 (right column, top button) will
+alternate between the mixer and the appointed device preset.
+
 ## Installation
 
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
@@ -133,7 +140,7 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 4. Upload the ```Mixer.eproj``` preset (included in the distribution) to the E1 to bank 6, slot 1.  See [above](https://github.com/xot/ElectraOne/blob/main/README.md#the-mixer).
 
-5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option)]. This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option).) This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
 
 7. Start Ableton.
 
