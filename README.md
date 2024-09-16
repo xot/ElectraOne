@@ -13,11 +13,11 @@ The remote script comes with a default Ableton Live template (```Live template.a
 The remote script also comes with specially crafted predefined presets for most of the Ableton Live effects and instruments.
 
 
-(*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5*)
+(*Note: this is a beta release, but it should be relatively stable and usable by now. The current version works best with E1 firmware version 3.5 or higher*)
 
 ## The mixer
 
-The mixer preset controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, rewind, and forward.
+The mixer preset controls five consecutive session tracks parameters: pan, volume, mute, solo and arm. The 'prev tracks' and 'next tracks' buttons on the main page switch control to the previous five or next five tracks (never shifting left of the first or right of the last visible track). Inserted or removed tracks are automatically handled. The 'Main' mixer page also contains controls for the master pan, volume, cue volume, and solo switch. And it contains the following transport controls: play/stop, record, and dials to change the playing position and the tempo.
 
 ![Main](./images/main.png "Main")
 
@@ -30,7 +30,7 @@ The return track corresponding to each send can be managed using the controls on
 
 ![Returns](./images/returns.png "Returns")
 
-Finally a separate 'Channel EQs' page contains controls the parameters of an equaliser device (by defauklt the Channel EQ device), when present on an audio/midi track or the master track. (When more than one ChannelEq device is present, the last, rightmost ChannelEq device will be controlled.)
+Finally a separate 'Channel EQs' page contains controls the parameters of an equaliser device (by default the Channel EQ device), when present on an audio/midi track or the master track. (When more than one ChannelEq device is present on a track, the last, rightmost ChannelEq device will be controlled.)
 
 ![Channel EQs](./images/channeleqs.png "Channel EQs")
 
@@ -39,26 +39,25 @@ All controls on all pages are synced with the values of the parameters in Live t
 When fewer than 5 tracks and fewer than 6 return tracks are present in the Live set, the controls on track strips on the E1 for tracks that are not present in Live are hidden.
 
 
-The mixer preset is included in the distribution (```Mixer.eproj```), and is also [available in the online E1 preset library](https://app.electra.one/preset/CK3qbv7Vt43PN4LkBTy7). It should be uploaded to bank 6, slot 1 (see [the E1 documentation](https://docs.electra.one/account.html#preset-slots); search for ```Ableton Mixer``` in the the preset list on the right side of the page ). 
+The mixer preset is included in the distribution (```Mixer.eproj```), and is also [available in the online E1 preset library](https://app.electra.one/preset/CK3qbv7Vt43PN4LkBTy7). 
 
-*Please make sure to upload the latest version each time you upgrade the script.* 
+
+*Note: after installing the remote script (see below) you must also upload the mixer preset to bank 6, slot 1 (see [the E1 documentation](https://docs.electra.one/account.html#preset-slots); search for ```Ableton Mixer``` in the the preset list on the right side of the page ). The remote script does not do that automatically for you! Moreover, please make sure to upload the latest version of the mixer preset each time you upgrade the script.* 
 
 ## Controlling the currently appointed device
 
 The remote script also allows the E1 to control the currently selected device on the currently selected track in Live. This specific selected device is called the *appointed* device (and is indicated by Live using the 'Blue Hand').
 
-For this to work, the E1 needs to use a preset whose controls correspond to the parameters of the appointed device. The remote script then automatically maps these controls to the parameters.
-
 The remote script comes with predefined presets for many of Ableton Live's effects and instruments. (The layout and control information for these predefined devices is stored in ```Devices.py```.) The figure shows the preset for ```Delay```.
 
 Starting with firmware 3.4 on a modern E1 (the mkII, i.e hardware revision 3.0 or larger), these predefined devices can also be preloaded to the E1 for fast recall. See for [instructions below](https://github.com/xot/ElectraOne#installation).
 
-And if no preloaded or predefined presets for a device are found, the remote script can [construct one on the fly](https://github.com/xot/ElectraOne#creating-presets-on-the-fly).
+If no preloaded or predefined preset for a device is found, the remote script will [construct one on the fly](https://github.com/xot/ElectraOne#creating-presets-on-the-fly). This is useful, for example, to control the macros in rack. 
 
 So when you select a new device in Live, the following happens.
 
 - First, the remote script tries to activate a preset for the device that is already preloaded on the E1. (For older, mkI, E1 this step is skipped.) 
-- If that fails, it looks for a predefined preset for the device in ```Devices.py``` and uploads and activates it.
+- If that fails, it looks for a predefined preset for the device in the directory  ```preloaded``` and uploads and activates it.
 - And if no such preset is found, the remote script constructs one on the fly and uploads that preset to the E1 instead, and activates it.
 
 ![Delay predefined preset](./images/delay.png "Delay predefined preset")
@@ -87,27 +86,29 @@ When constructing presets:
 - Other 'quantised' parameters are shown as lists on the E1, using the possible values reported by Ableton. (In E1 terms, these are turned into 'overlays' added to the preset.)
 - Non-quantised parameters are shown as faders on the E1. As many faders as possible are assigned to 14bit CCs. 
 - Integer valued, non-quantised, parameters are shown as integer-valued faders on the E1. 
-- Float valued parameters are shown as floar-valued faders on the E1. 
+- Float valued parameters are shown as float-valued faders on the E1. 
 - For certain types of parameters (e.g. percentage, phase shift), the remote script tries to guess the type and adjust the display accordingly.
 
 Note that large devices with many parameters may create a preset with several pages. The generation of presets on the fly can be customised, see the [configuration section](https://github.com/xot/ElectraOne#configuring).
 
 ### Racks
 
-When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically maps the macro's for the rack to controls on the E1. 
+When selecting a rack (audio, instrument, drum or MIDI rack), the E1 automatically creates a preset containing all macros in the rack, and uploads that to the E1 so they can be controlled.
 
 *Note: when using a drum rack on a visible track, by default it shows the last played drum instrument in the chain. Whenever an incoming note plays a drum instrument, this drum instrument becomes selected **and therefore gets (up)loaded to the E1**. This is of course undesirable as the E1 would get swamped with preset (up)loads. To avoid this, hide the devices on a drum track!*
 
 
 ### VST or AU plugins
 
-VST or AU plugin parameters can also be managed, but this needs to be done in a slightly roundabout way in order to ensure the mappings are properly saved within Ableton.
+VST or AU plugin parameters can also be managed, but this needs to be done in a slightly roundabout way in order to ensure the mappings are properly saved with the Live set.
 
 Depending on the plugin, *first* create an audio or instrument rack. Then add the plugin to the rack. To manage the parameters within the plugin, click on the expand (triangle down) button in the title bar of the plugin to expose the 'Configure' button. Click on it and follow the instructions to add plugin parameters to the configuration panel. To save this configuration, *save the enclosing rack configuration*: saving the plugin state itself *does not save the configuration of parameters*! You don't need to bother about the macros, although it might be useful to assign them such that the most important parameters of the plugin are mapped on a single preset page.
 
+You can also create your own custom presets for VST or AU plugins. The general process to create custom presets is [described here](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md). For VST or AU plugins you need to be aware of a [some naming conventions](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#naming).
+
 #### Configuring Ableton to map AU and VST plugin parameters
 
-To more easily control the parameters of AU and VST plugins in Ableton, you need to tell Ableton to automatically configure and reveal the plugin parameters. This is done by adding the following line to Ableton Live's ```Options.txt``` file (see this [Ableton help document](https://help.ableton.com/hc/en-us/articles/6003224107292-Options-txt-file) on where to find it and how to edit it).
+To more easily control the parameters of AU and VST plugins in Ableton, you can tell Ableton to automatically configure and reveal the plugin parameters. This is done by adding the following line to Ableton Live's ```Options.txt``` file (see this [Ableton help document](https://help.ableton.com/hc/en-us/articles/6003224107292-Options-txt-file) on where to find it and how to edit it).
 
 ```-_PluginAutoPopulateThreshold=128```
 
@@ -126,9 +127,9 @@ alternate between the mixer and the appointed device preset.
 Make sure that the version of Ableton Live and the firmware of the E1 are supported (see below).
 
 
-1. For *MacOS*: download the [ElectraOne.MacOS.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.MacOS.zip?raw=true) zip file from the repository. (When using Safari, [make sure that the zip file is not automatically unpacked](https://www.howtogeek.com/789559/how-to-stop-safari-from-automatically-unzipping-downloaded-files-on-mac/).) Save it in your home directory. Double click it to extracts all files. This should create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` with all the necessary files.
+1. For *MacOS*: download the [ElectraOne.MacOS.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.MacOS.zip?raw=true) zip file from the repository. (When using Safari, [make sure that the zip file is not automatically unpacked](https://www.howtogeek.com/789559/how-to-stop-safari-from-automatically-unzipping-downloaded-files-on-mac/).) Save it *in your home directory*. Double click it to extracts all files. This should create ```~/Music/Ableton/User Library/Remote Scripts/ElectraOne``` with all the necessary files. (```~``` is a shorthand for your home directory here.)
 
-   For *Windows*: download the [ElectraOne.Windows.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.Windows.zip?raw=true) zip file from the repository. (Right click and select "Extract All..." from the drop down menu. Select your home directory as the destination (using "Browse...") and click "Extract". This should create ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` with all the necessary files.
+   For *Windows*: download the [ElectraOne.Windows.zip](https://github.com/xot/ElectraOne/blob/main/install/ElectraOne.Windows.zip?raw=true) zip file from the repository. (Right click and select "Extract All..." from the drop down menu. Select your *home directory* as the destination (using "Browse...") and click "Extract". This should create ```~\Documents\Ableton\User Library\Remote Scripts\ElectraOne``` with all the necessary files. (```~``` is a shorthand for your home directory here.)
 
 2. Connect the E1 to your computer with a USB cable ([see E1 documentation](https://docs.electra.one/#_2-connect-your-new-electra-one-controller-to-a-computer)).
 
@@ -140,7 +141,7 @@ Make sure that the version of Ableton Live and the firmware of the E1 are suppor
 
 4. Upload the ```Mixer.eproj``` preset (included in the distribution) to the E1 to bank 6, slot 1.  See [above](https://github.com/xot/ElectraOne/blob/main/README.md#the-mixer).
 
-5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option).) This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts.
+5. If you run firmware version 3.4 or higher (*which is highly recommended because of the speed increase*) *and* own a E1 mkII, unpack the archive ```upload-to-E1.zip``` in the folder ```ctrlv2``` on the E1. (To do so, on an E1 mkII you need to [enable USB Disk mode](https://docs.electra.one/downloads/updatemkII.html#_4-enable-the-usb-disk-option).) This should create a file ```ctrlv2/lua/xot/default.lua``` and a  folder ```ctrlv2/presets/xot/ableton``` containing all preloaded presets and their associated LUA scripts. The ```.ccmap``` do not need to be uploaded and are therefore not included in ```upload-to-E1.zip```.
 
 7. Start Ableton.
 
@@ -149,7 +150,7 @@ If all goes well, a patch for the appointed device (indicated by the 'Blue Hand'
 Enjoy!
 
 
-You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/TIPS_AND_TRICKS.md).
+You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md) Be sure to read the separate [Tips & Tricks](https://github.com/xot/ElectraOne/blob/TIPS_AND_TRICKS.md) too!
 
 
 ### Log files
@@ -159,7 +160,7 @@ See
 - ```~/Library/Preferences/Ableton/Live <version>/Log.txt``` (on MacOS), or
 - ```~\AppData\Roaming\Ableton\Live <version>\Preferences\Log.txt``` (on Windows)
 
-for any error messages (again note that ```~``` stands for your home folder).
+for any error messages (again note that ```~``` stands for your home directory).
 
 The log files in
 
@@ -168,7 +169,7 @@ The log files in
 
 are also useful.
 
-### Installing SendMidi
+### Installing SendMidi (MacOS only)
 
 Although not strictly necessary, the remote script becomes much more responsive (and usable) under MacOS if you install [SendMidi](https://github.com/gbevin/SendMIDI). (*It seems that sending larger MIDI messages natively through Live under Windows is faster than MacOS; SendMidi isn't necessary in that case, and is harder to install under Windows because it requires shared access to the MIDI port with which to communicate with the E1, which the default Windows MIDI driver does not support.*)
 

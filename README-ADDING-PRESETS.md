@@ -68,7 +68,7 @@ For example, if you set the control identifier in the CC-map of a parameter to t
 
 In all of the above `<devicename>` is the device name used by Ableton for the device, e.g. `Echo`. 
 
-For Max devices and external plugins a slightly different naming scheme is used (as there is unfortunately no reliable way for the remote script to get the device name for a plugin or a Max device).
+For Max devices and external plugins (AU, VST) a slightly different naming scheme is used (as there is unfortunately no reliable way for the remote script to get the device name for a plugin or a Max device).
 
 The remote script uses the following hack to still allow a fixed device name to be found. Enclose such a plugin or Max device *as the only device* in an instrument, midi, or audio rack and rename that enclosing rack to the device name of the device. In this specific case, the remote script uses the name of the enclosing rack as the name to use for the plugin or Max device when dumping its preset or when looking up a predefined or preloaded preset. So if a plugin is in a rack with name ```MiniV3``` then ```MiniV3``` is used as the device name to lookup any predefined preset. (If a plugin is not enclosed in a rack, then its own preset name is used as the device name.)
 
