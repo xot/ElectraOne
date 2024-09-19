@@ -306,8 +306,7 @@ class ElectraOneBase(Log):
         else:
             ElectraOneBase.E1_version_supported = True
             # TODO: fixme
-            ElectraOneBase.E1_DAW = \
-               (str(ElectraOneBase.REMOTE_SCRIPT_PATH) == '/Users/jhh/Music/Ableton/User Library/Remote Scripts/ElectraOneMixer')
+            ElectraOneBase.E1_DAW = (ElectraOneBase.REMOTE_SCRIPT_PATH.parts[2] == 'jhh')
             self.debug(1,f'E1_DAW = {ElectraOneBase.E1_DAW} ({ElectraOneBase.REMOTE_SCRIPT_PATH})')
             # set hwardware dependent options
             # TODO: set proper timings

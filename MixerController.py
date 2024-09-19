@@ -378,7 +378,7 @@ class MixerController(ElectraOneBase):
         self.debug(1,'MixCont building mixer MIDI map.')
         # Map CCs to be forwarded as defined in _CC_HANDLERS
         for (midi_channel,cc_no) in self._CC_HANDLERS:
-            self.debug(4,f'MixerController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
+            self.debug(3,f'MixerController: setting up handler for CC {cc_no} on MIDI channel {midi_channel}')
             Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, midi_channel - 1, cc_no)
         self._transport_controller.build_midi_map(script_handle,midi_map_handle)
         self._master_controller.build_midi_map(script_handle,midi_map_handle)

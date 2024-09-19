@@ -64,6 +64,11 @@ class DeviceAppointer(ElectraOneBase):
                 if APPOINT_ON_TRACK_CHANGE:
                     # get and store the list of devices
                     devices = self.get_track_devices_flat(track)
+                    # appoint preferred device (whose name starts with !) instead
+                    # of selected device
+                    # TODO: skip appointment and instruct EffectController
+                    # directly to control this device (and leave apoointed device
+                    # so other control surface can still control that)
                     preferred = [d for d in devices if d.name[0] == '!']
                     if len(preferred) > 0:
                         device = preferred[0]

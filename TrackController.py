@@ -66,6 +66,10 @@ class TrackController(GenericTrackController):
     def _refresh_clips(self):
         """Update the clip information in the session control page for this track.
         """
+        # skip if the mixer preset is not visible (because then its state
+        # cannot be updated
+        if (ElectraOneBase.current_visible_slot != MIXER_PRESET_SLOT):
+            return
         clipinfo = []
         # _track can also be a chain (that doesn't have clipslots)           
         if (type(self._track) == Live.Track.Track):
