@@ -114,6 +114,12 @@ To more easily control the parameters of AU and VST plugins in Ableton, you can 
 
 Note the hyphen followed by the underscore! Also this is not guaranteed to work for all plugins; I've seen it work for AU plugins but not for VSTs on MacOS.
 
+#### Limitations
+
+Certain plugins poorly report their parameters internally, making it hard for the remote script to create a proper preset on the fly. For example, the AU version of the Arturia Mini V3 plugin reports its parameters internally as integers between 0 and 1, creating a totally unusable preset :-( 
+The VST version does report its parameters correctly, but for that variant the 
+option to automatically configure and reveal the plugin parameters (see above) does not work.
+ 
 ## Switching between device and mixer view
 
 You can use the normal way of switching between presets on the E1 via the MENU button. 
