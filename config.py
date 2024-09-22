@@ -125,6 +125,11 @@ ORDER_DEVICEDICT = 2 # order according to the standard remote script preferred o
 # ORDER_DEVICEDICT, parameters NOT in DEVICE_DICT are NOT included in the preset
 ORDER = ORDER_DEVICEDICT
 
+# A list of device names with unreliable paramater information for which the
+# preset constructed on the fly should assume all parameters are floats.
+# (Arturia's Mini V3 is a known case)
+BORKED_DEVICES = ["MiniV3"]
+    
 # A dictionary, keyed by device name, containing for each device a list of
 # names of parameters to ignore when constructing presets on the fly.
 # The list with key "ALL" contains the names of parameters to ignore for all
@@ -132,7 +137,6 @@ ORDER = ORDER_DEVICEDICT
 # button normally included.
 # e.g. PARAMETERS_TO_IGNORE = {"ALL": ["Device On"]}
 PARAMETERS_TO_IGNORE = {}
-
 
 # Personal DEVICE_DICT: for named devices, contains a a tuple of tuples
 # containing the names of the parameters to include if ORDER=DEVICE_DICT

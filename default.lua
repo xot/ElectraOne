@@ -4,10 +4,6 @@ function defaultFormatter(valueObject, value)
     return("")
 end
 
-function formatTinyFloat (valueObject, value)
-  return (string.format("%.4f",value/10000))
-end
-
 function formatSmallFloat (valueObject, value)
   return (string.format("%.3f",value/1000))
 end
