@@ -318,8 +318,8 @@ class ElectraOneBase(Log):
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
-                ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR = 0.00002
-                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.00006
+                ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR = 0.00003
+                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.00008
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = False
@@ -446,7 +446,7 @@ class ElectraOneBase(Log):
             timeout = 30 * timeout
         # floor timeout to minimum
         timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
-        timout = timeout * TIMEOUT_STRETCH
+        timeout = timeout * TIMEOUT_STRETCH
         return timeout
         
     def __wait_for_pending_acks_until(self,end_time):
@@ -1054,7 +1054,7 @@ class ElectraOneBase(Log):
             # reopen interface
             ElectraOneBase.preset_uploading = False
             if ElectraOneBase.preset_upload_successful == True:
-                # rebuild midi map (will also refresh state) (this is why interface needs to be reactivated first ;-)
+                # rebuild midi map (will also refresh state) (this is why interface needs to be reaOUctivated first ;-)
                 self.debug(2,'Upload thread requesting MIDI map to be rebuilt.')
                 self.request_rebuild_midi_map()                
                 self.debug(2,'Upload thread done.')

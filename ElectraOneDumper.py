@@ -520,20 +520,20 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # float faders are internally integer valued faders with a special
         # formatter function to display them as floats. Fader resolution is
         # adjusted according to range
-        try: # vmin/vmax may be too large to turn into a float (eg if "inf")
-            (vmin,vmax) = _get_par_min_max(p)
-            if (vmax > 100) or (vmin < -100):
-                self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax,"formatLargeFloat")
-            elif (vmax > 10) or (vmin < -10):
-                self._append_json_generic_fader(cc_info, True, 100*vmin, 100*vmax,"formatFloat")
-            else:
-                self._append_json_generic_fader(cc_info, True, 1000*vmin, 1000*vmax,"formatSmallFloat")
-        except:
+        (vmin,vmax) = _get_par_min_max(p)
+        if (vmin > -10) and (vmax < 10):
+            self._append_json_generic_fader(cc_info, True, 1000*vmin, 1000*vmax,"formatSmallFloat")
+        elif (vmin > -100) and (vmax < 100):
+            self._append_json_generic_fader(cc_info, True, 100*vmin, 100*vmax,"formatFloat")
+        # integer ranges on E1 cannot exceed +/-99999
+        elif (vmin > -10000) and (vmax < 10000):
+            self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax,"formatLargeFloat")
+        else:
             self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
             # update control id to signal ableton must provide its values
             cc_info.set_control_id((id+1,0))
         return cc_info
-                        
+    
     def _append_json_fader(self, id, device_name, parameter, cc_info):
         """Append a fader (depending on the parameter type)
            cc_info is updated if control_id must be set because parameter
@@ -546,8 +546,11 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         """
         self.debug(5,f'Appending fader for {parameter.original_name}')
         (vmin,vmax) = _get_par_min_max(parameter)
+        # test if parameter values can be represented as numebrs
         if (vmin == None) or (vmax == None):
-            self._append_json_generic_fader(cc_info, False, None, None, None)
+            self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
+            # update control id to signal ableton must provide its values
+            cc_info.set_control_id((id+1,0))
         elif _is_pan(parameter):
             # invert vmin; p.min typically equals 50L, so vmin=50
             self._append_json_generic_fader(cc_info, True, -vmin, vmax, "formatPan")
@@ -564,18 +567,16 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             # scale by factor 10 to allow fractional dBs
             self._append_json_generic_fader(cc_info, True, 10*vmin, 10*vmax, "formatdB")
         elif device_name in BORKED_DEVICES:
-            # For devices with borked parameter information (plugins) assume float always 
+            # For devices with borked parameter information (plugins) assume float always
             cc_info = self._append_json_float_fader(id,parameter,cc_info)            
         elif _is_int_parameter(parameter) != NON_INT:
             self._append_json_generic_fader(cc_info, True, vmin, vmax, None)
         elif _is_untyped_float(parameter): # also true for int type parameters
             cc_info = self._append_json_float_fader(id,parameter,cc_info)            
-        elif USE_ABLETON_VALUES:
+        else:
             self._append_json_generic_fader(cc_info, True, None, None, "defaultFormatter")
             # update control id to signal ableton must provide its values
             cc_info.set_control_id((id+1,0))
-        else:
-            self._append_json_generic_fader(cc_info, False, None, None, None)
         return cc_info
     
     def _append_json_control(self, id, device_name, parameter, cc_info):

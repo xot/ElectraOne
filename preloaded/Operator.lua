@@ -141,7 +141,7 @@ end
 lerepeat = controls.get(122)
 leloop = controls.get(117)
 
-leloop:setSlot(20,3)
+leloop:setSlot(14,3)
 
 function lemode(valueObject, value)
     lerepeat:setVisible((value == 2) or (value == 3))
@@ -153,7 +153,7 @@ end
 ferepeat = controls.get(84)
 feloop = controls.get(78)
 
-feloop:setSlot(32,4)
+feloop:setSlot(26,4)
 
 function femode(valueObject, value)
     ferepeat:setVisible((value == 2) or (value == 3))
@@ -182,7 +182,7 @@ end
 perepeat = controls.get(185)
 peloop = controls.get(178)
 
-peloop:setSlot(32,5)
+peloop:setSlot(26,5)
 
 function pemode(valueObject, value)
     perepeat:setVisible((value == 2) or (value == 3))
