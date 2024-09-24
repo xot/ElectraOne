@@ -106,9 +106,9 @@ def _needs_overlay(p):
 
 # --- functions to determine fader types
 
-# The only reliable way to determine the type and the range of values for
-# a parameter is to use Ableton's str_for_value function. This function
-# returns a string with (roughly!) the following structure
+# The only (somewhat) reliable way to determine the type and the range of
+# values for a parameter is to use Ableton's str_for_value function. This
+# function returns a string with (roughly!) the following structure
 #   <valuestring><space><valuetype>.
 # Untyped values only return
 #   <valuestring>.
@@ -131,14 +131,16 @@ def _get_par_value_info(p,v):
         - result: tuple of the number (int or float) part and the type,
           both as strings; (str,str)
     """
-    value_as_str = p.str_for_value(v) # get value as a string
-    assert len(value_as_str) > 0, f'Value string for parameter {p.original_name} is empty.'
-    i = 0
+    vstr = p.str_for_value(v) # get value as a string
+    assert len(vstr) > 0, f'Value string for parameter {p.original_name} with value {v} is empty.'
     # skip leading spaces (string guaranteed not to be empty)
-    while value_as_str[i] == ' ':
+    i = 0
+    while vstr[i] == ' ':
         i += 1
-    (number_part,sep,type) = value_as_str[i:].partition(' ') # split at the first space
-    assert len(number_part) > 0, f'Numeric part of value string {value_as_str} for parameter {p.original_name} is empty.'
+    # split at the first space; if string contains no space, number_part
+    # equals the whole string
+    (number_part,sep,type_part) = vstr[i:].partition(' ') 
+    assert len(number_part) > 0, f'Numeric part of value string {vstr} for parameter {p.original_name} is empty.'
     # detect special cases:
     if number_part[-1] == '°':
         return (number_part[:-1],'°')
@@ -148,10 +150,10 @@ def _get_par_value_info(p,v):
         return (number_part[:-1],'R')
     elif number_part[-1] == 'k':
         return (number_part[:-1],'kHz')
-    elif (len(type) > 0) and (type[0]==':'):
+    elif (len(type_part) > 0) and (type_part[0]==':'):
         return (number_part,':')
     else:
-        return (number_part,type)
+        return (number_part,type_part)
 
 def _is_int_str(s):
     """Return whether string represents an integer
@@ -189,7 +191,7 @@ def _get_par_min_max(p):
   
 # type strings that (typically) indicate a non-integer valued parameter
 # (the : occurs as part of a compression ratio...)
-NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', 'L', 'R', '°', ':']
+NON_INT_TYPES = ['dB', '%', 'Hz', 'kHz', 's', 'ms', '°', ':']
 
 # return values for _is_int_parameter
 NON_INT = -1
@@ -858,9 +860,9 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self.debug(5,'Dumper found the following parameters and their range:')
         device_parameters = make_device_parameters_unique(device)
         for p in device_parameters:
-            min_value_as_str = p.str_for_value(p.min)
-            max_value_as_str = p.str_for_value(p.max)
-            self.debug(5,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}. Quantized: {p.is_quantized}.')
+            min_vstr = p.str_for_value(p.min)
+            max_vstr = p.str_for_value(p.max)
+            self.debug(5,f'{p.original_name} ({p.name}): {min_vstr} .. {max_vstr}. Quantized: {p.is_quantized}.')
         # filter and order the parameters to include in the preset
         parameters = self._filter_and_order_parameters(device_name, device_parameters)
         # construct the ccmap
