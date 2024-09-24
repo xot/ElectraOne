@@ -34,8 +34,9 @@ class GenericDeviceController(ElectraOneBase):
            - cc_map: the preset cc-map; CCMap
         """
         ElectraOneBase.__init__(self, c_instance)
-        self._device = device
-        self._device_name = self.get_device_name(self._device)
+        self._device = device # TODO: needed to detect whether device is already deleted
+        self._parameters = make_device_parameters_unique(device)
+        self._device_name = self.get_device_name(device)
         self._cc_map = cc_map
         # dictionary to keep track of string value updates
         self._values = { }
@@ -48,12 +49,11 @@ class GenericDeviceController(ElectraOneBase):
         # device may already be deleted while this controller still exists
         if not self._device:
             return
-        assert self._cc_map
+        assert self._cc_map != None, 'No CC map present while building MIDI map.'
         self.debug(3,f'Building MIDI map for device { self._device_name }')
-        device_parameters = make_device_parameters_unique(self._device)
         # TODO/FIXME: not clear how this is honoured in the Live.MidiMap.map_midi_cc call
         needs_takeover = True
-        for p in device_parameters:
+        for p in self._parameters:
             ccinfo = self._cc_map.get_cc_info(p)
             if ccinfo.is_mapped():
                 if ccinfo.is_cc14():
@@ -115,13 +115,12 @@ class GenericDeviceController(ElectraOneBase):
         # device may already be deleted while this controller still exists
         if not self._device:
             return
-        assert self._cc_map, 'No CC map present while refreshing device state.'
+        assert self._cc_map != None, 'No CC map present while refreshing device state.'
         if full_refresh:
             self.debug(3,f'Full state refresh for device { self._device_name }')
         else:
             self.debug(6,f'Partial state refresh for device { self._device_name }')            
-        device_parameters = make_device_parameters_unique(self._device)
-        for p in device_parameters:
+        for p in self._parameters:
             ccinfo = self._cc_map.get_cc_info(p)
             if ccinfo.is_mapped():
                 self._refresh_parameter(p,ccinfo,full_refresh)

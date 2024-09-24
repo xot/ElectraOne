@@ -28,59 +28,63 @@ class PresetInfo:
         """Return the CC map
            - result: the CC map; CCMap
         """
-        assert self._cc_map != None, 'Empty cc-map'
+        assert self._cc_map != None, 'Empty cc-map.'
         return self._cc_map
     
     def get_preset(self):
         """Return the JSON preset as a string
            - result: preset; str
         """
-        assert self._json_preset != None, 'Empty JSON preset'
+        assert self._json_preset != None, 'Empty JSON preset.'
         return self._json_preset
 
     def get_lua_script(self):
         """Return the LUA script as a string
            - result: lua_script; str
         """
+        assert self._lua_script != None, 'Empty LUA script.'
         return self._lua_script
 
     def dump(self, device, device_name, path, debug):
         """Dump the preset info for this device:
-           the E1 JSON preset in path/<devicename>.epr
-           the CCmap in path/<devicename>.ccmap
+           the E1 JSON preset in <path>/<devicename>.epr
+           the LUA script in <path>/<devicename>.lua        
+           the CCmap in <path>/<devicename>.ccmap
            - device: device to dump; Live.Devices
            - device_name: name of device to dump; str
            - path: path to dump into, str
            - debug: function to log debugging ino
         """
-        # we need to pass device to have access to ALL parameters in the device
-        # not only the ones in the ccmap.
-        #
-        # stop if path does not exist
-        if path != '':
-            # dump the preset JSON string 
-            fname = f'{ path }/{ device_name }.epr'
-            debug(2,f'dumping device: { device_name } in { fname }.')
-            s = self.get_preset()
-            with open(fname,'w') as f:            
-                f.write(s)
-            # dump the cc-map
-            fname = f'{ path }/{ device_name }.ccmap'
-            ccmap = self.get_cc_map()
-            with open(fname,'w') as f:
-                f.write('{')
-                comma = False # concatenate list items with a comma; don't write a comma before the first list entry
-                device_parameters = make_device_parameters_unique(device)
-                for p in device_parameters:
-                    if comma:
-                        f.write(',')
-                    comma = True
-                    ccinfo = ccmap.get_cc_info(p)
-                    if ccinfo.is_mapped():
-                        f.write(f"'{ p.original_name }': { ccinfo }\n")
-                    else:
-                        f.write(f"'{ p.original_name }': None\n")
-                f.write('}')
+        # (Note: we need to pass device to have access to ALL parameters in
+        # the device, not only the ones in the ccmap.)
+        debug(2,f'Dumping device: { device_name } in { path }.')
+        # dump the preset JSON string 
+        fname = f'{ path }/{ device_name }.epr'
+        s = self.get_preset()
+        with open(fname,'w') as f:            
+            f.write(s)
+        # dump the LUA script
+        fname = f'{ path }/{ device_name }.lua'
+        s = self.get_lua_script()
+        with open(fname,'w') as f:            
+            f.write(s)
+        # dump the cc-map
+        fname = f'{ path }/{ device_name }.ccmap'
+        ccmap = self.get_cc_map()
+        with open(fname,'w') as f:
+            f.write('{')
+            comma = False # concatenate list items with a comma; don't write a comma before the first list entry
+            device_parameters = make_device_parameters_unique(device)
+            for p in device_parameters:
+                if comma:
+                    f.write(',')
+                comma = True
+                ccinfo = ccmap.get_cc_info(p)
+                if ccinfo.is_mapped():
+                    f.write(f"'{ p.original_name }': { ccinfo }\n")
+                else:
+                    f.write(f"'{ p.original_name }': None\n")
+            f.write('}')
         
     def validate(self, device, device_name, warning):
         """Check for internal consistency of PresetInfo and warn for

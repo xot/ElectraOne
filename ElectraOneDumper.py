@@ -270,6 +270,8 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
     """ElectraOneDumper extends the StringIO class; this allows the gradual
        construction of a long JSOPN preset string by appending to it.
        (This is (much) more efficient than concatenating immutable strings.)
+       ElectraOneBase instance used to have access to the log file for
+       debugging.
     """
 
     def _append(self, *elements):
@@ -374,39 +376,39 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            controls.
            - parameters: list of all parameters in the device; list of Live.DeviceParameter.DeviceParameter
            - cc_map: CC map for all parameters in the device; CCMap
+           - returns: mapping of parameter names to the index of the overlays contstructed
         """
         self.debug(4,f'Appending overlays.')
+        # record constructed overlays; prevent duplicates
+        overlay_map = {} # { parameter_name : index of constructed overlay }
+        overlays = [] # [ list of lists of overlay_items ]
         self._append(',"overlays":[')
         overlay_idx = 1
-        flag = False
+        flag = False # for appending commas
         for p in parameters:
             cc_info = cc_map.get_cc_info(p)
             if cc_info.is_mapped() and _needs_overlay(p):
-                # test whether overlay for same list of itemse has been created
+                # test whether overlay for same list of items has been created
                 # before; and use index of that overlay if found
-                found = -1
-                for (idx,items) in self._overlay_map.values():
-                    if items == p.value_items:
-                        self.debug(5,f'Overlay for {p.original_name} with values {[s for s in p.value_items]} already defined earlier; using that')
-                        found = idx
-                if found > -1:
-                    self._overlay_map[p.original_name] = (idx,None)
-                else:
-                    if overlay_idx > MAX_OVERLAY_ID:
-                        self.debug(3,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
-                    elif len(p.value_items) > 128:
-                        # do not the overlay in this case
-                        self.debug(3,f'Too many overlay items { len(p.value_items) }. Skipping all.')
-                    else:
-                        flag = self._append_comma(flag)
-                        self.debug(5,f'Appending overlay for {p.original_name} with values {[s for s in p.value_items]}.')
-                        self._overlay_map[p.original_name] = (overlay_idx,p.value_items)
-                        # {{ to escape { in f string
-                        self._append(f'{{"id":{ overlay_idx }')
-                        self._append_json_overlay_items(p.value_items)
-                        self._append('}')
-                        overlay_idx += 1
+                if p.value_items in overlays:
+                    overlay_map[p.original_name] = 1 + overlays.index(p.value_items)
+                elif overlay_idx > MAX_OVERLAY_ID:
+                    self.debug(3,f'{ overlay_idx } exceeds max number of overlays ({ MAX_OVERLAY_ID }).')
+                elif len(p.value_items) > 128:
+                    # do not make the overlay in this case
+                    self.debug(3,f'Too many overlay items { len(p.value_items) }. Skipping all.')
+                else: # append a new overlay and remember it
+                    flag = self._append_comma(flag)
+                    self.debug(5,f'Appending overlay for {p.original_name} with values {[s for s in p.value_items]} at index {overlay_idx}.')
+                    overlays.append(p.value_items) # stored at overlay_idx-1 in list
+                    overlay_map[p.original_name] = overlay_idx
+                    # {{ to escape { in f string
+                    self._append(f'{{"id":{ overlay_idx }')
+                    self._append_json_overlay_items(p.value_items)
+                    self._append( '}')
+                    overlay_idx += 1
         self._append(']')
+        return overlay_map
 
     def _append_json_bounds(self, idx):
         """Append the bounds information for a control with index idx in the preset.
@@ -488,7 +490,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             max = 127        
             self._append(',"type":"fader"' 
                         ,',"values":['
-                        ,  '{"message":{"type":"cc7"'
+                        ,   '{"message":{"type":"cc7"'
                         )
         self._append(                 f',"parameterNumber":{ cc_info.get_cc_no() }'
                     ,                 f',"deviceId":{ device_id }'
@@ -579,7 +581,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             cc_info.set_control_id((id+1,0))
         return cc_info
     
-    def _append_json_control(self, id, device_name, parameter, cc_info):
+    def _append_json_control(self, id, device_name, parameter, cc_info,overlay_map):
         """Append a control (depending on the parameter type: a fader, list or
            on/off toggle pad) to the preset.
            cc_info is updated if control_id must be set because parameter
@@ -589,6 +591,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - device_name: device name for the preset; str
            - parameter: parameter for which to construct a control; Live.DeviceParameter.DeviceParameter
            - cc_info: CC information for the parameter/control; CCInfo
+           - overlay_map: mapping of parameter names to the index of the overlays contstructed
            - return: updated cc_info; CCInfo.
         """
         self.debug(4,f'Appending JSON control for {parameter.original_name}, with range: {parameter.str_for_value(parameter.min)}..{parameter.str_for_value(parameter.max)}.')
@@ -609,7 +612,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         if pot > MAX_POT_ID:
             self.debug(3,f'{ pot } exceeds max number of pots ({ MAX_POT_ID }).')
             return
-        self._append( f'{{"id":{ id+1 }' # {{ is esapced {
+        self._append( f'{{"id":{ id+1 }' # {{ is escaced {
                     , f',"name":"{ self._truncate_parameter_name(parameter.name) }"' # use name as label for control
                     ,  ',"visible":true' 
                     , f',"color":"{ PRESET_COLOR }"' 
@@ -619,13 +622,14 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                     )
         self._append_json_bounds(id)
         # append the actual contro: a list, an on/off or a fader
-        # TODO: ADSR
+        # (ADSRs are too difficult to detect reliably)
         if _needs_overlay(parameter):
             # check if overlay succesfully created
-            if parameter.original_name in self._overlay_map:
-                (overlay_id,overlay_items) = self._overlay_map[parameter.original_name]
-                self._append_json_list(overlay_id,cc_info)
+            if parameter.original_name in overlay_map:
+                overlay_idx = overlay_map[parameter.original_name]
+                self._append_json_list(overlay_idx,cc_info)
             else: # overlay not constructed so dummy added to this control; unmap it for safety
+                self.debug(3,f'No overlay found for parameter {parameter}. Unmapping it.')
                 self._append_json_list(0,cc_info) 
                 cc_info.set_cc_no(UNMAPPED_CC)
         elif _is_on_off_parameter(parameter):
@@ -635,7 +639,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         self._append('}')
         return cc_info
 
-    def _append_json_controls(self, device_name, parameters, cc_map):
+    def _append_json_controls(self, device_name, parameters, cc_map,overlay_map):
         """Append the controls to the preset. Parameters that do not have a
            CC assigned (i.e. not in cc_map, or with UNMAPPED_CCINFO in the
            cc_map) are skipped. (To create a full dump, set MAX_CC7_PARAMETERS,
@@ -647,6 +651,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - parameter: parameters for which to construct a control;
              list of Live.DeviceParameter.DeviceParameter
            - cc_map: CC information for the parameters/control; CCMap
+           - overlay_map: mapping of parameter names to the index of the overlays contstructed
            - returns: updated CCmap; CCmap
         """
         self.debug(4,f'Appending (at most) {len(parameters)} controls.')
@@ -657,7 +662,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             cc_info = cc_map.get_cc_info(p)
             if cc_info.is_mapped():
                 flag = self._append_comma(flag)
-                cc_info = self._append_json_control(id,device_name,p,cc_info)
+                cc_info = self._append_json_control(id,device_name,p,cc_info,overlay_map)
                 cc_map.update(p,cc_info)
                 id += 1
         self._append(']')
@@ -682,21 +687,21 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # E1 uses the project id, creating a new folder for each new id
         random.seed(device_name)
         project_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
-        # write everything to the underlying StringIO, a mutable string
-        # for efficiency.
         self._append( f'{{"version":{ VERSION }' # {{ = { in f-string
-                   , f',"name":"{ device_name[:MAX_NAME_LEN] }"'
-                   , f',"projectId":"{ project_id }"'
-                   )
+                    , f',"name":"{ device_name[:MAX_NAME_LEN] }"'
+                    , f',"projectId":"{ project_id }"'
+                    )
         self._append_json_pages(parameters)
+        # append devices (depends on numbe rof midi channels in cc_map)
         self._append_json_devices(cc_map)
-        # indexes for overlays constructed for parameters; recorded by
-        # _append_json_overlays() and used by _append_json_controls()
-        self._overlay_map = {}
-        self._append_json_overlays (parameters,cc_map)
-        self._append( ',"groups":[]')
-        cc_map = self._append_json_controls(device_name,parameters,cc_map)
-        self._append( '}' )
+        # append overlays (and return mapping of paramter names to
+        # the indexes of their constructed overlays; used by _append_json_controls)
+        overlay_map = self._append_json_overlays (parameters,cc_map)
+        self._append(  ',"groups":[]')
+        # append controls; in certain cases cc_map may be modified
+        # (to indicate that Live should supply the string value for the parameter)
+        cc_map = self._append_json_controls(device_name,parameters,cc_map,overlay_map)
+        self._append(  '}' )
         # return the string constructed within the StringIO object as preset
         # as well as the (possibly modified) cc map
         preset = self.getvalue()
@@ -726,52 +731,54 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             max_channel = MIDI_EFFECT_CHANNEL + MAX_MIDI_EFFECT_CHANNELS -1
         # get the list of parameters to be assigned to 14bit controllers
         cc14pars = [p for p in parameters if _wants_cc14(p,device_name)]
-        self.debug(4,f'{len(cc14pars)} CC14 parameters found')
+        skipped_cc14pars = []
+        self.debug(4,f'{len(cc14pars)} CC14 parameters found.')
         if (MAX_CC14_PARAMETERS != -1) and (MAX_CC14_PARAMETERS < len(cc14pars)):
             cc14pars = cc14pars[:MAX_CC14_PARAMETERS]
             skipped_cc14pars = cc14pars[MAX_CC14_PARAMETERS:]
             self.warning(f'Truncated CC14 parameters to {MAX_CC14_PARAMETERS}!')
-        else:
-            skipped_cc14pars = []
         cur_cc14par_idx = 0
         # get the list of parameters to be assigned to 7bit controllers        
         cc7pars = [p for p in parameters if not _wants_cc14(p,device_name)]
         # append parameters that could not be assigned a 14bit controller
         cc7pars += skipped_cc14pars
-        self.debug(4,f'{len(cc7pars)} CC7 parameters found')
+        self.debug(4,f'{len(cc7pars)} CC7 parameters found (including skipped CC14 parameters).')
         if (MAX_CC7_PARAMETERS != -1) and (MAX_CC7_PARAMETERS < len(cc7pars)):
             cc7pars = cc7pars[:MAX_CC7_PARAMETERS]
             self.warning(f'Truncated CC7 parameters to {MAX_CC7_PARAMETERS}!')
         cur_cc7par_idx = 0
         # add parameters per channel; break if all parameters are assigned
         for channel in range(MIDI_EFFECT_CHANNEL,max_channel+1):
-            # Keep track of 'future' (+32) CC parameters assigned to 14bit parameters
+            # Keep track of free CC parameters on the current channel
+            # (will get occupied by 14bit CC parameter assignemtn
             free = [ True for i in range(0,128)] 
             # first assign any remaining cc14 parameters to the range 0..31
-            for i in range(0,32):
-                if cur_cc14par_idx >= len(cc14pars):
-                    break
+            cc_no = 0
+            while (cc_no < 32) and (cur_cc14par_idx < len(cc14pars)):
                 p = cc14pars[cur_cc14par_idx]
                 if cc_map.is_mapped(p):
                     self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
                 else:
-                    cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC14,i)) )
+                    cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC14,cc_no)) )
+                    free[cc_no] = False
+                    free[cc_no+32] = False
+                    cc_no += 1
                 cur_cc14par_idx += 1
-                free[i] = False
-                free[i+32] = False
-            # now assign cc7 parameters in any free slots
+            # now assign any remaining cc7 parameters in any remaining free slots
             cc_no = 0
             while (cc_no < 128) and (cur_cc7par_idx < len(cc7pars)):
-                while (not free[cc_no]) and (cc_no < 128):
-                    cc_no += 1
-                if cc_no < 128: # free slot in current channel found
+                if free[cc_no]:
                     p = cc7pars[cur_cc7par_idx]
                     if cc_map.is_mapped(p):
                         self.warning(f'Duplicate parameter {p.original_name} found in {device_name}!')
                     else:
                         cc_map.map(p, CCInfo((UNMAPPED_ID,channel,IS_CC7,cc_no)) )
+                        cc_no += 1
                     cur_cc7par_idx += 1
+                else:
                     cc_no += 1
+            if (cur_cc14par_idx == len(cc14pars)) and (cur_cc7par_idx == len(cc7pars)):
+                break
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
             self.warning('Not all parameters could be mapped.')
         if not DUMP: # no need to write this to the log if the same thing is dumped
@@ -779,8 +786,10 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         return cc_map
     
     def _parameter_sort_key(self,parameter):
-        # sort by original_name for racks where the parameter
-        # original name is Macro x
+        # Sort macros in racks in the order in which they are shown
+        # even if they have been renamed
+        # (TODO: this assumes a parameter whose name starts with Macro is
+        # a macro in a rack)
         if (parameter.original_name[:5] == 'Macro'):
             # Macro x -> Macro 0x : Macro 9 before Macro 10
             key = parameter.original_name
@@ -800,7 +809,7 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
            - result: a copy of the parameter list, sorted;
              list of Live.DeviceParameter.DeviceParameter
         """
-        self.debug(3,'Filter and order parameters')
+        self.debug(3,'Filter and order parameters.')
         # first filter using PARAMETERS_TO_IGNORE
         ignore = []
         if "ALL" in PARAMETERS_TO_IGNORE:
@@ -809,37 +818,26 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
             ignore = ignore + PARAMETERS_TO_IGNORE[device_name] # duplicates do not matter
         self.debug(4,f'Ignoring parameters: {ignore}')
         parameters = [p for p in parameters if p.original_name not in ignore]
-        # now sort (and filter if ORDER_DEVICE_DICT)
+        # now sort if necessary (and filter some more if ORDER_DEVICE_DICT)
         if (ORDER == ORDER_DEVICEDICT) and \
-           ( (device_name in DEVICE_DICT) or \
-             (device_name in PERSONAL_DEVICE_DICT) ) and \
-           (device_name not in ORDER_DEVICEDICT_IGNORE):
+           (device_name not in ORDER_DEVICEDICT_IGNORE): 
             if device_name in PERSONAL_DEVICE_DICT:
                 banks = PERSONAL_DEVICE_DICT[device_name] # tuple of tuples
-            else: # guaranteed to be in DEVICE_DICT
+                parlist = [p for b in banks for p in b] # turn into list
+            elif (device_name in DEVICE_DICT):
                 banks = DEVICE_DICT[device_name] # tuple of tuples
-            parlist = [p for b in banks for p in b] # turn into a list
-            # order parameters as in parlist, skip parameters that are not
-            # listed in parlist
-            parameters_copy = []
-            # TODO: does DEVICE_DICT use p.name or p.original_name? 
-            parameters_dict = { p.original_name: p for p in parameters }
-            # copy in the order in which parameters appear in parlist
-            for name in parlist:
-                if name in parameters_dict:
-                    parameters_copy.append(parameters_dict[name])
-            result = parameters_copy
+                parlist = [p for b in banks for p in b] # turn into list
+            else: # do nothing: keep all parameters
+                parlist = [p.original_name for p in parameters]
+            # skip parameters not in parlist; keep order as in parlist
+            # TODO: we assume DEVICE_DICT uses p.original_name (not p.name) 
+            pardict = { p.original_name: p for p in parameters } # make parameter easily accesible by name
+            parameters = [ pardict[name] for name in parlist if name in pardict ]
         elif (ORDER == ORDER_SORTED) and \
              (device_name not in ORDER_SORTED_IGNORE):
-            parameters_copy = []
-            for p in parameters:
-                parameters_copy.append(p)
-            parameters_copy.sort(key=self._parameter_sort_key)
-            result = parameters_copy
-        else: 
-            result = parameters
-        self.debug(3,f'Filtered and order parameters: {[p.original_name for p in result]}')
-        return result
+            parameters = sorted(parameters,key=self._parameter_sort_key)
+        self.debug(3,f'Filtered and order parameters: {[p.original_name for p in parameters]}')
+        return parameters
 
     def __init__(self, c_instance, device): 
         """Construct an Electra One JSON preset and a corresponding
@@ -853,28 +851,28 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # initialise a StringIO object to incrementally construct the preset
         # string in; this is more efficient than appending string constants
         io.StringIO.__init__(self)
-        # ElectraOneBase instance used to have access to the log file for debugging.
         ElectraOneBase.__init__(self, c_instance)
         device_name = self.get_device_name(device)
         self.debug(3,f'Dumper for device { device_name } loaded.')
+        # log information about found parameters
         self.debug(5,'Dumper found the following parameters and their range:')
         device_parameters = make_device_parameters_unique(device)
         for p in device_parameters:
             min_value_as_str = p.str_for_value(p.min)
             max_value_as_str = p.str_for_value(p.max)
             self.debug(5,f'{p.original_name} ({p.name}): {min_value_as_str} .. {max_value_as_str}. Quantized: {p.is_quantized}.')
+        # filter and order the parameters to include in the preset
         parameters = self._filter_and_order_parameters(device_name, device_parameters)
+        # construct the ccmap
         self._cc_map = self._construct_cc_map(device_name, parameters)
-        # constructing the preset may modify the cc_map to set the control
-        # indices for parameters that need to use Ableton generated value
-        # strings.
+        # construct the preset;
+        # this may modify the cc_map, to set the control indices for parameters
+        # that need to use Ableton generated value strings.
         (self._preset_json, self._cc_map) = self._construct_json_preset(device_name, parameters, self._cc_map)
 
     def get_preset_info(self):
-        """Return the constructed preset and CC map, and default lua script
-           as PresetInfo.
+        """Return the constructed preset, LUA script and CC map as PresetInfo.
            - result: preset, lua and cc map; PresetInfo
         """
-        lua_script = ""
-        return PresetInfo(self._preset_json, lua_script, self._cc_map)
+        return PresetInfo(self._preset_json, "", self._cc_map)
         

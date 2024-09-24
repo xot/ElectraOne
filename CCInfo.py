@@ -127,7 +127,7 @@ class CCMap ( dict ) :
         """Initialise from a dictionary mapping parameter.original_name to CCInfo
            - cc_map: dictionary; dict
         """
-        # Parse first into a dictionary if cc_map is a string
+        # Parse cc_map into a dictionary if it is a string
         if type(cc_map) is str:
             cc_map = ast.literal_eval(cc_map)
         # we could simply do dict.__init__(self,cc_map), but this is safer, checking
