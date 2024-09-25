@@ -66,6 +66,14 @@ The preset is (up)loaded to the E1 to the second preset slot in bank 6 by defaul
 
 You can edit or add your own favourite preset layouts [as described in this separate document](https://github.com/xot/ElectraOne/blob/main/README-ADDING-PRESETS.md#adding-preloaded-device-presets).
 
+### Known limitations
+
+The remote script relies on the information about a device it receives from Ableton. This information is quite often wrong or incomplete. Notable examples are
+
+- Sampler: omits a lot of important parameters (e.g. LFO settings) that therefore cannot be mapped.
+- Wavetable: omits the Midi and Modulation matrix entries.
+- SpectralResonator: omits the resonator type and many MIDI input controls.
+
 ### Controlling device appointment when selecting tracks
 
 By default, if you select a different track in Live, the appointed device changes to the currently selected device on the new track (and its preset is displayed to control it). If no device is selected, the empty device is appointed instead.
