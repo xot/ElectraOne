@@ -13,7 +13,7 @@ import Live
 
 class UniqueParameter(Live.DeviceParameter.DeviceParameter):
     """Class extending Live's original parameter to redefine original_name
-       and name. 'Monkeypatched' in get_unique_parameters_for_device
+       and name. These are 'Monkeypatched' using get_unique_parameters_for_device
        See: https://stackoverflow.com/questions/31590152/monkey-patching-a-property
     """
     # Define class variables with the same name as the properties we want

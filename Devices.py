@@ -51,7 +51,7 @@ class Devices(ElectraOneBase):
         self.debug(2,f'Scanning {self.preloadedpath()} for presets.')
         preset_paths = self.preloadedpath().glob('*.epr')
         # process each preset path and store in DEVICES
-        count = 0
+        count = 0 # preset_paths is a generator so len() does not work
         for preset_path in preset_paths:
             self._process_preset(preset_path)
             count += 1
@@ -62,6 +62,8 @@ class Devices(ElectraOneBase):
            a versioned device name (<devicename>.<major>.<minor>.<patch,
            with all three version integers optional)
            result: device name, version tuple; (str, (int,int,int))
+             where missing version integers are replaced by 0; i.e. (0,0,0)
+             means no version info was present in the name.
         """
         extended_name = device_versioned_name + '.0.0.0' # make sure enough version fields exist
         splits = extended_name.rsplit('.')
@@ -104,6 +106,8 @@ class Devices(ElectraOneBase):
         preset_info = PresetInfo(json_preset,lua_script,ccmap)
         self._DEVICES[device_name][version] = (device_versioned_name,preset_info)
 
+    # --- interface functions
+        
     def get_default_lua_script(self):
         """Return the default LUA script, loaded from DEFAULT_LUA_SCRIPT_FILE
            or referring ot the one already preloaded on the E1

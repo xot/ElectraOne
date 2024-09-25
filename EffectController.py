@@ -113,7 +113,8 @@ class EffectController(ElectraOneBase):
         if not self._assigned_device_is_uploaded():
             if self.is_ready() and self._slot_is_visible():
                 self.debug(1,'Delayed device upload detected.')
-                self._upload_assigned_device()
+                self._upload_device(self._assigned_device)
+                self._assigned_device_upload_delayed = False
         # Update the display after the refresh period
         if self._assigned_device_is_visible() and ((tick % EFFECT_REFRESH_PERIOD) == 0):
             self.debug(6,'EffCont updating display.')
@@ -134,7 +135,8 @@ class EffectController(ElectraOneBase):
         self.debug(1,'Select Effect')
         if not self._assigned_device_is_uploaded():
             # also rebuilds midi map and causes state refresh
-            self._upload_assigned_device()
+            self._upload_device(self._assigned_device)
+            self._assigned_device_upload_delayed = False
         else:
             # will send a preset changed message in response which will trigger
             # a state refresh
@@ -155,9 +157,9 @@ class EffectController(ElectraOneBase):
     # === Others ===
 
     def _get_preset_info(self, device):
-        """Get the preset info for the specified device, either externally,
-           predefined or else construct it on the fly. Dump constructed
-           preset if DUMP=True.
+        """Get the preset info for the specified device, either predefined or
+           else construct it on the fly.
+           If DUMP=True, construct the preset on the fly, and dump it.
            - device: device to get preset for; Live.Device.Device (!= None)
            - return (versioned_device_name,preset_info)
            where versioned_device_name is the version specific name of the
@@ -169,7 +171,7 @@ class EffectController(ElectraOneBase):
         if preset_info:
             self.debug(3,f'Predefined preset {versioned_device_name} found')
         if (not preset_info or DUMP):
-            # construct a preset if none found or DUMP requested
+            # construct a preset on the fly if none found or DUMP requested
             self.debug(3,'Constructing preset on the fly...')
             dumper = ElectraOneDumper(self.get_c_instance(), device)
             dump_preset_info = dumper.get_preset_info()
@@ -194,11 +196,11 @@ class EffectController(ElectraOneBase):
             self._assigned_device_locked = False
             self._assign_device(self.song().appointed_device)
 
-    def _upload_assigned_device(self):
+    def _upload_device(self,device):
         """Upload the currently assigned device to the effect preset slot on
            the E1 and create a device controller for it.
+           - device: device to upload; Live.Device.Device
         """
-        device = self._assigned_device
         # upload an empty preset if None (eg when track deleted and no device appointed)
         if device:
             (versioned_device_name,preset_info) = self._get_preset_info(device)
@@ -217,7 +219,6 @@ class EffectController(ElectraOneBase):
         # upload preset: will also request midi map (which will also refresh state)
         # use versioned_device_name to (try to) look up correct preloaded preset on the E1
         self.upload_preset(EFFECT_PRESET_SLOT,versioned_device_name,preset,script)
-        self._assigned_device_upload_delayed = False
         # if this upload fails, ElectraOneBase.preset_upload_successful will be
         # false; then update_display will try to upload again every 100ms (when
         # the E1 is ready, of course).
@@ -233,7 +234,8 @@ class EffectController(ElectraOneBase):
         # (which will also refresh state)
         if self.is_ready() and \
            (SWITCH_TO_EFFECT_IMMEDIATELY or self._slot_is_visible()):
-            self._upload_assigned_device()
+            self._upload_device(device)
+            self._assigned_device_upload_delayed = False
         else:
             # If this happens, update_display will regularly check whether
             # device currently assigned device still needs uploading.

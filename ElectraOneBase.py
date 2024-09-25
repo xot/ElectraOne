@@ -443,7 +443,7 @@ class ElectraOneBase(Log):
         # stretch timeout when no fast sysex uploading
         # TODO: how to deal with faster windows sysex processing?
         if not ElectraOneBase._fast_sysex:
-            timeout = 30 * timeout
+            timeout = 50 * timeout
         # floor timeout to minimum
         timeout = max(ElectraOneBase.MIN_TIMEOUT,timeout)
         timeout = timeout * TIMEOUT_STRETCH

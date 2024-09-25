@@ -38,13 +38,12 @@ class Log:
 
     def debug(self, level, m):
         """Write a debug message to the log, if level < DEBUG.
-           Distinguish between main and thread messages; and between mixer
-           and other.
+           Distinguish between main and thread messages; and between mixer-only
+           and other control modes.
         """
         if Log._mainthread == threading.get_ident():
             debugprefix = '-' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else '='
-        else:
-            # we are in a thread
+        else: # we are in a thread
             debugprefix = '/' if (CONTROL_MODE == CONTROL_MIXER_ONLY) else 'X'
         if level <= DEBUG:
             indent = debugprefix * (level+1)

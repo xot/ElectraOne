@@ -77,7 +77,12 @@ class TrackController(GenericTrackController):
                 clipslot = self._track.clip_slots[self._first_row_index + i]
                 if clipslot.has_clip:
                     clip = clipslot.clip
-                    clipinfo.append(f'"{clip.name}"') # for LUA conversion
+                    if clip.is_recording:
+                        clipinfo.append(f'"O {clip.name}"') # for LUA conversion
+                    elif clip.is_playing:
+                        clipinfo.append(f'"> {clip.name}"') # for LUA conversion
+                    else:
+                        clipinfo.append(f'"{clip.name}"') # for LUA conversion
                     clipinfo.append(str(clip.color))
                 else: # empty clipslot
                     clipinfo.append('""') # for LUA conversion

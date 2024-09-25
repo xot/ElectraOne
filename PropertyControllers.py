@@ -15,6 +15,22 @@ import Live
 # local imports
 from .ElectraOneBase import ElectraOneBase
 
+
+# Many UI elements in Live are represented as properties in the Live API.
+# These properties can be set (to change the UI) or listeners can be attached
+# to these properties to act on changes (made throught the UI). Properties exist
+# in a context (essentially a Live object type, like a song, or a track). So
+# the property 'arm' exists in the context 'track'. This means that an object of
+# type Live.Track.Track has a property 'arm' and methods 'add_arm_listener',
+# 'has_arm_listener' and 'remove_arm_listener' to manage its listeners.
+# All properites follow this naming convention. This is why we can create
+# generic code to control properties using
+# - getattr(context,'add_' + property + '_listener')(listener)
+# to add a listener and
+# - setattr(context,property,value)
+# to set its value (where property is the string name of the property,
+# like 'arm' and context is an object of a Live class that has this property.
+        
 class PropertyControllers(ElectraOneBase):
     """Manage handlers and listeners for properties
     """
@@ -26,7 +42,7 @@ class PropertyControllers(ElectraOneBase):
         ElectraOneBase.__init__(self, c_instance)
         # create empty dictionary of listeners (indexed by property names)
         # used to send value updated as MIDI CC messages when a property
-        # cahgnes value, or when refresh_state() is called
+        # chagnes value, or when refresh_state() is called
         self._LISTENERS = {}
         # create empty dictionary of handlers (indexed by (channel,cc) tuples)
         # used to handle incoming MIDI CC messages that control a property
