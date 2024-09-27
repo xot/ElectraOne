@@ -783,8 +783,6 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
                 break
         if (cur_cc14par_idx < len(cc14pars)) or (cur_cc7par_idx < len(cc7pars)):
             self.warning('Not all parameters could be mapped.')
-        if not DUMP: # no need to write this to the log if the same thing is dumped
-            self.debug(3,f'CC map constructed: { cc_map }')
         return cc_map
     
     def _parameter_sort_key(self,parameter):
@@ -871,6 +869,9 @@ class ElectraOneDumper(io.StringIO, ElectraOneBase):
         # this may modify the cc_map, to set the control indices for parameters
         # that need to use Ableton generated value strings.
         (self._preset_json, self._cc_map) = self._construct_json_preset(device_name, parameters, self._cc_map)
+        # dump CC map now (because constructing preset may change it still)
+        if not DUMP: # no need to write this to the log if the same thing is dumped
+            self.debug(3,f'CC map constructed: { self._cc_map }')
 
     def get_preset_info(self):
         """Return the constructed preset, LUA script and CC map as PresetInfo.
