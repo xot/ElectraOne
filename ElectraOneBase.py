@@ -836,14 +836,18 @@ class ElectraOneBase(Log):
            - maxlen: maximum length of result; int
            - result: longest prefix joined by commas; str
         """
+        self.debug(5,f'Join {l} until {maxlen}.')
         if maxlen == -1:
-            return ','.join(l) 
+            res = ','.join(l) 
         else:
             cut = 0
             while (cut < len(l)) and (maxlen - len(l[cut]) > 0):
-                maxlen = maxlen - len(l[cut])
+                maxlen = maxlen - len(l[cut]) - 1 # add the comma too!
                 cut += 1
-            return ','.join(l[:cut])            
+            res = ','.join(l[:cut])
+        self.debug(5,f'Join result is {len(res)} long.')
+        return res
+    
     
     def update_device_selector_for(self,idx,devicenames):
         """Set the device selector for the specified track.
@@ -853,7 +857,7 @@ class ElectraOneBase(Log):
         """
         # convert list of devicenames to a LUA style list
         # truncate devicenames to 13 characters
-        devicenames = [ f'"{n:1.13}"' for n in devicenames ]
+        devicenames = [ f'"{n[:13]}"' for n in devicenames ]
         # then join the elements, making sure the resulting string does not exceed
         # SYSEX_LUA_COMMAND_MAX_LENGTH
         namelist = self._join_until(devicenames,\
@@ -872,7 +876,7 @@ class ElectraOneBase(Log):
         # convert list of (name,color) tuples to a LUA style list
         # first convert list of tuples into list of strings for tuple
         # truncate clipnames to 13 characters
-        clipinfo = [ f'"{n:1.13}",{c}' for (n,c) in clipinfo ]
+        clipinfo = [ f'"{n[:13]}",{c}' for (n,c) in clipinfo ]
         # then join the elements, making sure the resulting string does not exceed
         # SYSEX_LUA_COMMAND_MAX_LENGTH
         clipinfo = self._join_until(clipinfo,\
