@@ -293,6 +293,9 @@ class ElectraOneBase(Log):
     # factor to compute timemout for lua script of certain length, in seconds/byte
     # (when fast uploading is enabled)
     LUA_LENGTH_TIMEOUT_FACTOR = 0.1
+
+    # maximum lenght of the LUA command string in the SysEx call lau command
+    SYSEX_LUA_COMMAND_MAX_LENGTH = -1
     
     def _configure_for_version(self, sw_version, hw_version):
         """Configure the remote script depending on the version of E1 attached
@@ -308,6 +311,10 @@ class ElectraOneBase(Log):
             # TODO: fixme
             ElectraOneBase.E1_DAW = (ElectraOneBase.REMOTE_SCRIPT_PATH.parts[2] == 'jhh')
             self.debug(1,f'E1_DAW = {ElectraOneBase.E1_DAW} ({ElectraOneBase.REMOTE_SCRIPT_PATH})')
+            if sw_version < (3,7,0):
+                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH = -1
+            else:
+                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH = 80
             # set hwardware dependent options
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
@@ -667,7 +674,10 @@ class ElectraOneBase(Log):
         """Send a LUA command to the E1.
            - command: the command to send; str
         """
-        self.debug(4,f'Sending LUA command {command}.')
+        self.debug(4,f'Sending LUA command {command} (length {len(command)}).')
+        assert (ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH == -1) or \
+            (len(command) <= ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH), \
+            f'LUA command too long.'
         # see https://docs.electra.one/developers/luaext.html
         sysex_command = (0x08, 0x0D)
         sysex_lua = self._ascii_bytes(command) 
@@ -717,6 +727,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Update label for track {idx} to {label}.')
         # execute command (defined in mixer preset)
         command = f'utl({idx},"{label}")'
+        # we assume label never exceeds SYSEX_LUA_COMMAND_MAX_LENGTH-8
         self._send_lua_command(command)
         
     def update_return_sends_labels(self, returnidx, label):
@@ -729,6 +740,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Update label for return track {returnidx} to {label}.')
         # execute command (defined in mixer preset)
         command = f'ursl({returnidx},"{label}")'
+        # we assume label never exceeds SYSEX_LUA_COMMAND_MAX_LENGTH-9
         self._send_lua_command(command)
         
     def set_mixer_visibility(self, tc, rc):
@@ -743,6 +755,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting mixer preset visibility: {tc} tracks and {rc} returns.')
         # execute command (defined in mixer preset)
         command = f'smv({tc},{rc})'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold two ints
         self._send_lua_command(command)
 
     def set_channel_eq_visibility_on_track(self,idx,flag):
@@ -757,6 +770,7 @@ class ElectraOneBase(Log):
           command = f'seqv({idx},true)'
         else:
           command = f'seqv({idx},false)'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
 
     def set_arm_visibility_on_track(self,idx,flag):
@@ -771,6 +785,7 @@ class ElectraOneBase(Log):
           command = f'sav({idx},true)'
         else:
           command = f'sav({idx},false)'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
         
     def set_tempo(self,valuestr):
@@ -780,6 +795,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the tempo string to {valuestr}.')
         # execute command (defined in mixer preset)
         command = f'st("{valuestr}")'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
         
     def set_position(self,valuestr):
@@ -789,6 +805,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the position string to {valuestr}.')
         # execute command (defined in mixer preset)
         command = f'sp("{valuestr}")'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
 
     def set_loop_start(self,valuestr):
@@ -798,6 +815,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the loop start string to {valuestr}.')
         # execute command (defined in mixer preset)
         command = f'ls("{valuestr}")'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
         
     def set_loop_length(self,valuestr):
@@ -807,8 +825,26 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the loop length string to {valuestr}.')
         # execute command (defined in mixer preset)
         command = f'll("{valuestr}")'
+        # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
-        
+
+    def _join_until(self,l,maxlen):
+        """Join the longest prefix of the list of strings into a single string
+           separated by commas, making sure the resulting string is not longer
+           than maxlen (no limit if maxlen == -1)
+           - l: list of strings; [str]
+           - maxlen: maximum length of result; int
+           - result: longest prefix joined by commas; str
+        """
+        if maxlen == -1:
+            return ','.join(l) 
+        else:
+            cut = 0
+            while (cut < len(l)) and (maxlen - len(l[cut]) > 0):
+                maxlen = maxlen - len(l[cut])
+                cut += 1
+            return ','.join(l[:cut])            
+    
     def update_device_selector_for(self,idx,devicenames):
         """Set the device selector for the specified track.
            - idx: index of the track (starting at 0;
@@ -816,24 +852,34 @@ class ElectraOneBase(Log):
            - devicename: list of devicenames on this track; [str]
         """
         # convert list of devicenames to a LUA style list
-        devicenames = [ f'"{n}"' for n in devicenames ]
-        namelist='{' + ','.join(devicenames) + '}'
+        # truncate devicenames to 13 characters
+        devicenames = [ f'"{n:1.13}"' for n in devicenames ]
+        # then join the elements, making sure the resulting string does not exceed
+        # SYSEX_LUA_COMMAND_MAX_LENGTH
+        namelist = self._join_until(devicenames,\
+                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len('oc(0,{})'))
         self.debug(4,f'Setting the device selector for track/return/master {idx} to {namelist}.')
         # execute command (defined in mixer preset)
-        command = f'oc({idx},{namelist})'
+        command = f'oc({idx},{{{namelist}}})' # {{ adds a {
         self._send_lua_command(command)
         
     def update_session_control(self,idx,clipinfo):
         """Update the session control matrix for the specified track.
            - idx: index of the track (starting at 0;
-           - clipinfo: list of names and colors for each slot, all as strings
-               (names must be strins including ")
+           - clipinfo: list of (name,color) string tuples, one for each slot
+               (colour '0' and name '' indicate an empty clip slot
         """
-        # convert list of devicenames to a LUA style list
-        clipinfo='{' + ','.join(clipinfo) + '}'
+        # convert list of (name,color) tuples to a LUA style list
+        # first convert list of tuples into list of strings for tuple
+        # truncate clipnames to 13 characters
+        clipinfo = [ f'"{n:1.13}",{c}' for (n,c) in clipinfo ]
+        # then join the elements, making sure the resulting string does not exceed
+        # SYSEX_LUA_COMMAND_MAX_LENGTH
+        clipinfo = self._join_until(clipinfo,\
+                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len('scu(0,{})'))
         self.debug(4,f'Setting the session control matrix to {clipinfo}.')
         # execute command (defined in mixer preset)
-        command = f'scu({idx},{clipinfo})'
+        command = f'scu({idx},{{{clipinfo}}})' # {{ adds a {
         self._send_lua_command(command)
         
     def send_value_update(self, cid, vid, valuestr):
