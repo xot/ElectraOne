@@ -830,13 +830,13 @@ class ElectraOneBase(Log):
 
     def _join_until(self,l,maxlen):
         """Join the list of strings into strings each no longer than maxlen, 
-           separated by commas; (no limit if maxlen == -1)
+           separated by commas; (no limit if maxlen < 0)
            - l: list of strings; [str]
            - maxlen: maximum length of result; int
            - result: list of strings; [str]
         """
         self.debug(5,f'Join {l} using {maxlen}.')
-        if maxlen == -1:
+        if maxlen < 0:
             res = [ ','.join(l) ]
         else:
             res = []
