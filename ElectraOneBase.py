@@ -828,30 +828,36 @@ class ElectraOneBase(Log):
         # we assume SYSEX_LUA_COMMAND_MAX_LENGTH is big enought to hold this
         self._send_lua_command(command)
 
-    def _join_until(self,l,maxlen):
-        """Join the list of strings into strings each no longer than maxlen, 
-           separated by commas; (no limit if maxlen < 0)
+    def _join_lua_list_chunks(self,l,prefix):
+        """Join the list of strings into strings using commas, each no longer
+           than SYSEX_LUA_COMMAND_MAX_LENGTH - len(prefix);
+           (no limit if maxlen < SYSEX_LUA_COMMAND_MAX_LENGTH)
            - l: list of strings; [str]
-           - maxlen: maximum length of result; int
+           - prefix: prefix; length of which to subtract from maximum length; int
            - result: list of strings; [str]
         """
-        self.debug(5,f'Join {l} using {maxlen}.')
-        if maxlen < 0:
+        if ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH < 0:
             res = [ ','.join(l) ]
         else:
+            maxlen = ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len(prefix)
+            self.debug(5,f'Join {l} using {maxlen}.')
             res = []
-            while len(l) > 0:
-                cut = 0
-                curlen = 0
-                while (cut < len(l)) and (curlen + len(l[cut]) <= maxlen):
-                    curlen = curlen + len(l[cut]) + 1 # add the comma too!
-                    cut += 1
-                s = ','.join(l[:cut])
-                l = l[cut:]
-                self.debug(5,f'Joining string of length {len(s)}.')
-                res.append(s)
+            i = 0
+            while i < len(l):
+                j = i
+                s = ''
+                while (j < len(l)) and (len(s) + len(l[j]) <= maxlen):
+                    s = s + ',' + l[j]
+                    j += 1
+                if j > i:
+                    self.debug(5,f'Joining string of length {len(s)-1}.')
+                    res.append(s[1:]) # skip first comma
+                    i = j
+                else:
+                    self.debug(5,f'String {l[i]} skipped (length {len(l[i])}).')
+                    i = j+1
         return res
-    
+
     def update_device_selector_for(self,idx,devicenames):
         """Set the device selector for the specified track.
            - idx: index of the track (starting at 0;
@@ -863,8 +869,7 @@ class ElectraOneBase(Log):
         strs = [ f'"{n[:14]}"' for n in devicenames ]
         # then join the elements, making sure the resulting strings do not
         # exceed SYSEX_LUA_COMMAND_MAX_LENGTH when sent later
-        chunks = self._join_until(strs,\
-                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len('oca({})'))
+        chunks = self._join_lua_list_chunks(strs,'oca({})')
         self.debug(4,f'Setting the device selector for track/return/master {idx} to {chunks}.')
         # execute commands (defined in mixer preset)
         # send namelist in chunks to handle SYSEX_LUA_COMMAND_MAX_LENGTH
@@ -888,8 +893,7 @@ class ElectraOneBase(Log):
         strs = [ f'"{n[:14]}",{c}' for (n,c) in clipinfo ]
         # then join the elements, making sure the resulting strings do not
         # exceed SYSEX_LUA_COMMAND_MAX_LENGTH when sent later
-        chunks = self._join_until(strs,\
-                ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len('scua({})'))
+        chunks = self._join_lua_list_chunks(strs,'scua({})')
         self.debug(4,f'Setting the session control matrix for track {idx} to {chunks}.')
         # execute commands (defined in mixer preset)
         # send clipinfo in chunks to handle SYSEX_LUA_COMMAND_MAX_LENGTH
