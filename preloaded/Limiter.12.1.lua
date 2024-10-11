@@ -21,6 +21,6 @@ end
 function domaximize(valueObject, value)
     gain:setVisible(value == 0)
     output:setVisible(value ~= 0)
-    threshold:setVisible(value == 0)
-    ceiling:setVisible(value ~= 0)
+    ceiling:setVisible(value == 0)
+    threshold:setVisible(value ~= 0)
 end
