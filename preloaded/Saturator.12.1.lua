@@ -1,0 +1,15 @@
+drive = controls.get(14)
+curve = controls.get(11)
+depth = controls.get(13)
+lin = controls.get(15)
+damp = controls.get(12)
+period = controls.get(16)
+
+function curvetype(valueObject, value)
+    drive:setVisible(value == 6)
+    curve:setVisible(value == 6)
+    depth:setVisible(value == 6)
+    lin:setVisible(value == 6)
+    damp:setVisible(value == 6)
+    period:setVisible(value == 6)
+end

@@ -38,6 +38,14 @@ function formatPercent (valueObject, value)
   return (string.format("%.1f %%",value/10))
 end
 
+function fmtSemiIntPercent (valueObject, value)
+  if (-100 < value) and (value < 100) then
+    return (string.format("%.1f %%",value/10))  
+  else
+    return (string.format("%.0f %%",value/10))
+  end
+end
+
 function formatIntPercent (valueObject, value)
   return (string.format("%.0f %%",value/10))
 end
