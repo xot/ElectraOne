@@ -1,0 +1,10 @@
+{'Device On': ((-1, 0),11,False,6)
+,'Delay': ((1, 0),11,True,0)
+,'Delay.1': ((-1, 0),11,False,5)
+,'Fall': ((-1, 0),11,True,1)
+,'Gain': ((6, 0),11,True,2)
+,'Rise': ((-1, 0),11,True,3)
+,'Delay Mode': ((-1, 0),11,False,4)
+,'Mix': ((-1, 0),11,False,7)
+,'Sidechain': ((-1, 0),11,False,8)
+}
