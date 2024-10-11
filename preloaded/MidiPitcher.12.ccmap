@@ -5,6 +5,7 @@
 ,'Range': ((-1, 0),11,True,2)
 ,'Mode': ((-1, 0),11,False,4)
 ,'Use Song Scale': ((-1, 0),11,False,8)
+,'Use Current Scale': ((-1, 0),11,False,8) # 12.1
 ,'Step Width': ((-1, 0),11,False,6)
 ,'Step Width Scale Degrees': ((-1, 0),11,False,7)
 }

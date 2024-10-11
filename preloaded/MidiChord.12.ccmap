@@ -26,5 +26,6 @@
 ,'Strum': ((20, 0),11,True,18)
 ,'Strum Tension': ((-1, 0),11,True,20)
 ,'Strum Crescendo': ((-1, 0),11,True,19)
-,'Use Song Scale': ((-1, 0),11,False,28)
+,'Use Song Scale': ((-1, 0),11,False,28) 
+,'Use Current Scale': ((-1, 0),11,False,28) # 12.1
 }

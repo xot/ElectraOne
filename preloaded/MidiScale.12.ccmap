@@ -2,6 +2,7 @@
 ,'Base': ((1, 0),11,True,0)
 ,'InternalScale': ((-1, 0),11,False,6)
 ,'Use Song Scale': ((-1, 0),11,False,19)
+,'Use Current Scale': ((-1, 0),11,False,19) # 12.1
 ,'Transpose': ((-1, 0),11,True,3)
 ,'Fold': ((-1, 0),11,False,5)
 ,'Lowest': ((5, 0),11,True,1)
