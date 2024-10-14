@@ -1,0 +1,13 @@
+{'Device On': ((-1, 0),11,False,4)
+,'Amp': ((1, 0),11,True,0)
+,'Clock type': ((-1, 0),11,False,3)
+,'PPQN': ((-1, 0),11,False,8)
+,'Clock': ((-1, 0),11,False,2)
+,'Transport': ((-1, 0),11,False,11)
+,'Division': ((-1, 0),11,False,5)
+,'Division.1': ((-1, 0),11,False,6)
+,'Swing': ((-1, 0),11,False,9)
+,'Trig Length': ((-1, 0),11,True,1)
+,'Mute': ((-1, 0),11,False,7)
+,'T. Trig/Gate': ((-1, 0),11,False,10)
+}
