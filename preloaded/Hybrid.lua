@@ -4,7 +4,7 @@ delayrate = controls.get(32)
 fbrate = controls.get(33)
 
 delayrate:setSlot(19,1)
-fbrate:setSlot(31,1)
+fbrate:setSlot(21,1)
 
 function sync(valueObject, value)
     delaytime:setVisible(value == 0)
