@@ -1,0 +1,10 @@
+{'Device On': ((-1, 0),11,False,6)
+,'Cents': ((-1, 0),11,True,0)
+,'Dry / Wet': ((-1, 0),11,True,1)
+,'Coarse': ((-1, 0),11,False,5)
+,'Level': ((6, 0),11,True,2)
+,'Rate': ((-1, 0),11,False,8)
+,'Recycle': ((-1, 0),11,True,3)
+,'Reverse': ((-1, 0),11,True,4)
+,'Int Var': ((-1, 0),11,False,7)
+}
