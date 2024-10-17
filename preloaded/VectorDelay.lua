@@ -1,7 +1,7 @@
 freq = controls.get(54)
 sync = controls.get(56)
 
-sync:setSlot(8,1)
+sync:setSlot(9,1)
 
 function dosync(valueObject, value)
     freq:setVisible(value == 0)
