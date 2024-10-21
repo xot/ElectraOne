@@ -273,7 +273,7 @@ class ElectraOneBase(Log):
     E1_DAW = False
 
     # Minimum timeout to wait for an ACK (in seconds)
-    MIN_TIMEOUT = 0.1
+    MIN_TIMEOUT = 1.0
 
     # Time to sleep between MIDI CC and LUA value update messages in normal mode
     MIDI_SLEEP = 0
@@ -319,18 +319,18 @@ class ElectraOneBase(Log):
             # TODO: set proper timings
             if hw_version >= (3,0): # mkII
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = (sw_version >= (3,4,0))
-                ElectraOneBase.MIN_TIMEOUT = 0.500 
+                ElectraOneBase.MIN_TIMEOUT = 1.0
                 ElectraOneBase.MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0 # 0.1 
                 ElectraOneBase.BURST_VALUE_UPDATE_SLEEP = 0
                 ElectraOneBase.BURST_ON_OFF_SLEEP = 0.1                 
                 ElectraOneBase.PRESET_LENGTH_TIMEOUT_FACTOR = 0.00003
-                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.00008
+                ElectraOneBase.LUA_LENGTH_TIMEOUT_FACTOR = 0.0001
                 self.show_message(f'E1 mk II, with firmware {sw_version} detected.')
             else: # mkI
                 ElectraOneBase.E1_PRELOADED_PRESETS_SUPPORTED = False
-                ElectraOneBase.MIN_TIMEOUT = 0.500
+                ElectraOneBase.MIN_TIMEOUT = 1.0
                 ElectraOneBase.MIDI_SLEEP = 0
                 ElectraOneBase.VALUE_UPDATE_SLEEP = 0 
                 ElectraOneBase.BURST_MIDI_SLEEP = 0
