@@ -839,7 +839,7 @@ class ElectraOneBase(Log):
         if ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH < 0:
             res = [ ','.join(l) ]
         else:
-            maxlen = ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len(prefix)
+            maxlen = ElectraOneBase.SYSEX_LUA_COMMAND_MAX_LENGTH - len(prefix) - 1
             self.debug(5,f'Join {l} using {maxlen}.')
             res = []
             i = 0
@@ -873,7 +873,7 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the device selector for track/return/master {idx} to {chunks}.')
         # execute commands (defined in mixer preset)
         # send namelist in chunks to handle SYSEX_LUA_COMMAND_MAX_LENGTH
-        command = f'oci()' 
+        command = f'oci({idx})' 
         self._send_lua_command(command)
         for chunk in chunks:
             command = f'oca({{{chunk}}})' # {{ adds a {
@@ -897,13 +897,11 @@ class ElectraOneBase(Log):
         self.debug(4,f'Setting the session control matrix for track {idx} to {chunks}.')
         # execute commands (defined in mixer preset)
         # send clipinfo in chunks to handle SYSEX_LUA_COMMAND_MAX_LENGTH
-        command = f'scui()'
+        command = f'scui({idx})'
         self._send_lua_command(command)
         for chunk in chunks:
             command = f'scua({{{chunk}}})' # {{ adds a {
             self._send_lua_command(command)
-        command = f'scud({idx})' 
-        self._send_lua_command(command)
         
     def send_value_update(self, cid, vid, valuestr):
         """Send a value update for a control in the currently displayed patch
