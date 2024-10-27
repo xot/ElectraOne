@@ -40,7 +40,7 @@ lfospin:setSlot(15,1)
 lfowidth = controls.get(16)
 lfoduty = controls.get(15)
 
-lfowidth:setSlot(4,1)
+lfowidth:setSlot(15,1)
 
 envamounthz = controls.get(12)
 envamountst = controls.get(11)
