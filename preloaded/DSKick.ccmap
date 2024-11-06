@@ -1,0 +1,11 @@
+{'Device On': ((-1, 0),11,False,8)
+,'Attack': ((-1, 0),11,True,0)
+,'Decay': ((-1, 0),11,True,1)
+,'Env': ((-1, 0),11,True,2)
+,'overdrive': ((-1, 0),11,True,6)
+,'Overtone': ((-1, 0),11,True,3)
+,'PhaseReset': ((-1, 0),11,False,9)
+,'Pitch': ((-1, 0),11,True,4)
+,'Volume': ((9, 0),11,True,5)
+,'Click': ((-1, 0),11,False,7)
+}

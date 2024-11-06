@@ -1,0 +1,8 @@
+{'Device On': ((-1, 0),11,False,4)
+,'Color': ((-1, 0),11,False,3)
+,'Decay': ((-1, 0),11,True,0)
+,'Filter': ((-1, 0),11,False,5)
+,'Tone': ((-1, 0),11,False,6)
+,'Tune': ((-1, 0),11,True,1)
+,'Volume': ((7, 0),11,True,2)
+}

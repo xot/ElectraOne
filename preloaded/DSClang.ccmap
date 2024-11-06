@@ -1,0 +1,11 @@
+{'Device On': ((-1, 0),11,False,9)
+,'1st Tone': ((-1, 0),11,True,0)
+,'2nd Tone': ((-1, 0),11,True,1)
+,'ClaveRepeat': ((-1, 0),11,True,2)
+,'Decay': ((-1, 0),11,True,3)
+,'Filter': ((-1, 0),11,True,4)
+,'Noise': ((-1, 0),11,True,5)
+,'Pitch': ((-1, 0),11,True,6)
+,'Volume': ((10, 0),11,True,7)
+,'Clave': ((-1, 0),11,False,8)
+}

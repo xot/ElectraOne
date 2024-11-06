@@ -1,0 +1,9 @@
+{'Device On': ((-1, 0),11,False,4)
+,'Attack': ((-1, 0),11,True,0)
+,'Decay': ((-1, 0),11,True,1)
+,'Slope': ((-1, 0),11,False,6)
+,'Noise': ((-1, 0),11,False,5)
+,'Pitch': ((-1, 0),11,True,2)
+,'Tone': ((-1, 0),11,False,7)
+,'Volume': ((8, 0),11,True,3)
+}
