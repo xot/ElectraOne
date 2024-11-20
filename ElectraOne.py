@@ -41,6 +41,11 @@ class ElectraOne(ElectraOneBase):
     """
             
     def __init__(self, c_instance):
+        """Initialise.
+           - c_instance: Live interface object (see __init.py__) that 
+             provides access to Live: the log file, the midi map, and 
+             the current song (and through that all devices and mixers)
+        """
         # make sure that all configuration constants make sense
         check_configuration()
         ElectraOneBase.__init__(self, c_instance)
@@ -210,7 +215,7 @@ class ElectraOne(ElectraOneBase):
         # Weird; why is Ableton relegating this to the script?
         if self.is_ready():
             self.debug(0,'Main toggle lock called.') 
-            self.get_c_instance().toggle_lock()
+            self.toggle_lock()
         else:
             self.debug(0,'Main toggle lock ignored because E1 not ready.') 
 
@@ -358,7 +363,7 @@ class ElectraOne(ElectraOneBase):
             if self._effect_controller:
                 self._effect_controller.build_midi_map(midi_map_handle)
             if self._mixer_controller:
-                self._mixer_controller.build_midi_map(self.get_c_instance().handle(),midi_map_handle)
+                self._mixer_controller.build_midi_map(self.script_handle(),midi_map_handle)
             self.refresh_state()
         else:
             self.debug(0,'Main build midi map ignored because E1 not ready.')

@@ -86,7 +86,8 @@ class MixerController(ElectraOneBase):
         """
         self.debug(5,'Checking visible tracks/chains change.')
         # test if visible torcs have changed
-        old_visible_torcs_by_name = [torc.name for torc in self._visible_torcs]
+        # Note: tracks may hav been deleted after self._visible_torcs was set
+        old_visible_torcs_by_name = [torc.name for torc in self._visible_torcs if torc != None]
         visible_torcs = self.get_visible_torcs()
         current_visible_torcs_by_name = [torc.name for torc in visible_torcs]
         if old_visible_torcs_by_name != current_visible_torcs_by_name:
@@ -204,7 +205,7 @@ class MixerController(ElectraOneBase):
             for i in track_range ]
         self.show_message(f'E1 managing tracks { self._first_track_index+1 } - { last_track_index }.')
         if ElectraOneBase.E1_DAW and (NO_OF_SESSION_ROWS > 0) :
-            self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), NO_OF_SESSION_ROWS, True)
+            self.set_session_highlight(self._first_track_index, self._first_row_index, len(track_range), NO_OF_SESSION_ROWS, True)
 
     def _handle_visible_tracks_change(self):
         """Call this whenever the current set of visible tracks changes.
@@ -255,7 +256,7 @@ class MixerController(ElectraOneBase):
         """Update the clip information in the session control page.
         """
         self.debug(2,'Refreshing session control clip information .')
-        self.get_c_instance().set_session_highlight(self._first_track_index, self._first_row_index, len(self._track_controllers), 5, True)
+        self.set_session_highlight(self._first_track_index, self._first_row_index, len(self._track_controllers), 5, True)
         for tc in self._track_controllers:
             tc._first_row_index = self._first_row_index
             tc._refresh_clips()
