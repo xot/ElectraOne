@@ -45,6 +45,7 @@ class MixerController(ElectraOneBase):
         self._first_track_index = 0
         # list of currently visible torcs (tracks or chains)
         self._visible_torcs = self.get_visible_torcs()
+        self._visible_torcs_by_name = [torc.name for torc in self._visible_torcs]
         # initialise session control first clip row
         # (passed to track controllers later)
         self._first_row_index = 0
@@ -86,12 +87,11 @@ class MixerController(ElectraOneBase):
         """
         self.debug(5,'Checking visible tracks/chains change.')
         # test if visible torcs have changed
-        # Note: tracks may hav been deleted after self._visible_torcs was set
-        old_visible_torcs_by_name = [torc.name for torc in self._visible_torcs if torc != None]
         visible_torcs = self.get_visible_torcs()
         current_visible_torcs_by_name = [torc.name for torc in visible_torcs]
-        if old_visible_torcs_by_name != current_visible_torcs_by_name:
+        if self._visible_torcs_by_name != current_visible_torcs_by_name:
             self._visible_torcs = visible_torcs
+            self._visible_torcs_by_name = current_visible_torcs_by_name            
             self._handle_visible_tracks_change()
             
     # --- interface ---
@@ -242,6 +242,7 @@ class MixerController(ElectraOneBase):
         self._remap_return_tracks()
         # update the list of visible tracks or chains
         self._visible_torcs = self.get_visible_torcs()
+        self._visible_torcs_by_name = [torc.name for torc in self._visible_torcs]
         # TODO: unfortunately, even if tracks are added/removed or
         # folded/expanded that would not alter the visibility of the tracks
         # currently shown in the mixer, the mixer is still updated and may show
